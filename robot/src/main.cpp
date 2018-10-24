@@ -3,6 +3,9 @@
 
 MasterConfig gMasterConfig;
 
+/*!
+ * Print a message describing the command line flags for the robot program
+ */
 void printUsage() {
   printf("Usage: robot [robot-id] [sim-or-robot]\n\twhere robot-id:     3 for cheetah 3, m for mini-cheetah\n\t      sim-or-robot: s for sim, r for robot\n");
 }
@@ -34,8 +37,5 @@ int main(int argc, char** argv) {
 
   printf("[Startup] Cheetah Software\n");
 
-
-
-  std::cout << "Hello, World!" << std::endl;
   return 0;
 }

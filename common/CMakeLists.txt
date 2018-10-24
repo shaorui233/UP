@@ -35,7 +35,7 @@ file(GLOB sources "src/*.cpp")
 file(GLOB test_sources "test/*.cpp")
 
 # Library
-add_library(biomimetics STATIC ${sources} include/Types.h)
+add_library(biomimetics STATIC ${sources} include/Types.h include/cTypes.h)
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
