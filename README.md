@@ -6,17 +6,17 @@ The robot folder will contain the robot program
 The sim folder will contain the simulation program. It is the only program which depends on QT.
 The third-party will contain *small* third party libraries that we have modified. This should just be libsoem for Cheetah 3, which Pat modified at one point.
 
-So far, only the common library has been started.  To build it:
-
+To build all code:
 ```
-cd common
 mkdir build
 cd build
 cmake ..
-make -j4 # the first compilation will be slow: it also builds the large testing framework
+make -j4
 ```
 
-Part of this build process will automatically download the gtest software testing framework and sets it up. After it is done building, it will produce a `libbiomimetics.a` static library and an executable `test-common`.  Run the tests with `./test-common`. This output should hopefully end with
+To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`. (currently the simulator and robot are just empty projects).
+
+Part of this build process will automatically download the gtest software testing framework and sets it up. After it is done building, it will produce a `libbiomimetics.a` static library and an executable `test-common`.  Run the tests with `common/test-common`. This output should hopefully end with
 
 ```
 [----------] Global test environment tear-down
@@ -25,5 +25,3 @@ Part of this build process will automatically download the gtest software testin
 ```
 
 
-
-Eventually, the build process will be set up so that building either the simulator or robot will cause the common library to be built and tested automatically.

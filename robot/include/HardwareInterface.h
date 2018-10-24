@@ -1,0 +1,10 @@
+#ifndef PROJECT_HARDWAREINTERFACE_H
+#define PROJECT_HARDWAREINTERFACE_H
+
+
+class HardwareInterface {
+
+};
+
+
+#endif //PROJECT_HARDWAREINTERFACE_H

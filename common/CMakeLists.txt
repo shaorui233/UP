@@ -30,12 +30,12 @@ endif()
 
 # Source files
 include_directories(".")
-include_directories("src/" )
+include_directories("include/" )
 file(GLOB sources "src/*.cpp")
 file(GLOB test_sources "test/*.cpp")
 
 # Library
-add_library(biomimetics STATIC ${sources})
+add_library(biomimetics STATIC ${sources} include/Types.h)
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
