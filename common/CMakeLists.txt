@@ -31,6 +31,7 @@ endif()
 # Source files
 include_directories(".")
 include_directories("include/" )
+include_directories("/usr/local/include/lcm/")
 file(GLOB sources "src/*.cpp")
 file(GLOB test_sources "test/*.cpp")
 
@@ -39,5 +40,5 @@ add_library(biomimetics STATIC ${sources} include/Types.h include/cTypes.h)
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main)
+target_link_libraries(test-common gtest gmock_main lcm)
 add_test(NAME example_test COMMAND test-common)

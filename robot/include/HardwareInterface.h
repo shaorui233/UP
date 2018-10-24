@@ -3,7 +3,12 @@
 
 
 class HardwareInterface {
-
+public:
+  HardwareInterface();
+  void prefaultStack();
+  void setupRT();
+private:
+  int _pipeFD[2];
 };
 
 

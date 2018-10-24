@@ -14,7 +14,9 @@ cmake ..
 make -j4
 ```
 
-To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`. (currently the simulator and robot are just empty projects).
+This build process builds the common library, robot code, and simulator. If you just change robot code, you can simply run `make -j4` again. If you change LCM types, you'll need to run `cmake ..; make -j4`. This automatically runs `make_types.sh`.
+
+To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`.
 
 Part of this build process will automatically download the gtest software testing framework and sets it up. After it is done building, it will produce a `libbiomimetics.a` static library and an executable `test-common`.  Run the tests with `common/test-common`. This output should hopefully end with
 
@@ -23,5 +25,4 @@ Part of this build process will automatically download the gtest software testin
 [==========] 18 tests from 3 test cases ran. (0 ms total)
 [  PASSED  ] 18 tests.
 ```
-
 
