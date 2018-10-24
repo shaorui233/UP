@@ -9,5 +9,5 @@ include_directories("include/" )
 include_directories("../common/include/")
 file(GLOB sources "src/*.cpp")
 
-add_executable(robot ${sources} include/main.h src/HardwareInterface.cpp src/HardwareInterface.h)
+add_executable(robot ${sources})
 target_link_libraries(robot biomimetics)

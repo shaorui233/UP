@@ -1,3 +1,10 @@
 build/
 cmake-build-debug/
 .idea/
+lcm-types/cheetahlcm
+lcm-types/c_lcm_files
+lcm-types/controllerlcm
+lcm-types/interfacelcm
+lcm-types/java
+lcm-types/simulatorlcm
+lcm-types/wincontrollerlcm
