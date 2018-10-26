@@ -73,16 +73,22 @@ void FloatingBaseModel<T>::addBase(T mass, const Vec3 <T> &com, const Mat3 <T> &
  * Add a ground contact point to a model
  * @param bodyID The ID of the body containing the contact point
  * @param location The location (in body coordinate) of the contact point
+ * @param isFoot True if foot or not.
  * @return The ID of the ground contact point
  */
 template<typename T>
-int FloatingBaseModel<T>::addGroundContactPoint(int bodyID, const Vec3 <T> &location) {
-  if(bodyID >= _nDof) {
+int FloatingBaseModel<T>::addGroundContactPoint(int bodyID, const Vec3 <T> &location, bool isFoot) {
+  if((size_t)bodyID >= _nDof) {
     throw std::runtime_error("addGroundContactPoint got invalid bodyID: " + std::to_string(bodyID) + " nDofs: " + std::to_string(_nDof) + "\n");
   }
 
   _gcParent.push_back(bodyID);
   _gcLocation.push_back(location);
+
+  // add foot to foot list
+  if(isFoot) {
+    _footIndicesGC.push_back(_nGroundContact);
+  }
 
   return _nGroundContact++;
 }
@@ -119,7 +125,7 @@ template<typename T>
 int FloatingBaseModel<T>::addBody(const SpatialInertia<T> &inertia, const SpatialInertia<T> &rotorInertia, T gearRatio,
                                    int parent, JointType jointType, CoordinateAxis jointAxis, const Mat6<T> &Xtree,
                                    const Mat6<T> &Xrot) {
-  if(parent >= _nDof) {
+  if((size_t)parent >= _nDof) {
     throw std::runtime_error("addBody got invalid parent: " + std::to_string(parent) + " nDofs: " + std::to_string(_nDof) + "\n");
   }
   _parents.push_back(parent);
@@ -152,6 +158,38 @@ int FloatingBaseModel<T>::addBody(const MassProperties<T> &inertia, const MassPr
                                   const Mat6<T> &Xrot) {
   return addBody(SpatialInertia<T>(inertia), SpatialInertia<T>(rotorInertia), gearRatio, parent, jointType, jointAxis,
           Xtree, Xrot);
+}
+
+template<typename T>
+void FloatingBaseModel<T>::check() {
+  if(_nDof != _parents.size())
+    throw std::runtime_error("Invalid dof and parents length");
+}
+
+/*!
+ * Compute the total mass of bodies which are not rotors.
+ * @return
+ */
+template<typename T>
+T FloatingBaseModel<T>::totalNonRotorMass() {
+  T totalMass = 0;
+  for(size_t i = 0; i < _nDof; i++) {
+    totalMass += _Ibody[i].getMass();
+  }
+  return totalMass;
+}
+
+/*!
+ * Compute the total mass of bodies which are not rotors
+ * @return
+ */
+template<typename T>
+T FloatingBaseModel<T>::totalRotorMass() {
+  T totalMass = 0;
+  for(size_t i = 0; i < _nDof; i++) {
+    totalMass += _Irot[i].getMass();
+  }
+  return totalMass;
 }
 
 template class FloatingBaseModel<double>;

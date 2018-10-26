@@ -82,6 +82,8 @@ namespace ori {
     return true;
   }
 
+
+
   /*!
    * Compute rotation matrix for coordinate transformation. Note that coordinateRotation(CoordinateAxis:X, .1) * v
    * will rotate v by -.1 radians - this transforms into a frame rotated by .1 radians!.

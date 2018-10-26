@@ -35,7 +35,7 @@ public:
   FloatingBaseModel() : _gravity(0,0,-9.81) {}
   void addBase(const SpatialInertia<T>& inertia);
   void addBase(T mass, const Vec3<T>& com, const Mat3<T>& I);
-  int addGroundContactPoint(int bodyID, const Vec3<T>& location);
+  int addGroundContactPoint(int bodyID, const Vec3<T>& location, bool isFoot = false);
   void addGroundContactBoxPoints(int bodyId, const Vec3<T>& dims);
 
   int addBody(const SpatialInertia<T>& inertia, const SpatialInertia<T>& rotorInertia, T gearRatio,
@@ -43,6 +43,23 @@ public:
 
   int addBody(const MassProperties<T>& inertia, const MassProperties <T>& rotorInertia, T gearRatio,
               int parent, JointType jointType, CoordinateAxis jointAxis, const Mat6<T>& Xtree, const Mat6<T>& Xrot);
+
+  void check();
+
+  T totalRotorMass();
+  T totalNonRotorMass();
+
+  const std::vector<int>& getParentVector() {
+    return _parents;
+  }
+
+  const std::vector<SpatialInertia<T>, Eigen::aligned_allocator<Mat6<T>>>& getBodyInertiaVector() {
+    return _Ibody;
+  }
+
+  const std::vector<SpatialInertia<T>, Eigen::aligned_allocator<Mat6<T>>>& getRotorInertiaVector() {
+    return _Irot;
+  }
 
   /*!
    * Set the gravity
@@ -52,7 +69,7 @@ public:
   }
 
 private:
-  int _nDof = 0;
+  size_t _nDof = 0;
   Vec3 <T> _gravity;
   vector<int> _parents;
   vector<int> _gearRatios;
@@ -65,6 +82,7 @@ private:
   int _nGroundContact = 0;
   vector<int> _gcParent;
   vector<Vec3<T>> _gcLocation;
+  vector<uint64_t> _footIndicesGC;
 
 };
 

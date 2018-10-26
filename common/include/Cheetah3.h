@@ -121,9 +121,17 @@ FloatingBaseModel<T> buildCheetah3() {
   cheetah._kneeRotorInertia = SpatialInertia<T>(kneeRotorMassProperties);
 
   // this doesn't generalize to the mini cheetah
-  cheetah._abadLocation = Vec3<T>(cheetah._bodyLength, -cheetah._bodyWidth, 0) * 0.5;
+  cheetah._abadLocation = Vec3<T>(cheetah._bodyLength, cheetah._bodyWidth, 0) * 0.5;
 
-  // note that this is wrong TODO fix!
+  // note that this is wrong to match a small bug in the actual simulator, just to test that I get the right answer. TODO fix!
+  cheetah._abadRotorLocation = Vec3<T>(0, -cheetah._bodyWidth/2., 0);
+
+  cheetah._hipLocation = Vec3<T>(0, cheetah._abadLinkLength, 0);
+  cheetah._hipRotorLocation = Vec3<T>(0, cheetah._abadLinkLength, 0);
+  cheetah._kneeLocation = Vec3<T>(0, 0, -cheetah._hipLinkLength);
+  cheetah._kneeRotorLocation = Vec3<T>(0,0,0);
+
+
 
 
 

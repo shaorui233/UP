@@ -38,7 +38,5 @@ find_package(Qt5Gamepad REQUIRED)
 
 
 
-
-
 add_executable(sim ${sources} ${tst_hdr_moc})
 target_link_libraries(sim biomimetics pthread lcm Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Gamepad ${QT_LIBRARIES})

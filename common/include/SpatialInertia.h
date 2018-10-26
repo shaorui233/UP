@@ -96,7 +96,7 @@ public:
   /*!
    * Get 6x6 spatial inertia
    */
-  Mat6<T>& getMatrix() {
+  const Mat6<T>& getMatrix() const {
     return _inertia;
   }
 

@@ -32,9 +32,12 @@ public:
   T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
   T _abadLinkLength, _hipLinkLength, _kneeLinkLenght;
   SpatialInertia<T> _abadInertia, _hipInertia, _kneeInertia, _abadRotorInertia, _hipRotorInertia, _kneeRotorInertia;
-  Vec3<T> _abadLocation, _abadRotorLocation;
+  Vec3<T> _abadLocation, _abadRotorLocation, _hipLocation, _hipRotorLocation, _kneeLocation, _kneeRotorLocation;
   FloatingBaseModel<T> buildModel();
 };
+
+template<typename T, typename T2>
+Vec3<T> withLegSigns(const Eigen::MatrixBase<T2>& v, int legID);
 
 
 
