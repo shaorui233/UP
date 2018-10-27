@@ -22,7 +22,7 @@ template<typename T>
 class DynamicsSimulator {
 public:
   DynamicsSimulator(FloatingBaseModel<T>& model); //! Initialize simulator with given model
-  void step(T dt, const DVec<T>& tau, const ForceList<T>* externalForces = nullptr); //! Simulate forward one step
+  void step(T dt, const DVec<T>& tau); //! Simulate forward one step
   void runABA(const DVec<T>& tau); //! Find _dstate with the articulated body algorithm
 
   /*!
@@ -48,11 +48,28 @@ public:
     return _dstate;
   }
 
+  /*!
+   * Add external forces. These are added on top of the ground reaction forces
+   * The i-th force is the spatial force applied to body i.
+   */
+  void setAllExternalForces(const ForceList<T>& forces) {
+    _externalForces = forces;
+  }
+
+  /*!
+   * Reset any external forces
+   */
+  void resetExternalForces() {
+    for(size_t i = 0; i < _nb; i++) {
+      _externalForces[i] = SVec<T>::Zero();
+    }
+  }
+
 private:
   void updateCollisions(); //! Update ground collision list
   void updateGroundForces(); //! Compute ground reaction forces
 
-  void integrate(); //! Integrate to find new _state
+  void integrate(T dt); //! Integrate to find new _state
 
   FBModelState<T> _state;
   FBModelStateDerivative<T> _dstate;
@@ -66,7 +83,7 @@ private:
   size_t _nb;
 
 
-  const ForceList<T> *_externalForces = nullptr;
+  ForceList<T> _externalForces;
 };
 
 

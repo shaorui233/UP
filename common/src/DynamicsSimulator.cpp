@@ -11,6 +11,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
 
   // allocate matrices
   _Xup.resize(_nb);
+  _Xa.resize(_nb);
   _Xuprot.resize(_nb);
   _IA.resize(_nb);
   _v.resize(_nb);
@@ -31,6 +32,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   // set stuff for 0:5
   for(size_t i = 0; i < 6; i++) {
     _Xup[i] = Mat6<T>::Identity();
+    _Xa[i] = Mat6<T>::Identity();
     _Xuprot[i] = Mat6<T>::Identity();
     _v[i] = SVec<T>::Zero();
     _vrot[i] = SVec<T>::Zero();
@@ -51,35 +53,63 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   _state.bodyVelocity = SVec<T>::Zero();
   _state.bodyPosition = Vec3<T>::Zero();
   _state.bodyOrientation = Quat<T>::Zero();
-  // this is a hack to get tests to run for now
-  _state.q = DVec<T>::Zero(12);
-  _state.qd = DVec<T>::Zero(12);
+  _state.q = DVec<T>::Zero(_nb - 6);
+  _state.qd = DVec<T>::Zero(_nb - 6);
+
+  _externalForces.resize(_nb);
+  for(size_t i = 0; i < _nb; i++) {
+    _externalForces[i] = SVec<T>::Zero();
+  }
 }
 
 template <typename T>
-void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau, const ForceList<T> *externalForces) {
-  (void)dt;
-  _externalForces = externalForces;
+void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
 
   updateCollisions();
   updateGroundForces();
   runABA(tau);
-  integrate();
+  integrate(dt);
 }
 
 template <typename T>
 void DynamicsSimulator<T>::updateCollisions() {
-
+ // TODO
 }
 
 template <typename T>
 void DynamicsSimulator<T>::updateGroundForces() {
-
+ // TODO
 }
 
 template <typename T>
-void DynamicsSimulator<T>::integrate() {
+void DynamicsSimulator<T>::integrate(T dt) {
 
+  Vec3<T> omegaBody = _dstate.dBaseVelocity.template block<3,1>(3,0);
+  Mat6<T> X = createSXform(quaternionToRotationMatrix(_state.bodyOrientation).transpose(), _state.bodyPosition);
+  RotMat<T> R = rotationFromSXform(X);
+  Vec3<T> omega0 = R.transpose() * omegaBody;
+  Vec3<T> axis;
+  T ang = omega0.norm();
+  if(ang > 0) {
+    axis = omega0 / ang;
+  } else {
+    axis = Vec3<T>(1,0,0);
+  }
+
+  ang *= dt;
+  Vec3<T> ee = std::sin(ang/2) * axis;
+  Quat<T> quatD(std::cos(ang), ee[0], ee[1], ee[2]);
+
+
+  Quat<T> quatNew = quatProduct(quatD, _state.bodyOrientation);
+  quatNew = quatNew / quatNew.norm();
+
+  // actual integration
+  _state.q += _state.qd * dt;
+  _state.qd += _dstate.qdd * dt;
+  _state.bodyVelocity += _dstate.dBaseVelocity * dt;
+  _state.bodyPosition += _dstate.dBasePosition * dt;
+  _state.bodyOrientation = quatNew;
 }
 
 /*!
@@ -134,19 +164,17 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   }
 
   // adjust pA for external forces
-  if(_externalForces) {
-    for(size_t i = 5; i < _nb; i++) {
-      if(_model._parents[i] == 0) {
-        _Xa[i] = _Xup[i]; // float base
-      } else {
-        _Xa[i] = _Xup[i] * _Xa[_model._parents[i]];
-      }
-      // TODO add if statement
-      Mat3<T> R = rotationFromSXform(_Xa[i]);
-      Vec3<T> p = translationFromSXform(_Xa[i]);
-      Mat6<T> iX = createSXform(R.transpose(), - R * p);
-      _pA[i] = _pA[i] - iX.transpose() * _externalForces->at(i);
+  for (size_t i = 5; i < _nb; i++) {
+    if (_model._parents[i] == 0) {
+      _Xa[i] = _Xup[i]; // float base
+    } else {
+      _Xa[i] = _Xup[i] * _Xa[_model._parents[i]];
     }
+    // TODO add if statement (avoid these calculations if the force is zero)
+    Mat3<T> R = rotationFromSXform(_Xa[i]);
+    Vec3<T> p = translationFromSXform(_Xa[i]);
+    Mat6<T> iX = createSXform(R.transpose(), -R * p);
+    _pA[i] = _pA[i] - iX.transpose() * _externalForces.at(i);
   }
 
   // Pat's magic principle of least constraint
@@ -166,7 +194,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
     _pA[_model._parents[i]] += pa;
   }
 
-
   // include gravity and compute acceleration of floating base
   SVec<T> a0 = -aGravity;
   SVec<T> ub = -_pA[5];
@@ -183,6 +210,7 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
 
   // output
   RotMat<T> Rup = rotationFromSXform(_Xup[5]);
+  // TODO : I think this is wrong (and probably unused, as a result)
   _dstate.dQuat = quatDerivative(_state.bodyOrientation, _state.bodyVelocity.template block<3,1>(0,0));
   _dstate.dBasePosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
   _dstate.dBaseVelocity = afb;

@@ -77,3 +77,10 @@ TEST(Orienation, quaternionDerivative) {
   Quat<double> q = quatDerivative(Quat<double>(1,2,3,4), Vec3<double>(1,2,3));
   EXPECT_TRUE(almostEqual(q,ref,.0005));
 }
+
+TEST(Orientation, quaternionProduct) {
+  Quat<double> q1(1,2,3,4);
+  Quat<double> q2(5,6,7,8);
+  Quat<double> ref(-60, 12, 30, 24);
+  EXPECT_TRUE(almostEqual(ref, quatProduct(q1, q2), .0001));
+}

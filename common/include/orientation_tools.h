@@ -221,6 +221,22 @@ namespace ori {
     return dq;
   }
 
+  /*!
+   * Take the product of two quaternions
+   */
+  template<typename T>
+  Quat<typename T::Scalar> quatProduct(const Eigen::MatrixBase<T>& q1, const Eigen::MatrixBase<T>& q2) {
+    typename T::Scalar r1 = q1[0];
+    typename T::Scalar r2 = q2[0];
+    Vec3<typename T::Scalar> v1(q1[1], q1[2], q1[3]);
+    Vec3<typename T::Scalar> v2(q2[1], q2[2], q2[3]);
+
+    typename T::Scalar r = r1 * r2 - v1.dot(v2);
+    Vec3<typename T::Scalar> v = r1 * v2 + r2*v1 + v1.cross(v2);
+    Quat<typename T::Scalar> q(r, v[0], v[1], v[2]);
+    return q;
+  }
+
 }
 
 
