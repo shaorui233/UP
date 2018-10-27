@@ -1,6 +1,9 @@
-//
-// Created by jared on 10/12/18.
-//
+/*! @file spatial.h
+ *  @brief Utility functions for manipulating spatial quantities
+ *
+ *  This file contains functions for working with spatial vectors and transformation matrices.
+ */
+
 
 #ifndef LIBBIOMIMETICS_SPATIAL_H
 #define LIBBIOMIMETICS_SPATIAL_H
@@ -11,20 +14,6 @@
 #include <orientation_tools.h>
 #include <iostream>
 
-template<typename T>
-using SVec = typename Eigen::Matrix<T, 6, 1>;
-
-template<typename T>
-using SXform = typename Eigen::Matrix<T, 6, 6>;
-
-template<typename T>
-using Mat6 = typename Eigen::Matrix<T, 6, 6>;
-
-template<typename T>
-using Mat4 = typename Eigen::Matrix<T, 4, 4>;
-
-template<typename T>
-using MassProperties = typename Eigen::Matrix<T, 10, 1>;
 
 namespace spatial {
   using namespace ori;
@@ -194,6 +183,8 @@ namespace spatial {
       phi.template bottomLeftCorner<3,1>() = v;
     else if(joint == JointType::Revolute)
       phi.template topLeftCorner<3,1>() = v;
+    else
+      throw std::runtime_error("Unknown motion subspace");
 
     return phi;
   }
@@ -213,6 +204,8 @@ namespace spatial {
       else if(axis == CoordinateAxis::Z) v(2) = q;
 
       X = createSXform(RotMat<T>::Identity(), v);
+    } else {
+      throw std::runtime_error("Unknown joint xform\n");
     }
     return X;
   }
@@ -231,7 +224,6 @@ namespace spatial {
     I = I * mass / 12;
     return I;
   }
-
 
 }
 

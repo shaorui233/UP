@@ -1,6 +1,10 @@
-//
-// Created by jared on 10/12/18.
-//
+/*! @file Quadruped.h
+ *  @brief Data structure containing parameters for quadruped robot
+ *
+ *  This file contains the Quadruped class.  This stores all the parameters for a quadruped robot.  There are utility
+ *  functions to generate Quadruped objects for Cheetah 3 (and eventually mini-cheetah).
+ *  There is a buildModel() method which can be used to create a floating-base dynamics model of the quadruped.
+ */
 
 #ifndef LIBBIOMIMETICS_QUADRUPED_H
 #define LIBBIOMIMETICS_QUADRUPED_H

@@ -1,8 +1,17 @@
+/*! @file cTypes.h
+ *  @brief Common types that can also be included in C code
+ *
+ *  This file contains types which are shared between C and C++ code.  The low-level drivers (rt folder)
+ *  are all in C and everything else is C++.  Because this file is included in both C and C++, it can't contain
+ *  C++ type alias ("using"), namespaces, or templates.
+ */
+
 #ifndef PROJECT_CTYPES_H
 #define PROJECT_CTYPES_H
 
 #include <stdint.h>
 
+// short version of the stdint default integer types
 typedef uint64_t u64;
 typedef uint32_t u32;
 typedef uint16_t u16;

@@ -16,6 +16,7 @@
 #include <SpatialInertia.h>
 #include <vector>
 #include <string>
+#include <spatial.h>
 
 #ifndef LIBBIOMIMETICS_FLOATINGBASEMODEL_H
 #define LIBBIOMIMETICS_FLOATINGBASEMODEL_H
@@ -27,7 +28,31 @@ using namespace ori;
 using namespace spatial;
 
 /*!
- * Class to represent a floating base rigid body model with rotors and ground contacts
+ * The state of a floating base model (base and joints)
+ */
+template <typename T>
+struct FBModelState {
+  Quat<T> bodyOrientation;
+  Vec3<T> bodyPosition;
+  SVec<T> bodyVelocity; // body coordinates
+  DVec<T> q;
+  DVec<T> qd;
+};
+
+/*!
+ * The result of running the articulated body algorithm on a rigid-body floating base model
+ */
+template <typename T>
+struct FBModelStateDerivative {
+  Quat<T> dQuat;
+  Vec3<T> dBasePosition;
+  SVec<T> dBaseVelocity;
+  DVec<T> qdd;
+};
+
+
+/*!
+ * Class to represent a floating base rigid body model with rotors and ground contacts. No concept of state.
  */
 template<typename T>
 class FloatingBaseModel {
@@ -68,11 +93,11 @@ public:
     _gravity = g;
   }
 
-private:
+
   size_t _nDof = 0;
   Vec3 <T> _gravity;
   vector<int> _parents;
-  vector<int> _gearRatios;
+  vector<T> _gearRatios;
   vector<JointType> _jointTypes;
   vector<CoordinateAxis> _jointAxes;
   vector<Mat6<T>, Eigen::aligned_allocator<Mat6<T>>> _Xtree, _Xrot;

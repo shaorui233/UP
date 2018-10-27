@@ -5,6 +5,7 @@
 #include <FloatingBaseModel.h>
 #include <Quadruped.h>
 #include <utilities.h>
+#include "DynamicsSimulator.h"
 #include <Cheetah3.h>
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -39,5 +40,74 @@ TEST(Dynamics, cheetah3model) {
     inertiaSum += cheetah.getBodyInertiaVector()[i].getMatrix() + cheetah.getRotorInertiaVector()[i].getMatrix()  * 0.25;
   }
   EXPECT_TRUE(almostEqual(inertiaSum, inertiaSumRef, .0001));
+}
 
+// this test just checks that sim.runABA doesn't cause any matrix dimension errors.
+TEST(Dynamics, simulatorDynamicsDoesntCrash) {
+  FloatingBaseModel<double> cheetah = buildCheetah3<double>();
+  DynamicsSimulator<double> sim(cheetah);
+  DVec<double> tau(12);
+  sim.runABA(tau);
+}
+
+TEST(Dynamics, simulatorDynamicsABANoExternalForce) {
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
+  DynamicsSimulator<double> sim(cheetahModel);
+
+  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) * coordinateRotation(CoordinateAxis::Y, .111);
+  SVec<double> bodyVel;
+  bodyVel << 1,2,3,4,5,6;
+  FBModelState<double> x;
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tau(12);
+  for(size_t i = 0; i < 12; i++) {
+    q[i] = i + 1;
+    dq[i] = (i + 1)*2;
+    tau[i] = (i + 1) * -30.;
+  }
+
+  // set state
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody);
+  x.bodyVelocity = bodyVel;
+  x.bodyPosition = Vec3<double>(6,7,8);
+  x.q = q;
+  x.qd = dq;
+
+  //std::cout << "q: " << x.bodyOrientation.transpose() << "\n";
+
+  // do aba
+  sim.setState(x);
+  sim.runABA(tau);
+
+  // check:
+  Quat<double> quatDRef(0.2637, 0.5136, 1.0345, 1.4479);
+  Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
+  SVec<double> vbdRef;
+  vbdRef << 455.5224, 62.1684, -70.56, -11.4505, 10.2354, -15.2394;
+
+  DVec<double> qddRef(12);
+  qddRef <<
+         -0.7924,
+         -0.2205,
+         -0.9163,
+         -1.6136,
+         -0.4328,
+         -1.6911,
+         -2.9878,
+         -0.9358,
+         -2.6194,
+         -3.3773,
+         -1.3235,
+         -3.1598;
+  qddRef *= 1000;
+
+  EXPECT_TRUE(almostEqual(quatDRef, sim.getDState().dQuat, .001));
+  EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBasePosition, .001));
+  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBaseVelocity, .001));
+
+  for(size_t i = 0; i < 12; i++) {
+    // the qdd's are large - see qddRef, so we're only accurate to within ~1.
+    EXPECT_TRUE(fpEqual(sim.getDState().qdd[i], qddRef[i], 3.));
+  }
 }

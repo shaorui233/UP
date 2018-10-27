@@ -24,6 +24,10 @@
 
 using namespace spatial;
 
+/*!
+ * Generate a FloatingBaseModel of Cheetah 3
+ * @return The floating base model
+ */
 template <typename T>
 FloatingBaseModel<T> buildCheetah3() {
   Quadruped<T> cheetah;
@@ -120,7 +124,7 @@ FloatingBaseModel<T> buildCheetah3() {
   cheetah._hipRotorInertia = SpatialInertia<T>(hipRotorMassProperties);
   cheetah._kneeRotorInertia = SpatialInertia<T>(kneeRotorMassProperties);
 
-  // this doesn't generalize to the mini cheetah
+  // this doesn't generalize to the mini cheetah?
   cheetah._abadLocation = Vec3<T>(cheetah._bodyLength, cheetah._bodyWidth, 0) * 0.5;
 
   // note that this is wrong to match a small bug in the actual simulator, just to test that I get the right answer. TODO fix!
@@ -130,11 +134,6 @@ FloatingBaseModel<T> buildCheetah3() {
   cheetah._hipRotorLocation = Vec3<T>(0, cheetah._abadLinkLength, 0);
   cheetah._kneeLocation = Vec3<T>(0, 0, -cheetah._hipLinkLength);
   cheetah._kneeRotorLocation = Vec3<T>(0,0,0);
-
-
-
-
-
   FloatingBaseModel<T> cheetahModel = cheetah.buildModel();
   return cheetahModel;
 }

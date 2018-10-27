@@ -1,6 +1,7 @@
-//
-// Created by jared on 10/12/18.
-//
+/*! @file SpatialInertia.h
+ *  @brief Class representing spatial inertia tensors
+ *
+ */
 
 #ifndef LIBBIOMIMETICS_SPATIALINERTIA_H
 #define LIBBIOMIMETICS_SPATIALINERTIA_H

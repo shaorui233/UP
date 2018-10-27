@@ -12,6 +12,7 @@ using namespace ori;
 using namespace spatial;
 
 TEST(Spatial, axisRotation) {
+  // test X which rotates around an axis
   SXform<double> X1, X2;
   X1 << 0.8384, 0.4580, -0.2955, 0, 0, 0,
           -0.4183, 0.8882, 0.1898, 0, 0, 0,
@@ -27,6 +28,7 @@ TEST(Spatial, axisRotation) {
 }
 
 TEST(Spatial, crm) {
+  // test motion cross product matrix
   SVec<double> v1, v2, v3, v4, v5, v6;
   v1 << 1, 2, 3, 4, 5, 6;
   v2 << 6, 5, 4, 3, 2, 1;
@@ -39,6 +41,7 @@ TEST(Spatial, crm) {
 }
 
 TEST(Spatial, crf) {
+  // test force cross product matrix
   SVec<double> v1, v2;
   v1 << 1, 2, 3, 4, 5, 6;
   v2 << 6, 5, 4, 3, 2, 1;
@@ -49,6 +52,7 @@ TEST(Spatial, crf) {
 }
 
 TEST(Spatial, crm_prod) {
+  // test motion cross product
   SVec<double> v1, v2, v3, v4;
   v1 << 1, 2, 3, 4, 5, 6;
   v2 << 6, 5, 4, 3, 2, 1;
@@ -58,6 +62,7 @@ TEST(Spatial, crm_prod) {
 }
 
 TEST(Spatial, crf_prod) {
+  // test force cross product
   SVec<double> v1, v2, v3, v4;
   v1 << 1, 2, 3, 4, 5, 6;
   v2 << 6, 5, 4, 3, 2, 1;
@@ -67,6 +72,7 @@ TEST(Spatial, crf_prod) {
 }
 
 TEST(Spatial, inertia) {
+  // test spatial inertia, mcI, and Pat's PseudoInertia
   Mat3<double> I;
   I << 1, 2, 3, 2, 4, 5, 3, 5, 6;
   Vec3<double> com(10, 11, 12);
@@ -96,6 +102,7 @@ TEST(Spatial, inertia) {
 }
 
 TEST(Spatial, inertia_flips) {
+  // test flipping inertias around axes
   MassProperties<double> a, aref;
   a << 1,2,3,4,5,6,7,8,9,10;
   aref << 1,2,-3,4,5,6,7,-8,9,-10;
@@ -104,6 +111,7 @@ TEST(Spatial, inertia_flips) {
 }
 
 TEST(Spatial, pluho_and_plux) {
+  // test homogeneous transformations and spatial transformations
   RotMat<double> R = coordinateRotation(CoordinateAxis::X, 1.0) * coordinateRotation(CoordinateAxis::Y, 2.0) *
           coordinateRotation(CoordinateAxis::Z, 3.0);
   Vec3<double> r(4,5,6);
@@ -130,6 +138,7 @@ TEST(Spatial, pluho_and_plux) {
 }
 
 TEST(Spatial, jcalc) {
+  // test joint transformations and motion subspaces
   Mat6<double> Xr, Xp, Xr_ref, Xp_ref;
   SVec<double> phi_r, phi_p, phi_r_ref, phi_p_ref;
 
@@ -163,6 +172,7 @@ TEST(Spatial, jcalc) {
 }
 
 TEST(Spatial, mass_properties) {
+  // test mass properties and spatial inertias
   MassProperties<double> a;
   a << 1,2,3,4,5,6,7,8,9,10;
   Mat6<double> I, I_ref;
@@ -178,6 +188,7 @@ TEST(Spatial, mass_properties) {
 }
 
 TEST(Spatial, box_inertia) {
+  // test inertia of uniformly distributed box
   Mat3<double> I_ref; I_ref << 2.0833, 0, 0, 0, 1.66667, 0, 0, 0, 1.083333;
   Mat3<double> I_calc = rotInertiaOfBox(1., Vec3<double>(2,3,4));
   EXPECT_TRUE(almostEqual(I_ref, I_calc, .001));

@@ -9,8 +9,6 @@
  *  This follows the convention of Roy Featherstone's excellent book, Rigid Body Dynamics Algorithms
  *  and the spatial_v2 MATLAB library that comes with it.  Note that we don't use the spatial_v2
  *  convention for quaternions!
- *
- *  Additionally, this file defines common Vector and Matrix types.
  */
 
 #ifndef LIBBIOMIMETICS_ORIENTATION_TOOLS_H
@@ -20,22 +18,12 @@
 #include <eigen3/Eigen/Dense>
 #include <type_traits>
 #include <iostream>
-
-
-template<typename T>
-using RotMat = typename Eigen::Matrix<T, 3, 3>;
-
-template<typename T>
-using Vec3 = typename Eigen::Matrix<T, 3, 1>;
-
-template<typename T>
-using Mat3 = typename Eigen::Matrix<T, 3, 3>;
-
-template<typename T>
-using Quat = typename Eigen::Matrix<T, 4, 1>;
-
+#include <cppTypes.h>
 
 namespace ori {
+
+  static constexpr double quaternionDerviativeStabilization = 0.1;
+
   enum class CoordinateAxis {
     X, Y, Z
   };
@@ -67,14 +55,17 @@ namespace ori {
     return a*a;
   }
 
+
   /*!
    * Are two eigen matrices almost equal?
    */
-  template<typename T, int x, int y>
-  bool almostEqual(Eigen::Matrix<T, x, y> a, Eigen::Matrix<T, x, y> b, T tol) {
+  template<typename T, typename T2>
+  bool almostEqual(const Eigen::MatrixBase<T>& a, const Eigen::MatrixBase<T>& b, T2 tol) {
+    int x = T::RowsAtCompileTime;
+    int y = T::ColsAtCompileTime;
     for (int i = 0; i < x; i++) {
       for (int j = 0; j < y; j++) {
-        T error = std::abs(a(i, j) - b(i, j));
+        T2 error = std::abs(a(i, j) - b(i, j));
         if (error >= tol)
           return false;
       }
@@ -139,7 +130,7 @@ namespace ori {
    * Convert a coordinate transformation matrix to an orientation quaternion.
    */
   template<typename T>
-  Quat<T> rotationMatrixToQuaternion(Mat3<T> r) {
+  Quat<T> rotationMatrixToQuaternion(Mat3<T>& r) {
     Quat<T> q;
     T tr = r.trace();
     if (tr > 0.0) {
@@ -175,7 +166,7 @@ namespace ori {
    * which has the orientation specified by the quaternion
    */
   template<typename T>
-  Mat3<T> quaternionToRotationMatrix(Quat<T> q) {
+  Mat3<T> quaternionToRotationMatrix(Quat<T>& q) {
     T e0 = q(0);
     T e1 = q(1);
     T e2 = q(2);
@@ -198,7 +189,7 @@ namespace ori {
    * @return
    */
   template <typename T>
-  Vec3<T> quatToRPY(Quat<T> q) {
+  Vec3<T> quatToRPY(Quat<T>& q) {
     Vec3<T> rpy;
     T as = std::min(-2.*(q[1]*q[3]-q[0]*q[2]),.99999);
     rpy(2) = std::atan2(2*(q[1]*q[2]+q[0]*q[3]),square(q[0]) + square(q[1]) - square(q[2]) - square(q[3]));
@@ -207,6 +198,28 @@ namespace ori {
     return rpy;
   }
 
+  /*!
+   * Quaternion derivative calculation, like rqd(q, omega) in MATLAB.
+   * the omega is expressed in body frame
+   * @param q
+   * @param omega
+   * @return
+   */
+  template <typename T, typename T2>
+  Quat<typename T::Scalar> quatDerivative(const Eigen::MatrixBase<T>& q, const Eigen::MatrixBase<T2>& omega) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 4, "Must have 4x1 quat");
+    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 3, "Must have 3x1 omega");
+    // first case in rqd
+    Mat4<typename T::Scalar> Q;
+    Q << q[0], -q[1], -q[2], -q[3],
+         q[1], q[0], -q[3], q[2],
+         q[2], q[3], q[0], -q[1],
+         q[3], -q[2], q[1], q[0];
+
+    Quat<typename T::Scalar> qq(quaternionDerviativeStabilization * omega.norm() * (1 - q.norm()), omega[0], omega[1], omega[2]);
+    Quat<typename T::Scalar> dq = 0.5 * Q * qq;
+    return dq;
+  }
 
 }
 
