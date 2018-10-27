@@ -85,7 +85,7 @@ template <typename T>
 void DynamicsSimulator<T>::integrate(T dt) {
 
   Vec3<T> omegaBody = _dstate.dBaseVelocity.template block<3,1>(3,0);
-  Mat6<T> X = createSXform(quaternionToRotationMatrix(_state.bodyOrientation).transpose(), _state.bodyPosition);
+  Mat6<T> X = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   RotMat<T> R = rotationFromSXform(X);
   Vec3<T> omega0 = R.transpose() * omegaBody;
   Vec3<T> axis;
@@ -123,7 +123,7 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
 
   // calc coordinate transformation for float-base
   // TODO, check the transpose on the rotation matrix
-  _Xup[5] = createSXform(quaternionToRotationMatrix(_state.bodyOrientation).transpose(), _state.bodyPosition);
+  _Xup[5] = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   // float-base velocity
   _v[5] = _state.bodyVelocity;
   // float-base articulated inertia

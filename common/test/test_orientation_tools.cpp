@@ -59,8 +59,8 @@ TEST(Orientation, quatToRotm) {
   Quat<double> q(.9672, -0.0672, -0.1653, -0.1808);
   Mat3<double> R;
   R << .8799, .3720, -.2955, -.3276, .9256, .1898, .3441, -.0702, .9363;
-  Quat<double> q2 = rotationMatrixToQuaternion(R);
-  Mat3<double> R2 = quaternionToRotationMatrix(q);
+  Quat<double> q2 = rotationMatrixToQuaternion(R.transpose());
+  Mat3<double> R2 = quaternionToRotationMatrix(q).transpose();
   EXPECT_TRUE(almostEqual(q2, q, .0001));
   EXPECT_TRUE(almostEqual(R2, R, .0001));
 }

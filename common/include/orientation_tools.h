@@ -130,29 +130,31 @@ namespace ori {
    * Convert a coordinate transformation matrix to an orientation quaternion.
    */
   template<typename T>
-  Quat<T> rotationMatrixToQuaternion(Mat3<T>& r) {
-    Quat<T> q;
-    T tr = r.trace();
+  Quat<typename T::Scalar> rotationMatrixToQuaternion(const Eigen::MatrixBase<T>& r1) {
+    static_assert(T::ColsAtCompileTime == 3 && T::RowsAtCompileTime == 3, "Must have 3x3 matrix");
+    Quat<typename T::Scalar> q;
+    Mat3<typename T::Scalar> r = r1.transpose();
+    typename T::Scalar tr = r.trace();
     if (tr > 0.0) {
-      T S = sqrt(tr + 1.0) * 2.0;
+      typename T::Scalar S = sqrt(tr + 1.0) * 2.0;
       q(0) = 0.25 * S;
       q(1) = (r(2, 1) - r(1, 2)) / S;
       q(2) = (r(0, 2) - r(2, 0)) / S;
       q(3) = (r(1, 0) - r(0, 1)) / S;
     } else if ((r(0, 0) > r(1, 1)) && (r(0, 0) > r(2, 2))) {
-      T S = sqrt(1.0 + r(0, 0) - r(1, 1) - r(2, 2)) * 2.0;
+      typename T::Scalar S = sqrt(1.0 + r(0, 0) - r(1, 1) - r(2, 2)) * 2.0;
       q(0) = (r(2, 1) - r(1, 2)) / S;
       q(1) = 0.25 * S;
       q(2) = (r(0, 1) + r(1, 0)) / S;
       q(3) = (r(0, 2) + r(2, 0)) / S;
     } else if (r(1, 1) > r(2, 2)) {
-      T S = sqrt(1.0 + r(1, 1) - r(0, 0) - r(2, 2)) * 2.0;
+      typename T::Scalar S = sqrt(1.0 + r(1, 1) - r(0, 0) - r(2, 2)) * 2.0;
       q(0) = (r(0, 2) - r(2, 0)) / S;
       q(1) = (r(0, 1) + r(1, 0)) / S;
       q(2) = 0.25 * S;
       q(3) = (r(1, 2) + r(2, 1)) / S;
     } else {
-      T S = sqrt(1.0 + r(2, 2) - r(0, 0) - r(1, 1)) * 2.0;
+      typename T::Scalar S = sqrt(1.0 + r(2, 2) - r(0, 0) - r(1, 1)) * 2.0;
       q(0) = (r(1, 0) - r(0, 1)) / S;
       q(1) = (r(0, 2) + r(2, 0)) / S;
       q(2) = (r(1, 2) + r(2, 1)) / S;
@@ -177,7 +179,7 @@ namespace ori {
     R << 1 - 2 * (e2 * e2 + e3 * e3), 2 * (e1 * e2 - e0 * e3), 2 * (e1 * e3 + e0 * e2),
             2 * (e1 * e2 + e0 * e3), 1 - 2 * (e1 * e1 + e3 * e3), 2 * (e2 * e3 - e0 * e1),
             2 * (e1 * e3 - e0 * e2), 2 * (e2 * e3 + e0 * e1), 1 - 2 * (e1 * e1 + e2 * e2);
-
+    R.transposeInPlace();
     return R;
   }
 

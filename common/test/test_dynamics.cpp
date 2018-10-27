@@ -69,7 +69,7 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForce) {
   }
 
   // set state
-  x.bodyOrientation = rotationMatrixToQuaternion(rBody);
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
   x.bodyVelocity = bodyVel;
   x.bodyPosition = Vec3<double>(6, 7, 8);
   x.q = q;
@@ -118,7 +118,7 @@ TEST(Dynamics, simulatorDynamicsWithExternalForce) {
   }
 
   // set state
-  x.bodyOrientation = rotationMatrixToQuaternion(rBody);
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
   x.bodyVelocity = bodyVel;
   x.bodyPosition = Vec3<double>(6, 7, 8);
   x.q = q;
