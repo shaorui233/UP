@@ -15,13 +15,13 @@ set(Qt5Core_DIR /Qt/5.10.0/gcc_64/lib/cmake/Qt5Core)
 find_package(Qt5Widgets CONFIG REQUIRED)
 find_package(Qt5Core CONFIG REQUIRED)
 get_target_property(QtCore_location Qt5::Core LOCATION)
-message(WARNING ${QtCore_location})
+message(STATUS ${QtCore_location})
 find_package(Qt5Gui CONFIG REQUIRED)
 
-set(QOBJECT_HEADERS
-        include/main_window.h
-        include/gamepad_monitor.h
-        include/spi_debug.h)
+#set(QOBJECT_HEADERS
+#        include/main_window.h
+#        include/gamepad_monitor.h
+#        include/spi_debug.h)
 
 QT5_WRAP_CPP(tst_hdr_moc ${QOBJECT_HEADERS})
 

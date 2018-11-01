@@ -125,42 +125,42 @@ private:
 
 
 
-    // simulation interface is a slightly modified version of Pat's original simulator
-    SimulatorInterface* sim_interface = nullptr;
-    Ui::MainWindow *ui;
-
-    // simulation statistics label
-    char stat_string[200];
-    char gfx_fps_string[200];
-    char robot_lcm_log_string[200];
-    char robot_graphics_string[200];
-    char robot_monitor_string[200];
-    bool paused = false;
-
-    // interface lcm
-    bool interface_lcm_running = false;
-
-    bool robot_graphics_running = false;
-
-    // surface format used to configure OpenGL context
-    QSurfaceFormat format;
-    // graphics window
-    SimGraphicsWindow* sim_gfx = nullptr;
-
-    interface_lcm_interface control_lcm;
-
-    // uncomment for gamepad debugging
-    GamepadMonitor gmon;
-
-    gui_settings_t gui_settings;
-
-    spi_debug spi_window;
-
-    bool robot_type_selected = false;
-
-    robot_lcm_handler* robot_lcm = nullptr;
-
-    CheetahState robot_state;
+//    // simulation interface is a slightly modified version of Pat's original simulator
+//    SimulatorInterface* sim_interface = nullptr;
+//    Ui::MainWindow *ui;
+//
+//    // simulation statistics label
+//    char stat_string[200];
+//    char gfx_fps_string[200];
+//    char robot_lcm_log_string[200];
+//    char robot_graphics_string[200];
+//    char robot_monitor_string[200];
+//    bool paused = false;
+//
+//    // interface lcm
+//    bool interface_lcm_running = false;
+//
+//    bool robot_graphics_running = false;
+//
+//    // surface format used to configure OpenGL context
+//    QSurfaceFormat format;
+//    // graphics window
+//    SimGraphicsWindow* sim_gfx = nullptr;
+//
+//    interface_lcm_interface control_lcm;
+//
+//    // uncomment for gamepad debugging
+//    GamepadMonitor gmon;
+//
+//    gui_settings_t gui_settings;
+//
+//    spi_debug spi_window;
+//
+//    bool robot_type_selected = false;
+//
+//    robot_lcm_handler* robot_lcm = nullptr;
+//
+//    CheetahState robot_state;
 
 
 };
