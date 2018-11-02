@@ -123,7 +123,7 @@ void DynamicsSimulator<T>::forwardKinematics() {
   }
 
   // ground contact points
-  // TODO : we end up inverting the same Xa a few times (like for the 8 points on the body). this isn't super efficient.
+//  // TODO : we end up inverting the same Xa a few times (like for the 8 points on the body). this isn't super efficient.
   for(size_t j = 0; j < _nGC; j++) {
     size_t i = _model._gcParent.at(j);
     Mat6<T> Xai = invertSXform(_Xa[i]); // from link to absolute
@@ -180,6 +180,7 @@ void DynamicsSimulator<T>::integrate(T dt) {
  */
 template <typename T>
 void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
+  (void)tau;
   // create spatial vector for gravity
   SVec<T> aGravity;
   aGravity << 0, 0, 0, _model._gravity[0], _model._gravity[1], _model._gravity[2];

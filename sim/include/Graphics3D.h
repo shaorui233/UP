@@ -23,6 +23,7 @@
 
 #include <obj_loader.h>
 #include <DrawList.h>
+#include <mutex>
 
 class Graphics3D: public QWindow, protected QOpenGLFunctions {
 Q_OBJECT
@@ -33,10 +34,20 @@ public:
   virtual void render();
   virtual void initialize();
   void setAnimating(bool animating);
-  void setupCheetah3();
-  void setupMiniCheetah();
+  size_t setupCheetah3();
+  size_t setupMiniCheetah();
+
+  void lockGfxMutex() {
+    _gfxMutex.lock();
+  }
+
+  void unlockGfxMutex() {
+    _gfxMutex.unlock();
+  }
+
   // set robot state
   double _fps = 0;
+  DrawList _drawList;
 public slots:
   void renderLater();
   void renderNow();
@@ -54,8 +65,9 @@ protected:
 
 
 
-private:
 
+private:
+  std::mutex _gfxMutex;
   void updateCameraMatrix();
   bool _animating;
 
@@ -92,7 +104,7 @@ private:
   float _pixel_to_rad = .3f;
   double _zoom = 1;
 
-  DrawList _drawList;
+
 
   QMatrix4x4 _cameraMatrix;
 };

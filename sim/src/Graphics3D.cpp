@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 
+
 static constexpr auto clearColor = windows2000;
 
 static constexpr char vertexShaderSource[] = R"(
@@ -62,8 +63,15 @@ Graphics3D::Graphics3D(QWindow *parent) : QWindow(parent), _animating(false), _c
 /*!
  * Configure the window for displaying cheetah 3
  */
-void Graphics3D::setupCheetah3() {
-  _drawList.loadCheetah3();
+size_t Graphics3D::setupCheetah3() {
+  return _drawList.loadCheetah3();
+}
+
+/*!
+ * Configure the window for displaying mini cheetah
+ */
+size_t Graphics3D::setupMiniCheetah() {
+  return _drawList.loadMiniCheetah();
 }
 
 /*!
@@ -84,10 +92,6 @@ void Graphics3D::updateCameraMatrix() {
 void Graphics3D::render(QPainter *painter) {
   (void) painter;
 
-  // to check if dynamic loading works
-  if(_frame == 150) {
-    _drawList.loadMiniCheetah();
-  }
   updateCameraMatrix();
   _program->bind();
 
@@ -102,17 +106,16 @@ void Graphics3D::render(QPainter *painter) {
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
-    printf("[Graphics 3D] Uploaded data\n");
+    printf("[Graphics 3D] Uploaded data (%f MB)\n", _drawList.getGLDataSizeMB());
   }
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-    _program->setUniformValue(_matrixUniform, _cameraMatrix);
+    _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) * _drawList.getModelBaseTransform(id));
     glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
   }
-
 
   _program->release();
   ++_frame;
@@ -217,9 +220,10 @@ void Graphics3D::setAnimating(bool animating) {
  * Called by Qt event handlers, does initialization if needed and draws a frame.
  */
 void Graphics3D::renderNow() {
+
   if (!isExposed()) // window isn't ready
     return;
-
+  _gfxMutex.lock();
   bool needsInitialize = false;
 
   // initialize things if we need to
@@ -246,6 +250,7 @@ void Graphics3D::renderNow() {
   // if we're running, we should schedule the next frame
   if (_animating)
     renderLater();
+  _gfxMutex.unlock();
 }
 
 /*!

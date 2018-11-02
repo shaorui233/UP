@@ -13,7 +13,11 @@
 
 #include <stdlib.h>
 #include <vector>
+#include <QMatrix4x4>
 #include <obj_loader.h>
+#include <FloatingBaseModel.h>
+#include <DynamicsSimulator.h>
+#include <sim_utilities.h>
 
 #include <cppTypes.h>
 #include <spatial.h>
@@ -24,12 +28,9 @@ static constexpr float disgustingGreen[] = {0.f, 0.2f, 0.2f};
 
 class DrawList {
 public:
-  void loadCheetah3();
-  void loadMiniCheetah();
-
-  // add object
-
-  size_t getNumDrawables();
+  size_t loadCheetah3();
+  size_t loadMiniCheetah();
+  void buildDrawList();
 
   /*!
    * Resize to hold size objects.
@@ -55,6 +56,7 @@ public:
   /*!
    * For the i-th object, get the offset into the model data.
    * For use with the glDrawArrays function.
+   * Note that several objects may have the same geometry, so this will return the same value for these objects!
    */
   size_t getGLDrawArrayOffset(size_t i) {
     return _glArrayOffsets.at(_objectMap.at(i));
@@ -67,68 +69,115 @@ public:
     return _glArraySizes.at(_objectMap.at(i));
   }
 
-  float* getVertexArray() {
+  /*!
+   * Get the array containing all vertex data.  Use getGLDrawArrayOffset/Size to get indices and sizes for each object
+   */
+  float *getVertexArray() {
     return _glVertexData.data();
   }
 
-  float* getNormalArray() {
+  /*!
+   * Get the array containing all normal data.  Use getGLDrawArrayOffset/Size to get indices and sizes for each object
+   */
+  float *getNormalArray() {
     return _glNormalData.data();
   }
 
-  float* getColorArray() {
+  /*!
+   * Get the array containing all color data.
+   */
+  float *getColorArray() {
     return _glColorData.data();
+  }
+
+  /*!
+   * Get the Qt transformation matrix which should be applied to the model geometry
+   * This is to correct for errors when exporting parts and shifts them all to the origin.
+   */
+  QMatrix4x4 &getModelBaseTransform(size_t i) {
+    return _modelOffsets.at(i);
+  }
+
+  /*!
+   * Get the Qt transformation matrix which should be applied to move a model from the origin
+   * to where it should be in the world
+   */
+  QMatrix4x4 &getModelKinematicTransform(size_t i) {
+    return _kinematicXform.at(i);
+  }
+
+  /*!
+   * Get size of data used by the GPU in megabytes
+   * For debugging
+   */
+  float getGLDataSizeMB() {
+    size_t bytes = _glColorData.size() + _glNormalData.size() + _glVertexData.size();
+    bytes = bytes * sizeof(float);
+    return (float) bytes / float(1 << 20);
   }
 
   /*!
    * Returns true a single time if we have changed geometries and need to reload.
    */
   bool needsReload() {
-    if(_reloadNeeded) {
+    if (_reloadNeeded) {
       _reloadNeeded = false;
       return true;
     }
     return false;
   }
 
-
-
-  void buildDrawList();
+  /*!
+   * Update the position of a robot's bodies using the result of a dynamics simulation.
+   * Doesn't run the simulator - just pulls _Xa from the DynamicsSimulator
+   * @param model  : the simulator
+   * @param id     : the id returned from the loadCheetah3 or loadMiniCheetah function.
+   */
+  template<typename T>
+  void updateRobotFromModel(DynamicsSimulator<T> &model, size_t id) {
+    for (size_t modelID = 5, graphicsID = id; modelID < model.getNumBodies(); modelID++, graphicsID++) {
+      _kinematicXform.at(graphicsID) = spatialTransformToQT(model._Xa.at(modelID));
+    }
+  }
 
   /*!
    * Fill color data with a solid color
    */
-  static void setSolidColor(std::vector<float>& data, size_t size, float r, float g, float b) {
+  static void setSolidColor(std::vector<float> &data, size_t size, float r, float g, float b) {
     data.clear();
     data.resize(size);
 
-    if((size % 3) != 0) {
+    if ((size % 3) != 0) {
       throw std::runtime_error("setSolidColor invalid size");
     }
 
-    for(size_t i = 0; i < size/3; i++) {
-      data[i*3 + 0] = r;
-      data[i*3 + 1] = g;
-      data[i*3 + 2] = b;
+    for (size_t i = 0; i < size / 3; i++) {
+      data[i * 3 + 0] = r;
+      data[i * 3 + 1] = g;
+      data[i * 3 + 2] = b;
     }
   }
 
 
 private:
   size_t _nUnique = 0, _nTotal = 0;
-  std::vector<std::vector<float>>   _vertexData;
-  std::vector<std::vector<float>>   _normalData;
-  std::vector<std::vector<float>>   _colorData;
-  vectorAligned<Mat4<float>>        _offsetXforms; // these are NOT coordinate transformations!
-  std::string                       _baseFileName = "../resources/";
+  std::vector<std::vector<float>> _vertexData;
+  std::vector<std::vector<float>> _normalData;
+  std::vector<std::vector<float>> _colorData;
+  vectorAligned<Mat4<float>> _offsetXforms; // these are NOT coordinate transformations!
+  std::string _baseFileName = "../resources/";
 
-  std::vector<size_t>               _objectMap;
+  std::vector<size_t> _objectMap;
 
-  std::vector<size_t>               _glArrayOffsets;
-  std::vector<size_t>               _glArraySizes;
+  std::vector<size_t> _glArrayOffsets;
+  std::vector<size_t> _glArraySizes;
 
-  std::vector<float>               _glVertexData;
-  std::vector<float>               _glNormalData;
-  std::vector<float>               _glColorData;
+  std::vector<float> _glVertexData;
+  std::vector<float> _glNormalData;
+  std::vector<float> _glColorData;
+
+  std::vector<QMatrix4x4> _modelOffsets;
+  std::vector<QMatrix4x4> _kinematicXform;
 
   bool _reloadNeeded = true;
 
