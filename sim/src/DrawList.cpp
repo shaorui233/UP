@@ -7,7 +7,19 @@
 
 #include "DrawList.h"
 
-
+void DrawList::loadFiles() {
+  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj"};//,"mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj"};
+  objLoader::ObjLoader loader;
+  for (const auto &name : names) {
+    std::string filename = _baseFileName + name;
+    _vertexData.emplace_back();
+    _normalData.emplace_back();
+    _colorData.emplace_back();
+    loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
+    setSolidColor(_colorData.back(), _vertexData.back().size(), .2, .2, .2);
+    _nUnique++;
+  }
+}
 /*!
  * Load the cheetah 3 model and build the draw list.
  * Returns an index number that can later be used to update the position of the robot.
@@ -18,17 +30,17 @@ size_t DrawList::loadCheetah3() {
   std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj"};
   objLoader::ObjLoader loader;
 
-  size_t i0 = _nUnique;
+  size_t i0 = 0;
   size_t j0 = _nTotal;
-  for (const auto &name : names) {
-    std::string filename = _baseFileName + name;
-    _vertexData.emplace_back();
-    _normalData.emplace_back();
-    _colorData.emplace_back();
-    loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
-    setSolidColor(_colorData.back(), _vertexData.back().size(), .2, .2, .2);
-    _nUnique++;
-  }
+//  for (const auto &name : names) {
+//    std::string filename = _baseFileName + name;
+//    _vertexData.emplace_back();
+//    _normalData.emplace_back();
+//    _colorData.emplace_back();
+//    loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
+//    setSolidColor(_colorData.back(), _vertexData.back().size(), .2, .2, .2);
+//    _nUnique++;
+//  }
 
   // set model offsets:
   QMatrix4x4 bodyOffset, abadOffset, lowerOffset, eye;

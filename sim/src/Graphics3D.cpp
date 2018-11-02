@@ -86,6 +86,7 @@ void Graphics3D::updateCameraMatrix() {
   _cameraMatrix.rotate(_rx, 0, 0, 1);
 }
 
+
 /*!
  * Draw a frame with OpenGL
  */
@@ -97,12 +98,25 @@ void Graphics3D::render(QPainter *painter) {
 
   if (_drawList.needsReload()) {
     // upload data
+
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
-    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, _drawList.getVertexArray());
-    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, _drawList.getColorArray());
-    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, _drawList.getNormalArray());
+    GLuint buffID[3];
+    glGenBuffers(3, buffID);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getVertexArray(), GL_STATIC_DRAW);
+    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getColorArray(), GL_STATIC_DRAW);
+    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getNormalArray(), GL_STATIC_DRAW);
+    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
@@ -171,7 +185,7 @@ void Graphics3D::wheelEvent(QWheelEvent *e) {
     if (_zoom > .1)
       _zoom = 0.8 * _zoom;
   } else {
-    if (_zoom < 10)
+    if (_zoom < 100)
       _zoom = 1.2 * _zoom;
   }
 }

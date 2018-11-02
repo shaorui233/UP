@@ -28,9 +28,13 @@ static constexpr float disgustingGreen[] = {0.f, 0.2f, 0.2f};
 
 class DrawList {
 public:
+  DrawList() {
+    loadFiles();
+  }
   size_t loadCheetah3();
   size_t loadMiniCheetah();
   void buildDrawList();
+  void loadFiles();
 
   /*!
    * Resize to hold size objects.
@@ -81,6 +85,10 @@ public:
    */
   float *getNormalArray() {
     return _glNormalData.data();
+  }
+
+  size_t getSizeOfAllData() {
+    return _glVertexData.size();
   }
 
   /*!
