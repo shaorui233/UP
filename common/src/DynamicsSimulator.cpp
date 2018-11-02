@@ -1,3 +1,10 @@
+/*! @file DynamicsSimulator.cpp
+ *  @brief Rigid Body Dynamics Simulator with Collisions
+ *
+ *  Combines ABA, Collisions, integrator, and any other external forces to run a simulation.
+ *  Doesn't do any graphics.
+ */
+
 #include "DynamicsSimulator.h"
 
 

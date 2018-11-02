@@ -1,3 +1,9 @@
+/*! @file CollisionPlane.h
+ *  @brief Collision logic for an infinite plane
+ *
+ *  Simplest collision, used for floor and global bounding box
+ */
+
 #ifndef PROJECT_COLLISIONPLANE_H
 #define PROJECT_COLLISIONPLANE_H
 

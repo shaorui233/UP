@@ -82,6 +82,7 @@ int FloatingBaseModel<T>::addGroundContactPoint(int bodyID, const Vec3 <T> &loca
     throw std::runtime_error("addGroundContactPoint got invalid bodyID: " + std::to_string(bodyID) + " nDofs: " + std::to_string(_nDof) + "\n");
   }
 
+  //std::cout << "pt-add: " << location.transpose() << "\n";
   _gcParent.push_back(bodyID);
   _gcLocation.push_back(location);
 

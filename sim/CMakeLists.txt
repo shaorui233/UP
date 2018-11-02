@@ -18,7 +18,8 @@ get_target_property(QtCore_location Qt5::Core LOCATION)
 message(STATUS ${QtCore_location})
 find_package(Qt5Gui CONFIG REQUIRED)
 
-#set(QOBJECT_HEADERS
+set(QOBJECT_HEADERS
+        include/Graphics3D.h)
 #        include/main_window.h
 #        include/gamepad_monitor.h
 #        include/spi_debug.h)

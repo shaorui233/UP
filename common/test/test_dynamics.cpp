@@ -192,10 +192,22 @@ TEST(Dynamics, simulatorFootPosVel) {
     }
   }
 
-  // do aba
+  // fwd kin is included in this
   sim.setState(x);
   sim.setAllExternalForces(forces);
   sim.step(0.0, tau);
+
+  Vec3<double> bodypRef1ML(6.25, 6.8271, 8.155);
+  Vec3<double> footpRefML(5.1594, 7.3559, 7.674);
+  Vec3<double> bodyvRef1ML(5.1989, 5.4008, 5.1234);
+  Vec3<double> footvRefML(-9.3258, -0.1926, 26.3323);
+
+  // I add the body points in a different order, so comparing them is kind of annoying.
+  // this just tests one body point and one foot point.
+  EXPECT_TRUE(almostEqual(bodypRef1ML, sim._pGC.at(2), .0005));
+  EXPECT_TRUE(almostEqual(footpRefML, sim._pGC.at(15), .0005));
+  EXPECT_TRUE(almostEqual(bodyvRef1ML, sim._vGC.at(2), .0005));
+  EXPECT_TRUE(almostEqual(footvRefML, sim._vGC.at(15), .0005));
 }
 
 //TEST(Dynamics, simulatorTime) {
