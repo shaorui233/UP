@@ -22,6 +22,7 @@
 #include <QMouseEvent>
 
 #include <obj_loader.h>
+#include <DrawList.h>
 
 class Graphics3D: public QWindow, protected QOpenGLFunctions {
 Q_OBJECT
@@ -32,6 +33,8 @@ public:
   virtual void render();
   virtual void initialize();
   void setAnimating(bool animating);
+  void setupCheetah3();
+  void setupMiniCheetah();
   // set robot state
   double _fps = 0;
 public slots:
@@ -49,7 +52,11 @@ protected:
   void wheelEvent(QWheelEvent *e) override;
 //    void resizeEvent(QResizeEvent *event) override;
 
+
+
 private:
+
+  void updateCameraMatrix();
   bool _animating;
 
   QOpenGLContext *_context;
@@ -84,6 +91,10 @@ private:
   float _ry = 0;
   float _pixel_to_rad = .3f;
   double _zoom = 1;
+
+  DrawList _drawList;
+
+  QMatrix4x4 _cameraMatrix;
 };
 
 

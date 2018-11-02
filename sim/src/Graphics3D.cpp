@@ -10,27 +10,140 @@
 #include <unistd.h>
 
 
+static constexpr auto clearColor = windows2000;
+
+static constexpr char vertexShaderSource[] = R"(
+
+// inputs:
+attribute highp vec3 posAttr;   // position
+uniform lowp vec3 colAttr;      // color
+attribute highp vec3 normAttr;  // normal
+uniform highp mat4 matrix;      // transformation
+
+// outputs:
+varying lowp vec4 col;          // color
+varying vec3 normal;            // normal
+varying vec3 pos_world;         // position
+
+void main() {
+  col = vec4(colAttr,0.3);
+  gl_Position = matrix * vec4(posAttr,1);
+  normal = (matrix * vec4(normAttr,0)).xyz;
+  pos_world = posAttr;
+}
+)";
+
+static constexpr char fragmentShaderSource[] = R"(
+varying lowp vec4 col;
+varying vec3 pos_world;
+varying vec3 normal;
+void main() {
+  vec3 light_pos = vec3(0,0,4);
+  float light_dist = length(light_pos - pos_world);
+  vec3 light_color = vec3(1,1,1);
+  vec3 mat_ambient = vec3(.1,.1,.1);
+  vec3 mat_spec    = vec3(.3,.3,.3);
+  vec3 n = normalize(normal);
+  vec3 l = normalize(light_pos);
+  float angle_thing = clamp( dot(-n,l), 0., 1.);
+  gl_FragColor = col + vec4(mat_ambient*light_color*40.*angle_thing/(light_dist*light_dist),0);
+}
+)";
+
+/*!
+ * Initialize a 3D visualization window
+ */
 Graphics3D::Graphics3D(QWindow *parent) : QWindow(parent), _animating(false), _context(0), _device(0), _program(0),
                                           _frame(0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
   setSurfaceType(QWindow::OpenGLSurface);
 }
 
-void Graphics3D::renderLater() {
-  requestUpdate();
+/*!
+ * Configure the window for displaying cheetah 3
+ */
+void Graphics3D::setupCheetah3() {
+  _drawList.loadCheetah3();
 }
 
+/*!
+ * Update the camera matrix for the current zoom/orbit
+ */
+void Graphics3D::updateCameraMatrix() {
+  _cameraMatrix.setToIdentity();
+  // todo set aspect ratio
+  _cameraMatrix.perspective(60.f, float(size().width()) / float(size().height()), .001f, 50.f);
+  _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
+  _cameraMatrix.rotate(_ry, 1, 0, 0);
+  _cameraMatrix.rotate(_rx, 0, 0, 1);
+}
+
+/*!
+ * Draw a frame with OpenGL
+ */
 void Graphics3D::render(QPainter *painter) {
-  (void)painter;
+  (void) painter;
+
+  // to check if dynamic loading works
+  if(_frame == 150) {
+    _drawList.loadMiniCheetah();
+  }
+  updateCameraMatrix();
+  _program->bind();
+
+  if (_drawList.needsReload()) {
+    // upload data
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, _drawList.getVertexArray());
+    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, _drawList.getColorArray());
+    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, _drawList.getNormalArray());
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    printf("[Graphics 3D] Uploaded data\n");
+  }
+
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+
+  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
+    _program->setUniformValue(_matrixUniform, _cameraMatrix);
+    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
+  }
+
+
+  _program->release();
   ++_frame;
 }
 
 
-
+/*!
+ * Initialize OpenGL and load shaders
+ */
 void Graphics3D::initialize() {
-  std::cout << "Initialize called!\n";
+  std::cout << "[Graphics3D] Initialize OpenGL...\n";
+
+  // create GPU shaders
+  _program = new QOpenGLShaderProgram(this);
+  _program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
+  _program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+  _program->link();
+
+  // setup attributes/uniforms (inputs to shaders)
+  _posAttr = (GLuint) _program->attributeLocation("posAttr");
+  _colAttr = (GLuint) _program->attributeLocation("colAttr");
+  _normAttr = (GLuint) _program->attributeLocation("normAttr");
+  _matrixUniform = (GLuint) _program->uniformLocation("matrix");
+
+  // set clear color:
+  glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
 }
 
+/*-----------------------------------------*
+ * Mouse Handlers for Orbit and Zoom       *
+ *-----------------------------------------*/
 
 void Graphics3D::mousePressEvent(QMouseEvent *event) {
   _orbiting = true;
@@ -39,7 +152,7 @@ void Graphics3D::mousePressEvent(QMouseEvent *event) {
 }
 
 void Graphics3D::mouseMoveEvent(QMouseEvent *event) {
-  if(!_orbiting) return;
+  if (!_orbiting) return;
   _rx = _rx_base + _pixel_to_rad * (event->pos().x() - _orbiting_x_start);
   _ry = _ry_base + _pixel_to_rad * (event->pos().y() - _orbiting_y_start);
 }
@@ -51,12 +164,12 @@ void Graphics3D::mouseReleaseEvent(QMouseEvent *event) {
 }
 
 void Graphics3D::wheelEvent(QWheelEvent *e) {
-  if(e->angleDelta().y() > 0) {
-    if(_zoom > 1)
-      _zoom = 0.8*_zoom;
+  if (e->angleDelta().y() > 0) {
+    if (_zoom > .1)
+      _zoom = 0.8 * _zoom;
   } else {
-    if(_zoom < 10)
-      _zoom = 1.2*_zoom;
+    if (_zoom < 10)
+      _zoom = 1.2 * _zoom;
   }
 }
 
@@ -64,11 +177,14 @@ void Graphics3D::wheelEvent(QWheelEvent *e) {
  * Confusing QT Stuff to set up the window *
  *-----------------------------------------*/
 
+/*!
+ * Wrapper for our rendering function which takes care of some OpenGL and Qt setup
+ */
 void Graphics3D::render() {
-  if(_frame%60 == 0) {
+  if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();
-    _fps = (60.f *1000.f / (now-last_frame_ms));
-    std::cout<<"FPS: "<<_fps<<"\n";
+    _fps = (60.f * 1000.f / (now - last_frame_ms));
+    std::cout << "FPS: " << _fps << "\n";
     last_frame_ms = now;
   }
 
@@ -80,6 +196,11 @@ void Graphics3D::render() {
   _device->setSize(size());
 
   QPainter painter(_device);
+
+  // magic copied from the internet to make things look good on hi-dpi screens
+  const qreal retinaScale = devicePixelRatio();
+  glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+
   render(&painter);
 }
 
@@ -88,18 +209,22 @@ void Graphics3D::render() {
  */
 void Graphics3D::setAnimating(bool animating) {
   _animating = animating;
-  if(animating)
+  if (animating)
     renderLater();
 }
 
+/*!
+ * Called by Qt event handlers, does initialization if needed and draws a frame.
+ */
 void Graphics3D::renderNow() {
-  if (!isExposed())
+  if (!isExposed()) // window isn't ready
     return;
 
   bool needsInitialize = false;
 
+  // initialize things if we need to
   if (!_context) {
-    std::cout << "Init context\n";
+    std::cout << "[Graphics3D] Initialize context...\n";
     _context = new QOpenGLContext(this);
     _context->setFormat(requestedFormat());
     _context->create();
@@ -110,19 +235,30 @@ void Graphics3D::renderNow() {
   _context->makeCurrent(this);
 
   if (needsInitialize) {
-    std::cout << "renderNow initializing...\n";
     initializeOpenGLFunctions();
     initialize();
   }
 
+  // draw frame
   render();
-
   _context->swapBuffers(this);
 
+  // if we're running, we should schedule the next frame
   if (_animating)
     renderLater();
 }
 
+/*!
+ * Sets up Qt to call event with an UpdateRequest on the next frame, which will run the frame drawing code
+ */
+void Graphics3D::renderLater() {
+  requestUpdate();
+}
+
+/*!
+ * This event handler is called automatically by the QT framework at the appropriate time
+ * and runs the frame drawing code.
+ */
 bool Graphics3D::event(QEvent *event) {
   switch (event->type()) {
     case QEvent::UpdateRequest:
@@ -133,8 +269,11 @@ bool Graphics3D::event(QEvent *event) {
   }
 }
 
+/*!
+ * This function is called once the window has initialized all the way and renders the first frame
+ */
 void Graphics3D::exposeEvent(QExposeEvent *event) {
-  (void)event;
+  (void) event;
   if (isExposed())
     renderNow();
 }
