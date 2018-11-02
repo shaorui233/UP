@@ -8,6 +8,7 @@ template <typename T>
 DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(model) {
   // initialize the ABA quantities:
   _nb = _model._nDof;
+  _nGC = _model._nGroundContact;
 
   // allocate matrices
   _Xup.resize(_nb);
@@ -28,6 +29,8 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   _pArot.resize(_nb);
   _d.resize(_nb);
   _u.resize(_nb);
+  _pGC.resize(_nGC);
+  _vGC.resize(_nGC);
 
   // set stuff for 0:5
   for(size_t i = 0; i < 6; i++) {
@@ -62,13 +65,67 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   }
 }
 
+/*!
+ * Take one simulation step
+ * @param dt : timestep duration
+ * @param tau : joint torques
+ */
 template <typename T>
 void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
-
-  updateCollisions();
+  // fwd-kin on gc points
+  // compute ground contact forces
+  // aba
+  // integrate
+  forwardKinematics(); // compute forward kinematics
+  updateCollisions();  // process collisions
   updateGroundForces();
-  runABA(tau);
-  integrate(dt);
+  runABA(tau);         // dynamics algorithm
+  integrate(dt);       // step forward
+}
+
+/*!
+ * Forward kinematics of all bodies.  Computes _Xup (from up the tree) and _Xa (from absolute)
+ * Also computes _S (motion subspace), _v (spatial velocity in link coordinates), and _c
+ */
+template <typename T>
+void DynamicsSimulator<T>::forwardKinematics() {
+
+  // calculate joint transformations
+  _Xup[5] = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
+  _v[5] = _state.bodyVelocity;
+  for(size_t i = 6; i < _nb; i++) {
+    // joint xform
+    Mat6<T> XJ = jointXform(_model._jointTypes[i], _model._jointAxes[i], _state.q[i - 6]);
+    _Xup[i] = XJ * _model._Xtree[i];
+
+    _S[i] = jointMotionSubspace<T>(_model._jointTypes[i], _model._jointAxes[i]);
+    SVec<T> vJ = _S[i] * _state.qd[i - 6];
+
+    // total velocity of body i
+    _v[i] = _Xup[i] * _v[_model._parents[i]] + vJ;
+    _c[i] = motionCrossProduct(_v[i], vJ); // this isn't
+  }
+
+  // calculate from absolute transformations
+  for (size_t i = 5; i < _nb; i++) {
+    if (_model._parents[i] == 0) {
+      _Xa[i] = _Xup[i]; // float base
+    } else {
+      _Xa[i] = _Xup[i] * _Xa[_model._parents[i]];
+    }
+  }
+
+  // ground contact points
+  // TODO : we end up inverting the same Xa a few times (like for the 8 points on the body). this isn't super efficient.
+  for(size_t j = 0; j < _nGC; j++) {
+    size_t i = _model._gcParent.at(j);
+    Mat6<T> Xai = invertSXform(_Xa[i]); // from link to absolute
+    SVec<T> vSpatial = Xai * _v[i];
+
+    // foot position in world
+    _pGC.at(j) = sXFormPoint(Xai, _model._gcLocation.at(j));
+    _vGC.at(j) = spatialToLinearVelocity(vSpatial, _pGC.at(j));
+  }
 }
 
 template <typename T>
@@ -100,7 +157,6 @@ void DynamicsSimulator<T>::integrate(T dt) {
   Vec3<T> ee = std::sin(ang/2) * axis;
   Quat<T> quatD(std::cos(ang), ee[0], ee[1], ee[2]);
 
-
   Quat<T> quatNew = quatProduct(quatD, _state.bodyOrientation);
   quatNew = quatNew / quatNew.norm();
 
@@ -121,11 +177,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   SVec<T> aGravity;
   aGravity << 0, 0, 0, _model._gravity[0], _model._gravity[1], _model._gravity[2];
 
-  // calc coordinate transformation for float-base
-  // TODO, check the transpose on the rotation matrix
-  _Xup[5] = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
-  // float-base velocity
-  _v[5] = _state.bodyVelocity;
   // float-base articulated inertia
   _IA[5] = _model._Ibody[5].getMatrix();
   SVec<T> ivProduct = _model._Ibody[5].getMatrix() * _v[5];
@@ -133,20 +184,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
 
   // loop 1, down the tree
   for(size_t i = 6; i < _nb; i++) {
-    // joint xform
-    Mat6<T> XJ = jointXform(_model._jointTypes[i], _model._jointAxes[i], _state.q[i - 6]);
-
-    // spatial velocity due to qd
-    _S[i] = jointMotionSubspace<T>(_model._jointTypes[i], _model._jointAxes[i]);
-    SVec<T> vJ = _S[i] * _state.qd[i - 6];
-
-    // coordinate transformation from up the tree
-    _Xup[i] = XJ * _model._Xtree[i];
-
-    // total velocity of body i
-    _v[i] = _Xup[i] * _v[_model._parents[i]] + vJ;
-    _c[i] = motionCrossProduct(_v[i], vJ);
-
 
     _IA[i] = _model._Ibody[i].getMatrix(); // initialize
     ivProduct = _model._Ibody[i].getMatrix() * _v[i];
@@ -165,11 +202,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
 
   // adjust pA for external forces
   for (size_t i = 5; i < _nb; i++) {
-    if (_model._parents[i] == 0) {
-      _Xa[i] = _Xup[i]; // float base
-    } else {
-      _Xa[i] = _Xup[i] * _Xa[_model._parents[i]];
-    }
     // TODO add if statement (avoid these calculations if the force is zero)
     Mat3<T> R = rotationFromSXform(_Xa[i]);
     Vec3<T> p = translationFromSXform(_Xa[i]);

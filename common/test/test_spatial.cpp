@@ -137,6 +137,16 @@ TEST(Spatial, pluho_and_plux) {
   EXPECT_TRUE(almostEqual(X, X2, .00001));
 }
 
+TEST(Spatial, invert_sxform) {
+  RotMat<double> R = coordinateRotation(CoordinateAxis::X, 1.0) * coordinateRotation(CoordinateAxis::Y, 2.0) *
+                     coordinateRotation(CoordinateAxis::Z, 3.0);
+  Vec3<double> r(4,5,6);
+  Mat6<double> X = createSXform(R, r);
+  Mat6<double> Xi_ref = X.inverse();
+  Mat6<double> Xi = invertSXform(X);
+  EXPECT_TRUE(almostEqual(Xi_ref, Xi, .00001));
+}
+
 TEST(Spatial, jcalc) {
   // test joint transformations and motion subspaces
   Mat6<double> Xr, Xp, Xr_ref, Xp_ref;
@@ -192,4 +202,28 @@ TEST(Spatial, box_inertia) {
   Mat3<double> I_ref; I_ref << 2.0833, 0, 0, 0, 1.66667, 0, 0, 0, 1.083333;
   Mat3<double> I_calc = rotInertiaOfBox(1., Vec3<double>(2,3,4));
   EXPECT_TRUE(almostEqual(I_ref, I_calc, .001));
+}
+
+TEST(Spatial, velocityConver) {
+  Vec3<double> vRef(-2, 17, 0);
+  SVec<double> vs;
+  vs << 1,2,3,4,5,6;
+  Vec3<double> p(7,8,9);
+  Vec3<double> v = spatialToLinearVelocity(vs, p);
+  EXPECT_TRUE(almostEqual(v, vRef, .00001));
+}
+
+
+TEST(Spatial, pointTransform) {
+  Vec3<double> p0(1,2,3);
+  Vec3<double> pxRef(-3.0026, -1.9791, -3.7507);
+  Mat3<double> R = coordinateRotation(CoordinateAxis::X, .2) *
+          coordinateRotation(CoordinateAxis::Y, .3) *
+          coordinateRotation(CoordinateAxis::Z, .5);
+
+  Vec3<double> r(4,5,6);
+  Mat6<double> X = createSXform(R, r);
+
+  Vec3<double> px = sXFormPoint(X, p0);
+  EXPECT_TRUE(almostEqual(px, pxRef, .0005));
 }

@@ -24,6 +24,7 @@ public:
   DynamicsSimulator(FloatingBaseModel<T>& model); //! Initialize simulator with given model
   void step(T dt, const DVec<T>& tau); //! Simulate forward one step
   void runABA(const DVec<T>& tau); //! Find _dstate with the articulated body algorithm
+  void forwardKinematics(); //! Do forward kinematics for feet
 
   /*!
    * Set the state of the robot being simulated
@@ -66,6 +67,7 @@ public:
   }
 
 private:
+
   void updateCollisions(); //! Update ground collision list
   void updateGroundForces(); //! Compute ground reaction forces
 
@@ -77,10 +79,12 @@ private:
   // aba stuff
   vector<Mat6<T>, Eigen::aligned_allocator<Mat6<T>>> _Xup, _Xuprot, _IA, _Xa;
   vector<SVec<T>, Eigen::aligned_allocator<SVec<T>>> _v, _vrot, _a, _c, _crot, _U, _Urot, _Utot, _S, _Srot, _pA, _pArot;
+  vector<Vec3<T>, Eigen::aligned_allocator<Vec3<T>>> _pGC; // position of ground contacts in world coordinates
+  vector<Vec3<T>, Eigen::aligned_allocator<Vec3<T>>> _vGC; // velocity of ground contacts in world coordinates
   vector<T> _d, _u;
 
   FloatingBaseModel<T>& _model;
-  size_t _nb;
+  size_t _nb, _nGC;
 
 
   ForceList<T> _externalForces;

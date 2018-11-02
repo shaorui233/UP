@@ -47,6 +47,7 @@ TEST(Dynamics, simulatorDynamicsDoesntCrash) {
   FloatingBaseModel<double> cheetah = buildCheetah3<double>();
   DynamicsSimulator<double> sim(cheetah);
   DVec<double> tau(12);
+  sim.forwardKinematics();
   sim.runABA(tau);
 }
 
@@ -77,6 +78,7 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForce) {
 
   // do aba
   sim.setState(x);
+  sim.forwardKinematics();
   sim.runABA(tau);
 
   // check:
@@ -155,6 +157,45 @@ TEST(Dynamics, simulatorDynamicsWithExternalForce) {
     // the qdd's are large - see qddRef, so we're only accurate to within ~1.
     EXPECT_TRUE(fpEqual(sim.getDState().qdd[i], qddRef[i], 3.));
   }
+}
+
+TEST(Dynamics, simulatorFootPosVel) {
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
+  DynamicsSimulator<double> sim(cheetahModel);
+
+  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
+                         coordinateRotation(CoordinateAxis::Y, .111);
+  SVec<double> bodyVel;
+  bodyVel << 1, 2, 3, 4, 5, 6;
+  FBModelState<double> x;
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tau(12);
+  for (size_t i = 0; i < 12; i++) {
+    q[i] = i + 1;
+    dq[i] = (i + 1) * 2;
+    tau[i] = (i + 1) * -30.;
+  }
+
+  // set state
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
+  x.bodyVelocity = bodyVel;
+  x.bodyPosition = Vec3<double>(6, 7, 8);
+  x.q = q;
+  x.qd = dq;
+
+  // generate external forces
+  ForceList<double> forces(18);
+  for(size_t i = 0; i < 18; i++) {
+    for(size_t j = 0; j < 6; j++) {
+      forces[i][j] = i + j + 1;
+    }
+  }
+
+  // do aba
+  sim.setState(x);
+  sim.setAllExternalForces(forces);
+  sim.step(0.0, tau);
 }
 
 //TEST(Dynamics, simulatorTime) {

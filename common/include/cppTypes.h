@@ -14,6 +14,10 @@
 template<typename T>
 using RotMat = typename Eigen::Matrix<T, 3, 3>;
 
+// 2x1 Vector
+template<typename T>
+using Vec2 = typename Eigen::Matrix<T, 2, 1>;
+
 // 3x1 Vector
 template<typename T>
 using Vec3 = typename Eigen::Matrix<T, 3, 1>;
@@ -53,5 +57,9 @@ using DVec = typename Eigen::Matrix<T, Eigen::Dynamic, 1>;
 // Dynamically sized matrix
 template<typename T>
 using DMat = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+
+// std::vector (a list) of Eigen things
+template<typename T>
+using vectorAligned = typename std::vector<T, Eigen::aligned_allocator<T>>;
 
 #endif //PROJECT_CPPTYPES_H
