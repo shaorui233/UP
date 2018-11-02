@@ -7,6 +7,7 @@
 
 
 #include <Graphics3D.h>
+#include <DrawList.h>
 #include <QSurfaceFormat>
 
 QSurfaceFormat gFormat;
@@ -17,6 +18,10 @@ QSurfaceFormat gFormat;
  int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
   printf("hello world!\n");
+
+  DrawList dl;
+  dl.loadCheetah3();
+
   gFormat.setSamples(1);
   gFormat.setDepthBufferSize(24);
   Graphics3D* window = new Graphics3D();

@@ -21,6 +21,7 @@ void Graphics3D::renderLater() {
 }
 
 void Graphics3D::render(QPainter *painter) {
+  (void)painter;
   ++_frame;
 }
 
@@ -133,6 +134,7 @@ bool Graphics3D::event(QEvent *event) {
 }
 
 void Graphics3D::exposeEvent(QExposeEvent *event) {
+  (void)event;
   if (isExposed())
     renderNow();
 }

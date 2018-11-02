@@ -57,21 +57,81 @@ struct FBModelStateDerivative {
 template<typename T>
 class FloatingBaseModel {
 public:
+
+  /*!
+   * Initialize a floating base model with default gravity
+   */
   FloatingBaseModel() : _gravity(0,0,-9.81) {}
+
+  /*!
+   * Add floating base.  Must be the first body added, and there can only be one
+   */
   void addBase(const SpatialInertia<T>& inertia);
+
+  /*!
+   * Add floating base.  Must be the first body added, and there can only be one
+   */
   void addBase(T mass, const Vec3<T>& com, const Mat3<T>& I);
+
+  /*!
+   * Add a point for collisions
+   * @param bodyID   : body that the point belongs to (body 5 for floating base)
+   * @param location : location of point in body coordinates
+   * @param isFoot   : if the point is a foot or not.  Only feet have their Jacobian calculated on the robot
+   * @return collisionPointID of the new point
+   */
   int addGroundContactPoint(int bodyID, const Vec3<T>& location, bool isFoot = false);
+
+  /*!
+   * Add bounding box collision points around a body.
+   * @param bodyId : Body to add
+   * @param dims   : Dimension of points
+   */
   void addGroundContactBoxPoints(int bodyId, const Vec3<T>& dims);
 
+  /*!
+   * Add a body to the tree
+   * @param inertia        : Inertia of body (body coords)
+   * @param rotorInertia   : Inertia of rotor (rotor coords)
+   * @param gearRatio      : Gear ratio.  >1 for a gear reduction
+   * @param parent         : Body ID of the link that the body is connected to
+   * @param jointType      : Type of joint
+   * @param jointAxis      : Axis of joint
+   * @param Xtree          : Location of joint
+   * @param Xrot           : Location of rotor
+   * @return               : bodyID
+   */
   int addBody(const SpatialInertia<T>& inertia, const SpatialInertia<T>& rotorInertia, T gearRatio,
               int parent, JointType jointType, CoordinateAxis jointAxis, const Mat6<T>& Xtree, const Mat6<T>& Xrot);
 
+  /*!
+ * Add a body to the tree
+ * @param inertia        : Inertia of body (body coords)
+ * @param rotorInertia   : Inertia of rotor (rotor coords)
+ * @param gearRatio      : Gear ratio.  >1 for a gear reduction
+ * @param parent         : Body ID of the link that the body is connected to
+ * @param jointType      : Type of joint
+ * @param jointAxis      : Axis of joint
+ * @param Xtree          : Location of joint
+ * @param Xrot           : Location of rotor
+ * @return               : bodyID
+ */
   int addBody(const MassProperties<T>& inertia, const MassProperties <T>& rotorInertia, T gearRatio,
               int parent, JointType jointType, CoordinateAxis jointAxis, const Mat6<T>& Xtree, const Mat6<T>& Xrot);
 
+  /*!
+   * Very simple to check to make sure the dimensions are correct
+   */
   void check();
 
+  /*!
+   * Total mass of all rotors
+   */
   T totalRotorMass();
+
+  /*!
+   * Total mass of all bodies which are not rotors
+   */
   T totalNonRotorMass();
 
   const std::vector<int>& getParentVector() {

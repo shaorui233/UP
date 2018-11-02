@@ -52,7 +52,7 @@ namespace objLoader {
     ObjLoader();
 
     // load obj file (this method does the heavy-lifting)
-    void load(const char *filename);
+    void load(const char *filename, std::vector<float>& positions, std::vector<float>& normals);
     int getIndexCount();
     int getVertCount();
     const unsigned int *getFaces();
