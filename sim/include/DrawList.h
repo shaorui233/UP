@@ -21,20 +21,20 @@
 
 #include <cppTypes.h>
 #include <spatial.h>
+#include <Colors.h>
+#include <Checkerboard.h>
 
-// background colors.
-static constexpr float windows2000[] = {58.f / 256.f, 110.f / 256.f, 165.f / 256.f};
-static constexpr float disgustingGreen[] = {0.f, 0.2f, 0.2f};
 
 class DrawList {
 public:
   DrawList() {
     loadFiles();
   }
-  size_t loadCheetah3();
-  size_t loadMiniCheetah();
+  size_t addCheetah3();
+  size_t addMiniCheetah();
   void buildDrawList();
   void loadFiles();
+  size_t addCheckerboard(Checkerboard& checkerBoard);
 
   /*!
    * Resize to hold size objects.

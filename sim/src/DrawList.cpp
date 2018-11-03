@@ -8,7 +8,7 @@
 #include "DrawList.h"
 
 void DrawList::loadFiles() {
-  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj"};//,"mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj"};
+  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj"};
   objLoader::ObjLoader loader;
   for (const auto &name : names) {
     std::string filename = _baseFileName + name;
@@ -24,23 +24,10 @@ void DrawList::loadFiles() {
  * Load the cheetah 3 model and build the draw list.
  * Returns an index number that can later be used to update the position of the robot.
  */
-size_t DrawList::loadCheetah3() {
-  // cheetah 3 has 13 bodies, but only 4 unique objects:
-
-  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj"};
-  objLoader::ObjLoader loader;
+size_t DrawList::addCheetah3() {
 
   size_t i0 = 0;
   size_t j0 = _nTotal;
-//  for (const auto &name : names) {
-//    std::string filename = _baseFileName + name;
-//    _vertexData.emplace_back();
-//    _normalData.emplace_back();
-//    _colorData.emplace_back();
-//    loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
-//    setSolidColor(_colorData.back(), _vertexData.back().size(), .2, .2, .2);
-//    _nUnique++;
-//  }
 
   // set model offsets:
   QMatrix4x4 bodyOffset, abadOffset, lowerOffset, eye;
@@ -51,7 +38,6 @@ size_t DrawList::loadCheetah3() {
   bodyOffset.setToIdentity();
   bodyOffset.rotate(90,1,0,0);
   bodyOffset.rotate(90,0,0,1);
-
 
   // abad
   abadOffset.setToIdentity();
@@ -100,22 +86,14 @@ size_t DrawList::loadCheetah3() {
 /*!
  * Load the mini cheetah model and builds the draw list.
  * Returns an index number that can later be used to update the position of the robot.
+ * TODO check all this once the mini cheetah dynamics model exists again
  */
-size_t DrawList::loadMiniCheetah() {
+size_t DrawList::addMiniCheetah() {
   std::vector<std::string> names = {"mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj"};
   objLoader::ObjLoader loader;
 
-  size_t i0 = _nUnique;
+  size_t i0 = 4;
   size_t j0 = _nTotal;
-  for(size_t i = 0; i < names.size(); i++) {
-    std::string filename = _baseFileName + names[i];
-    _vertexData.emplace_back();
-    _normalData.emplace_back();
-    _colorData.emplace_back();
-    loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
-    setSolidColor(_colorData.back(), _vertexData.back().size(), .2, .2, .2);
-    _nUnique++;
-  }
 
   // set model offsets:
   QMatrix4x4 bodyOffset, upper, lower, eye;
@@ -171,7 +149,33 @@ size_t DrawList::loadMiniCheetah() {
   _kinematicXform.push_back(eye);
 
   _nTotal += 4;
-  buildDrawList();
+  return j0;
+}
+
+/*!
+ * Adds a checkerboard to the list of drawables.
+ * Uses an identity transformation for now
+ */
+size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
+  size_t j0 = _nTotal;
+  size_t i0 = _nUnique;
+
+  _nUnique++;
+  // add the object
+  _vertexData.emplace_back();
+  _normalData.emplace_back();
+  _colorData.emplace_back();
+  checkerBoard.computeVertices(_vertexData.back(), _normalData.back(), _colorData.back());
+  QMatrix4x4 eye, offset;
+  eye.setToIdentity();
+  offset.setToIdentity();
+  //offset.translate(-checkerBoard.getSize()[0]/2, -checkerBoard.getSize()[1]/2);
+  _modelOffsets.push_back(offset);
+  _kinematicXform.push_back(eye);
+
+  _nTotal++;
+  // add the instance
+  _objectMap.push_back(i0);
   return j0;
 }
 
@@ -184,6 +188,7 @@ void DrawList::buildDrawList() {
   _glColorData.clear();
   _glNormalData.clear();
   _glArrayOffsets.clear();
+  _glArraySizes.clear();
 
   for(size_t i = 0; i < _nUnique; i++) {
     _glArrayOffsets.push_back(_glVertexData.size());
@@ -194,6 +199,5 @@ void DrawList::buildDrawList() {
     _glNormalData.insert(_glNormalData.end(), _normalData.at(i).begin(), _normalData.at(i).end());
   }
 
-  printf("[Graphics 3D] Rebuilt draw list (%lu, %lu, %lu)\n", _glVertexData.size(), _glNormalData.size(), _glColorData.size());
   _reloadNeeded = true;
 }

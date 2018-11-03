@@ -47,7 +47,12 @@ void runSimulatorTest(double xpos, double ypos, double zpos) {
 
   window->lockGfxMutex();
   // add cheetah to simulator
+  Checkerboard c(3,3,100,100);
   size_t cheetahID = window->setupCheetah3();
+  window->_drawList.addCheckerboard(c);
+  (void)cheetahID;
+
+  window->_drawList.buildDrawList();
   window->unlockGfxMutex();
 
   // step simulator to get forward kinematics to run
@@ -97,10 +102,10 @@ int main(int argc, char *argv[]) {
 
   std::vector<std::thread> threadPool;
 
-  for(int x = 0; x < 5; x++) {
-    for(int y = 0; y < 5; y++) {
-      for(int z = 0; z < 4; z++) {
-        threadPool.push_back(std::thread(runSimulatorTest, x*1.5 - 2, y*.6 - 1.2, z*1 - 1));
+  for(int x = 0; x < 1; x++) {
+    for(int y = 0; y < 1; y++) {
+      for(int z = 0; z < 1; z++) {
+        threadPool.emplace_back(runSimulatorTest, 0,0,0);
       }
     }
   }

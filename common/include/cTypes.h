@@ -10,6 +10,7 @@
 #define PROJECT_CTYPES_H
 
 #include <stdint.h>
+#include <stddef.h> // for size_t
 
 // short version of the stdint default integer types
 typedef uint64_t u64;

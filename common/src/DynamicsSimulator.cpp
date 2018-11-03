@@ -96,7 +96,6 @@ void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
  */
 template <typename T>
 void DynamicsSimulator<T>::forwardKinematics() {
-
   // calculate joint transformations
   _Xup[5] = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   _v[5] = _state.bodyVelocity;

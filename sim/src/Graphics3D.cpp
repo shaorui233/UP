@@ -17,7 +17,7 @@ static constexpr char vertexShaderSource[] = R"(
 
 // inputs:
 attribute highp vec3 posAttr;   // position
-uniform lowp vec3 colAttr;      // color
+attribute lowp vec3 colAttr;      // color
 attribute highp vec3 normAttr;  // normal
 uniform highp mat4 matrix;      // transformation
 
@@ -64,14 +64,14 @@ Graphics3D::Graphics3D(QWindow *parent) : QWindow(parent), _animating(false), _c
  * Configure the window for displaying cheetah 3
  */
 size_t Graphics3D::setupCheetah3() {
-  return _drawList.loadCheetah3();
+  return _drawList.addCheetah3();
 }
 
 /*!
  * Configure the window for displaying mini cheetah
  */
 size_t Graphics3D::setupMiniCheetah() {
-  return _drawList.loadMiniCheetah();
+  return _drawList.addMiniCheetah();
 }
 
 /*!
@@ -107,6 +107,7 @@ void Graphics3D::render(QPainter *painter) {
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getVertexArray(), GL_STATIC_DRAW);
+    printf("size: %lu, @ %p\n", _drawList.getSizeOfAllData(), _drawList.getVertexArray());
     glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
