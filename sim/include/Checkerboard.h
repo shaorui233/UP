@@ -7,8 +7,8 @@
 #ifndef PROJECT_CHECKERBOARD_H
 #define PROJECT_CHECKERBOARD_H
 
-#include <cTypes.h>
-#include <Colors.h>
+#include "cTypes.h"
+#include "Colors.h"
 
 #include <vector>
 

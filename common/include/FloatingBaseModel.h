@@ -11,17 +11,17 @@
  * gear ratio multiplier applied to the motion subspace. The rotors associated with the floating base don't do anything.
  */
 
-#include <spatial.h>
-#include <orientation_tools.h>
-#include <SpatialInertia.h>
-#include <vector>
-#include <string>
-#include <spatial.h>
-
 #ifndef LIBBIOMIMETICS_FLOATINGBASEMODEL_H
 #define LIBBIOMIMETICS_FLOATINGBASEMODEL_H
 
+#include "spatial.h"
+#include "orientation_tools.h"
+#include "SpatialInertia.h"
+
 #include <eigen3/Eigen/StdVector>
+
+#include <vector>
+#include <string>
 
 using std::vector;
 using namespace ori;

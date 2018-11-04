@@ -8,12 +8,13 @@
 #ifndef LIBBIOMIMETICS_SPATIAL_H
 #define LIBBIOMIMETICS_SPATIAL_H
 
-#include <cmath>
-#include <eigen3/Eigen/Dense>
-#include <type_traits>
-#include <orientation_tools.h>
-#include <iostream>
+#include "orientation_tools.h"
 
+#include <eigen3/Eigen/Dense>
+
+#include <cmath>
+#include <type_traits>
+#include <iostream>
 
 namespace spatial {
   using namespace ori;
@@ -263,6 +264,21 @@ namespace spatial {
      Vec3<typename T::Scalar> r = translationFromSXform(X);
      Vec3<typename T::Scalar> Xp = R * (p - r);
      return Xp;
+   }
+
+   /*!
+    * Convert a force at a point to a spatial force
+    * @param f : force
+    * @param p : point
+    */
+   template<typename T, typename T2>
+   auto forceToSpatialForce(const Eigen::MatrixBase<T>& f, const Eigen::MatrixBase<T2>& p) {
+     static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 3, "Must have 3x1 vector");
+     static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 3, "Must have 3x1 vector");
+     SVec<typename T::Scalar> fs;
+     fs.template topLeftCorner<3,1>() = p.cross(f);
+     fs.template bottomLeftCorner<3,1>() = f;
+     return fs;
    }
 
 }

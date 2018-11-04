@@ -1,16 +1,28 @@
+/*! @file test_orientation_tools.cpp
+ *  @brief Test orientation functions
+ *
+ * Test the orientation related functions in orientation_tools.h
+ * Does not check any spatial stuff
+ */
 
-#include <orientation_tools.h>
+
+#include "orientation_tools.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 using namespace ori;
 
+/*!
+ * Check radians to degrees
+ */
 TEST(Orientation, rad2deg) {
-  // check radians to degrees calculation
   EXPECT_EQ(M_PI/4., deg2rad(45.));
   EXPECT_EQ(45, rad2deg(M_PI/4.));
 }
 
+/*!
+ * Check the "almostEqual" function for comparing two eigen quantities
+ */
 TEST(Orientation, almostEqual) {
   // check matrix "almostEqual" function
   Mat3<double> a, b;
@@ -20,6 +32,9 @@ TEST(Orientation, almostEqual) {
   EXPECT_EQ(false, almostEqual(a,b,.01));
 }
 
+/*!
+ * Check the coordinateRotation algorithm which generates rotaiton matrices for axis rotations
+ */
 TEST(Orientation, coordinateRotation) {
   // check rotation matrices
   double s = std::sin(.2);
@@ -39,7 +54,9 @@ TEST(Orientation, coordinateRotation) {
   EXPECT_EQ(R_ref_z, coordinateRotation(CoordinateAxis::Z, .2));
 }
 
-
+/*!
+ * Check the skew functions, which go between vectors and skew-symmetric matrices
+ */
 TEST(Orientation, skew) {
   // check skew vec->mat and mat->vec
   Mat3<double> A,B;
@@ -54,6 +71,9 @@ TEST(Orientation, skew) {
   EXPECT_EQ(v, matToSkewVec(vectorToSkewMat(v)));
 }
 
+/*!
+ * Check the quaternion to rotation matrix and rotation matrix to quaternion functions
+ */
 TEST(Orientation, quatToRotm) {
   // check R -> q and q -> R
   Quat<double> q(.9672, -0.0672, -0.1653, -0.1808);
@@ -65,6 +85,10 @@ TEST(Orientation, quatToRotm) {
   EXPECT_TRUE(almostEqual(R2, R, .0001));
 }
 
+/*!
+ * Test the quaternion to roll-pitch-yaw conversion
+ * TODO: make one of these that shows the ypr order
+ */
 TEST(Orientation, quatToRpy) {
   // check q -> rpy
   Quat<double> q(0.9672, -0.0672, -0.1653, -0.1808);
@@ -72,12 +96,19 @@ TEST(Orientation, quatToRpy) {
   EXPECT_TRUE(almostEqual(rpy1, quatToRPY(q), .1));
 }
 
+/*!
+ * Check the quaternion derivative function.
+ * This isn't used and probably should be removed
+ */
 TEST(Orienation, quaternionDerivative) {
   Quat<double> ref(-10.8376, -0.6752, -2.5128, -1.3504);
   Quat<double> q = quatDerivative(Quat<double>(1,2,3,4), Vec3<double>(1,2,3));
   EXPECT_TRUE(almostEqual(q,ref,.0005));
 }
 
+/*!
+ * Check the quaternion product
+ */
 TEST(Orientation, quaternionProduct) {
   Quat<double> q1(1,2,3,4);
   Quat<double> q2(5,6,7,8);

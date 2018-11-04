@@ -6,12 +6,14 @@
 #ifndef LIBBIOMIMETICS_SPATIALINERTIA_H
 #define LIBBIOMIMETICS_SPATIALINERTIA_H
 
+#include "orientation_tools.h"
+#include "spatial.h"
+
 #include <cmath>
-#include <eigen3/Eigen/Dense>
 #include <type_traits>
-#include <orientation_tools.h>
-#include <spatial.h>
 #include <iostream>
+
+#include <eigen3/Eigen/Dense>
 
 using namespace ori;
 using namespace spatial;

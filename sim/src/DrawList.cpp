@@ -16,7 +16,7 @@ void DrawList::loadFiles() {
     _normalData.emplace_back();
     _colorData.emplace_back();
     loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
-    setSolidColor(_colorData.back(), _vertexData.back().size(), .2, .2, .2);
+    setSolidColor(_colorData.back(), _vertexData.back().size(), defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
     _nUnique++;
   }
 }
@@ -169,7 +169,7 @@ size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
   QMatrix4x4 eye, offset;
   eye.setToIdentity();
   offset.setToIdentity();
-  //offset.translate(-checkerBoard.getSize()[0]/2, -checkerBoard.getSize()[1]/2);
+  offset.translate(-checkerBoard.getSize()[0]/2, -checkerBoard.getSize()[1]/2);
   _modelOffsets.push_back(offset);
   _kinematicXform.push_back(eye);
 

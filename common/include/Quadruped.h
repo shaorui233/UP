@@ -9,8 +9,9 @@
 #ifndef LIBBIOMIMETICS_QUADRUPED_H
 #define LIBBIOMIMETICS_QUADRUPED_H
 
-#include <FloatingBaseModel.h>
-#include <SpatialInertia.h>
+#include "FloatingBaseModel.h"
+#include "SpatialInertia.h"
+
 #include <eigen3/Eigen/StdVector>
 
 #include <vector>

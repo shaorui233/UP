@@ -3,7 +3,8 @@
  *
  */
 
-#include <Checkerboard.h>
+#include "Checkerboard.h"
+
 #include <stdio.h>
 
 /*!

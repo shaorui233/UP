@@ -11,19 +11,20 @@
 #ifndef PROJECT_DRAWLIST_H
 #define PROJECT_DRAWLIST_H
 
+#include "obj_loader.h"
+#include "FloatingBaseModel.h"
+#include "DynamicsSimulator.h"
+#include "sim_utilities.h"
+#include "cppTypes.h"
+#include "spatial.h"
+#include "Colors.h"
+#include "Checkerboard.h"
+#include "CollisionPlane.h"
+
+#include <QMatrix4x4>
+
 #include <stdlib.h>
 #include <vector>
-#include <QMatrix4x4>
-#include <obj_loader.h>
-#include <FloatingBaseModel.h>
-#include <DynamicsSimulator.h>
-#include <sim_utilities.h>
-
-#include <cppTypes.h>
-#include <spatial.h>
-#include <Colors.h>
-#include <Checkerboard.h>
-
 
 class DrawList {
 public:
@@ -146,6 +147,18 @@ public:
     for (size_t modelID = 5, graphicsID = id; modelID < model.getNumBodies(); modelID++, graphicsID++) {
       _kinematicXform.at(graphicsID) = spatialTransformToQT(model._Xa.at(modelID));
     }
+  }
+
+  /*!
+   * Updates the position of a checkerboard to match an infinite collision plane
+   * The infinite collision plane only specifies orientation, so we
+   * @param model : the collision plane
+   * @param id    : the id retured from creating the checkerboard
+   */
+  template<typename T>
+  void updateCheckerboardFromCollisionPlane(CollisionPlane<T>& model, size_t id) {
+    //Mat4<T> H = sxformToHomogeneous(model.getLocation());
+    _kinematicXform.at(id) =  spatialTransformToQT(model.getLocation());
   }
 
   /*!

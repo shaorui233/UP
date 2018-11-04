@@ -12,7 +12,8 @@
  */
 
 #include "FloatingBaseModel.h"
-#include <orientation_tools.h>
+#include "orientation_tools.h"
+
 #include <stdexcept>
 #include <vector>
 #include <string>

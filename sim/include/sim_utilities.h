@@ -5,10 +5,11 @@
 #ifndef PROJECT_SIM_UTILITIES_H
 #define PROJECT_SIM_UTILITIES_H
 
+#include "cppTypes.h"
+#include "orientation_tools.h"
+#include "spatial.h"
+
 #include <QMatrix4x4>
-#include <cppTypes.h>
-#include <orientation_tools.h>
-#include <spatial.h>
 
 using namespace spatial;
 

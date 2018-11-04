@@ -7,9 +7,8 @@
  */
 
 #include "Quadruped.h"
-#include <spatial.h>
-#include <orientation_tools.h>
-#include <include/Quadruped.h>
+#include "spatial.h"
+#include "orientation_tools.h"
 
 using namespace ori;
 using namespace spatial;
@@ -57,7 +56,7 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
     // Hip Joint
     bodyID++;
     Mat6<T> xtreeHip = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipLocation, legID));
-    Mat6<T> xtreeHipRotor = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipLocation, legID));
+    Mat6<T> xtreeHipRotor = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipRotorLocation, legID));
     if(sideSign < 0) {
       model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y), _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
               _hipGearRatio, bodyID-1, JointType::Revolute, CoordinateAxis::Y, xtreeHip, xtreeHipRotor);

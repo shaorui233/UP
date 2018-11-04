@@ -14,11 +14,13 @@
 #ifndef LIBBIOMIMETICS_ORIENTATION_TOOLS_H
 #define LIBBIOMIMETICS_ORIENTATION_TOOLS_H
 
-#include <cmath>
+#include "cppTypes.h"
+
 #include <eigen3/Eigen/Dense>
+
+#include <cmath>
 #include <type_traits>
 #include <iostream>
-#include <cppTypes.h>
 
 namespace ori {
 

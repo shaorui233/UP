@@ -19,8 +19,8 @@
 #ifndef LIBBIOMIMETICS_CHEETAH3_H
 #define LIBBIOMIMETICS_CHEETAH3_H
 
-#include <FloatingBaseModel.h>
-#include <Quadruped.h>
+#include "FloatingBaseModel.h"
+#include "Quadruped.h"
 
 using namespace spatial;
 

@@ -7,7 +7,8 @@
 #ifndef PROJECT_COLLISIONPLANE_H
 #define PROJECT_COLLISIONPLANE_H
 
-#include <cppTypes.h> // linear algebra types
+#include "cppTypes.h"
+
 #include <vector>
 
 /*!
@@ -16,6 +17,7 @@
 template<typename T> // template on floating point type (float or double)
 class CollisionPlane {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /*!
    * Construct a new collision plane
@@ -26,7 +28,7 @@ public:
    * @param K  : spring constant
    * @param D  : damping constant
    */
-  CollisionPlane(Vec3<T>& normal, T offset, int nContactPoints, T mu, T K, T D) : _normal(normal), _offset(offset),
+  CollisionPlane(SXform<T>& location, size_t nContactPoints, T mu, T K, T D) : _location(location),
      _mu(mu), _K(K), _D(D){
 
     // resize list of deflections
@@ -38,10 +40,15 @@ public:
     }
   }
 
+  SXform<T>& getLocation() {
+    return _location;
+  }
+
 private:
-  Vec3<T> _normal;
-  double _offset, _mu, _K, _D;
+  SXform<T>& _location;
+  T _mu, _K, _D;
   vectorAligned<Vec2<T>> _tangentialDeflection;
 };
 
 #endif //PROJECT_COLLISIONPLANE_H
+

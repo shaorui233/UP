@@ -8,6 +8,9 @@
 #ifndef PROJECT_GRAPHICS3D_H
 #define PROJECT_GRAPHICS3D_H
 
+#include "obj_loader.h"
+#include "DrawList.h"
+
 #include <QWindow>
 #include <QOpenGLFunctions>
 #include <QOpenGLPaintDevice>
@@ -21,8 +24,6 @@
 #include <QDateTime>
 #include <QMouseEvent>
 
-#include <obj_loader.h>
-#include <DrawList.h>
 #include <mutex>
 
 class Graphics3D: public QWindow, protected QOpenGLFunctions {

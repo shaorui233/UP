@@ -1,18 +1,27 @@
-//
-// Created by jared on 10/12/18.
-//
+/*! @file test_dynamics.cpp
+ *  @brief Test dynamics algorithms
+ *
+ * Test the dynamics algorithms in DynamicsSimulator and models of the robot
+ */
 
-#include <FloatingBaseModel.h>
-#include <Quadruped.h>
-#include <utilities.h>
+
+#include "FloatingBaseModel.h"
+#include "Quadruped.h"
+#include "utilities.h"
 #include "DynamicsSimulator.h"
-#include <Cheetah3.h>
+#include "Cheetah3.h"
+
+
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 using namespace spatial;
 
-
+/*!
+ * Generate a model of the Cheetah 3 and check its total mass, tree structure
+ * and sum of all spatial inertias (including rotors)
+ * Compared against MATLAB model
+ */
 TEST(Dynamics, cheetah3model) {
   FloatingBaseModel<double> cheetah = buildCheetah3<double>();
   cheetah.check();
@@ -42,8 +51,11 @@ TEST(Dynamics, cheetah3model) {
   EXPECT_TRUE(almostEqual(inertiaSum, inertiaSumRef, .0001));
 }
 
-// this test just checks that sim.runABA doesn't cause any matrix dimension errors.
-TEST(Dynamics, simulatorDynamicsDoesntCrash) {
+/*!
+ * Creates a cheetah model and runs forward kinematics and ABA
+ * Doesn't test anyting - this is just to make sure it doesn't crash
+ */
+TEST(Dynamics, simulatorDynamicsDoesntCrashCheetah3) {
   FloatingBaseModel<double> cheetah = buildCheetah3<double>();
   DynamicsSimulator<double> sim(cheetah);
   DVec<double> tau(12);
@@ -51,7 +63,12 @@ TEST(Dynamics, simulatorDynamicsDoesntCrash) {
   sim.runABA(tau);
 }
 
-TEST(Dynamics, simulatorDynamicsABANoExternalForce) {
+/*!
+ * Run the articulated body algorithm (and forward kinematics) on Cheetah 3
+ * Set a weird body orientation, velocity, q, dq, and tau
+ * Checks that quatD, pd, vd, and qdd match MATLAB
+ */
+TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
   DynamicsSimulator<double> sim(cheetahModel);
 
@@ -101,7 +118,13 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForce) {
   }
 }
 
-TEST(Dynamics, simulatorDynamicsWithExternalForce) {
+/*!
+ * Run the articulated body algorithm (and forward kinematics) on Cheetah 3
+ * Set a weird body orientation, velocity, q, dq, and tau
+ * Sets external spatial forces on all bodies
+ * Checks that quatD, pd, vd, and qdd match MATLAB
+ */
+TEST(Dynamics, simulatorDynamicsWithExternalForceCheetah3) {
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
   DynamicsSimulator<double> sim(cheetahModel);
 
@@ -159,7 +182,12 @@ TEST(Dynamics, simulatorDynamicsWithExternalForce) {
   }
 }
 
-TEST(Dynamics, simulatorFootPosVel) {
+/*!
+ * Run the articulated body algorithm (and forward kinematics) on Cheetah 3
+ * Set a weird body orientation, velocity, q, dq, and tau
+ * Checks that foot position and velocities match MATLAB
+ */
+TEST(Dynamics, simulatorFootPosVelCheetah3) {
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
   DynamicsSimulator<double> sim(cheetahModel);
 
@@ -209,47 +237,3 @@ TEST(Dynamics, simulatorFootPosVel) {
   EXPECT_TRUE(almostEqual(bodyvRef1ML, sim._vGC.at(2), .0005));
   EXPECT_TRUE(almostEqual(footvRefML, sim._vGC.at(15), .0005));
 }
-
-//TEST(Dynamics, simulatorTime) {
-//  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
-//  DynamicsSimulator<double> sim(cheetahModel);
-//
-//  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
-//                         coordinateRotation(CoordinateAxis::Y, .111);
-//  SVec<double> bodyVel;
-//  bodyVel << 1, 2, 3, 4, 5, 6;
-//  FBModelState<double> x;
-//  DVec<double> q(12);
-//  DVec<double> dq(12);
-//  DVec<double> tau(12);
-//  for (size_t i = 0; i < 12; i++) {
-//    q[i] = i + 1;
-//    dq[i] = (i + 1) * 2;
-//    tau[i] = (i + 1) * -30.;
-//  }
-//
-//  // set state
-//  x.bodyOrientation = rotationMatrixToQuaternion(rBody);
-//  x.bodyVelocity = bodyVel;
-//  x.bodyPosition = Vec3<double>(6, 7, 8);
-//  x.q = q;
-//  x.qd = dq;
-//
-//  // generate external forces
-//  ForceList<double> forces(18);
-//  for(size_t i = 0; i < 18; i++) {
-//    for(size_t j = 0; j < 6; j++) {
-//      forces[i][j] = i + j + 1;
-//    }
-//  }
-//
-//  // do aba
-//  sim.setState(x);
-//  sim.setAllExternalForces(forces);
-//
-//  for(int i = 0; i < 10000; i++) {
-//    sim.step(.0001, tau);
-//  }
-//
-//  std::cout << sim.getState().bodyPosition << "\n";
-//}

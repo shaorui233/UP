@@ -363,7 +363,7 @@ void SimGraphicsWindow::renderNow()
         initialize();
     }
 
-    render();
+    //render();
 
     m_context->swapBuffers(this);
 

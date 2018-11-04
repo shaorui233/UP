@@ -9,6 +9,7 @@
 #define PROJECT_CPPTYPES_H
 
 #include <eigen3/Eigen/Dense>
+
 #include <vector>
 
 // Rotation Matrix
