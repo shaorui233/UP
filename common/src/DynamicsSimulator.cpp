@@ -84,10 +84,10 @@ void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
   // aba
   // integrate
   forwardKinematics(); // compute forward kinematics
-  updateCollisions();  // process collisions
-  updateGroundForces();
+  updateCollisions(dt);  // process collisions
   runABA(tau);         // dynamics algorithm
   integrate(dt);       // step forward
+  resetExternalForces(); // clear external forces
 }
 
 /*!
@@ -135,19 +135,20 @@ void DynamicsSimulator<T>::forwardKinematics() {
 }
 
 template <typename T>
-void DynamicsSimulator<T>::updateCollisions() {
- // TODO
+void DynamicsSimulator<T>::updateCollisions(T dt) {
+  for(auto& cp : _collisionPlanes) {
+    cp.update(_externalForces, _model._gcParent, _pGC, _vGC, dt);
+  }
 }
 
-template <typename T>
-void DynamicsSimulator<T>::updateGroundForces() {
- // TODO
-}
+
 
 template <typename T>
 void DynamicsSimulator<T>::integrate(T dt) {
 
-  Vec3<T> omegaBody = _dstate.dBaseVelocity.template block<3,1>(3,0);
+  // this was incredibly wrong.
+  //Vec3<T> omegaBody = _dstate.dBaseVelocity.template block<3,1>(0,0);
+  Vec3<T> omegaBody = _state.bodyVelocity.template block<3,1>(0,0);
   Mat6<T> X = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   RotMat<T> R = rotationFromSXform(X);
   Vec3<T> omega0 = R.transpose() * omegaBody;

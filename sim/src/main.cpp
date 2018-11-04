@@ -27,22 +27,27 @@ Graphics3D *window;
  * @param ypos
  * @param zpos
  */
-void runSimulatorTest(double xpos, double ypos, double zpos) {
+void runSimulatorTest(double xpos, double ypos, double zpos, int n) {
+
+  usleep((n-14)*500000);
+  (void)zpos;
+
+
   // build a Quadruped object, which contains various parameters specific to quadrupeds (leg lengths, etc) (todo reorganize so I get this)
 
   // from this quadruped object, build a rigid body model.
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
 
-  // set the gravity to zero
-  Vec3<double> g0 = Vec3<double>(0,0,0);
+  // set the gravity to normal gravity
+  Vec3<double> g0 = Vec3<double>(0,0,-9.8);
   cheetahModel.setGravity(g0);
 
   // create a new dynamics simulator based on this model
   DynamicsSimulator<double> sim(cheetahModel);
 
   // initial conditions
-  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, 0*.123) * coordinateRotation(CoordinateAxis::Z, 0*.232) *
-                         coordinateRotation(CoordinateAxis::Y, 0*.111);
+  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
+                         coordinateRotation(CoordinateAxis::Y, .111);
 
   DVec<double> q(12);
   DVec<double> dq(12);
@@ -56,8 +61,10 @@ void runSimulatorTest(double xpos, double ypos, double zpos) {
   // create an initial state for the simulator
   FBModelState<double> x;
   x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
-  x.bodyVelocity = SVec<double>::Zero();
-  x.bodyPosition = Vec3<double>(xpos,ypos,zpos);
+  SVec<double> v0;
+  v0 << n, -n, n, .02*n*(n%2?1:-1), .02*n*((n%4<2?1:-1)), .3*n;
+  x.bodyVelocity = v0;
+  x.bodyPosition = Vec3<double>(xpos,ypos,1);
   x.q = q;
   x.qd = dq;
 
@@ -65,8 +72,8 @@ void runSimulatorTest(double xpos, double ypos, double zpos) {
   sim.setState(x);
 
   // We want a floor for the simulation:
-  SXform<double> floorLocation = createSXform(Mat3<double>::Identity(), Vec3<double>(0,0,-.5));
-  CollisionPlane<double> floor(floorLocation, 10, 0, 0, 0);
+  SXform<double> floorLocation = createSXform(Mat3<double>::Identity(), Vec3<double>(0,0,0));
+  size_t collisionPlaneID = sim.addCollisionPlane(floorLocation, 0.8, 5e5, 5e3);
 
   // add a visualization:
   // when adding things to the graphics system, we need to lock the mutex:
@@ -76,7 +83,7 @@ void runSimulatorTest(double xpos, double ypos, double zpos) {
   size_t cheetahID = window->setupCheetah3();
 
   // create a checkerboard for the floor
-  Checkerboard c(3,3,100,100);
+  Checkerboard c(20,20,40,40);
 
   // add the checkerboard
   size_t floorID = window->_drawList.addCheckerboard(c);
@@ -84,8 +91,8 @@ void runSimulatorTest(double xpos, double ypos, double zpos) {
   // now that we've added everything, we can build the draw list for the graphics program
   window->_drawList.buildDrawList();
 
-  // and also tell the drawlist where the floor shoudl go
-  window->_drawList.updateCheckerboardFromCollisionPlane(floor, floorID);
+  // and also tell the drawlist where the floor should go
+  window->_drawList.updateCheckerboardFromCollisionPlane(sim.getCollisionPlane(collisionPlaneID), floorID);
 
   // once this is done, we can go back to drawing frames
   window->unlockGfxMutex();
@@ -98,12 +105,12 @@ void runSimulatorTest(double xpos, double ypos, double zpos) {
   for(;;) {
     t += 1;
 
-    // a controller
+    // a "controller"
     for(int i = 0; i < 12; i++)
-      tau[i] = 2 - sim.getState().qd[i];
+      tau[i] = 5*(.2f*n) - sim.getState().qd[i];
 
     // run the simulator with the controller
-    sim.step(0.00007, tau);
+    sim.step(0.00002, tau);
 
     // periodically update the simulator graphics
     if(!(t%160)) {
@@ -146,10 +153,11 @@ int main(int argc, char *argv[]) {
 
   // launch a bunch of simulators
   std::vector<std::thread> threadPool;
-  for(int x = 0; x < 1; x++) {
-    for(int y = 0; y < 1; y++) {
+  int i = 14;
+  for(int x = -2; x < 3; x++) {
+    for(int y = -2; y < 2; y++) {
       for(int z = 0; z < 1; z++) {
-        threadPool.emplace_back(runSimulatorTest, 0,0,0);
+        threadPool.emplace_back(runSimulatorTest, 0,0,0, i++);
       }
     }
   }

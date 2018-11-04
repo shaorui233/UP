@@ -64,4 +64,5 @@ using DMat = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 template<typename T>
 using vectorAligned = typename std::vector<T, Eigen::aligned_allocator<T>>;
 
+
 #endif //PROJECT_CPPTYPES_H

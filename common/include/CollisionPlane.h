@@ -8,8 +8,12 @@
 #define PROJECT_COLLISIONPLANE_H
 
 #include "cppTypes.h"
+#include "spatial.h"
+#include "collision_model.h"
 
 #include <vector>
+
+using namespace spatial;
 
 /*!
  * Class to represent infinite collision planes (like a flat ground).
@@ -21,18 +25,13 @@ public:
 
   /*!
    * Construct a new collision plane
-   * @param normal : vector normal to plane
-   * @param offset : all points on the plane satisfy normal.dot(x) + offset = 0
-   * @param nContactPoints : maximum contact point id
-   * @param mu : coefficient of friction
-   * @param K  : spring constant
-   * @param D  : damping constant
    */
   CollisionPlane(SXform<T>& location, size_t nContactPoints, T mu, T K, T D) : _location(location),
      _mu(mu), _K(K), _D(D){
 
     // resize list of deflections
     _tangentialDeflection.resize(nContactPoints);
+    _forcesAtFoot.resize(nContactPoints);
 
     // initialize all deflections to zero
     for(auto& u : _tangentialDeflection) {
@@ -40,14 +39,21 @@ public:
     }
   }
 
+  /*!
+   * Get the location of the collision plane.
+   */
   SXform<T>& getLocation() {
     return _location;
   }
+
+  void update(vectorAligned<SVec<T>>& forces, std::vector<size_t>& bodyMap,
+          vectorAligned<Vec3<T>>& p, vectorAligned<Vec3<T>>& v, T dt);
 
 private:
   SXform<T>& _location;
   T _mu, _K, _D;
   vectorAligned<Vec2<T>> _tangentialDeflection;
+  vectorAligned<Vec3<T>> _forcesAtFoot;
 };
 
 #endif //PROJECT_COLLISIONPLANE_H

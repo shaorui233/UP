@@ -165,7 +165,7 @@ public:
   vector<std::string> _bodyNames;
 
   int _nGroundContact = 0;
-  vector<int> _gcParent;
+  vector<size_t> _gcParent;
   vector<Vec3<T>> _gcLocation;
   vector<uint64_t> _footIndicesGC;
 

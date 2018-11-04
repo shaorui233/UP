@@ -26,7 +26,7 @@ void DrawList::loadFiles() {
  */
 size_t DrawList::addCheetah3() {
 
-  size_t i0 = 0;
+  size_t i0 = 0; // todo don't hard code this
   size_t j0 = _nTotal;
 
   // set model offsets:
@@ -89,10 +89,8 @@ size_t DrawList::addCheetah3() {
  * TODO check all this once the mini cheetah dynamics model exists again
  */
 size_t DrawList::addMiniCheetah() {
-  std::vector<std::string> names = {"mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj"};
-  objLoader::ObjLoader loader;
 
-  size_t i0 = 4;
+  size_t i0 = 4; // todo don't hard code this
   size_t j0 = _nTotal;
 
   // set model offsets:

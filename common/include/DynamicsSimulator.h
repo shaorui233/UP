@@ -19,12 +19,6 @@ using namespace spatial;
 
 
 /*!
- * Type of the list of forces to apply to bodies.
- */
-template<typename T>
-using ForceList = typename std::vector<SVec<T>>;
-
-/*!
  * Class (containing state) for dynamics simulation of a floating-base system
  */
 template<typename T>
@@ -61,8 +55,9 @@ public:
   /*!
    * Add external forces. These are added on top of the ground reaction forces
    * The i-th force is the spatial force applied to body i.
+   * This is cleared after each step of the simulator.
    */
-  void setAllExternalForces(const ForceList<T>& forces) {
+  void setAllExternalForces(const vectorAligned<SVec<T>>& forces) {
     _externalForces = forces;
   }
 
@@ -75,6 +70,22 @@ public:
     }
   }
 
+  /*!
+   * Add a collision plane. Returns an index number which can be used to lookup the collision plane later on.
+   */
+  size_t addCollisionPlane(SXform<T>& location,  T mu, T K, T D) {
+    size_t i0 = _collisionPlanes.size();
+    _collisionPlanes.emplace_back(location, _nGC, mu, K, D);
+    return i0;
+  }
+
+  /*!
+   * Get the i-th collision plane
+   */
+  CollisionPlane<T>& getCollisionPlane(size_t i) {
+    return _collisionPlanes.at(i);
+  }
+
 
   size_t getNumBodies() {
     return _nb;
@@ -85,8 +96,7 @@ public:
   vector<Mat6<T>, Eigen::aligned_allocator<Mat6<T>>> _Xup, _Xuprot, _IA, _Xa;
 private:
 
-  void updateCollisions(); //! Update ground collision list
-  void updateGroundForces(); //! Compute ground reaction forces
+  void updateCollisions(T dt); //! Update ground collision list
 
   void integrate(T dt); //! Integrate to find new _state
 
@@ -102,7 +112,7 @@ private:
   size_t _nb, _nGC;
 
 
-  ForceList<T> _externalForces;
+  vectorAligned<SVec<T>> _externalForces;
   vector<CollisionPlane<T>> _collisionPlanes;
 };
 

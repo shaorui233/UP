@@ -150,7 +150,7 @@ TEST(Dynamics, simulatorDynamicsWithExternalForceCheetah3) {
   x.qd = dq;
 
   // generate external forces
-  ForceList<double> forces(18);
+  vectorAligned<SVec<double>> forces(18);
   for(size_t i = 0; i < 18; i++) {
     for(size_t j = 0; j < 6; j++) {
       forces[i][j] = i + j + 1;
@@ -213,7 +213,7 @@ TEST(Dynamics, simulatorFootPosVelCheetah3) {
   x.qd = dq;
 
   // generate external forces
-  ForceList<double> forces(18);
+  vectorAligned<SVec<double>> forces(18);
   for(size_t i = 0; i < 18; i++) {
     for(size_t j = 0; j < 6; j++) {
       forces[i][j] = i + j + 1;
