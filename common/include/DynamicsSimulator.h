@@ -11,6 +11,8 @@
 #include "orientation_tools.h"
 #include "FloatingBaseModel.h"
 #include "spatial.h"
+#include "CollisionPlane.h"
+#include "collision_model.h"
 
 using namespace ori;
 using namespace spatial;
@@ -73,6 +75,7 @@ public:
     }
   }
 
+
   size_t getNumBodies() {
     return _nb;
   }
@@ -100,6 +103,7 @@ private:
 
 
   ForceList<T> _externalForces;
+  vector<CollisionPlane<T>> _collisionPlanes;
 };
 
 

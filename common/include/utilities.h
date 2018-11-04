@@ -1,6 +1,7 @@
 #ifndef PROJECT_UTILITIES_H
 #define PROJECT_UTILITIES_H
 
+#include "cppTypes.h"
 #include <vector>
 #include <algorithm>
 
@@ -26,5 +27,6 @@ bool vectorEqual(const std::vector<T>& a, const std::vector<T>& b) {
   }
   return true;
 }
+
 
 #endif //PROJECT_UTILITIES_H
