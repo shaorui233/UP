@@ -36,6 +36,7 @@ public:
   void buildDrawList();
   void loadFiles();
   size_t addCheckerboard(Checkerboard& checkerBoard);
+  size_t addDebugSphere(float radius);
 
   /*!
    * Resize to hold size objects.
@@ -161,6 +162,14 @@ public:
     _kinematicXform.at(id) =  spatialTransformToQT(model.getLocation());
   }
 
+  template<typename T>
+  void updateDebugSphereLocation(Vec3<T>& position, size_t id) {
+    QMatrix4x4 H;
+    H.setToIdentity();
+    H.translate(position[0], position[1], position[2]);
+    _kinematicXform.at(id) = H;
+  }
+
   /*!
    * Fill color data with a solid color
    */
@@ -201,6 +210,8 @@ private:
   std::vector<QMatrix4x4> _kinematicXform;
 
   bool _reloadNeeded = true;
+
+  size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0, _sphereLoadIndex = 0;
 
 };
 

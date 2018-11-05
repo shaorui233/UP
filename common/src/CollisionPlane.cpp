@@ -13,7 +13,7 @@ template<typename T>
 void CollisionPlane<T>::update(vectorAligned<SVec<T>>& forces, std::vector<size_t>& bodyMap,
             vectorAligned<Vec3<T>>& p, vectorAligned<Vec3<T>>& v, T dt) {
   // first run the contact model on all points
-  groundContactModel(p, v, _tangentialDeflection, _forcesAtFoot, _K, _D, _mu, dt);
+  groundContactModelWithOffset(p, v, _tangentialDeflection, _forcesAtFoot, _K, _D, _mu, dt, _location);
 
   // next update the spatial forces for the appropriate bodies:
   for(size_t i = 0; i < p.size(); i++) {

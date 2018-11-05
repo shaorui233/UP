@@ -29,7 +29,7 @@ Graphics3D *window;
  */
 void runSimulatorTest(double xpos, double ypos, double zpos, int n) {
 
-  usleep((n-14)*500000);
+  usleep((n-12)*500000);
   (void)zpos;
 
 
@@ -72,8 +72,10 @@ void runSimulatorTest(double xpos, double ypos, double zpos, int n) {
   sim.setState(x);
 
   // We want a floor for the simulation:
-  SXform<double> floorLocation = createSXform(Mat3<double>::Identity(), Vec3<double>(0,0,0));
-  size_t collisionPlaneID = sim.addCollisionPlane(floorLocation, 0.8, 5e5, 5e3);
+  SXform<double> floorLocation1 = createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(25.)), Vec3<double>(0,0,-2));
+  SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(25.)), Vec3<double>(0,0,-2));
+  size_t collisionPlaneID1 = sim.addCollisionPlane(floorLocation1, 0.8, 5e5, 5e3);
+  size_t collisionPlaneID2 = sim.addCollisionPlane(floorLocation2, 0.8, 5e5, 5e3);
 
   // add a visualization:
   // when adding things to the graphics system, we need to lock the mutex:
@@ -81,18 +83,21 @@ void runSimulatorTest(double xpos, double ypos, double zpos, int n) {
 
   // add a cheetah to the visualization
   size_t cheetahID = window->setupCheetah3();
+  size_t footSphereID = window->_drawList.addDebugSphere(.1f);
 
   // create a checkerboard for the floor
   Checkerboard c(20,20,40,40);
 
   // add the checkerboard
-  size_t floorID = window->_drawList.addCheckerboard(c);
+  size_t floorID1 = window->_drawList.addCheckerboard(c);
+  size_t floorID2 = window->_drawList.addCheckerboard(c);
 
   // now that we've added everything, we can build the draw list for the graphics program
   window->_drawList.buildDrawList();
 
   // and also tell the drawlist where the floor should go
-  window->_drawList.updateCheckerboardFromCollisionPlane(sim.getCollisionPlane(collisionPlaneID), floorID);
+  window->_drawList.updateCheckerboardFromCollisionPlane(sim.getCollisionPlane(collisionPlaneID1), floorID1);
+  window->_drawList.updateCheckerboardFromCollisionPlane(sim.getCollisionPlane(collisionPlaneID2), floorID2);
 
   // once this is done, we can go back to drawing frames
   window->unlockGfxMutex();
@@ -107,18 +112,19 @@ void runSimulatorTest(double xpos, double ypos, double zpos, int n) {
 
     // a "controller"
     for(int i = 0; i < 12; i++)
-      tau[i] = 5*(.2f*n) - sim.getState().qd[i];
+      tau[i] = - sim.getState().qd[i] - 100*sim.getState().q[i];
 
     // run the simulator with the controller
-    sim.step(0.00002, tau);
+    sim.step(0.001, tau);
 
     // periodically update the simulator graphics
-    if(!(t%160)) {
+    if(!(t%10)) {
       //window->lockGfxMutex();
       window->_drawList.updateRobotFromModel(sim, cheetahID);
+      window->_drawList.updateDebugSphereLocation(sim._pGC[8], footSphereID);
       //window->unlockGfxMutex();
     }
-
+    usleep(1000);
     // periodically print some statistics
     if( !(t%100000) ) {
       qint64 now = QDateTime::currentMSecsSinceEpoch();
@@ -154,8 +160,8 @@ int main(int argc, char *argv[]) {
   // launch a bunch of simulators
   std::vector<std::thread> threadPool;
   int i = 14;
-  for(int x = -2; x < 3; x++) {
-    for(int y = -2; y < 2; y++) {
+  for(int x = 0; x < 3; x++) {
+    for(int y = 0; y < 2; y++) {
       for(int z = 0; z < 1; z++) {
         threadPool.emplace_back(runSimulatorTest, 0,0,0, i++);
       }

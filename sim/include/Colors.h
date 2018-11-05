@@ -12,5 +12,6 @@ static constexpr float disgustingGreen[] = {0.f, 0.2f, 0.2f};
 static constexpr float checkerboardDark[] = {0.1f, 0.1f, 0.1f};
 static constexpr float checkerboardLight[] = {0.8f, 0.8f, 0.8f};
 static constexpr float defaultRobotColor[] = {0.1f, 0.1f, 0.1f};
+static constexpr float debugRedColor[] = {0.5f, 0.05f, 0.05f};
 
 #endif //PROJECT_COLORS_H

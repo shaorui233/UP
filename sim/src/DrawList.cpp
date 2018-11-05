@@ -8,7 +8,7 @@
 #include "DrawList.h"
 
 void DrawList::loadFiles() {
-  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj"};
+  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj", "sphere.obj"};
   objLoader::ObjLoader loader;
   for (const auto &name : names) {
     std::string filename = _baseFileName + name;
@@ -16,9 +16,17 @@ void DrawList::loadFiles() {
     _normalData.emplace_back();
     _colorData.emplace_back();
     loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
-    setSolidColor(_colorData.back(), _vertexData.back().size(), defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
+    if(name == "sphere.obj") {
+      setSolidColor(_colorData.back(), _vertexData.back().size(), debugRedColor[0], debugRedColor[1], debugRedColor[2]);
+    } else {
+      setSolidColor(_colorData.back(), _vertexData.back().size(), defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
+    }
+
     _nUnique++;
   }
+  _sphereLoadIndex = 8;
+  _miniCheetahLoadIndex = 4;
+  _cheetah3LoadIndex = 0;
 }
 /*!
  * Load the cheetah 3 model and build the draw list.
@@ -26,7 +34,7 @@ void DrawList::loadFiles() {
  */
 size_t DrawList::addCheetah3() {
 
-  size_t i0 = 0; // todo don't hard code this
+  size_t i0 = _cheetah3LoadIndex; // todo don't hard code this
   size_t j0 = _nTotal;
 
   // set model offsets:
@@ -90,7 +98,7 @@ size_t DrawList::addCheetah3() {
  */
 size_t DrawList::addMiniCheetah() {
 
-  size_t i0 = 4; // todo don't hard code this
+  size_t i0 = _miniCheetahLoadIndex; // todo don't hard code this
   size_t j0 = _nTotal;
 
   // set model offsets:
@@ -152,7 +160,7 @@ size_t DrawList::addMiniCheetah() {
 
 /*!
  * Adds a checkerboard to the list of drawables.
- * Uses an identity transformation for now
+ * Uses an identity transformation. You must call updateCheckerboardFromCollisionPlane to set the actual transform.
  */
 size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
   size_t j0 = _nTotal;
@@ -178,6 +186,23 @@ size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
 }
 
 /*!
+ * Adds a sphere to the list of drawables.
+ */
+size_t DrawList::addDebugSphere(float radius) {
+  size_t j0 = _nTotal;
+
+  QMatrix4x4 offset;
+  offset.setToIdentity();
+  _kinematicXform.push_back(offset);
+  offset.scale(radius);
+  _modelOffsets.push_back(offset);
+
+  _nTotal++;
+  _objectMap.push_back(_sphereLoadIndex);
+  return j0;
+}
+
+/*!
  * Rebuilds the drawing list and sets the flag indicating that model data must be reloaded.
  */
 void DrawList::buildDrawList() {
@@ -199,3 +224,5 @@ void DrawList::buildDrawList() {
 
   _reloadNeeded = true;
 }
+
+
