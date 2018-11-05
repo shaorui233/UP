@@ -25,11 +25,10 @@
 using namespace spatial;
 
 /*!
- * Generate a FloatingBaseModel of Cheetah 3
- * @return The floating base model
+ * Generate a Quadruped model of Cheetah 3
  */
 template <typename T>
-FloatingBaseModel<T> buildCheetah3() {
+Quadruped<T> buildCheetah3() {
   Quadruped<T> cheetah;
   cheetah._bodyMass = 26.60;
   cheetah._bodyLength = .6;
@@ -134,8 +133,7 @@ FloatingBaseModel<T> buildCheetah3() {
   cheetah._hipRotorLocation = Vec3<T>(0, cheetah._abadLinkLength, 0);
   cheetah._kneeLocation = Vec3<T>(0, 0, -cheetah._hipLinkLength);
   cheetah._kneeRotorLocation = Vec3<T>(0,0,0);
-  FloatingBaseModel<T> cheetahModel = cheetah.buildModel();
-  return cheetahModel;
+  return cheetah;
 }
 
 #endif //LIBBIOMIMETICS_CHEETAH3_H

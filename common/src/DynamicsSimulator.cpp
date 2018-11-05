@@ -142,7 +142,10 @@ void DynamicsSimulator<T>::updateCollisions(T dt) {
 }
 
 
-
+/*!
+ * Integrate the floating base state
+ * @param dt timestep
+ */
 template <typename T>
 void DynamicsSimulator<T>::integrate(T dt) {
 

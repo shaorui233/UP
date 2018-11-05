@@ -73,7 +73,7 @@ public:
   /*!
    * Add a collision plane. Returns an index number which can be used to lookup the collision plane later on.
    */
-  size_t addCollisionPlane(SXform<T>& location,  T mu, T K, T D) {
+  size_t addCollisionPlane(SXform<T>& location, T mu, T K, T D) {
     size_t i0 = _collisionPlanes.size();
     _collisionPlanes.emplace_back(location, _nGC, mu, K, D);
     return i0;

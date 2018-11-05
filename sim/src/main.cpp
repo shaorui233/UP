@@ -21,121 +21,8 @@
 
 Graphics3D *window;
 
-/*!
- * An example function showing how a simulation can be set up.
- * @param xpos : starting x position of cheetah
- * @param ypos
- * @param zpos
- */
-void runSimulatorTest(double xpos, double ypos, double zpos, int n) {
 
-  usleep((n-12)*500000);
-  (void)zpos;
-
-
-  // build a Quadruped object, which contains various parameters specific to quadrupeds (leg lengths, etc) (todo reorganize so I get this)
-
-  // from this quadruped object, build a rigid body model.
-  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
-
-  // set the gravity to normal gravity
-  Vec3<double> g0 = Vec3<double>(0,0,-9.8);
-  cheetahModel.setGravity(g0);
-
-  // create a new dynamics simulator based on this model
-  DynamicsSimulator<double> sim(cheetahModel);
-
-  // initial conditions
-  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
-                         coordinateRotation(CoordinateAxis::Y, .111);
-
-  DVec<double> q(12);
-  DVec<double> dq(12);
-  DVec<double> tau(12);
-  for (size_t i = 0; i < 12; i++) {
-    q[i] = 0;
-    dq[i] = 0;
-    tau[i] = 0;
-  }
-
-  // create an initial state for the simulator
-  FBModelState<double> x;
-  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
-  SVec<double> v0;
-  v0 << n, -n, n, .02*n*(n%2?1:-1), .02*n*((n%4<2?1:-1)), .3*n;
-  x.bodyVelocity = v0;
-  x.bodyPosition = Vec3<double>(xpos,ypos,1);
-  x.q = q;
-  x.qd = dq;
-
-  // set the initial condition of the simulator
-  sim.setState(x);
-
-  // We want a floor for the simulation:
-  SXform<double> floorLocation1 = createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(25.)), Vec3<double>(0,0,-2));
-  SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(25.)), Vec3<double>(0,0,-2));
-  size_t collisionPlaneID1 = sim.addCollisionPlane(floorLocation1, 0.8, 5e5, 5e3);
-  size_t collisionPlaneID2 = sim.addCollisionPlane(floorLocation2, 0.8, 5e5, 5e3);
-
-  // add a visualization:
-  // when adding things to the graphics system, we need to lock the mutex:
-  window->lockGfxMutex();
-
-  // add a cheetah to the visualization
-  size_t cheetahID = window->setupCheetah3();
-  size_t footSphereID = window->_drawList.addDebugSphere(.1f);
-
-  // create a checkerboard for the floor
-  Checkerboard c(20,20,40,40);
-
-  // add the checkerboard
-  size_t floorID1 = window->_drawList.addCheckerboard(c);
-  size_t floorID2 = window->_drawList.addCheckerboard(c);
-
-  // now that we've added everything, we can build the draw list for the graphics program
-  window->_drawList.buildDrawList();
-
-  // and also tell the drawlist where the floor should go
-  window->_drawList.updateCheckerboardFromCollisionPlane(sim.getCollisionPlane(collisionPlaneID1), floorID1);
-  window->_drawList.updateCheckerboardFromCollisionPlane(sim.getCollisionPlane(collisionPlaneID2), floorID2);
-
-  // once this is done, we can go back to drawing frames
-  window->unlockGfxMutex();
-
-  uint64_t t = 0;
-  float stepsPerSecond;
-  qint64 last_frame_ms = 0;
-
-  // simulation loop
-  for(;;) {
-    t += 1;
-
-    // a "controller"
-    for(int i = 0; i < 12; i++)
-      tau[i] = - sim.getState().qd[i] - 100*sim.getState().q[i];
-
-    // run the simulator with the controller
-    sim.step(0.001, tau);
-
-    // periodically update the simulator graphics
-    if(!(t%10)) {
-      //window->lockGfxMutex();
-      window->_drawList.updateRobotFromModel(sim, cheetahID);
-      window->_drawList.updateDebugSphereLocation(sim._pGC[8], footSphereID);
-      //window->unlockGfxMutex();
-    }
-    usleep(1000);
-    // periodically print some statistics
-    if( !(t%100000) ) {
-      qint64 now = QDateTime::currentMSecsSinceEpoch();
-      stepsPerSecond = (100000.f / (now - last_frame_ms));
-      std::cout << "Timesteps per ms: " << stepsPerSecond << "\n";
-      last_frame_ms = now;
-    }
-    if(t > 1e10) break;
-  }
-
-}
+void simulatorDemo();
 
 /*!
  * Hack to launch a simulator graphics window and spawn a separate thread which runs runSimulatorTest
@@ -145,7 +32,7 @@ int main(int argc, char *argv[]) {
   // set up Qt
   QApplication a(argc, argv);
 
-  // set up QSurface, an output for the OpenGL
+  // set up QSurface, an output for the OpenGL-based visualizaer
   QSurfaceFormat gFormat;
   gFormat.setSamples(1);
   gFormat.setDepthBufferSize(24);
@@ -157,18 +44,114 @@ int main(int argc, char *argv[]) {
   window->setAnimating(true);
   window->resize(1280, 720);
 
-  // launch a bunch of simulators
-  std::vector<std::thread> threadPool;
-  int i = 14;
-  for(int x = 0; x < 3; x++) {
-    for(int y = 0; y < 2; y++) {
-      for(int z = 0; z < 1; z++) {
-        threadPool.emplace_back(runSimulatorTest, 0,0,0, i++);
-      }
-    }
-  }
+  // run the simulator in a new thread
+  std::thread simThread(simulatorDemo);
 
+  // run the Qt program
   a.exec();
 
+  // on exit
+  simThread.join();
   return 0;
+}
+
+/*!
+ * Demonstration of simulating Cheetah 3 in a "V" shaped terrain.
+ */
+void simulatorDemo() {
+  // create a Cheetah 3 quadruped
+  Quadruped<double> cheetahQuadruped = buildCheetah3<double>();
+
+  // build a floating base model
+  FloatingBaseModel<double> cheetahModel = cheetahQuadruped.buildModel();
+
+  // create a dynamics simulator for cheetah
+  DynamicsSimulator<double> simulator(cheetahModel);
+
+  // initial conditions
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tau(12);
+  for(size_t i = 0; i < 12; i++) {
+    q[i] = 0;
+    dq[i] = 0;
+    tau[i] = 0;
+  }
+
+  // create an initial Floating Base Model State
+  FBModelState<double> x;
+  x.bodyOrientation = rotationMatrixToQuaternion(RotMat<double>::Identity());
+  x.bodyPosition = Vec3<double>(0,0,1);
+  SVec<double> v0;
+  v0 << 1,2,3,0,0,0; // some angular velocity to make it interesting
+  x.bodyVelocity = v0;
+  x.q = q;
+  x.qd = dq;
+
+  // set the simulator's initial state
+  simulator.setState(x);
+
+  // To create a V-shaped floor we want two 25 degree inclined planes.
+  // fist, we create spatial transforms representing their location:
+  SXform<double> floorLocation1 = createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(25.)), Vec3<double>(0,0,-.5));
+  SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(25.)), Vec3<double>(0,0,-.5));
+
+  // next, we add them to the simulator
+  size_t collisionPlaneID1 = simulator.addCollisionPlane(floorLocation1, 0.8, 5e5, 5e3);
+  size_t collisionPlaneID2 = simulator.addCollisionPlane(floorLocation2, 0.8, 5e5, 5e3);
+
+  // finally, we add everything to the visualization:
+  // to make sure we aren't adding stuff as it's drawing a frame, we need to lock the graphics mutex
+  window->lockGfxMutex();
+
+  // add the cheetah:
+  size_t cheetahID = window->setupCheetah3();
+
+  // add a debugging "balloon"
+  size_t debugSphereID = window->_drawList.addDebugSphere(.1f); // radius 10 cm
+
+  // to represent the floor, we use a checkerboard:
+  // this must created first
+  Checkerboard checkerboard(20,20,40,40); // 20x20 meters, 40x40 checkers
+
+  // then we add this twice to the visualizer (but the visualizer doesn't know where to put these yet)
+  size_t floorID1 = window->_drawList.addCheckerboard(checkerboard);
+  size_t floorID2 = window->_drawList.addCheckerboard(checkerboard);
+
+  // once we're done adding models, we can tell the graphics window to finalize the model data:
+  window->_drawList.buildDrawList();
+
+  // now we can position stuff in our visualizer:
+  // we should move the checkerboards to the correct spot
+  window->_drawList.updateCheckerboardFromCollisionPlane(simulator.getCollisionPlane(collisionPlaneID1), floorID1);
+  window->_drawList.updateCheckerboardFromCollisionPlane(simulator.getCollisionPlane(collisionPlaneID2), floorID2);
+
+  // now we can unlock the mutex:
+  window->unlockGfxMutex();
+
+
+  // finally, we can run the simulator:
+  uint64_t stepCount = 0;
+  for(;;) {
+    // a "controller" to make the legs thrash around
+    for(int i = 0; i < 12; i++) {
+      tau[i] = 17 - simulator.getState().qd[i];
+    }
+
+    // step the simulator forward 1 ms
+    simulator.step(.001, tau);
+
+    // every 16 steps, update the graphics:
+    if(!(stepCount%16)) {
+      // the floating base models can be grabbed automatically from the simulator
+      window->_drawList.updateRobotFromModel(simulator, cheetahID);
+      // also we can put a debugging sphere at ground contact point 9 (foot 1)
+      window->_drawList.updateDebugSphereLocation(simulator._pGC[9], debugSphereID);
+    }
+
+    // sleep for 1 ms to make the simulator run near the correct speed.
+    usleep(1000);
+
+    stepCount++;
+  }
 }

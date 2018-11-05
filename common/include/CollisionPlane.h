@@ -18,13 +18,18 @@ using namespace spatial;
 /*!
  * Class to represent infinite collision planes (like a flat ground).
  */
-template<typename T> // template on floating point type (float or double)
+template<typename T>
 class CollisionPlane {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   /*!
    * Construct a new collision plane
+   * @param location : coordinate transformation to collision plane (collision surface is the xy-plane)
+   * @param nContactPoints : number of contact points this collision plane will need to handle.
+   * @param mu : coefficient of friction
+   * @param K  : spring constant
+   * @param D  : damping constant
    */
   CollisionPlane(SXform<T>& location, size_t nContactPoints, T mu, T K, T D) : _location(location),
      _mu(mu), _K(K), _D(D){

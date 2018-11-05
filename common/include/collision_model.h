@@ -5,7 +5,6 @@
  *  This uses the model in "Modelling the Contact Between a Rolling Sphere and a Compliant Ground Plane" by
  *  Azad and Featherstone.  It assumes a point contact.
  *
- *  This assumes that the collision is occuring with a plane going through the origin with a normal of (0,0,1)
  */
 
 #ifndef PROJECT_COLLISION_MODEL_H
@@ -16,6 +15,75 @@
 #include <cmath>
 
 using namespace spatial;
+
+
+/*!
+ * Run the ground contact model for a single collision plane on a list of ground contact points
+ * The ground is allowed to deform in the tangential direction, but not the normal direction.
+ * The ground also "remembers" its deformation between separate contact events. (however it does spring back pretty quickly)
+ * @param _pGC List of ground contact point locations.
+ * @param _vGC List of ground contact point velocities
+ * @param _deflections List of deflection state variables.  This is updated by this model
+ * @param K Ground stiffness
+ * @param D Ground damping
+ * @param mu Ground friction
+ * @param dt Timestep (used for deflection)
+ * @param X The coordinate transformation to the ground plane (the ground plane is the xy-plane in its coordinates)
+ */
+template <typename T>
+void groundContactModelWithOffset(vectorAligned<Vec3<T>>& _pGC, vectorAligned<Vec3<T>>& _vGC,
+                                  vectorAligned<Vec2<T>>& _deflections, vectorAligned<Vec3<T>>& _forces, T K, T D, T mu, T dt, Mat6<T>& X) {
+
+  Mat3<T> R = rotationFromSXform(X); // rotation to ground plane
+  size_t nPt = _pGC.size();          // number of ground contact points
+  for(size_t i = 0; i < nPt; i++) {
+    Vec3<T> p = sXFormPoint(X, _pGC[i]);  // position in plane coordinates
+    Vec3<T> v = R * _vGC[i];              // velocity in plane coordinates
+    Vec2<T> deflection = _deflections[i]; // the deflection of the ground from previously
+    T z = p[2];                           // the penetration into the ground
+    T zd = v[2];                          // the penetration velocity
+    T zr = std::sqrt(std::max(T(0), -z)); // sqrt penetration into the ground, or zero if we aren't penetrating
+    T normalForce = zr * (-K*z - D*zd);   // normal force is spring-damper * sqrt(penetration)
+    bool inContact = normalForce > 0;     // contact flag
+
+    // set output force to zero for now.
+    _forces[i][0] = 0;
+    _forces[i][1] = 0;
+    _forces[i][2] = 0;
+
+    // first assume there's no contact, so the ground "springs back"
+    Vec2<T> deflectionRate = (-K/D) * deflection.template topLeftCorner<2,1>();
+
+    if(inContact) {
+      _forces[i][2] = normalForce;   // set the normal force. This is in the plane's coordinates for now
+
+      // first, assume sticking
+      // this means the tangential deformation happens at the speed of the foot.
+      deflectionRate = v.template topLeftCorner<2,1>();
+      Vec2<T> tangentialSpringForce = K * zr * deflection; // tangential force due to "spring"
+      Vec2<T> tangentialForce = -tangentialSpringForce - D * zr * deflectionRate; // add damping to get total tangential
+
+      // check for slipping:
+      T slipForce = mu * normalForce;        // maximum force magnitude without slipping
+      T tangentialForceMagnitude = tangentialForce.norm(); // actual force magnitude if we assume sticking
+      T r = tangentialForceMagnitude / slipForce;          // ratio of force/max_force
+
+      if(r > 1) {
+        // we are slipping.
+        tangentialForce = tangentialForce / r;    // adjust tangential force to avoid slipping
+        deflectionRate = - (tangentialForce + tangentialSpringForce) / (D * zr);
+      }
+      // set forces
+      _forces[i][0] = tangentialForce[0];
+      _forces[i][1] = tangentialForce[1];
+    }
+    // integrate ground deflection
+    _deflections[i] += dt * deflectionRate;
+    // move back into robot frame
+    _forces[i] = R.transpose() * _forces[i];
+  }
+}
+
 
 /*!
  * Run the ground contact model on a series of points.
@@ -33,114 +101,11 @@ using namespace spatial;
 template <typename T>
 void groundContactModel(vectorAligned<Vec3<T>>& _pGC, vectorAligned<Vec3<T>>& _vGC,
         vectorAligned<Vec2<T>>& _deflections, vectorAligned<Vec3<T>>& _forces, T K, T D, T mu, T dt) {
-
-  size_t nPt = _pGC.size();
-  for(size_t i = 0; i < nPt; i++) {
-    Vec2<T> deflection = _deflections[i];            // the deflection of the ground
-    T z = _pGC[i][2];                                // the penetration into the ground
-    T zd = _vGC[i][2];                               // the penetration velocity
-    T zr = std::sqrt(std::max(T(0), -z));               // sqrt penetration into the ground
-    T normalForce = zr * (-K*z - D*zd);              // normal force is spring-damper * sqrt(penetration)
-    _forces[i][0] = 0;
-    _forces[i][1] = 0;
-    _forces[i][2] = 0;
-    bool inContact = normalForce > 0;                // contact flag
-
-    // first assume there's no contact, so the ground "springs back"
-    Vec2<T> deflectionRate = (-K/D) * deflection.template topLeftCorner<2,1>();
-
-    if(inContact) {
-      _forces[i][2] = normalForce;
-      // first, assume sticking
-      // this means the tangential deformation happens at the speed of the foot.
-      deflectionRate = _vGC[i].template topLeftCorner<2,1>();
-
-      Vec2<T> zr2(zr, zr);
-      Vec2<T> Kc = K * zr2; // effective tangential spring constant
-      //Vec2<T> Dc = D * zr2; // effective tangential damping
-      Vec2<T> tangentialSpringForce(Kc[0]*deflection[0], Kc[1]*deflection[1]); // spring force due to ground deformation
-
-      Vec2<T> tangentialForce = -tangentialSpringForce - D * zr * deflectionRate; // add damping to get total tangential
-
-      // check for slipping:
-      T slipForce = mu * normalForce;
-      T tangentialForceMagnitude = tangentialForce.norm();
-      T r = tangentialForceMagnitude / slipForce;
-
-      if(r > 1) {
-        // we are slipping.
-        tangentialForce = tangentialForce / r;
-        deflectionRate = - (tangentialForce + tangentialSpringForce) / (D * zr); // not sure where this comes from, but okay.
-      }
-
-      _forces[i][0] = tangentialForce[0];
-      _forces[i][1] = tangentialForce[1];
-    }
-
-    _deflections[i] += dt * deflectionRate;
-  }
+  Mat6<T> eye = Mat6<T>::Identity();
+  groundContactModelWithOffset(_pGC, _vGC, _deflections, _forces, K, D, mu, dt, eye);
 }
 
-/*!
- *
- */
-template <typename T>
-void groundContactModelWithOffset(vectorAligned<Vec3<T>>& _pGC, vectorAligned<Vec3<T>>& _vGC,
-        vectorAligned<Vec2<T>>& _deflections, vectorAligned<Vec3<T>>& _forces, T K, T D, T mu, T dt, Mat6<T>& X) {
 
-  Mat3<T> R = rotationFromSXform(X);
-  size_t nPt = _pGC.size();
-  for(size_t i = 0; i < nPt; i++) {
-    Vec3<T> p = sXFormPoint(X, _pGC[i]);
-
-    Vec3<T> v = R * _vGC[i];
-
-    Vec2<T> deflection = _deflections[i];            // the deflection of the ground
-    T z = p[2];                                // the penetration into the ground
-    T zd = v[2];                               // the penetration velocity
-    T zr = std::sqrt(std::max(T(0), -z));               // sqrt penetration into the ground
-    T normalForce = zr * (-K*z - D*zd);              // normal force is spring-damper * sqrt(penetration)
-    _forces[i][0] = 0;
-    _forces[i][1] = 0;
-    _forces[i][2] = 0;
-    bool inContact = normalForce > 0;                // contact flag
-
-    // first assume there's no contact, so the ground "springs back"
-    Vec2<T> deflectionRate = (-K/D) * deflection.template topLeftCorner<2,1>();
-
-    if(inContact) {
-      _forces[i][2] = normalForce;
-      // first, assume sticking
-      // this means the tangential deformation happens at the speed of the foot.
-      deflectionRate = v.template topLeftCorner<2,1>();
-
-      Vec2<T> zr2(zr, zr);
-      Vec2<T> Kc = K * zr2; // effective tangential spring constant
-      //Vec2<T> Dc = D * zr2; // effective tangential damping
-      Vec2<T> tangentialSpringForce(Kc[0]*deflection[0], Kc[1]*deflection[1]); // spring force due to ground deformation
-
-      Vec2<T> tangentialForce = -tangentialSpringForce - D * zr * deflectionRate; // add damping to get total tangential
-
-      // check for slipping:
-      T slipForce = mu * normalForce;
-      T tangentialForceMagnitude = tangentialForce.norm();
-      T r = tangentialForceMagnitude / slipForce;
-
-      if(r > 1) {
-        // we are slipping.
-        tangentialForce = tangentialForce / r;
-        deflectionRate = - (tangentialForce + tangentialSpringForce) / (D * zr); // not sure where this comes from, but okay.
-      }
-
-      _forces[i][0] = tangentialForce[0];
-      _forces[i][1] = tangentialForce[1];
-    }
-
-    _deflections[i] += dt * deflectionRate;
-    // move back into robot frame
-    _forces[i] = R.transpose() * _forces[i];
-  }
-}
 
 
 

@@ -23,7 +23,7 @@ using namespace spatial;
  * Compared against MATLAB model
  */
 TEST(Dynamics, cheetah3model) {
-  FloatingBaseModel<double> cheetah = buildCheetah3<double>();
+  FloatingBaseModel<double> cheetah = buildCheetah3<double>().buildModel();
   cheetah.check();
 
   // check total mass
@@ -56,7 +56,7 @@ TEST(Dynamics, cheetah3model) {
  * Doesn't test anyting - this is just to make sure it doesn't crash
  */
 TEST(Dynamics, simulatorDynamicsDoesntCrashCheetah3) {
-  FloatingBaseModel<double> cheetah = buildCheetah3<double>();
+  FloatingBaseModel<double> cheetah = buildCheetah3<double>().buildModel();
   DynamicsSimulator<double> sim(cheetah);
   DVec<double> tau(12);
   sim.forwardKinematics();
@@ -69,7 +69,7 @@ TEST(Dynamics, simulatorDynamicsDoesntCrashCheetah3) {
  * Checks that quatD, pd, vd, and qdd match MATLAB
  */
 TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
-  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
   DynamicsSimulator<double> sim(cheetahModel);
 
   RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
@@ -125,7 +125,7 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
  * Checks that quatD, pd, vd, and qdd match MATLAB
  */
 TEST(Dynamics, simulatorDynamicsWithExternalForceCheetah3) {
-  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
   DynamicsSimulator<double> sim(cheetahModel);
 
   RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
@@ -188,7 +188,7 @@ TEST(Dynamics, simulatorDynamicsWithExternalForceCheetah3) {
  * Checks that foot position and velocities match MATLAB
  */
 TEST(Dynamics, simulatorFootPosVelCheetah3) {
-  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>();
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
   DynamicsSimulator<double> sim(cheetahModel);
 
   RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
