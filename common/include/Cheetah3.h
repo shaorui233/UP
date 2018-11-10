@@ -34,6 +34,12 @@ Quadruped<T> buildCheetah3() {
   cheetah._bodyLength = .6;
   cheetah._bodyWidth = .256;
   cheetah._bodyHeight = .2;
+  cheetah._abadGearRatio = 7.66666666667;
+  cheetah._hipGearRatio  = 7.66666666667;
+  cheetah._kneeGearRatio = 8.846;
+  cheetah._abadLinkLength = 0.045;
+  cheetah._hipLinkLength  = 0.342;
+  cheetah._kneeLinkLenght = 0.345;
 
   MassProperties<T> abadMassProperties, hipMassProperties, kneeMassProperties,
     abadRotorMassProperties, hipRotorMassProperties, kneeRotorMassProperties;
@@ -110,18 +116,16 @@ Quadruped<T> buildCheetah3() {
   -2.295396403157565e-04,
   2.324567952553503e-05;
 
-  cheetah._abadGearRatio = 7.66666666667;
-  cheetah._hipGearRatio  = 7.66666666667;
-  cheetah._kneeGearRatio = 8.846;
-  cheetah._abadLinkLength = 0.045;
-  cheetah._hipLinkLength  = 0.342;
-  cheetah._kneeLinkLenght = 0.345;
+
   cheetah._abadInertia = SpatialInertia<T>(abadMassProperties);
   cheetah._hipInertia = SpatialInertia<T>(hipMassProperties);
   cheetah._kneeInertia = SpatialInertia<T>(kneeMassProperties);
   cheetah._abadRotorInertia = SpatialInertia<T>(abadRotorMassProperties);
   cheetah._hipRotorInertia = SpatialInertia<T>(hipRotorMassProperties);
   cheetah._kneeRotorInertia = SpatialInertia<T>(kneeRotorMassProperties);
+  Vec3<T> bodyCOM(0,0,0);
+  Vec3<T> bodyDims(cheetah._bodyLength, cheetah._bodyWidth, cheetah._bodyHeight);
+  cheetah._bodyInertia = SpatialInertia<T>(cheetah._bodyMass, bodyCOM, rotInertiaOfBox(cheetah._bodyMass, bodyDims));
 
   // this doesn't generalize to the mini cheetah?
   cheetah._abadLocation = Vec3<T>(cheetah._bodyLength, cheetah._bodyWidth, 0) * 0.5;

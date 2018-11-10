@@ -36,7 +36,7 @@ public:
   T _bodyLength, _bodyWidth, _bodyHeight, _bodyMass;
   T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
   T _abadLinkLength, _hipLinkLength, _kneeLinkLenght;
-  SpatialInertia<T> _abadInertia, _hipInertia, _kneeInertia, _abadRotorInertia, _hipRotorInertia, _kneeRotorInertia;
+  SpatialInertia<T> _abadInertia, _hipInertia, _kneeInertia, _abadRotorInertia, _hipRotorInertia, _kneeRotorInertia, _bodyInertia;
   Vec3<T> _abadLocation, _abadRotorLocation, _hipLocation, _hipRotorLocation, _kneeLocation, _kneeRotorLocation;
   FloatingBaseModel<T> buildModel();
 };

@@ -1,7 +1,7 @@
 /*! @file test_dynamics.cpp
  *  @brief Test dynamics algorithms
  *
- * Test the dynamics algorithms in DynamicsSimulator and models of the robot
+ * Test the dynamics algorithms in DynamicsSimulator and models of Cheetah 3
  */
 
 
@@ -49,6 +49,35 @@ TEST(Dynamics, cheetah3model) {
     inertiaSum += cheetah.getBodyInertiaVector()[i].getMatrix() + cheetah.getRotorInertiaVector()[i].getMatrix() * 0.25;
   }
   EXPECT_TRUE(almostEqual(inertiaSum, inertiaSumRef, .0001));
+}
+
+/*!
+ * Test the model transforms
+ */
+TEST(Dynamics, cheetah3ModelTransforms) {
+  FloatingBaseModel<double> cheetah = buildCheetah3<double>().buildModel();
+  Mat6<double> XTotal = Mat6<double>::Identity();
+  Mat6<double> XRotTotal = Mat6<double>::Identity();
+  for (size_t i = 0; i < 18; i++) {
+    XTotal = XTotal + cheetah._Xtree[i];
+    XRotTotal = XRotTotal + cheetah._Xrot[i];
+  }
+  Mat6<double> Xtr, Xrtr;
+  Xtr << 11.0000, 0.0000, 0, 0, 0, 0,
+          -0.0000, 11.0000, 0, 0, 0, 0,
+          0, 0, 19.0000, 0, 0, 0,
+          0, -1.3680, 0, 11.0000, 0.0000, 0,
+          1.3680, 0, 0.0000, -0.0000, 11.0000, 0,
+          0.0000, 0, 0, 0, 0, 19.0000;
+  Xrtr << 11.0000, 0.0000, 0, 0, 0, 0,
+          -0.0000, 11.0000, 0, 0, 0, 0,
+          0, 0, 19.0000, 0, 0, 0,
+          0, 0, 0.0000, 11.0000, 0.0000, 0,
+          0, 0, 0, -0.0000, 11.0000, 0,
+          0, 0, 0, 0, 0, 19.0000;
+
+  EXPECT_TRUE(almostEqual(Xtr, XTotal, .0005));
+  EXPECT_TRUE(almostEqual(Xrtr, XRotTotal, .0005));
 }
 
 /*!

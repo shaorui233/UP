@@ -24,8 +24,8 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
 
   // we assume the cheetah's body (not including rotors) can be modeled as a uniformly distributed box.
   Vec3<T> bodyDims(_bodyLength, _bodyWidth, _bodyHeight);
-  model.addBase(_bodyMass, Vec3<T>(0,0,0), rotInertiaOfBox(_bodyMass, bodyDims));
-
+  //model.addBase(_bodyMass, Vec3<T>(0,0,0), rotInertiaOfBox(_bodyMass, bodyDims));
+  model.addBase(_bodyInertia);
   // add contact for the cheetah's body
   model.addGroundContactBoxPoints(5, bodyDims);
 
