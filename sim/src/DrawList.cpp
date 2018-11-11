@@ -138,23 +138,26 @@ size_t DrawList::addMiniCheetah() {
   lower.setToIdentity();
   lower.rotate(180, 0, 1, 0);
 
+  // add objects
   _objectMap.push_back(i0 + 0);
   _modelOffsets.push_back(bodyOffset);
   _kinematicXform.push_back(eye);
+  _nTotal++;
 
-  _objectMap.push_back(i0 + 1);
-  _modelOffsets.push_back(abadOffsets[0]);
-  _kinematicXform.push_back(eye);
+  for(int i = 0; i < 4; i++) {
+    _objectMap.push_back(i0 + 1);
+    _modelOffsets.push_back(abadOffsets[i]);
+    _kinematicXform.push_back(eye);
 
-  _objectMap.push_back(i0 + 2);
-  _modelOffsets.push_back(upper);
-  _kinematicXform.push_back(eye);
+    _objectMap.push_back(i0 + 2);
+    _modelOffsets.push_back(upper);
+    _kinematicXform.push_back(eye);
 
-  _objectMap.push_back(i0 + 3);
-  _modelOffsets.push_back(lower);
-  _kinematicXform.push_back(eye);
-
-  _nTotal += 4;
+    _objectMap.push_back(i0 + 3);
+    _modelOffsets.push_back(lower);
+    _kinematicXform.push_back(eye);
+    _nTotal += 3;
+  }
   return j0;
 }
 

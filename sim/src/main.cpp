@@ -11,6 +11,7 @@
 #include "CollisionPlane.h"
 #include "Graphics3D.h"
 #include "DrawList.h"
+#include "MiniCheetah.h"
 
 #include <QApplication>
 #include <QSurfaceFormat>
@@ -22,7 +23,7 @@
 Graphics3D *window;
 
 
-void simulatorDemo();
+void simulatorDemo(bool useMini);
 
 /*!
  * Hack to launch a simulator graphics window and spawn a separate thread which runs runSimulatorTest
@@ -45,22 +46,30 @@ int main(int argc, char *argv[]) {
   window->resize(1280, 720);
 
   // run the simulator in a new thread
-  std::thread simThread(simulatorDemo);
+  std::thread simMiniThread(simulatorDemo, true);
+  std::thread simCheetah3Thread(simulatorDemo, false);
 
   // run the Qt program
   a.exec();
 
   // on exit
-  simThread.join();
+  simMiniThread.join();
+  simCheetah3Thread.join();
   return 0;
 }
 
 /*!
  * Demonstration of simulating Cheetah 3 in a "V" shaped terrain.
  */
-void simulatorDemo() {
+void simulatorDemo(bool useMini) {
   // create a Cheetah 3 quadruped
-  Quadruped<double> cheetahQuadruped = buildCheetah3<double>();
+  Quadruped<double> cheetahQuadruped;
+  if(useMini) {
+    cheetahQuadruped = buildMiniCheetah<double>();
+  } else {
+    cheetahQuadruped = buildCheetah3<double>();
+  }
+
 
   // build a floating base model
   FloatingBaseModel<double> cheetahModel = cheetahQuadruped.buildModel();
@@ -105,10 +114,10 @@ void simulatorDemo() {
   window->lockGfxMutex();
 
   // add the cheetah:
-  size_t cheetahID = window->setupCheetah3();
+  size_t cheetahID = useMini ? window->setupMiniCheetah() : window->setupCheetah3();
 
   // add a debugging "balloon"
-  size_t debugSphereID = window->_drawList.addDebugSphere(.1f); // radius 10 cm
+  size_t debugSphereID = window->_drawList.addDebugSphere(.03f); // radius 3 cm
 
   // to represent the floor, we use a checkerboard:
   // this must created first
@@ -135,7 +144,8 @@ void simulatorDemo() {
   for(;;) {
     // a "controller" to make the legs thrash around
     for(int i = 0; i < 12; i++) {
-      tau[i] = 17 - simulator.getState().qd[i];
+      //tau[i] = 1 - simulator.getState().qd[i];
+      tau[i] = -simulator.getState().qd[i] - simulator.getState().q[i]*10;
     }
 
     // step the simulator forward 1 ms
