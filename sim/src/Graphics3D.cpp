@@ -5,10 +5,10 @@
  */
 
 #include "Graphics3D.h"
+#include "utilities.h"
 
 #include <iostream>
 #include <unistd.h>
-
 
 
 static constexpr auto clearColor = windows2000;
@@ -55,7 +55,7 @@ void main() {
  * Initialize a 3D visualization window
  */
 Graphics3D::Graphics3D(QWindow *parent) : QWindow(parent), _animating(false), _context(0), _device(0), _program(0),
-                                          _frame(0) {
+                                          _frame(0), _v0(0, 0, 0), _freeCamFilter(1, 60, _v0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
   setSurfaceType(QWindow::OpenGLSurface);
 }
@@ -77,13 +77,38 @@ size_t Graphics3D::setupMiniCheetah() {
 /*!
  * Update the camera matrix for the current zoom/orbit
  */
+
 void Graphics3D::updateCameraMatrix() {
   _cameraMatrix.setToIdentity();
-  // todo set aspect ratio
   _cameraMatrix.perspective(60.f, float(size().width()) / float(size().height()), .001f, 50.f);
-  _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
-  _cameraMatrix.rotate(_ry, 1, 0, 0);
-  _cameraMatrix.rotate(_rx, 0, 0, 1);
+
+  if(_arrowsPressed[0]) _ry -= _targetSpeed/5.f;
+  if(_arrowsPressed[1]) _ry += _targetSpeed/5.f;
+  if(_arrowsPressed[2]) _rx += _targetSpeed/5.f;
+  if(_arrowsPressed[3]) _rx -= _targetSpeed/5.f;
+  if (!_rotOrig) {
+    _ry = coerce<float>(_ry, -180, 0);
+    // velocity in camera coordinates
+    // we want the inverse transformation (coordinateRotation goes the opposite way as QMatrix.rotate())
+    RotMat<float> R = coordinateRotation<float>(CoordinateAxis::Z, deg2rad(_rx)) *
+                      coordinateRotation<float>(CoordinateAxis::X, deg2rad(_ry));
+    Vec3<float> v(_freeCamMove[0], _freeCamMove[1], _freeCamMove[2]);
+    v = R * v;
+
+    // integrate and filter
+    _freeCamFilter.update(v);
+    for (size_t i = 0; i < 3; i++)
+      _freeCamPos[i] += _frameTime * _freeCamFilter.get()[i];
+
+    // apply
+    _cameraMatrix.rotate(_ry, 1, 0, 0);
+    _cameraMatrix.rotate(_rx, 0, 0, 1);
+    _cameraMatrix.translate(_freeCamPos[0], _freeCamPos[1], _freeCamPos[2]);
+  } else {
+    _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
+    _cameraMatrix.rotate(_ry, 1, 0, 0);
+    _cameraMatrix.rotate(_rx, 0, 0, 1);
+  }
 }
 
 
@@ -106,16 +131,19 @@ void Graphics3D::render(QPainter *painter) {
     glGenBuffers(3, buffID);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getVertexArray(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
+                 GL_STATIC_DRAW);
     printf("size: %lu, @ %p\n", _drawList.getSizeOfAllData(), _drawList.getVertexArray());
     glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getColorArray(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getColorArray(),
+                 GL_STATIC_DRAW);
     glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float)*_drawList.getSizeOfAllData(), _drawList.getNormalArray(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getNormalArray(),
+                 GL_STATIC_DRAW);
     glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glEnableVertexAttribArray(0);
@@ -128,7 +156,8 @@ void Graphics3D::render(QPainter *painter) {
   glDepthFunc(GL_LESS);
 
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-    _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) * _drawList.getModelBaseTransform(id));
+    _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) *
+                                              _drawList.getModelBaseTransform(id));
     glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
   }
 
@@ -167,6 +196,8 @@ void Graphics3D::mousePressEvent(QMouseEvent *event) {
   _orbiting = true;
   _orbiting_x_start = event->pos().x();
   _orbiting_y_start = event->pos().y();
+  _rx_base = _rx;
+  _ry_base = _ry;
 }
 
 void Graphics3D::mouseMoveEvent(QMouseEvent *event) {
@@ -184,11 +215,66 @@ void Graphics3D::mouseReleaseEvent(QMouseEvent *event) {
 void Graphics3D::wheelEvent(QWheelEvent *e) {
   if (e->angleDelta().y() > 0) {
     if (_zoom > .1)
-      _zoom = 0.8 * _zoom;
+      _zoom = 0.8f * _zoom;
   } else {
     if (_zoom < 100)
-      _zoom = 1.2 * _zoom;
+      _zoom = 1.2f * _zoom;
   }
+}
+
+void Graphics3D::keyPressEvent(QKeyEvent *e) {
+  if (e->key() == Qt::Key_Control) {
+    _targetSpeed *= .5f;
+  } else if (e->key() == Qt::Key_Shift) {
+    _targetSpeed *= 2.f;
+  }
+  if (e->key() == Qt::Key_W) _freeCamMove[2] = _targetSpeed;
+  else if (e->key() == Qt::Key_S) _freeCamMove[2] = -_targetSpeed;
+
+  if (e->key() == Qt::Key_A) _freeCamMove[0] = _targetSpeed;
+  else if (e->key() == Qt::Key_D) _freeCamMove[0] = -_targetSpeed;
+
+  if (e->key() == Qt::Key_R) _freeCamMove[1] = -_targetSpeed;
+  else if (e->key() == Qt::Key_F) _freeCamMove[1] = _targetSpeed;
+
+  if (e->key() == Qt::Key_Up) _arrowsPressed[0] = true;
+  else if (e->key() == Qt::Key_Down) _arrowsPressed[1] = true;
+
+  if (e->key() == Qt::Key_Right) _arrowsPressed[2] = true;
+  else if (e->key() == Qt::Key_Left) _arrowsPressed[3] = true;
+
+  if (e->key() == Qt::Key_Tab){
+    _freeCamPos[0] = 0.f;
+    _freeCamPos[1] = 0.f;
+    _freeCamPos[2] = 0.f;
+    _rx = 0.f;
+    _ry = 0.f;
+  }
+}
+
+void Graphics3D::keyReleaseEvent(QKeyEvent *e) {
+  if (e->key() == Qt::Key_Control) {
+    _targetSpeed /= .5f;
+  } else if (e->key() == Qt::Key_Shift) {
+    _targetSpeed /= 2.f;
+  } else if (e->key() == Qt::Key_Space) {
+    _rotOrig = !_rotOrig;
+  }
+
+  if (e->key() == Qt::Key_W) _freeCamMove[2] = 0;
+  else if (e->key() == Qt::Key_S) _freeCamMove[2] = 0;
+
+  if (e->key() == Qt::Key_A) _freeCamMove[0] = 0;
+  else if (e->key() == Qt::Key_D) _freeCamMove[0] = 0;
+
+  if (e->key() == Qt::Key_R) _freeCamMove[1] = 0;
+  else if (e->key() == Qt::Key_F) _freeCamMove[1] = 0;
+
+  if (e->key() == Qt::Key_Up) _arrowsPressed[0] = false;
+  else if (e->key() == Qt::Key_Down) _arrowsPressed[1] = false;
+
+  if (e->key() == Qt::Key_Right) _arrowsPressed[2] = false;
+  else if (e->key() == Qt::Key_Left) _arrowsPressed[3] = false;
 }
 
 /*-----------------------------------------*
@@ -297,5 +383,7 @@ void Graphics3D::exposeEvent(QExposeEvent *event) {
   if (isExposed())
     renderNow();
 }
+
+
 
 

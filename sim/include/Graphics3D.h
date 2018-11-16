@@ -10,6 +10,7 @@
 
 #include "obj_loader.h"
 #include "DrawList.h"
+#include "FirstOrderIIRFilter.h"
 
 #include <QWindow>
 #include <QOpenGLFunctions>
@@ -62,6 +63,8 @@ protected:
   void mouseMoveEvent(QMouseEvent *event) override;
   void mouseReleaseEvent(QMouseEvent *event) override;
   void wheelEvent(QWheelEvent *e) override;
+  void keyReleaseEvent(QKeyEvent *e) override;
+  void keyPressEvent(QKeyEvent *event) override;
 //    void resizeEvent(QResizeEvent *event) override;
 
 
@@ -101,13 +104,24 @@ private:
   float _rx_base = 0;
   float _ry_base = 0;
   float _rx = 0;
-  float _ry = 0;
+  float _ry = -90;
   float _pixel_to_rad = .3f;
-  double _zoom = 1;
+  float _zoom = 1;
 
-
+  bool _rotOrig = true;
 
   QMatrix4x4 _cameraMatrix;
+  Vec3<float> _v0;
+  FirstOrderIIRFilter<Vec3<float>, float> _freeCamFilter;
+
+  float _freeCamMove [3] = {0,0,0};
+  float _freeCamPos [3] = {0.f,0.f,0.f};
+  float _frameTime = 1.f/60.f;
+
+  bool _arrowsPressed [4] = {false,false,false,false};
+
+  float _targetSpeed = 2;
+
 };
 
 

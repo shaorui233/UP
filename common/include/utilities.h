@@ -15,7 +15,6 @@ bool fpEqual(T a, T b, T tol) {
 
 /*!
  * Are two std::vectors equal?
- * @return
  */
 template<typename T>
 bool vectorEqual(const std::vector<T>& a, const std::vector<T>& b) {
@@ -28,5 +27,17 @@ bool vectorEqual(const std::vector<T>& a, const std::vector<T>& b) {
   return true;
 }
 
-
+/*!
+ * Coerce in to be between min and max
+ */
+template<typename T>
+T coerce(T in, T min, T max) {
+  if(in < min) {
+    in = min;
+  }
+  if(in > max) {
+    in = max;
+  }
+  return in;
+}
 #endif //PROJECT_UTILITIES_H
