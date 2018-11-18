@@ -165,7 +165,7 @@ void DynamicsSimulator<T>::integrate(T dt) {
 
   ang *= dt;
   Vec3<T> ee = std::sin(ang/2) * axis;
-  Quat<T> quatD(std::cos(ang), ee[0], ee[1], ee[2]);
+  Quat<T> quatD(std::cos(ang/2), ee[0], ee[1], ee[2]);
 
   Quat<T> quatNew = quatProduct(quatD, _state.bodyOrientation);
   quatNew = quatNew / quatNew.norm();

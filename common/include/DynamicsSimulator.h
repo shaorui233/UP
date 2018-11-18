@@ -28,6 +28,7 @@ public:
   void step(T dt, const DVec<T>& tau); //! Simulate forward one step
   void runABA(const DVec<T>& tau); //! Find _dstate with the articulated body algorithm
   void forwardKinematics(); //! Do forward kinematics for feet
+  void integrate(T dt); //! Integrate to find new _state
 
   /*!
    * Set the state of the robot being simulated
@@ -98,7 +99,7 @@ private:
 
   void updateCollisions(T dt); //! Update ground collision list
 
-  void integrate(T dt); //! Integrate to find new _state
+
 
   FBModelState<T> _state;
   FBModelStateDerivative<T> _dstate;

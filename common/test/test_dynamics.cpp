@@ -145,6 +145,30 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
     // the qdd's are large - see qddRef, so we're only accurate to within ~1.
     EXPECT_TRUE(fpEqual(sim.getDState().qdd[i], qddRef[i], 3.));
   }
+
+  // check the integrator for the body (orientation, position, and spatial velocity).
+  // we use a huge timestep here so that any error in the integrator isn't multiplied
+  // by something small
+  sim.integrate(2.);
+
+  Quat<double> quat2Ref(-0.8962,
+                        -0.0994,
+                        -0.2610,
+                        -0.3446);
+  Vec3<double> x2Ref(14.7433,
+                     16.7196,
+                     19.7083);
+  SVec<double> v2Ref;
+  v2Ref << 912.0449,
+           126.3367,
+          -138.1201,
+           -18.9011,
+            25.4709,
+           -24.4788;
+
+  EXPECT_TRUE(almostEqual(quat2Ref, sim.getState().bodyOrientation, .0002));
+  EXPECT_TRUE(almostEqual(x2Ref, sim.getState().bodyPosition, .0002));
+  EXPECT_TRUE(almostEqual(v2Ref, sim.getState().bodyVelocity, .0002));
 }
 
 /*!
