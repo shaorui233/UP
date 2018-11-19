@@ -45,8 +45,8 @@ struct FBModelState {
 template <typename T>
 struct FBModelStateDerivative {
   Quat<T> dQuat;
-  Vec3<T> dBasePosition;
-  SVec<T> dBaseVelocity;
+  Vec3<T> dBodyPosition;
+  SVec<T> dBodyVelocity;
   DVec<T> qdd;
 };
 
@@ -153,6 +153,34 @@ public:
     _gravity = g;
   }
 
+  
+  void setContactComputeFlag(size_t gc_index, bool flag) {
+    _compute_contact_info[gc_index] = flag;
+  }
+
+
+  void addDynamicsVars(int count);
+  
+  void resizeSystemMatricies();
+
+  void setState( FBModelState<T> & state) {
+    _state = state;
+    _kin_flag = false;
+    _acc_flag = false;
+    _IC_flag = false;
+  }
+
+  void forwardKinematics();
+  void biasAccelerations();
+  void compositeInertias();
+
+  void contactJacobians();
+  
+  DVec<T> gravityForce();
+  DVec<T> coriolisForce();
+  DMat<T> massMatrix();
+  DVec<T> inverseDynamics(FBModelStateDerivative<T> & dState);
+
 
   size_t _nDof = 0;
   Vec3 <T> _gravity;
@@ -164,10 +192,40 @@ public:
   vector<SpatialInertia<T>, Eigen::aligned_allocator<Mat6<T>>> _Ibody, _Irot;
   vector<std::string> _bodyNames;
 
-  int _nGroundContact = 0;
+  size_t _nGroundContact = 0;
   vector<size_t> _gcParent;
   vector<Vec3<T>> _gcLocation;
   vector<uint64_t> _footIndicesGC;
+
+  vector< Vec3<T> > _pGC;
+  vector< Vec3<T> > _vGC;
+
+  vector< bool > _compute_contact_info;
+
+
+
+  /// BEGIN ALGORITHM SUPPORT VARIABLES
+  FBModelState<T> _state;
+  FBModelStateDerivative<T> _dstate;
+
+  vectorAligned< SVec<T> > _v, _vrot, _a, _arot, _avp,_avprot,  _c, _crot, _S, _Srot, _fvp, _fvprot, _ag, _agrot, _f, _frot;
+  vectorAligned< SpatialInertia<T> >  _IC ;
+  
+  vectorAligned< Mat6<T> > _Xup, _Xa, _Xuprot;
+
+  DMat<T> _H, _C;
+  DVec<T> _Cqd, _G;
+
+  vectorAligned< D6Mat<T> > _J;
+  vectorAligned< SVec<T> > _Jdqd;
+
+  vectorAligned< D3Mat<T> > _Jc;
+  vectorAligned< Vec3<T> > _Jcdqd;
+
+
+  bool _kin_flag = false;  // v, v_rot, Xup, Xa, _S, _Srot, _Sdot
+  bool _acc_flag = false;  // a_vp, _c, _c_rot
+  bool _IC_flag = false; 
 
 };
 

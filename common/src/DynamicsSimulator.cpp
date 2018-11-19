@@ -87,7 +87,7 @@ void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
   updateCollisions(dt);  // process collisions
   runABA(tau);         // dynamics algorithm
   integrate(dt);       // step forward
-  resetExternalForces(); // clear external forces
+  resetExternalForces(); // clesetar external forces
 }
 
 /*!
@@ -150,7 +150,7 @@ template <typename T>
 void DynamicsSimulator<T>::integrate(T dt) {
 
   // this was incredibly wrong.
-  //Vec3<T> omegaBody = _dstate.dBaseVelocity.template block<3,1>(0,0);
+  //Vec3<T> omegaBody = _dstate.dBodyVelocity.template block<3,1>(0,0);
   Vec3<T> omegaBody = _state.bodyVelocity.template block<3,1>(0,0);
   Mat6<T> X = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   RotMat<T> R = rotationFromSXform(X);
@@ -165,7 +165,7 @@ void DynamicsSimulator<T>::integrate(T dt) {
 
   ang *= dt;
   Vec3<T> ee = std::sin(ang/2) * axis;
-  Quat<T> quatD(std::cos(ang), ee[0], ee[1], ee[2]);
+  Quat<T> quatD(std::cos(ang/2), ee[0], ee[1], ee[2]);
 
   Quat<T> quatNew = quatProduct(quatD, _state.bodyOrientation);
   quatNew = quatNew / quatNew.norm();
@@ -173,8 +173,8 @@ void DynamicsSimulator<T>::integrate(T dt) {
   // actual integration
   _state.q += _state.qd * dt;
   _state.qd += _dstate.qdd * dt;
-  _state.bodyVelocity += _dstate.dBaseVelocity * dt;
-  _state.bodyPosition += _dstate.dBasePosition * dt;
+  _state.bodyVelocity += _dstate.dBodyVelocity * dt;
+  _state.bodyPosition += _dstate.dBodyPosition * dt;
   _state.bodyOrientation = quatNew;
 }
 
@@ -255,8 +255,8 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   RotMat<T> Rup = rotationFromSXform(_Xup[5]);
   // TODO : I think this is wrong (and probably unused, as a result)
   _dstate.dQuat = quatDerivative(_state.bodyOrientation, _state.bodyVelocity.template block<3,1>(0,0));
-  _dstate.dBasePosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
-  _dstate.dBaseVelocity = afb;
+  _dstate.dBodyPosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
+  _dstate.dBodyVelocity = afb;
   // qdd is set in the for loop above
 
 }

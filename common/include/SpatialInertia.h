@@ -103,6 +103,15 @@ public:
     return _inertia;
   }
 
+  void setMatrix(const Mat6<T> & mat) {
+    _inertia = mat;
+  }
+
+  void addMatrix(const Mat6<T> & mat ) {
+    _inertia += mat;
+  }
+
+
   /*!
    * Get mass
    */
