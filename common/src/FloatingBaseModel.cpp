@@ -32,6 +32,9 @@ using namespace std;
  */
 template<typename T>
 void FloatingBaseModel<T>::addDynamicsVars(int count) {
+  if(count!=1 && count!=6) {
+    throw std::runtime_error("addDynamicsVars must be called with count=1 (joint) or count=6 (base).\n");
+  }
 
   Mat6<T> eye6 = Mat6<T>::Identity();
   SVec<T> zero6 = SVec<T>::Zero();
@@ -289,7 +292,7 @@ T FloatingBaseModel<T>::totalRotorMass() {
  */
 template <typename T>
 void FloatingBaseModel<T>::forwardKinematics() {
-  if(_kin_flag)
+  if(_kinematicsUpToDate)
     return;
 
   // calculate joint transformations
@@ -339,7 +342,7 @@ void FloatingBaseModel<T>::forwardKinematics() {
     _pGC.at(j) = sXFormPoint(Xai, _gcLocation.at(j));
     _vGC.at(j) = spatialToLinearVelocity(vSpatial, _pGC.at(j));
   }
-  _kin_flag = true;
+  _kinematicsUpToDate = true;
 }
 
 
@@ -392,7 +395,7 @@ void FloatingBaseModel<T>::contactJacobians() {
  */
 template <typename T>
 void FloatingBaseModel<T>::biasAccelerations() {
-  if(_acc_flag)
+  if(_biasAccelerationsUpToDate)
     return;
   forwardKinematics();
   // velocity product acceelration of base
@@ -405,7 +408,7 @@ void FloatingBaseModel<T>::biasAccelerations() {
     _avp[i] = _Xup[i] * _avp[_parents[i]] + _c[i];
     _avprot[i] = _Xuprot[i] * _avp[_parents[i]] + _crot[i];
   }
-  _acc_flag = true;
+  _biasAccelerationsUpToDate = true;
 }
 
 /*!
@@ -480,7 +483,7 @@ DVec<T> FloatingBaseModel<T>::coriolisForce() {
  */
 template <typename T>
 void FloatingBaseModel<T>::compositeInertias() {
-  if(_IC_flag)
+  if(_compositeInertiasUpToDate)
     return;
 
   forwardKinematics();
@@ -495,7 +498,7 @@ void FloatingBaseModel<T>::compositeInertias() {
     _IC[_parents[i]].addMatrix( _Xup[i].transpose() * _IC[i].getMatrix() * _Xup[i] );
     _IC[_parents[i]].addMatrix( _Xuprot[i].transpose() * _Irot[i].getMatrix()  * _Xuprot[i] );
   }
-  _IC_flag = true;
+  _compositeInertiasUpToDate = true;
 }
 
 /*!

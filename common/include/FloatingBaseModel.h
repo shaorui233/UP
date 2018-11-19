@@ -165,9 +165,9 @@ public:
 
   void setState( FBModelState<T> & state) {
     _state = state;
-    _kin_flag = false;
-    _acc_flag = false;
-    _IC_flag = false;
+    _kinematicsUpToDate = false;
+    _biasAccelerationsUpToDate = false;
+    _compositeInertiasUpToDate = false;
   }
 
   void forwardKinematics();
@@ -206,7 +206,6 @@ public:
 
   /// BEGIN ALGORITHM SUPPORT VARIABLES
   FBModelState<T> _state;
-  FBModelStateDerivative<T> _dstate;
 
   vectorAligned< SVec<T> > _v, _vrot, _a, _arot, _avp,_avprot,  _c, _crot, _S, _Srot, _fvp, _fvprot, _ag, _agrot, _f, _frot;
   vectorAligned< SpatialInertia<T> >  _IC ;
@@ -223,9 +222,9 @@ public:
   vectorAligned< Vec3<T> > _Jcdqd;
 
 
-  bool _kin_flag = false;  // v, v_rot, Xup, Xa, _S, _Srot, _Sdot
-  bool _acc_flag = false;  // a_vp, _c, _c_rot
-  bool _IC_flag = false; 
+  bool  _kinematicsUpToDate = false;
+  bool  _biasAccelerationsUpToDate = false;
+  bool  _compositeInertiasUpToDate = false;
 
 };
 
