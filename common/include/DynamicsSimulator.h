@@ -92,9 +92,9 @@ public:
     return _nb;
   }
 
-  vector<Vec3<T>, Eigen::aligned_allocator<Vec3<T>>> _pGC; // position of ground contacts in world coordinates
-  vector<Vec3<T>, Eigen::aligned_allocator<Vec3<T>>> _vGC; // velocity of ground contacts in world coordinates
-  vector<Mat6<T>, Eigen::aligned_allocator<Mat6<T>>> _Xup, _Xuprot, _IA, _Xa;
+  vectorAligned<Vec3<T> > _pGC; // position of ground contacts in world coordinates
+  vectorAligned<Vec3<T> > _vGC; // velocity of ground contacts in world coordinates
+  vectorAligned<Mat6<T> > _Xup, _Xuprot, _IA, _Xa;
 private:
 
   void updateCollisions(T dt); //! Update ground collision list
@@ -105,7 +105,7 @@ private:
   FBModelStateDerivative<T> _dstate;
 
   // aba stuff
-  vector<SVec<T>, Eigen::aligned_allocator<SVec<T>>> _v, _vrot, _a, _c, _crot, _U, _Urot, _Utot, _S, _Srot, _pA, _pArot;
+  vectorAligned<SVec<T> > _v, _vrot, _a, _c, _crot, _U, _Urot, _Utot, _S, _Srot, _pA, _pArot;
 
   vector<T> _d, _u;
 

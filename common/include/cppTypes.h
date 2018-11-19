@@ -60,6 +60,14 @@ using DVec = typename Eigen::Matrix<T, Eigen::Dynamic, 1>;
 template<typename T>
 using DMat = typename Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
+// Dynamically sized matrix with spatial vector columns
+template<typename T>
+using D6Mat = typename Eigen::Matrix<T, 6, Eigen::Dynamic>;
+
+// Dynamically sized matrix with cartesian vector columns
+template<typename T>
+using D3Mat = typename Eigen::Matrix<T, 3, Eigen::Dynamic>;
+
 // std::vector (a list) of Eigen things
 template<typename T>
 using vectorAligned = typename std::vector<T, Eigen::aligned_allocator<T>>;

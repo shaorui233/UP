@@ -102,6 +102,20 @@ namespace spatial {
   }
 
   /*!
+   * Compute the classical lienear accleeration of a frame given its spatial acceleration and velocity
+   */
+  template<typename T, typename T2>
+  auto sAccToClassicalAcc(const Eigen::MatrixBase<T> &a , const Eigen::MatrixBase<T2> &v ) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    
+    Vec3<typename T::Scalar> acc;
+    // classical accleration = spatial linear acc + omega x v
+    acc = a.template tail<3>() + v.template head<3>().cross( v.template tail<3>() );
+    return acc;
+  }
+
+  /*!
    * Convert a spatial transform to a homogeneous coordinate transformation
    */
   template<typename T>
