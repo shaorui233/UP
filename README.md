@@ -29,4 +29,5 @@ Part of this build process will automatically download the gtest software testin
 Dependencies:
 - Qt 5.10 - https://www.qt.io/download-qt-installer
 - LCM - https://lcm-proj.github.io/
+- Eigen - http://eigen.tuxfamily.org
 - `mesa-common-dev`
