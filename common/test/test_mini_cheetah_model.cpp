@@ -150,8 +150,8 @@ TEST(MiniCheetah, simulatorDynamicsABANoExternalForceMiniCheetah) {
   qddRef *= 1000;
 
   EXPECT_TRUE(almostEqual(quatDRef, sim.getDState().dQuat, .001));
-  EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBasePosition, .001));
-  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBaseVelocity, 1));
+  EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
+  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
 
   for (size_t i = 0; i < 12; i++) {
     // the qdd's are large - see qddRef, so we're only accurate to within ~1.
@@ -231,8 +231,8 @@ TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
   qddRef *= 1000;
 
   EXPECT_TRUE(almostEqual(quatDRef, sim.getDState().dQuat, .001));
-  EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBasePosition, .001));
-  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBaseVelocity, 1));
+  EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
+  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
 
   for (size_t i = 0; i < 12; i++) {
     // the qdd's are large - see qddRef, so we're only accurate to within ~1.
