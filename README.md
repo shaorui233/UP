@@ -26,3 +26,7 @@ Part of this build process will automatically download the gtest software testin
 [  PASSED  ] 18 tests.
 ```
 
+Dependencies:
+- Qt 5.10 - https://www.qt.io/download-qt-installer
+- LCM - https://lcm-proj.github.io/
+- `mesa-common-dev`
