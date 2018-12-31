@@ -138,11 +138,11 @@ public:
     return _parents;
   }
 
-  const std::vector<SpatialInertia<T>, Eigen::aligned_allocator<Mat6<T>>>& getBodyInertiaVector() {
+  const std::vector<SpatialInertia<T>, Eigen::aligned_allocator<SpatialInertia<T>>>& getBodyInertiaVector() {
     return _Ibody;
   }
 
-  const std::vector<SpatialInertia<T>, Eigen::aligned_allocator<Mat6<T>>>& getRotorInertiaVector() {
+  const std::vector<SpatialInertia<T>, Eigen::aligned_allocator<SpatialInertia<T>>>& getRotorInertiaVector() {
     return _Irot;
   }
 
@@ -189,7 +189,7 @@ public:
   vector<JointType> _jointTypes;
   vector<CoordinateAxis> _jointAxes;
   vector<Mat6<T>, Eigen::aligned_allocator<Mat6<T>>> _Xtree, _Xrot;
-  vector<SpatialInertia<T>, Eigen::aligned_allocator<Mat6<T>>> _Ibody, _Irot;
+  vector<SpatialInertia<T>, Eigen::aligned_allocator<SpatialInertia<T>>> _Ibody, _Irot;
   vector<std::string> _bodyNames;
 
   size_t _nGroundContact = 0;
