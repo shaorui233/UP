@@ -209,7 +209,7 @@ private:
   std::vector<QMatrix4x4> _modelOffsets;
   std::vector<QMatrix4x4> _kinematicXform;
 
-  bool _reloadNeeded = true;
+  bool _reloadNeeded = false;
 
   size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0, _sphereLoadIndex = 0;
 

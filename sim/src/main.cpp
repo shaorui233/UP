@@ -34,19 +34,12 @@ int main(int argc, char *argv[]) {
   // set up Qt
   QApplication a(argc, argv);
 
-  // set up QSurface, an output for the OpenGL-based visualizaer
-  QSurfaceFormat gFormat;
-  gFormat.setSamples(1);
-  gFormat.setDepthBufferSize(24);
-
   // Create a new visualization window
   window = new Graphics3D();
-  window->setFormat(gFormat);
-  window->show();
-  window->setAnimating(true);
-  window->resize(1280, 720);
+  window->show(); // make window visible
+  window->resize(1280, 720);  // set window size
 
-  // run the simulator in a new thread
+  // run the simulator in a new thread (Qt needs to run a.exec() in the main thread)
   std::thread simThread(simulatorDemo);
 
   // run the Qt program
@@ -63,9 +56,6 @@ void simulatorDemo() {
   // simulation of the mini cheetah
   Simulation sim(true, window);
 
-  // create an initial Floating Base Model State
-  FBModelState<double> x;
-
   // Create a V-shaped floor with two planes at +/- 25 degrees
   SXform<double> floorLocation1 = createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(25.)), Vec3<double>(0,0,-.5));
   SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(25.)), Vec3<double>(0,0,-.5));
@@ -74,12 +64,10 @@ void simulatorDemo() {
   sim.addCollisionPlane(floorLocation1,  0.8, 5e5, 5e3);
   sim.addCollisionPlane(floorLocation2,  0.8, 5e5, 5e3);
 
-  sim.freeRun(.00001);
+  // turn on graphics
+  window->setAnimating(true);
 
-  // run simulator
-//  for(;;) {
-//    sim.step(.00001);
-//    sim.updateGraphics();
-//  }
+  // run the simulator with a 10 kHz timestep
+  sim.freeRun(.0001);
 }
 

@@ -37,6 +37,10 @@ struct FBModelState {
   SVec<T> bodyVelocity; // body coordinates
   DVec<T> q;
   DVec<T> qd;
+
+  void print () const {
+    printf("position: %.3f %.3f %.3f\n", bodyPosition[0], bodyPosition[1], bodyPosition[2]);
+  }
 };
 
 /*!

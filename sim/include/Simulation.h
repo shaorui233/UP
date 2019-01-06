@@ -52,16 +52,36 @@ public:
   }
 
 
-  void freeRun(double dt) {
+  /*!
+   * Runs the simulator in the current thread until the _running variable is set to false.
+   * Updates graphics at 60 fps if desired.
+   * Runs simulation as fast as possible.
+   * @param dt
+   */
+  void freeRun(double dt, bool graphics = true) {
     _running = true;
     Timer tim;
+    Timer freeRunTimer;
+    double lastSimTime = _currentSimTime;
     while(_running) {
       step(dt);
-      if(tim.getSeconds() >= (1./60.)) {
+      _currentSimTime += dt;
+      double realElapsedTime = tim.getSeconds();
+      if(graphics && _window && realElapsedTime >= (1./60.)) {
+        double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
+        lastSimTime = _currentSimTime;
         tim.start();
+        _window->infoString = "Mode: Freerun\nReal Time: " + std::to_string(freeRunTimer.getSeconds()) + "\n" +
+                "Sim Time: " + std::to_string(_currentSimTime) + "\n" +
+                "Rate: " + std::to_string(simRate);
         updateGraphics();
+        _window->update();
       }
     }
+  }
+
+  void resetSimTime() {
+    _currentSimTime = 0.f;
   }
 
 
@@ -82,6 +102,7 @@ private:
   DVec<double> _tau;
   DynamicsSimulator<double>* _simulator = nullptr;
   bool _running = false;
+  double _currentSimTime = 0.f;
 };
 
 #endif //PROJECT_SIMULATION_H

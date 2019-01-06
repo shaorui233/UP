@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <include/Graphics3D.h>
 
 
 static constexpr auto clearColor = windows2000;
@@ -52,14 +53,13 @@ void main() {
 )";
 
 
-
 /*!
  * Initialize a 3D visualization window
  */
-Graphics3D::Graphics3D(QWindow *parent) : QWindow(parent), _animating(false), _context(0), _device(0), _program(0),
+Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(false),  _program(0),
                                           _frame(0), _v0(0, 0, 0), _freeCamFilter(1, 60, _v0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
-  setSurfaceType(QWindow::OpenGLSurface);
+  //setSurfaceType(QWindow::OpenGLSurface);
 }
 
 /*!
@@ -113,36 +113,9 @@ void Graphics3D::updateCameraMatrix() {
   }
 }
 
-
-
-///*!
-// * Draw a frame with OpenGL
-// */
-//void Graphics3D::render(QPainter *painter) {
-//  (void) painter;
-//
-//
-//
-//
-//  glDisable(GL_DEPTH_TEST);
-//
-//////  // Render text
-////  QFont font = painter->font();
-////  font.setPointSize(24);
-////  painter->setFont(font);
-////  painter->setPen(QColor(0,0,0));
-//
-//  painter->drawText(QPoint(50, 50), "12");
-//  painter->end();
-//}
-
-
-/*!
- * Initialize OpenGL and load shaders
- */
-void Graphics3D::initialize() {
+void Graphics3D::initializeGL() {
   std::cout << "[Graphics3D] Initialize OpenGL...\n";
-
+  initializeOpenGLFunctions();
   // create GPU shaders
   _program = new QOpenGLShaderProgram(this);
   _program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
@@ -248,28 +221,28 @@ void Graphics3D::keyReleaseEvent(QKeyEvent *e) {
   else if (e->key() == Qt::Key_Left) _arrowsPressed[3] = false;
 }
 
-/*-----------------------------------------*
- * Confusing QT Stuff to set up the window *
- *-----------------------------------------*/
-
 /*!
- * Wrapper for our rendering function which takes care of some OpenGL and Qt setup
+ * Enable and disable animation
  */
-void Graphics3D::render() {
+void Graphics3D::setAnimating(bool animating) {
+  _animating = animating;
+}
+
+
+
+GLuint buffID[3];
+void Graphics3D::paintGL() {
+  if(!_animating) return;
   if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     _fps = (60.f * 1000.f / (now - last_frame_ms));
     std::cout << "FPS: " << _fps << "\n";
     last_frame_ms = now;
   }
+  QPainter painter2(this);
 
-  if (!_device)
-    _device = new QOpenGLPaintDevice;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  _device->setSize(size());
-
 
 
   // magic copied from the internet to make things look good on hi-dpi screens
@@ -279,13 +252,14 @@ void Graphics3D::render() {
   updateCameraMatrix();
   _program->bind();
 
+
   if (_drawList.needsReload()) {
     // upload data
 
     glDisableVertexAttribArray(2);
     glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
-    GLuint buffID[3];
+
     glGenBuffers(3, buffID);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
@@ -308,101 +282,41 @@ void Graphics3D::render() {
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
     printf("[Graphics 3D] Uploaded data (%f MB)\n", _drawList.getGLDataSizeMB());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
 
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LESS);
 
+  glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
+  glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
+  glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
+  glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
     _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) *
                                               _drawList.getModelBaseTransform(id));
     glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
   }
+  glDisableVertexAttribArray(2);
+  glDisableVertexAttribArray(1);
+  glDisableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   _program->release();
   ++_frame;
-
   glDisable(GL_DEPTH_TEST);
+  painter2.setPen(QColor(100,100,100,255));
+  painter2.fillRect(QRect(30,30,400,200), QColor(100,100,100,200));
+  QFont font("Sans", 20);
+  painter2.setPen(QColor(210, 100, 100));
+  painter2.setFont(font);
+  painter2.drawText(QRect(30,30,1000,1000), Qt::AlignLeft, QString(infoString.c_str()));
 
-  _context->swapBuffers(this);
+  painter2.end();
 }
-
-/*!
- * Enable and disable animation
- */
-void Graphics3D::setAnimating(bool animating) {
-  _animating = animating;
-  if (animating)
-    renderLater();
-}
-
-/*!
- * Called by Qt event handlers, does initialization if needed and draws a frame.
- */
-void Graphics3D::renderNow() {
-
-  if (!isExposed()) // window isn't ready
-    return;
-  _gfxMutex.lock();
-  bool needsInitialize = false;
-
-  // initialize things if we need to
-  if (!_context) {
-    std::cout << "[Graphics3D] Initialize context...\n";
-    _context = new QOpenGLContext(this);
-    _context->setFormat(requestedFormat());
-    _context->create();
-
-    needsInitialize = true;
-  }
-
-  _context->makeCurrent(this);
-
-  if (needsInitialize) {
-    initializeOpenGLFunctions();
-    initialize();
-  }
-
-  // draw frame
-  render();
-  //_context->swapBuffers(this);
-
-  // if we're running, we should schedule the next frame
-  if (_animating)
-    renderLater();
-  _gfxMutex.unlock();
-}
-
-/*!
- * Sets up Qt to call event with an UpdateRequest on the next frame, which will run the frame drawing code
- */
-void Graphics3D::renderLater() {
-  requestUpdate();
-}
-
-/*!
- * This event handler is called automatically by the QT framework at the appropriate time
- * and runs the frame drawing code.
- */
-bool Graphics3D::event(QEvent *event) {
-  switch (event->type()) {
-    case QEvent::UpdateRequest:
-      renderNow();
-      return true;
-    default:
-      return QWindow::event(event);
-  }
-}
-
-/*!
- * This function is called once the window has initialized all the way and renders the first frame
- */
-void Graphics3D::exposeEvent(QExposeEvent *event) {
-  (void) event;
-  if (isExposed())
-    renderNow();
-}
-
-
-
-

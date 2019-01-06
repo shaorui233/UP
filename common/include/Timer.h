@@ -1,6 +1,6 @@
-//
-// Created by jared on 1/6/19.
-//
+/*! @file Timer.h
+ *  @brief Timer for measuring how long things take
+ */
 
 #ifndef PROJECT_TIMER_H
 #define PROJECT_TIMER_H
@@ -23,14 +23,11 @@ public:
     return (double)getNs() / 1.e6;
   }
 
-  uint64_t getNs() {
+  int64_t getNs() {
     struct timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
-    if ((now.tv_nsec - _startTime.tv_nsec) < 0) {
-      return (uint64_t)(now.tv_nsec - _startTime.tv_nsec + 1000000000);
-    } else {
-      return (uint64_t)(now.tv_nsec - _startTime.tv_nsec);
-    }
+    return (int64_t)(now.tv_nsec - _startTime.tv_nsec) + 1000000000 * (now.tv_sec - _startTime.tv_sec);
+
   }
 
   double getSeconds() {

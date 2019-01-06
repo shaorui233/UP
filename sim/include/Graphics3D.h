@@ -16,6 +16,7 @@
 #include <QOpenGLFunctions>
 #include <QOpenGLPaintDevice>
 #include <QOpenGLContext>
+#include <QOpenGLWidget>
 #include <QPainter>
 #include <QOpenGLShaderProgram>
 #include <QMatrix4x4>
@@ -27,14 +28,11 @@
 
 #include <mutex>
 
-class Graphics3D: public QWindow, protected QOpenGLFunctions {
-Q_OBJECT
+class Graphics3D: public QOpenGLWidget, protected QOpenGLFunctions {
 public:
-  explicit Graphics3D(QWindow* parent = 0);
+  explicit Graphics3D(QWidget* parent = 0);
   virtual ~Graphics3D() { }
-  //virtual void render(QPainter* painter);
-  virtual void render();
-  virtual void initialize();
+
   void setAnimating(bool animating);
   size_t setupCheetah3();
   size_t setupMiniCheetah();
@@ -50,13 +48,15 @@ public:
   // set robot state
   double _fps = 0;
   DrawList _drawList;
-public slots:
-  void renderLater();
-  void renderNow();
-protected:
-  bool event(QEvent *event) override;
+  std::string infoString;
 
-  void exposeEvent(QExposeEvent *event) override;
+protected:
+  void initializeGL() override;
+  //void resizeGL(int w, int h) override;
+  void paintGL() override;
+  //bool event(QEvent *event) override;
+
+  //void exposeEvent(QExposeEvent *event) override; ??
 
   // mouse callbacks for orbit and zoom
   void mousePressEvent(QMouseEvent *event) override;
@@ -65,8 +65,6 @@ protected:
   void wheelEvent(QWheelEvent *e) override;
   void keyReleaseEvent(QKeyEvent *e) override;
   void keyPressEvent(QKeyEvent *event) override;
-//    void resizeEvent(QResizeEvent *event) override;
-
 
 
 private:
@@ -74,18 +72,12 @@ private:
   void updateCameraMatrix();
   bool _animating;
 
-  QOpenGLContext *_context;
-  QOpenGLPaintDevice *_device;
-
   // attributes for shader program
   GLuint _posAttr; // position of vertex
   GLuint _colAttr; // color of vertex
   GLuint _matrixUniform; // transformation matrix
   GLuint _normAttr; // vertex normal
-  GLuint _posAttr_slow;
-  GLuint _colAttr_slow;
-  GLuint _matrixUniform_slow;
-  GLuint _normAttr_slow;
+  GLuint _textTexture = 0;
 
   // shader programs
   QOpenGLShaderProgram *_program;
@@ -121,6 +113,5 @@ private:
   float _targetSpeed = 2;
 
 };
-
 
 #endif //PROJECT_GRAPHICS3D_H
