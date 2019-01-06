@@ -24,6 +24,8 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
   x0.bodyVelocity = v0;
   x0.q = zero12;
   x0.qd = zero12;
+
+  setRobotState(x0);
 }
 
 void Simulation::addCollisionPlane(SXform<double>& plane, double mu, double K, double D, bool addToWindow) {

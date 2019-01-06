@@ -51,6 +51,8 @@ void main() {
 }
 )";
 
+
+
 /*!
  * Initialize a 3D visualization window
  */
@@ -112,58 +114,27 @@ void Graphics3D::updateCameraMatrix() {
 }
 
 
-/*!
- * Draw a frame with OpenGL
- */
-void Graphics3D::render(QPainter *painter) {
-  (void) painter;
 
-  updateCameraMatrix();
-  _program->bind();
-
-  if (_drawList.needsReload()) {
-    // upload data
-
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
-    GLuint buffID[3];
-    glGenBuffers(3, buffID);
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
-                 GL_STATIC_DRAW);
-    printf("size: %lu, @ %p\n", _drawList.getSizeOfAllData(), _drawList.getVertexArray());
-    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getColorArray(),
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getNormalArray(),
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    printf("[Graphics 3D] Uploaded data (%f MB)\n", _drawList.getGLDataSizeMB());
-  }
-
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
-
-  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-    _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) *
-                                              _drawList.getModelBaseTransform(id));
-    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
-  }
-
-  _program->release();
-  ++_frame;
-}
+///*!
+// * Draw a frame with OpenGL
+// */
+//void Graphics3D::render(QPainter *painter) {
+//  (void) painter;
+//
+//
+//
+//
+//  glDisable(GL_DEPTH_TEST);
+//
+//////  // Render text
+////  QFont font = painter->font();
+////  font.setPointSize(24);
+////  painter->setFont(font);
+////  painter->setPen(QColor(0,0,0));
+//
+//  painter->drawText(QPoint(50, 50), "12");
+//  painter->end();
+//}
 
 
 /*!
@@ -299,13 +270,61 @@ void Graphics3D::render() {
 
   _device->setSize(size());
 
-  QPainter painter(_device);
+
 
   // magic copied from the internet to make things look good on hi-dpi screens
   const qreal retinaScale = devicePixelRatio();
   glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
-  render(&painter);
+  updateCameraMatrix();
+  _program->bind();
+
+  if (_drawList.needsReload()) {
+    // upload data
+
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+    GLuint buffID[3];
+    glGenBuffers(3, buffID);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
+                 GL_STATIC_DRAW);
+    printf("size: %lu, @ %p\n", _drawList.getSizeOfAllData(), _drawList.getVertexArray());
+    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getColorArray(),
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getNormalArray(),
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    printf("[Graphics 3D] Uploaded data (%f MB)\n", _drawList.getGLDataSizeMB());
+  }
+
+  glEnable(GL_DEPTH_TEST);
+  glDepthFunc(GL_LESS);
+
+  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
+    _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) *
+                                              _drawList.getModelBaseTransform(id));
+    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
+  }
+
+  _program->release();
+  ++_frame;
+
+  glDisable(GL_DEPTH_TEST);
+
+  _context->swapBuffers(this);
 }
 
 /*!
@@ -346,7 +365,7 @@ void Graphics3D::renderNow() {
 
   // draw frame
   render();
-  _context->swapBuffers(this);
+  //_context->swapBuffers(this);
 
   // if we're running, we should schedule the next frame
   if (_animating)

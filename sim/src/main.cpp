@@ -74,10 +74,12 @@ void simulatorDemo() {
   sim.addCollisionPlane(floorLocation1,  0.8, 5e5, 5e3);
   sim.addCollisionPlane(floorLocation2,  0.8, 5e5, 5e3);
 
+  sim.freeRun(.00001);
+
   // run simulator
-  while(true) {
-    sim.step(.00001);
-    sim.updateGraphics();
-  }
+//  for(;;) {
+//    sim.step(.00001);
+//    sim.updateGraphics();
+//  }
 }
 

@@ -32,7 +32,7 @@ Q_OBJECT
 public:
   explicit Graphics3D(QWindow* parent = 0);
   virtual ~Graphics3D() { }
-  virtual void render(QPainter* painter);
+  //virtual void render(QPainter* painter);
   virtual void render();
   virtual void initialize();
   void setAnimating(bool animating);
@@ -69,7 +69,6 @@ protected:
 
 
 
-
 private:
   std::mutex _gfxMutex;
   void updateCameraMatrix();
@@ -90,7 +89,6 @@ private:
 
   // shader programs
   QOpenGLShaderProgram *_program;
-  QOpenGLShaderProgram *_slow_program;
 
   // frame count
   int _frame;
