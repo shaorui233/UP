@@ -48,7 +48,7 @@ public:
   // set robot state
   double _fps = 0;
   DrawList _drawList;
-  std::string infoString;
+  char infoString[200] = "";
 
 protected:
   void initializeGL() override;

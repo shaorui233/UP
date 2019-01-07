@@ -71,9 +71,10 @@ public:
         double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
         lastSimTime = _currentSimTime;
         tim.start();
-        _window->infoString = "Mode: Freerun\nReal Time: " + std::to_string(freeRunTimer.getSeconds()) + "\n" +
-                "Sim Time: " + std::to_string(_currentSimTime) + "\n" +
-                "Rate: " + std::to_string(simRate);
+        sprintf(_window->infoString, "[Simulation Freerun]\n"
+                                     "real-time:%8.3f\n"
+                                     "sim-time: %8.3f\n"
+                                     "rate:     %8.3f\n",freeRunTimer.getSeconds(),_currentSimTime, simRate);
         updateGraphics();
         _window->update();
       }

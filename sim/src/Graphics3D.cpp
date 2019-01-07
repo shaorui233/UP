@@ -313,10 +313,10 @@ void Graphics3D::paintGL() {
   glDisable(GL_DEPTH_TEST);
   painter2.setPen(QColor(100,100,100,255));
   painter2.fillRect(QRect(30,30,400,200), QColor(100,100,100,200));
-  QFont font("Sans", 20);
+  QFont font("Monospace", 20);
   painter2.setPen(QColor(210, 100, 100));
   painter2.setFont(font);
-  painter2.drawText(QRect(30,30,1000,1000), Qt::AlignLeft, QString(infoString.c_str()));
+  painter2.drawText(QRect(30,30,1000,1000), Qt::AlignLeft, QString(infoString));
 
   painter2.end();
 }
