@@ -30,6 +30,13 @@ Quadruped<T> buildMiniCheetah() {
   cheetah._hipLinkLength  = 0.209;
   cheetah._kneeLinkLenght = 0.175;
 
+  cheetah._motorTauMax = 3.f;
+  cheetah._batteryV = 24;
+  cheetah._motorKT = .05; // this is flux linkage * pole pairs
+  cheetah._motorR  = 0.173;
+  cheetah._jointDamping = .01;
+  cheetah._jointDryFriction = .2;
+
   // rotor inertia if the rotor is oriented so it spins around the z-axis
   Mat3<T> rotorRotationalInertiaZ;
   rotorRotationalInertiaZ << 33, 0, 0,

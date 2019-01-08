@@ -40,4 +40,12 @@ T coerce(T in, T min, T max) {
   }
   return in;
 }
+
+/*!
+ * Get the sign of a number
+ * 1 for positive, 0 for 0, -1 for negative...
+ */
+template <typename T> int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
+}
 #endif //PROJECT_UTILITIES_H

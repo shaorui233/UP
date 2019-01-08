@@ -18,3 +18,14 @@ TEST(Utilities, coerce) {
   EXPECT_EQ(-0.1f, coerce<float>(-0.5f, -0.1f, 0.1f));
   EXPECT_EQ(0.5f, coerce<float>(0.5f, -1.f, 1.f));
 }
+
+
+TEST(Utilities, sgn) {
+  EXPECT_EQ(1, sgn<int>(10));
+  EXPECT_EQ(-1, sgn<int>(-10));
+  EXPECT_EQ(0, sgn<int>(0));
+
+  EXPECT_EQ(1, sgn<double>(13.23));
+  EXPECT_EQ(-1, sgn<double>(-.23));
+  EXPECT_EQ(0, sgn<double>(0.));
+}

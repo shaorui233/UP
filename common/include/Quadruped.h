@@ -11,6 +11,7 @@
 
 #include "FloatingBaseModel.h"
 #include "SpatialInertia.h"
+#include "ActuatorModel.h"
 
 #include <eigen3/Eigen/StdVector>
 
@@ -36,9 +37,13 @@ public:
   T _bodyLength, _bodyWidth, _bodyHeight, _bodyMass;
   T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
   T _abadLinkLength, _hipLinkLength, _kneeLinkLenght;
+  T _motorKT, _motorR, _batteryV;
+  T _motorTauMax;
+  T _jointDamping, _jointDryFriction;
   SpatialInertia<T> _abadInertia, _hipInertia, _kneeInertia, _abadRotorInertia, _hipRotorInertia, _kneeRotorInertia, _bodyInertia;
   Vec3<T> _abadLocation, _abadRotorLocation, _hipLocation, _hipRotorLocation, _kneeLocation, _kneeRotorLocation;
   FloatingBaseModel<T> buildModel();
+  std::vector<ActuatorModel<T>> buildActuatorModels();
 };
 
 template<typename T, typename T2>

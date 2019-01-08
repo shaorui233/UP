@@ -112,6 +112,15 @@ Vec3<T> withLegSigns(const Eigen::MatrixBase<T2>& v, int legID) {
   }
 }
 
+template<typename T>
+std::vector<ActuatorModel<T>> Quadruped<T>::buildActuatorModels() {
+  std::vector<ActuatorModel<T>> models;
+  models.emplace_back(_abadGearRatio, _motorKT, _motorR, _batteryV, _jointDamping, _jointDryFriction, _motorTauMax);
+  models.emplace_back(_hipGearRatio, _motorKT, _motorR, _batteryV, _jointDamping, _jointDryFriction, _motorTauMax);
+  models.emplace_back(_kneeGearRatio, _motorKT, _motorR, _batteryV, _jointDamping, _jointDryFriction, _motorTauMax);
+  return models;
+}
+
 
 template class Quadruped<double>;
 template class Quadruped<float>;

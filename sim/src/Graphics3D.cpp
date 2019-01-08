@@ -84,10 +84,10 @@ void Graphics3D::updateCameraMatrix() {
   _cameraMatrix.setToIdentity();
   _cameraMatrix.perspective(60.f, float(size().width()) / float(size().height()), .001f, 50.f);
 
-  if(_arrowsPressed[0]) _ry -= _targetSpeed/5.f;
-  if(_arrowsPressed[1]) _ry += _targetSpeed/5.f;
-  if(_arrowsPressed[2]) _rx += _targetSpeed/5.f;
-  if(_arrowsPressed[3]) _rx -= _targetSpeed/5.f;
+  if(_arrowsPressed[0]) _ry -= _targetSpeed/2.f;
+  if(_arrowsPressed[1]) _ry += _targetSpeed/2.f;
+  if(_arrowsPressed[2]) _rx += _targetSpeed/2.f;
+  if(_arrowsPressed[3]) _rx -= _targetSpeed/2.f;
   if (!_rotOrig) {
     _ry = coerce<float>(_ry, -180, 0);
     // velocity in camera coordinates
@@ -246,8 +246,8 @@ void Graphics3D::paintGL() {
 
 
   // magic copied from the internet to make things look good on hi-dpi screens
-  const qreal retinaScale = devicePixelRatio();
-  glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+  //const qreal retinaScale = devicePixelRatio();
+  //glViewport(0, 0, width() * retinaScale, height() * retinaScale);
 
   updateCameraMatrix();
   _program->bind();
