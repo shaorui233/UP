@@ -1,9 +1,13 @@
 #include "Simulation.h"
 
 
+#include <unistd.h>
+
 Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
   _quadruped = useMiniCheetah ? buildMiniCheetah<double>() : buildCheetah3<double>();
+  _actuatorModels = _quadruped.buildActuatorModels();
   _window = window;
+  _isMiniCheetah = useMiniCheetah;
   if(_window) {
     _robotID = useMiniCheetah ? window->setupMiniCheetah() : window->setupCheetah3();
   }
@@ -26,14 +30,60 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
   x0.qd = zero12;
 
   setRobotState(x0);
+
+  // init spine:
+  if(useMiniCheetah) {
+    _spineBoards[0].init(-1.f, 0);
+    _spineBoards[1].init( 1.f, 1);
+    _spineBoards[2].init(-1.f, 2);
+    _spineBoards[3].init( 1.f, 3);
+
+    for (auto &spineBoard : _spineBoards) {
+      spineBoard.data = &_spiData;
+      spineBoard.cmd =  &_spiCommand;
+      spineBoard.resetData();
+      spineBoard.resetCommand();
+    }
+  }
 }
 
 /*!
  * Take a single timestep of dt seconds
  */
-void Simulation::step(double dt) {
-  // todo run TI board/SPINE
-  // todo actuator model
+void Simulation::step(double dt, double dtLowLevelControl) {
+
+  if(_currentSimTime >= _timeOfNextLowLevelControl) {
+    if(_isMiniCheetah) {
+      // update spine board data:
+      for(int leg = 0; leg < 4; leg++) {
+        _spiData.q_abad[leg] = _simulator->getState().q[leg*3 + 0];
+        _spiData.q_hip[leg]  = _simulator->getState().q[leg*3 + 1];
+        _spiData.q_knee[leg] = _simulator->getState().q[leg*3 + 2];
+
+        _spiData.qd_abad[leg] = _simulator->getState().qd[leg*3 + 0];
+        _spiData.qd_hip[leg]  = _simulator->getState().qd[leg*3 + 1];
+        _spiData.qd_knee[leg] = _simulator->getState().qd[leg*3 + 2];
+      }
+
+      // run spine board control:
+      for(auto &spineBoard : _spineBoards) {
+        spineBoard.run();
+      }
+
+      // run actuator model and move torque into simulator
+      for(int leg = 0; leg < 4; leg++) {
+        for(int joint = 0; joint < 3; joint++) {
+          _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
+                          _simulator->getState().qd[leg*3 + joint]);
+        }
+      }
+    } else {
+      // todo Cheetah 3
+    }
+    _timeOfNextLowLevelControl = _timeOfNextLowLevelControl + dtLowLevelControl;
+  }
+
+  _currentSimTime += dt;
   _simulator->step(dt, _tau);
 }
 
@@ -63,15 +113,14 @@ void Simulation::addCollisionPlane(SXform<double>& plane, double mu, double K, d
  * Runs simulation as fast as possible.
  * @param dt
  */
-void Simulation::freeRun(double dt, bool graphics) {
+void Simulation::freeRun(double dt, double dtLowLevelControl, bool graphics) {
   assert(!_running);
   _running = true;
   Timer tim;
   Timer freeRunTimer;
   double lastSimTime = _currentSimTime;
   while(_running) {
-    step(dt);
-    _currentSimTime += dt;
+    step(dt, dtLowLevelControl);
     double realElapsedTime = tim.getSeconds();
     if(graphics && _window && realElapsedTime >= (1./60.)) {
       double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
@@ -92,7 +141,7 @@ void Simulation::freeRun(double dt, bool graphics) {
  * Runs simulation at the desired speed
  * @param dt
  */
-void Simulation::runAtSpeed(double dt, double x, bool graphics) {
+void Simulation::runAtSpeed(double dt, double dtLowLevelControl, double x, bool graphics) {
   assert(!_running);
   _running = true;
   _desiredSimSpeed = x;
@@ -105,11 +154,10 @@ void Simulation::runAtSpeed(double dt, double x, bool graphics) {
 
   while(_running) {
     frameTimer.start();
-    int nStepsPerFrame = (int)((1. / 60.) / dt) * _desiredSimSpeed;
+    int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);
 
     for(int i = 0; i < nStepsPerFrame; i++) {
-      step(dt);
-      _currentSimTime += dt;
+      step(dt, dtLowLevelControl);
     }
 
     double realElapsedTime = tim.getSeconds();

@@ -32,6 +32,7 @@ using namespace spatial;
  */
 template <typename T>
 struct FBModelState {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   Quat<T> bodyOrientation;
   Vec3<T> bodyPosition;
   SVec<T> bodyVelocity; // body coordinates

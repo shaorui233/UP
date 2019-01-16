@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 
-SpineBoard::SpineBoard(float sideSign, s32 board){
+void SpineBoard::init(float sideSign, s32 board){
   printf("[Cheetah Control] Hello! I am the SPINE board for leg %d (0-indexed) with side sign %.3f\n", board, sideSign);
   this->board_num = board;
   this->side_sign = sideSign;

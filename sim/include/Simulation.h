@@ -6,6 +6,7 @@
 #include "MiniCheetah.h"
 #include "Cheetah3.h"
 #include "Timer.h"
+#include "SpineBoard.h"
 
 #include <vector>
 
@@ -29,7 +30,7 @@ public:
 
 
   void addCollisionPlane(SXform<double>& plane, double mu, double K, double D, bool addToWindow = true);
-  void step(double dt);
+  void step(double dt, double dtLowLevelControl);
 
   /*!
    * Updates the graphics from the connected window
@@ -39,11 +40,12 @@ public:
     _window->update();
   }
 
-  void freeRun(double dt, bool graphics = true);
-  void runAtSpeed(double dt, double x, bool graphics = true);
+  void freeRun(double dt, double dtLowLevelControl, bool graphics = true);
+  void runAtSpeed(double dt, double dtLowLevelControl, double x, bool graphics = true);
 
   void resetSimTime() {
-    _currentSimTime = 0.f;
+    _currentSimTime = 0.;
+    _timeOfNextLowLevelControl = 0.;
   }
 
 
@@ -63,9 +65,15 @@ private:
   FloatingBaseModel<double> _model;
   DVec<double> _tau;
   DynamicsSimulator<double>* _simulator = nullptr;
+  std::vector<ActuatorModel<double>> _actuatorModels;
+  SpiCommand _spiCommand;
+  SpiData    _spiData;
+  SpineBoard _spineBoards[4];
+  bool _isMiniCheetah = false;
   bool _running = false;
   double _desiredSimSpeed = 1.;
   double _currentSimTime = 0.;
+  double _timeOfNextLowLevelControl = 0.;
 };
 
 #endif //PROJECT_SIMULATION_H

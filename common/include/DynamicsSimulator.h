@@ -24,6 +24,7 @@ using namespace spatial;
 template<typename T>
 class DynamicsSimulator {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   DynamicsSimulator(FloatingBaseModel<T>& model); //! Initialize simulator with given model
   void step(T dt, const DVec<T>& tau); //! Simulate forward one step
   void runABA(const DVec<T>& tau); //! Find _dstate with the articulated body algorithm

@@ -19,6 +19,10 @@ public:
   _gr(gearRatio), _kt(motorKT), _R(motorR), _V(batteryV),
   _damping(damping), _dryFriction(dryFriction), _tauMax(tauMax) { }
 
+  ActuatorModel() { }
+
+  // compute actual actuator torque, given desired torque and speed.
+  // takes into account friction (dry and damping), voltage limits, and torque limits
   T getTorque(T tauDes, T qd) {
     // compute motor torque
     T tauDesMotor = tauDes / _gr; // motor torque

@@ -44,7 +44,8 @@ struct SpiData {
 
 class SpineBoard {
 public:
-  SpineBoard(float side_sign, s32 board);
+  SpineBoard() { }
+  void init(float side_sign, s32 board);
   void run();
   void resetData();
   void resetCommand();
