@@ -1,5 +1,5 @@
 #include "Simulation.h"
-
+#include "Quadruped.h"
 
 #include <unistd.h>
 
@@ -33,16 +33,12 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
 
   // init spine:
   if(useMiniCheetah) {
-    _spineBoards[0].init(-1.f, 0);
-    _spineBoards[1].init( 1.f, 1);
-    _spineBoards[2].init(-1.f, 2);
-    _spineBoards[3].init( 1.f, 3);
-
-    for (auto &spineBoard : _spineBoards) {
-      spineBoard.data = &_spiData;
-      spineBoard.cmd =  &_spiCommand;
-      spineBoard.resetData();
-      spineBoard.resetCommand();
+    for(int leg = 0; leg < 4; leg++) {
+      _spineBoards[leg].init(Quadruped<float>::getSideSign(leg), leg);
+      _spineBoards[leg].data = &_spiData;
+      _spineBoards[leg].cmd =  &_spiCommand;
+      _spineBoards[leg].resetData();
+      _spineBoards[leg].resetCommand();
     }
   }
 }
@@ -50,7 +46,7 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
 /*!
  * Take a single timestep of dt seconds
  */
-void Simulation::step(double dt, double dtLowLevelControl) {
+void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelControl) {
 
   if(_currentSimTime >= _timeOfNextLowLevelControl) {
     if(_isMiniCheetah) {
@@ -79,8 +75,14 @@ void Simulation::step(double dt, double dtLowLevelControl) {
       }
     } else {
       // todo Cheetah 3
+      assert(false);
     }
     _timeOfNextLowLevelControl = _timeOfNextLowLevelControl + dtLowLevelControl;
+  }
+
+  if(_currentSimTime >= _timeOfNextHighLevelControl) {
+    // run high level control
+    _timeOfNextHighLevelControl = _timeOfNextHighLevelControl + dtHighLevelControl;
   }
 
   _currentSimTime += dt;
@@ -113,14 +115,14 @@ void Simulation::addCollisionPlane(SXform<double>& plane, double mu, double K, d
  * Runs simulation as fast as possible.
  * @param dt
  */
-void Simulation::freeRun(double dt, double dtLowLevelControl, bool graphics) {
+void Simulation::freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics) {
   assert(!_running);
   _running = true;
   Timer tim;
   Timer freeRunTimer;
   double lastSimTime = _currentSimTime;
   while(_running) {
-    step(dt, dtLowLevelControl);
+    step(dt, dtLowLevelControl, dtHighLevelControl);
     double realElapsedTime = tim.getSeconds();
     if(graphics && _window && realElapsedTime >= (1./60.)) {
       double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
@@ -141,7 +143,7 @@ void Simulation::freeRun(double dt, double dtLowLevelControl, bool graphics) {
  * Runs simulation at the desired speed
  * @param dt
  */
-void Simulation::runAtSpeed(double dt, double dtLowLevelControl, double x, bool graphics) {
+void Simulation::runAtSpeed(double dt, double dtLowLevelControl, double dtHighLevelControl, double x, bool graphics) {
   assert(!_running);
   _running = true;
   _desiredSimSpeed = x;
@@ -157,7 +159,7 @@ void Simulation::runAtSpeed(double dt, double dtLowLevelControl, double x, bool 
     int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);
 
     for(int i = 0; i < nStepsPerFrame; i++) {
-      step(dt, dtLowLevelControl);
+      step(dt, dtLowLevelControl, dtHighLevelControl);
     }
 
     double realElapsedTime = tim.getSeconds();

@@ -30,7 +30,7 @@ public:
 
 
   void addCollisionPlane(SXform<double>& plane, double mu, double K, double D, bool addToWindow = true);
-  void step(double dt, double dtLowLevelControl);
+  void step(double dt, double dtLowLevelControl, double dtHighLevelControl);
 
   /*!
    * Updates the graphics from the connected window
@@ -40,12 +40,13 @@ public:
     _window->update();
   }
 
-  void freeRun(double dt, double dtLowLevelControl, bool graphics = true);
-  void runAtSpeed(double dt, double dtLowLevelControl, double x, bool graphics = true);
+  void freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics = true);
+  void runAtSpeed(double dt, double dtLowLevelControl, double dtHighLevelControl, double x, bool graphics = true);
 
   void resetSimTime() {
     _currentSimTime = 0.;
     _timeOfNextLowLevelControl = 0.;
+    _timeOfNextHighLevelControl = 0.;
   }
 
 
@@ -74,6 +75,7 @@ private:
   double _desiredSimSpeed = 1.;
   double _currentSimTime = 0.;
   double _timeOfNextLowLevelControl = 0.;
+  double _timeOfNextHighLevelControl = 0.;
 };
 
 #endif //PROJECT_SIMULATION_H

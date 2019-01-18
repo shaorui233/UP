@@ -68,6 +68,6 @@ void simulatorDemo() {
   window->setAnimating(true);
 
   // run the simulator with a 10 kHz timestep
-  sim.runAtSpeed(.0001, .001, 5);
+  sim.runAtSpeed(.0001, .0002, .001, 5);
 }
 

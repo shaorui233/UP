@@ -44,6 +44,12 @@ public:
   Vec3<T> _abadLocation, _abadRotorLocation, _hipLocation, _hipRotorLocation, _kneeLocation, _kneeRotorLocation;
   FloatingBaseModel<T> buildModel();
   std::vector<ActuatorModel<T>> buildActuatorModels();
+
+  static T getSideSign(int leg) {
+    const T sideSigns[4] = {-1, 1, -1, 1};
+    assert(leg >= 0 && leg < 4);
+    return sideSigns[leg];
+  }
 };
 
 template<typename T, typename T2>

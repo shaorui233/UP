@@ -72,16 +72,9 @@ using D3Mat = typename Eigen::Matrix<T, 3, Eigen::Dynamic>;
 template<typename T>
 using vectorAligned = typename std::vector<T, Eigen::aligned_allocator<T>>;
 
-// type used to represent three values associated with the abad, hip, and knee joints.
-template <typename T>
-union LegType {
-  T value[3];
-  struct {
-    T abad;
-    T hip;
-    T knee;
-  };
-  static_assert(sizeof(LegType) == 3 * sizeof(T), "size of legtype error");
+enum class RobotType {
+  CHEETAH_3,
+  MINI_CHEETAH
 };
 
 
