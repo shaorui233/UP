@@ -10,6 +10,6 @@ set(CMAKE_COLOR_MAKEFILE   ON)
 execute_process(COMMAND ../scripts/make_types.sh)
 
 add_subdirectory(common)
-#add_subdirectory(robot)
+add_subdirectory(robot)
 add_subdirectory(sim)
 

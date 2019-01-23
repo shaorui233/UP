@@ -44,5 +44,5 @@ add_library(biomimetics STATIC ${sources})
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main lcm)
+target_link_libraries(test-common gtest gmock_main lcm rt)
 add_test(NAME example_test COMMAND test-common)
