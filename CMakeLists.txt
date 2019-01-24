@@ -14,4 +14,5 @@ add_subdirectory(robot)
 add_subdirectory(sim)
 
 add_subdirectory(third-party/Goldfarb_Optimizer)
+add_subdirectory(third-party/inih)
 

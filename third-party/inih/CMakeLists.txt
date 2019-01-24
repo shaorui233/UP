@@ -1,0 +1,1 @@
+add_library(inih STATIC ini.c ini.h INIReader.h INIReader.cpp)

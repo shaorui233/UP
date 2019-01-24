@@ -10,6 +10,9 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include <string>
+#include <unordered_map>
+
 /*!
  * Test the coerce function
  */
@@ -28,4 +31,11 @@ TEST(Utilities, sgn) {
   EXPECT_EQ(1, sgn<double>(13.23));
   EXPECT_EQ(-1, sgn<double>(-.23));
   EXPECT_EQ(0, sgn<double>(0.));
+}
+
+TEST(Utilities, uMapContains) {
+  std::unordered_map<std::string, int> s;
+  EXPECT_FALSE(uMapContains(s, std::string("test")));
+  s["test"] = 2;
+  EXPECT_TRUE(uMapContains(s, std::string("test")));
 }

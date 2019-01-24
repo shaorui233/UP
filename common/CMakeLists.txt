@@ -32,17 +32,19 @@ if (CMAKE_VERSION VERSION_LESS 2.8.11)
 endif()
 
 
-# Source files
+# Source/Include files
 include_directories(".")
-include_directories("include/" )
-include_directories("/usr/local/include/lcm/")
-file(GLOB sources "src/*.cpp")
-file(GLOB test_sources "test/*.cpp")
+include_directories("include/" )                 # common includes
+include_directories("/usr/local/include/lcm/")   # lcm includes
+include_directories("../third-party/inih")       # inih includes
+
+file(GLOB sources "src/*.cpp")                   # common library cpp files
+file(GLOB test_sources "test/*.cpp")             # test cpp files
 
 # Library
-add_library(biomimetics STATIC ${sources})
+add_library(biomimetics STATIC ${sources})       # produce a library used by sim/robot
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main lcm rt)
+target_link_libraries(test-common gtest gmock_main lcm rt inih)
 add_test(NAME example_test COMMAND test-common)
