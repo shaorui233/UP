@@ -36,6 +36,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   _u.resize(_nb);
   _pGC.resize(_nGC);
   _vGC.resize(_nGC);
+  _fGC.resize(_nGC);
 
   // set stuff for 0:5
   for(size_t i = 0; i < 6; i++) {
@@ -135,7 +136,7 @@ void DynamicsSimulator<T>::forwardKinematics() {
 template <typename T>
 void DynamicsSimulator<T>::updateCollisions(T dt) {
   for(auto& cp : _collisionPlanes) {
-    cp.update(_externalForces, _model._gcParent, _pGC, _vGC, dt);
+    cp.update(_externalForces, _model._gcParent, _pGC, _vGC, _fGC, dt);
   }
 }
 

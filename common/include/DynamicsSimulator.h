@@ -95,7 +95,10 @@ public:
 
   vectorAligned<Vec3<T> > _pGC; // position of ground contacts in world coordinates
   vectorAligned<Vec3<T> > _vGC; // velocity of ground contacts in world coordinates
+  vectorAligned<Vec3<T> > _fGC; // reation force of ground contacts in world coordinates
   vectorAligned<Mat6<T> > _Xup, _Xuprot, _IA, _Xa;
+
+  const size_t & getTotalNumGC(){ return _model._nGroundContact; }
 private:
 
   void updateCollisions(T dt); //! Update ground collision list

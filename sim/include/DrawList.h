@@ -145,9 +145,42 @@ public:
    */
   template<typename T>
   void updateRobotFromModel(DynamicsSimulator<T> &model, size_t id) {
-    for (size_t modelID = 5, graphicsID = id; modelID < model.getNumBodies(); modelID++, graphicsID++) {
+    for (size_t modelID = 5, graphicsID = id; 
+            modelID < model.getNumBodies(); modelID++, graphicsID++) {
       _kinematicXform.at(graphicsID) = spatialTransformToQT(model._Xa.at(modelID));
     }
+  }
+
+  /*!
+   * Update the additional information drawn by GUI 
+   * Doesn't run the simulator 
+   *  - just pulls contact (or other in the future) data from the DynamicsSimulator
+   * @param model  : the simulator
+   */
+  template<typename T>
+  void updateAdditionalInfo(DynamicsSimulator<T> &model) {
+      static bool first_visit(true);
+      if(first_visit){
+          _nTotalGC = model.getTotalNumGC();
+          _cp_touch.resize(_nTotalGC, false);
+          _cp_pos.resize(_nTotalGC);
+          _cp_force.resize(_nTotalGC);
+          std::vector<double> tmp(3);
+          for(size_t i(0); i<_nTotalGC; ++i){
+              _cp_pos[i] = tmp;
+              _cp_force[i] = tmp;
+          }
+          first_visit = false;
+      }
+
+      for(size_t i(0); i<_nTotalGC; ++i){
+          // TODO: check touch boolean
+          _cp_touch[i] = true;
+          for(size_t j(0); j<3; ++j){
+              _cp_pos[i][j] = model._pGC[i][j];
+              _cp_force[i][j] = model._fGC[i][j];
+          }
+      }
   }
 
   /*!
@@ -188,6 +221,10 @@ public:
     }
   }
 
+  /* Get Functions */
+  const size_t & getTotalNumGC(){ return _nTotalGC; }
+  const std::vector<double> & getGCPos(size_t idx){ return _cp_pos[idx]; }
+  const std::vector<double> & getGCForce(size_t idx){ return _cp_force[idx]; }
 
 private:
   size_t _nUnique = 0, _nTotal = 0;
@@ -210,6 +247,12 @@ private:
   std::vector<QMatrix4x4> _kinematicXform;
 
   bool _reloadNeeded = false;
+
+
+  size_t _nTotalGC = 0;
+  std::vector<bool> _cp_touch;
+  std::vector<std::vector<double> > _cp_pos;
+  std::vector<std::vector<double> > _cp_force;
 
   size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0, _sphereLoadIndex = 0;
 

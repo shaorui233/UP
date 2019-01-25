@@ -37,6 +37,7 @@ public:
    */
   void updateGraphics() {
     _window->_drawList.updateRobotFromModel(*_simulator, _robotID);
+    _window->_drawList.updateAdditionalInfo(*_simulator);
     _window->update();
   }
 

@@ -8,7 +8,9 @@
 #include "DrawList.h"
 
 void DrawList::loadFiles() {
-  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj", "sphere.obj"};
+  std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", 
+      "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", 
+      "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj", "sphere.obj"};
   objLoader::ObjLoader loader;
   for (const auto &name : names) {
     std::string filename = _baseFileName + name;
@@ -17,9 +19,11 @@ void DrawList::loadFiles() {
     _colorData.emplace_back();
     loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
     if(name == "sphere.obj") {
-      setSolidColor(_colorData.back(), _vertexData.back().size(), debugRedColor[0], debugRedColor[1], debugRedColor[2]);
+      setSolidColor(_colorData.back(), _vertexData.back().size(), 
+              debugRedColor[0], debugRedColor[1], debugRedColor[2]);
     } else {
-      setSolidColor(_colorData.back(), _vertexData.back().size(), defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
+      setSolidColor(_colorData.back(), _vertexData.back().size(), 
+              defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
     }
 
     _nUnique++;

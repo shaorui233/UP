@@ -70,6 +70,9 @@ protected:
 private:
   std::mutex _gfxMutex;
   void updateCameraMatrix();
+  void _Additional_Drawing();
+  void _DrawContactForce();
+  void _DrawContactPoint();
   bool _animating;
 
   // attributes for shader program

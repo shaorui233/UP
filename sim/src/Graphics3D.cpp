@@ -298,9 +298,11 @@ void Graphics3D::paintGL() {
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-    _program->setUniformValue(_matrixUniform, _cameraMatrix * _drawList.getModelKinematicTransform(id) *
-                                              _drawList.getModelBaseTransform(id));
-    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, _drawList.getGLDrawArraySize(id) / 3);
+    _program->setUniformValue(_matrixUniform, 
+            _cameraMatrix * _drawList.getModelKinematicTransform(id) *
+            _drawList.getModelBaseTransform(id));
+    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, 
+            _drawList.getGLDrawArraySize(id) / 3);
   }
   glDisableVertexAttribArray(2);
   glDisableVertexAttribArray(1);
@@ -309,6 +311,8 @@ void Graphics3D::paintGL() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   _program->release();
+  // Useful information drawing
+  _Additional_Drawing();
   ++_frame;
   glDisable(GL_DEPTH_TEST);
   painter2.setPen(QColor(100,100,100,255));
@@ -319,4 +323,51 @@ void Graphics3D::paintGL() {
   painter2.drawText(QRect(30,30,1000,1000), Qt::AlignLeft, QString(infoString));
 
   painter2.end();
+}
+
+void Graphics3D::_Additional_Drawing(){
+    glLoadMatrixf(_cameraMatrix.data());
+    glPushAttrib(GL_LIGHTING_BIT);
+    glDisable(GL_LIGHTING);
+
+    _DrawContactForce();
+    _DrawContactPoint();
+
+    glPopAttrib();
+    glEnable(GL_LIGHTING);
+}
+
+
+void Graphics3D::_DrawContactForce(){
+    glLineWidth(2.0);
+    double scale(0.02);
+   
+    for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
+        glBegin(GL_LINES);
+        glColor3f(0.8f, 0.0f, 0.0f);
+
+        glVertex3f(_drawList.getGCPos(i)[0], 
+                _drawList.getGCPos(i)[1], 
+                _drawList.getGCPos(i)[2]);
+
+        glVertex3f(_drawList.getGCPos(i)[0] + scale * _drawList.getGCForce(i)[0],
+                _drawList.getGCPos(i)[1] + scale * _drawList.getGCForce(i)[1],
+                _drawList.getGCPos(i)[2] + scale * _drawList.getGCForce(i)[2]);
+
+        glEnd();
+    }
+}
+
+void Graphics3D::_DrawContactPoint(){
+    glPointSize(5);
+    for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
+        glBegin(GL_POINTS);
+        glColor3f(0.8f, 0.0f, 0.0f);
+
+        glVertex3f(_drawList.getGCPos(i)[0], 
+                _drawList.getGCPos(i)[1], 
+                _drawList.getGCPos(i)[2]);
+
+        glEnd();
+    }
 }

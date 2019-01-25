@@ -52,7 +52,8 @@ public:
   }
 
   void update(vectorAligned<SVec<T>>& forces, std::vector<size_t>& bodyMap,
-          vectorAligned<Vec3<T>>& p, vectorAligned<Vec3<T>>& v, T dt);
+          vectorAligned<Vec3<T>>& p, vectorAligned<Vec3<T>>& v, 
+          vectorAligned<Vec3<T>>& f, T dt);
 
 private:
   SXform<T>& _location;

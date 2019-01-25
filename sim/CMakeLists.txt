@@ -37,7 +37,9 @@ file(GLOB sources "src/*.cpp" "src/rt/*.c" "../lcm-types/c_lcm_files/*.c" "../lc
 find_package(Qt5Core COMPONENTS QtGamepad REQUIRED)
 find_package(Qt5Gamepad REQUIRED)
 
-
+find_package(OpenGL REQUIRED)
+include_directories(${OPENGL_INCLUDE_DIR})
 
 add_executable(sim ${sources} ${tst_hdr_moc})
-target_link_libraries(sim biomimetics pthread lcm Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Gamepad ${QT_LIBRARIES})
+target_link_libraries(sim biomimetics pthread lcm Qt5::Widgets 
+    Qt5::Core Qt5::Gui Qt5::Gamepad ${QT_LIBRARIES} ${OPENGL_LIBRARIES})
