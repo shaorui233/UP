@@ -57,12 +57,35 @@ template <typename T> int sgn(T val) {
  * TODO: is there a way to make this work nicely with normal distributions too?
  */
 template <typename T>
-void fillEigenWithRandom(Eigen::MatrixBase<T> &v, std::mt19937& gen, std::uniform_real_distribution<typename T::Scalar>& dist) {
+void fillEigenWithRandom(Eigen::MatrixBase<T> &v, std::mt19937& gen, 
+        std::uniform_real_distribution<typename T::Scalar>& dist) {
   for(size_t i = 0; i < T::RowsAtCompileTime; i++) {
     for(size_t j = 0; j < T::ColsAtCompileTime; j++) {
       v(i,j) = dist(gen);
     }
   }
+}
+
+/*!
+ * Generate a random number following normal distribution
+ */
+template <typename T>
+T generator_gaussian_noise(T mean, T var){
+    static bool hasSpare = false;
+    static T rand1, rand2;
+
+    if(hasSpare){
+        hasSpare = false;
+        return mean + sqrt(var*rand1)*sin(rand2);
+    }
+    hasSpare = true;
+
+    rand1 = rand() / ((T ) RAND_MAX);
+    if(rand1 < 1e-100) rand1 = 1e-100;
+    rand1 = -2*log(rand1);
+    rand2 = rand() / ((T ) RAND_MAX) * M_PI * 2.;
+
+    return mean + sqrt(var*rand1)*cos(rand2);
 }
 
 /*!

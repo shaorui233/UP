@@ -147,7 +147,8 @@ void Simulation::freeRun(double dt, double dtLowLevelControl, double dtHighLevel
  * Runs simulation at the desired speed
  * @param dt
  */
-void Simulation::runAtSpeed(double dt, double dtLowLevelControl, double dtHighLevelControl, double x, bool graphics) {
+void Simulation::runAtSpeed(double dt, double dtLowLevelControl, 
+        double dtHighLevelControl, double x, bool graphics) {
   assert(!_running);
   _running = true;
   _desiredSimSpeed = x;
