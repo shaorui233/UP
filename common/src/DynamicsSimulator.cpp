@@ -6,7 +6,6 @@
  */
 
 #include "DynamicsSimulator.h"
-#include "utilities.h"
 /*!
  * Initialize the dynamics simulator by allocating memory for ABA matrices
  */
