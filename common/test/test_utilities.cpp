@@ -39,3 +39,10 @@ TEST(Utilities, uMapContains) {
   s["test"] = 2;
   EXPECT_TRUE(uMapContains(s, std::string("test")));
 }
+
+TEST(Utilities, mapContains) {
+  std::map<std::string, int> s;
+  EXPECT_FALSE(mapContains(s, std::string("test")));
+  s["test"] = 2;
+  EXPECT_TRUE(mapContains(s, std::string("test")));
+}

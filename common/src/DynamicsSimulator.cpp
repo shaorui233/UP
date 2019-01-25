@@ -154,27 +154,13 @@ void DynamicsSimulator<T>::integrate(T dt) {
   Mat6<T> X = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   RotMat<T> R = rotationFromSXform(X);
   Vec3<T> omega0 = R.transpose() * omegaBody;
-  Vec3<T> axis;
-  T ang = omega0.norm();
-  if(ang > 0) {
-    axis = omega0 / ang;
-  } else {
-    axis = Vec3<T>(1,0,0);
-  }
-
-  ang *= dt;
-  Vec3<T> ee = std::sin(ang/2) * axis;
-  Quat<T> quatD(std::cos(ang/2), ee[0], ee[1], ee[2]);
-
-  Quat<T> quatNew = quatProduct(quatD, _state.bodyOrientation);
-  quatNew = quatNew / quatNew.norm();
 
   // actual integration
   _state.q += _state.qd * dt;
   _state.qd += _dstate.qdd * dt;
   _state.bodyVelocity += _dstate.dBodyVelocity * dt;
   _state.bodyPosition += _dstate.dBodyPosition * dt;
-  _state.bodyOrientation = quatNew;
+  _state.bodyOrientation = integrateQuat(_state.bodyOrientation, omega0, dt);
 }
 
 /*!
@@ -252,8 +238,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
 
   // output
   RotMat<T> Rup = rotationFromSXform(_Xup[5]);
-  // TODO : I think this is wrong (and probably unused, as a result)
-  _dstate.dQuat = quatDerivative(_state.bodyOrientation, _state.bodyVelocity.template block<3,1>(0,0));
   _dstate.dBodyPosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
   _dstate.dBodyVelocity = afb;
   // qdd is set in the for loop above

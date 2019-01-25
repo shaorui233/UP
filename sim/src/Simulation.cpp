@@ -22,9 +22,10 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
   // set some sane defaults:
   _tau = zero12;
   FBModelState<double> x0;
-  x0.bodyOrientation = rotationMatrixToQuaternion(RotMat<double>::Identity());
+  x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
   x0.bodyPosition = Vec3<double>(0,0,2);
   SVec<double> v0 = SVec<double>::Zero();
+  v0[3] = 10;
   x0.bodyVelocity = v0;
   x0.q = zero12;
   x0.qd = zero12;
@@ -40,6 +41,9 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
       _spineBoards[leg].resetData();
       _spineBoards[leg].resetCommand();
     }
+  } else {
+    // init ti board
+    assert(false); // todo
   }
 }
 

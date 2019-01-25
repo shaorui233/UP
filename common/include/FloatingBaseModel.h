@@ -49,7 +49,7 @@ struct FBModelState {
  */
 template <typename T>
 struct FBModelStateDerivative {
-  Quat<T> dQuat;
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   Vec3<T> dBodyPosition;
   SVec<T> dBodyVelocity;
   DVec<T> qdd;

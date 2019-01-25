@@ -25,3 +25,10 @@ std::string getCurrentTimeAndDate() {
   ss << std::put_time(&tm, "%c");
   return ss.str();
 }
+
+/*!
+ * Todo: do something better to keep track of where we are relative to the config directory
+ */
+std::string getConfigDirectoryPath() {
+  return "../config/";
+}

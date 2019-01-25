@@ -7,6 +7,7 @@
 #include "gmock/gmock.h"
 
 #include "ControlParameters.h"
+#include "SimulatorParameters.h"
 
 class TestControlParameters : public ControlParameters {
 public:
@@ -80,4 +81,14 @@ TEST(ControlParams, testIni) {
   EXPECT_TRUE(fpEqual(settings.test_double, settingsFromIni.test_double, 1e-10));
   EXPECT_TRUE(fpEqual(settings.test_float,  settingsFromIni.test_float, 1e-5f));
   EXPECT_TRUE(settings.test_integer == settingsFromIni.test_integer);
+}
+
+// check to see that the simulator default settings file contains all the simulator settings.
+TEST(ControlParams, CheckSimulatorDefaults) {
+  SimulatorControlParameters simParams;
+  simParams.initializeFromIniFile(getConfigDirectoryPath() + "/simulator-defaults.ini");
+  if(!simParams.isFullyInitialized()) {
+    printf("Missing parameters:\n%s\n", simParams.generateUnitializedList().c_str());
+  }
+  EXPECT_TRUE(simParams.isFullyInitialized());
 }

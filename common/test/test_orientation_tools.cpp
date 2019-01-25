@@ -87,13 +87,36 @@ TEST(Orientation, quatToRotm) {
 
 /*!
  * Test the quaternion to roll-pitch-yaw conversion
- * TODO: make one of these that shows the ypr order
  */
 TEST(Orientation, quatToRpy) {
   // check q -> rpy
   Quat<double> q(0.9672, -0.0672, -0.1653, -0.1808);
   Vec3<double> rpy1(-0.0748, -0.3513, -0.3564);
   EXPECT_TRUE(almostEqual(rpy1, quatToRPY(q), .1));
+}
+
+/*!
+ * Test the quaternion to roll-pitch-yaw conversion direction
+ */
+TEST(Orientation, quatToRpy2) {
+  // check q -> rpy
+  RotMat<double> R = coordinateRotation(CoordinateAxis::Y, .5);
+  Quat<double> q = rotationMatrixToQuaternion(R);
+  Vec3<double> rpy = quatToRPY(q);
+  Vec3<double> rpy_ref(0,.5,0);
+  EXPECT_TRUE(almostEqual(rpy, rpy_ref, .00001));
+}
+
+/*!
+ * Check that rpy is in roll-pitch-yaw order
+ */
+TEST(Orientation, quatToRpy3) {
+  // check q -> rpy
+  RotMat<double> R = coordinateRotation(CoordinateAxis::Z, .5);
+  Quat<double> q = rotationMatrixToQuaternion(R);
+  Vec3<double> rpy = quatToRPY(q);
+  Vec3<double> rpy_ref(0,0,0.5);
+  EXPECT_TRUE(almostEqual(rpy, rpy_ref, .00001));
 }
 
 /*!
@@ -114,4 +137,48 @@ TEST(Orientation, quaternionProduct) {
   Quat<double> q2(5,6,7,8);
   Quat<double> ref(-60, 12, 30, 24);
   EXPECT_TRUE(almostEqual(ref, quatProduct(q1, q2), .0001));
+}
+
+TEST(Orientation, quaternionProductDirection) {
+  RotMat<double> R1 = coordinateRotation(CoordinateAxis::X, 7.23) * coordinateRotation(CoordinateAxis::Y, -2.343) *
+          coordinateRotation(CoordinateAxis::Z, 1.2324);
+
+  RotMat<double> R2 = coordinateRotation(CoordinateAxis::Z, .3231) * coordinateRotation(CoordinateAxis::X, -4.2332) *
+          coordinateRotation(CoordinateAxis::Y, -3.3213);
+
+  RotMat<double> R12_ref = R2 * R1;
+
+  Quat<double> Q1 = rotationMatrixToQuaternion(R1);
+  Quat<double> Q2 = rotationMatrixToQuaternion(R2);
+  Quat<double> Q12 = quatProduct(Q1, Q2);
+
+  RotMat<double> R12 = quaternionToRotationMatrix(Q12);
+
+  EXPECT_TRUE(almostEqual(R12, R12_ref, .0001));
+
+}
+
+/*!
+ * Check that the quaternion integration goes in the correct direction
+ */
+TEST(Orientation, quaternionIntegration) {
+  RotMat<double> eye = RotMat<double>::Identity();
+
+  Vec3<double> omegaX(1,0,0);
+  Vec3<double> omegaY(0,-1,0);
+  Vec3<double> omegaZ(0,0,1);
+
+  RotMat<double> rot_x_ref = coordinateRotation(CoordinateAxis::X, .1);
+  RotMat<double> rot_y_ref = coordinateRotation(CoordinateAxis::Y, -.1);
+  RotMat<double> rot_z_ref = coordinateRotation(CoordinateAxis::Z, .1);
+
+  Quat<double> eyeQ = rotationMatrixToQuaternion(eye);
+
+  Quat<double> rot_x_quat = integrateQuat(eyeQ, omegaX, .1);
+  Quat<double> rot_y_quat = integrateQuat(eyeQ, omegaY, .1);
+  Quat<double> rot_z_quat = integrateQuat(eyeQ, omegaZ, .1);
+
+  EXPECT_TRUE(almostEqual(quaternionToRotationMatrix(rot_x_quat), rot_x_ref, .0001));
+  EXPECT_TRUE(almostEqual(quaternionToRotationMatrix(rot_y_quat), rot_y_ref, .0001));
+  EXPECT_TRUE(almostEqual(quaternionToRotationMatrix(rot_z_quat), rot_z_ref, .0001));
 }

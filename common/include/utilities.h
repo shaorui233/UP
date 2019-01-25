@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <random>
 #include <unordered_map>
+#include <map>
 
 /*!
  * Are two floating point values almost equal?
@@ -56,7 +57,7 @@ template <typename T> int sgn(T val) {
  * TODO: is there a way to make this work nicely with normal distributions too?
  */
 template <typename T>
-void fillEigenWithRandom(const Eigen::MatrixBase<T> &v, std::mt19937& gen, std::uniform_real_distribution<typename T::Scalar>& dist) {
+void fillEigenWithRandom(Eigen::MatrixBase<T> &v, std::mt19937& gen, std::uniform_real_distribution<typename T::Scalar>& dist) {
   for(size_t i = 0; i < T::RowsAtCompileTime; i++) {
     for(size_t j = 0; j < T::ColsAtCompileTime; j++) {
       v(i,j) = dist(gen);
@@ -69,6 +70,14 @@ void fillEigenWithRandom(const Eigen::MatrixBase<T> &v, std::mt19937& gen, std::
  */
 template <typename T1, typename T2>
 bool uMapContains(const std::unordered_map<T1, T2>& set, T1 key) {
+  return set.find(key) != set.end();
+}
+
+/*!
+ * Does the unordered map contain the given element?
+ */
+template <typename T1, typename T2>
+bool mapContains(const std::map<T1, T2>& set, T1 key) {
   return set.find(key) != set.end();
 }
 
@@ -86,6 +95,6 @@ std::string numberToString(T number) {
 
 void writeStringToFile(const std::string& fileName, const std::string& fileData);
 std::string getCurrentTimeAndDate();
-
+std::string getConfigDirectoryPath();
 
 #endif //PROJECT_UTILITIES_H

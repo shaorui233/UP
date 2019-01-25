@@ -8,6 +8,9 @@
 #include "utilities.h"
 #include "INIReader.h"
 
+#include <utility>
+
+
 bool ControlParameterCollection::checkIfAllSet() {
   for(auto& kv : _map) {
     if(!kv.second->_set) {
@@ -35,26 +38,56 @@ std::string ControlParameterCollection::printToString() {
   result += "[";
   result += _name + "]\n\n";
 
-  // values
+  std::vector<std::string> lines;
+
+  // names (and max name length)
+  int maxLength_name = 0;
   for(auto& kv : _map) {
-    result += kv.first + " = ";
-    switch(kv.second->_kind) {
-      case ControlParameterValueKind::DOUBLE:
-        result += numberToString(*kv.second->_value.d) + "\n";
-        break;
-      case ControlParameterValueKind::FLOAT:
-        result += numberToString(*kv.second->_value.f) + "\n";
-        break;
-      case ControlParameterValueKind::S64:
-        result += std::to_string(*kv.second->_value.i) + "\n";
-        break;
-      default:
-        result += "<unknown type " + std::to_string((u32)(kv.second->_kind)) + "> (add it yourself in ControlParameters.cpp!)\n";
-        break;
-    }
+    maxLength_name = std::max(maxLength_name, (int)kv.first.length());
+    lines.push_back(kv.first);
   }
+
+  // pad, equals sign, and number
+  size_t i = 0;
+  int maxLength_number = 0;
+  for(auto& kv : _map) {
+    int charsToAdd = maxLength_name - (int)lines[i].length();
+    assert(charsToAdd >= 0);
+    for(int j = 0; j < charsToAdd; j++) {
+      lines[i].push_back(' ');
+    }
+    lines[i] += " = ";
+    lines[i] += kv.second->toString();
+    maxLength_number = std::max(maxLength_number, (int)lines[i].length());
+    i++;
+  }
+
+  // pad, ;;, and units
+  i = 0;
+  for(auto& kv : _map) {
+    int charsToAdd = maxLength_number - (int)lines[i].length();
+    assert(charsToAdd >= 0);
+    for(int j = 0; j < charsToAdd; j++) {
+      lines[i].push_back(' ');
+    }
+    lines[i] += " ;; ";
+    if(kv.second->_units.empty()) {
+      lines[i] += "No units specified.  Add them!";
+    } else {
+      lines[i] += kv.second->_units;
+    }
+
+    i++;
+  }
+
+  // combine lines
+  for(auto& line : lines) {
+    result += line + "\n";
+  }
+
   return result;
 }
+
 
 void ControlParameters::writeToIniFile(const std::string &path) {
   writeStringToFile(path, collection.printToString());

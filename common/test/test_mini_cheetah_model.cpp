@@ -128,7 +128,6 @@ TEST(MiniCheetah, simulatorDynamicsABANoExternalForceMiniCheetah) {
   sim.runABA(tau);
 
   // check:
-  Quat<double> quatDRef(0.2637, 0.5136, 1.0345, 1.4479);
   Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
   SVec<double> vbdRef;
   vbdRef << 1.2926, -0.068, -0.1488, -.0024, 0.0331, -0.0587;
@@ -149,7 +148,6 @@ TEST(MiniCheetah, simulatorDynamicsABANoExternalForceMiniCheetah) {
           -5.1148;
   qddRef *= 1000;
 
-  EXPECT_TRUE(almostEqual(quatDRef, sim.getDState().dQuat, .001));
   EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
   EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
 
@@ -204,7 +202,6 @@ TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
   sim.step(0.0, tau);
 
   // check:
-  Quat<double> quatDRef(0.2637, 0.5136, 1.0345, 1.4479);
   Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
   SVec<double> vbdRef;
   vbdRef << 3.2350,
@@ -230,7 +227,6 @@ TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
           -4.9679;
   qddRef *= 1000;
 
-  EXPECT_TRUE(almostEqual(quatDRef, sim.getDState().dQuat, .001));
   EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
   EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
 

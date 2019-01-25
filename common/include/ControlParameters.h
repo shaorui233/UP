@@ -18,7 +18,7 @@
 #define PROJECT_CONTROLPAREMETERS_H
 
 #include <string>
-#include <unordered_map>
+#include <map>
 #include "cTypes.h"
 #include "utilities.h"
 
@@ -39,7 +39,7 @@ union ControlParameterValue {
 class ControlParameter;
 
 /*!
- * ControlParameterCollections contains a unordered_map of all the control parameters.
+ * ControlParameterCollections contains a map of all the control parameters.
  */
 class ControlParameterCollection {
 public:
@@ -50,7 +50,7 @@ public:
    * This should only be used during initialization of a ControlParameter
    */
   void addParameter(ControlParameter* param, const std::string& name) {
-    if(uMapContains(_map, name)) {
+    if(mapContains(_map, name)) {
       printf("[ERROR] ControlParameterCollection %s: tried to add parameter %s twice!\n", _name.c_str(), name.c_str());
       throw std::runtime_error("control parameter error");
     }
@@ -62,7 +62,7 @@ public:
    * This does not modify the set field of the control parameter!
    */
   ControlParameter& lookup(const std::string& name) {
-    if(uMapContains(_map, name)) {
+    if(mapContains(_map, name)) {
       return *_map[name];
     } else {
       // for now:
@@ -73,7 +73,7 @@ public:
   std::string printToString(); //!< print all control parameters in the INI file format
   bool checkIfAllSet();        //!< are all the control parameters initialized?
 
-  std::unordered_map<std::string, ControlParameter*> _map;
+  std::map<std::string, ControlParameter*> _map;
 
 private:
   std::string _name;
@@ -89,23 +89,26 @@ public:
    * Set the type and add to collection.
    * Doesn't "initialize" the parameter - this must be done separately.
    */
-  ControlParameter(const std::string& name, double& value, ControlParameterCollection& collection) {
+  ControlParameter(const std::string& name, double& value, ControlParameterCollection& collection, const std::string& units = "") {
     _name = name;
+    _units = units;
     _value.d = &value;
     _kind = ControlParameterValueKind::DOUBLE;
     collection.addParameter(this, name);
   }
 
 
-  ControlParameter(const std::string& name, float& value, ControlParameterCollection& collection) {
+  ControlParameter(const std::string& name, float& value, ControlParameterCollection& collection, const std::string& units = "") {
     _name = name;
+    _units = units;
     _value.f = &value;
     _kind = ControlParameterValueKind::FLOAT;
     collection.addParameter(this, name);
   }
 
-  ControlParameter(const std::string& name, s64& value, ControlParameterCollection& collection) {
+  ControlParameter(const std::string& name, s64& value, ControlParameterCollection& collection, const std::string& units = "") {
     _name = name;
+    _units = units;
     _value.i = &value;
     _kind = ControlParameterValueKind::S64;
     collection.addParameter(this, name);
@@ -139,10 +142,33 @@ public:
     *_value.i = i;
   }
 
+  /*!
+   * Convert the value to a string that works in an INI file
+   */
+  std::string toString() {
+    std::string result;
+    switch(_kind) {
+      case ControlParameterValueKind::DOUBLE:
+        result += numberToString(*_value.d);
+        break;
+      case ControlParameterValueKind::FLOAT:
+        result += numberToString(*_value.f);
+        break;
+      case ControlParameterValueKind::S64:
+        result += std::to_string(*_value.i);
+        break;
+      default:
+        result += "<unknown type " + std::to_string((u32)(_kind)) + "> (add it yourself in ControlParameters.h!)";
+        break;
+    }
+    return result;
+  }
+
 
   bool _set = false;
   ControlParameterValue _value;
   std::string _name;
+  std::string _units;
   ControlParameterValueKind _kind;
 private:
 
@@ -186,6 +212,7 @@ public:
 
   void writeToIniFile(const std::string& path);
   void initializeFromIniFile(const std::string& path);
+
   std::string generateUnitializedList();
 
   ControlParameterCollection collection;
@@ -193,10 +220,5 @@ public:
 protected:
   std::string _name;
 };
-
-
-
-
-
 
 #endif //PROJECT_CONTROLPAREMETERS_H

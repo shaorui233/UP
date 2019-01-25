@@ -143,13 +143,14 @@ namespace ori {
    * which has the orientation specified by the quaternion
    */
   template<typename T>
-  Mat3<T> quaternionToRotationMatrix(Quat<T>& q) {
-    T e0 = q(0);
-    T e1 = q(1);
-    T e2 = q(2);
-    T e3 = q(3);
+  Mat3<typename T::Scalar> quaternionToRotationMatrix(const Eigen::MatrixBase<T>& q) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 4, "Must have 4x1 quat");
+    typename T::Scalar e0 = q(0);
+    typename T::Scalar e1 = q(1);
+    typename T::Scalar e2 = q(2);
+    typename T::Scalar e3 = q(3);
 
-    Mat3<T> R;
+    Mat3<typename T::Scalar> R;
 
     R << 1 - 2 * (e2 * e2 + e3 * e3), 2 * (e1 * e2 - e0 * e3), 2 * (e1 * e3 + e0 * e2),
             2 * (e1 * e2 + e0 * e3), 1 - 2 * (e1 * e1 + e3 * e3), 2 * (e2 * e3 - e0 * e1),
@@ -161,14 +162,12 @@ namespace ori {
 
   /*!
    * Convert a quaternion to RPY.  Uses ZYX order (yaw-pitch-roll), but returns angles in (roll, pitch, yaw).
-   * @tparam T
-   * @param q
-   * @return
    */
   template <typename T>
-  Vec3<T> quatToRPY(Quat<T>& q) {
-    Vec3<T> rpy;
-    T as = std::min(-2.*(q[1]*q[3]-q[0]*q[2]),.99999);
+  Vec3<typename T::Scalar> quatToRPY(const Eigen::MatrixBase<T>& q) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 4, "Must have 4x1 quat");
+    Vec3<typename T::Scalar> rpy;
+    typename T::Scalar as = std::min(-2.*(q[1]*q[3]-q[0]*q[2]),.99999);
     rpy(2) = std::atan2(2*(q[1]*q[2]+q[0]*q[3]),square(q[0]) + square(q[1]) - square(q[2]) - square(q[3]));
     rpy(1) = std::asin(as);
     rpy(0) = atan2(2*(q[2]*q[3]+q[0]*q[1]),square(q[0]) - square(q[1]) - square(q[2]) + square(q[3]));
@@ -214,6 +213,33 @@ namespace ori {
     return q;
   }
 
+  /*!
+   * Compute new quaternion given:
+   * @param quat The old quaternion
+   * @param omega The angular velocity (IN INERTIAL COORDINATES!)
+   * @param dt The timestep
+   * @return
+   */
+  template<typename T, typename T2, typename T3>
+  Quat<typename T::Scalar> integrateQuat(const Eigen::MatrixBase<T>& quat, const Eigen::MatrixBase<T2>& omega, T3 dt) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 4, "Must have 4x1 quat");
+    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 3, "Must have 3x1 omega");
+    Vec3<typename T::Scalar> axis;
+    typename T::Scalar ang = omega.norm();
+    if (ang > 0) {
+      axis = omega / ang;
+    } else {
+      axis = Vec3<typename T::Scalar>(1, 0, 0);
+    }
+
+    ang *= dt;
+    Vec3<typename T::Scalar> ee = std::sin(ang / 2) * axis;
+    Quat<typename T::Scalar> quatD(std::cos(ang / 2), ee[0], ee[1], ee[2]);
+
+    Quat<typename T::Scalar> quatNew = quatProduct(quatD, quat);
+    quatNew = quatNew / quatNew.norm();
+    return quatNew;
+  }
 }
 
 
