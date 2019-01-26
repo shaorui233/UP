@@ -116,6 +116,25 @@ std::string numberToString(T number) {
   return std::string(buffer);
 }
 
+/*!
+ * map value x in (inputMin, inputMax) to (outputMin, outputMax)
+ */
+template <typename T>
+T mapToRange(T x, T inputMin, T inputMax, T outputMin, T outputMax) {
+  return outputMin + (x - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
+}
+
+template <typename T>
+std::string eigenToString(Eigen::MatrixBase<T> &value) {
+  std::stringstream ss;
+  ss << value;
+  return ss.str();
+}
+
+static inline std::string boolToString(bool b) {
+  return std::string(b ? "true" : "false");
+}
+
 void writeStringToFile(const std::string& fileName, const std::string& fileData);
 std::string getCurrentTimeAndDate();
 std::string getConfigDirectoryPath();

@@ -46,3 +46,7 @@ TEST(Utilities, mapContains) {
   s["test"] = 2;
   EXPECT_TRUE(mapContains(s, std::string("test")));
 }
+
+TEST(Utilities, mapToRange) {
+  EXPECT_TRUE(fpEqual(2.0, mapToRange(0.4, 0.2, 1.2, 0.0, 10.0), .00001));
+}

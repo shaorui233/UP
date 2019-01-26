@@ -1,11 +1,12 @@
 #ifndef PROJECT_TYPES_H
 #define PROJECT_TYPES_H
 
-enum class RobotType {
-  CHEETAH_3,
-  MINI_CHEETAH
-};
+#include "cppTypes.h"
 
+struct MasterConfig {
+  RobotType _robot;
+  bool simulated = false;
+};
 
 
 #endif //PROJECT_TYPES_H

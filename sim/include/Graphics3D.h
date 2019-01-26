@@ -27,8 +27,10 @@
 #include <QMouseEvent>
 
 #include <mutex>
+#include "GameController.h"
 
 class Graphics3D: public QOpenGLWidget, protected QOpenGLFunctions {
+Q_OBJECT
 public:
   explicit Graphics3D(QWidget* parent = 0);
   virtual ~Graphics3D() { }
@@ -50,6 +52,10 @@ public:
   DrawList _drawList;
   char infoString[200] = "";
 
+  DriverCommand& getDriverCommand() {
+    return _driverCommand;
+  }
+
 protected:
   void initializeGL() override;
   //void resizeGL(int w, int h) override;
@@ -68,6 +74,10 @@ protected:
 
 
 private:
+
+  GameController _gameController;
+  DriverCommand _driverCommand;
+
   std::mutex _gfxMutex;
   void updateCameraMatrix();
   void _Additional_Drawing();
@@ -114,6 +124,7 @@ private:
   bool _arrowsPressed [4] = {false,false,false,false};
 
   float _targetSpeed = 2;
+
 
 };
 

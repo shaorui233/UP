@@ -9,7 +9,7 @@
 
 #include <iostream>
 #include <unistd.h>
-#include <include/Graphics3D.h>
+
 
 
 static constexpr auto clearColor = windows2000;
@@ -59,6 +59,8 @@ void main() {
 Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(false),  _program(0),
                                           _frame(0), _v0(0, 0, 0), _freeCamFilter(1, 60, _v0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
+
+
   //setSurfaceType(QWindow::OpenGLSurface);
 }
 
@@ -232,6 +234,8 @@ void Graphics3D::setAnimating(bool animating) {
 
 GLuint buffID[3];
 void Graphics3D::paintGL() {
+  // update joystick:
+  _gameController.updateDriverCommand(_driverCommand);
   if(!_animating) return;
   if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();

@@ -19,7 +19,8 @@ message(STATUS ${QtCore_location})
 find_package(Qt5Gui CONFIG REQUIRED)
 
 set(QOBJECT_HEADERS
-        include/Graphics3D.h)
+        include/Graphics3D.h
+        include/GameController.h)
 #        include/main_window.h
 #        include/gamepad_monitor.h
 #        include/spi_debug.h)
