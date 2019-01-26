@@ -72,7 +72,6 @@ void GameController::updateDriverCommand(DriverCommand &driverCommand) {
   }
 
   // printf("%s\n", driverCommand.toString().c_str());
-
 }
 
 GameController::~GameController() {

@@ -11,6 +11,8 @@
 
 #include "ControlParameters.h"
 
+#define SIMULATOR_DEFAULT_PARAMETERS "/simulator-defaults.ini"
+
 class SimulatorControlParameters : public ControlParameters {
 public:
 
@@ -20,7 +22,8 @@ public:
           kvh_imu_gyro_noise_param("kvh_imu_gyro_noise", kvh_imu_gyro_noise, collection),
           vectornav_imu_accelerometer_noise_param("vectornav_imu_accelerometer_noise", vectornav_imu_accelerometer_noise, collection),
           vectornav_imu_gyro_noise_param("vectornav_imu_gyro_noise", vectornav_imu_gyro_noise, collection),
-          vectornav_imu_quat_noise_param("vectornav_imu_quat_noise", vectornav_imu_quat_noise, collection)
+          vectornav_imu_quat_noise_param("vectornav_imu_quat_noise", vectornav_imu_quat_noise, collection),
+          game_controller_deadband_param("game_controller_deadband", game_controller_deadband, collection)
 
   {
 
@@ -44,6 +47,9 @@ public:
 
   float vectornav_imu_quat_noise;
   ControlParameter vectornav_imu_quat_noise_param;
+
+  float game_controller_deadband;
+  ControlParameter game_controller_deadband_param;
 
 };
 

@@ -1,5 +1,16 @@
+/*!
+ * @file main.cpp
+ * @brief Main Function for the robot program
+ *
+ * The main function parses command line arguments and starts the appropriate driver.
+ */
+
+
 #include <iostream>
 #include <main.h>
+#include <cassert>
+
+#include "SimulationDriver.h"
 
 MasterConfig gMasterConfig;
 
@@ -35,7 +46,27 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  printf("[Startup] Cheetah Software\n");
+  printf("[Robot] Cheetah Software\n");
+  printf("        Robot:  %s\n", gMasterConfig._robot == RobotType::MINI_CHEETAH ? "Mini Cheetah" : "Cheetah 3");
+  printf("        Driver: %s\n", gMasterConfig.simulated ? "Development Simulation Driver" : "Robot Driver");
+
+  // dispatch the appropriate driver
+  if(gMasterConfig.simulated) {
+    if(gMasterConfig._robot == RobotType::MINI_CHEETAH) {
+      SimulationDriver simDriver(gMasterConfig._robot);
+      simDriver.run();
+      printf("[Robot] SimDriver run() has finished!\n");
+    } else if (gMasterConfig._robot == RobotType::CHEETAH_3) {
+      printf("[ERROR] Cheetah 3 Doesn't Exist Yet\n");
+      assert(false);
+    } else {
+      printf("[ERROR] unknown robot\n");
+      assert(false);
+    }
+  } else {
+    printf("[ERROR] Robot driver doesn't exist yet.\n");
+    assert(false);
+  }
 
   return 0;
 }

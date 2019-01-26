@@ -39,6 +39,17 @@ struct DriverCommand {
     rightStickAnalog = Vec2<float>::Zero();
   }
 
+  /*!
+   * The Logitech F310's seem to do a bad job of returning to zero exactly, so a deadband
+   * around zero is useful when integrating joystick commands
+   */
+  void applyDeadband(float f) {
+    eigenDeadband(leftStickAnalog, f);
+    eigenDeadband(rightStickAnalog, f);
+    leftTriggerAnalog = deadband(leftTriggerAnalog, f);
+    rightTriggerAnalog = deadband(rightTriggerAnalog, f);
+  }
+
   std::string toString() {
     std::string result =
                     "leftBumper: " + boolToString(leftBumper) + "\n" +

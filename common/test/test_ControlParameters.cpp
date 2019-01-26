@@ -86,7 +86,7 @@ TEST(ControlParams, testIni) {
 // check to see that the simulator default settings file contains all the simulator settings.
 TEST(ControlParams, CheckSimulatorDefaults) {
   SimulatorControlParameters simParams;
-  simParams.initializeFromIniFile(getConfigDirectoryPath() + "/simulator-defaults.ini");
+  simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
   if(!simParams.isFullyInitialized()) {
     printf("Missing parameters:\n%s\n", simParams.generateUnitializedList().c_str());
   }

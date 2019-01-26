@@ -44,6 +44,21 @@ T coerce(T in, T min, T max) {
   return in;
 }
 
+template<typename T>
+T deadband(T x, T range) {
+  if(x < range && x > -range) x = T(0);
+  return x;
+}
+
+template<typename T>
+void eigenDeadband(Eigen::MatrixBase<T> &v, typename T::Scalar band) {
+  for(size_t i = 0; i < T::RowsAtCompileTime; i++) {
+    for(size_t j = 0; j < T::ColsAtCompileTime; j++) {
+      v(i,j) = deadband(v(i,j), band);
+    }
+  }
+}
+
 /*!
  * Get the sign of a number
  * 1 for positive, 0 for 0, -1 for negative...

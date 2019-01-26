@@ -7,6 +7,9 @@
 #include "Cheetah3.h"
 #include "Timer.h"
 #include "SpineBoard.h"
+#include "SharedMemory.h"
+#include "SimulatorMessage.h"
+#include "SimulatorParameters.h"
 
 #include <vector>
 
@@ -31,6 +34,8 @@ public:
 
   void addCollisionPlane(SXform<double>& plane, double mu, double K, double D, bool addToWindow = true);
   void step(double dt, double dtLowLevelControl, double dtHighLevelControl);
+  void lowLevelControl();
+  void highLevelControl();
 
   /*!
    * Updates the graphics from the connected window
@@ -61,6 +66,8 @@ public:
 
 
 private:
+  SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
+  SimulatorControlParameters _simParams;
   size_t _robotID;
   Graphics3D *_window = nullptr;
   Quadruped<double> _quadruped;

@@ -2,15 +2,23 @@
 #include "Quadruped.h"
 
 #include <unistd.h>
+#include <include/GameController.h>
+
+// if DISABLE_HIGH_LEVEL_CONTROL is defined, the simulator will run freely, without trying to connect to a robot
+#define DISABLE_HIGH_LEVEL_CONTROL
 
 Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
+  printf("[Simulation] Build quadruped...\n");
   _quadruped = useMiniCheetah ? buildMiniCheetah<double>() : buildCheetah3<double>();
+  printf("[Simulation] Build actuator model...\n");
   _actuatorModels = _quadruped.buildActuatorModels();
   _window = window;
   _isMiniCheetah = useMiniCheetah;
+  printf("[Simulation] Setup Cheetah graphics...\n");
   if(_window) {
     _robotID = useMiniCheetah ? window->setupMiniCheetah() : window->setupCheetah3();
   }
+  printf("[Simulation] Build rigid body model...\n");
   _model = _quadruped.buildModel();
   _simulator = new DynamicsSimulator<double>(_model);
 
@@ -32,6 +40,7 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
 
   setRobotState(x0);
 
+  printf("[Simulation] Setup low-level control...\n");
   // init spine:
   if(useMiniCheetah) {
     for(int leg = 0; leg < 4; leg++) {
@@ -45,6 +54,22 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
     // init ti board
     assert(false); // todo
   }
+
+  // init parameters
+  printf("[Simulation] Load parameters...\n");
+  _simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+  if(!_simParams.isFullyInitialized()) {
+    printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _simParams.generateUnitializedList().c_str());
+    throw std::runtime_error("simulator not initialized");
+  }
+
+  // init shared memory
+  printf("[Simulation] Setup shared memory...\n");
+  _sharedMemory.createNew(DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME, true);
+  _sharedMemory().init();
+  _sharedMemory().simToRobot.robotType = useMiniCheetah ? RobotType::MINI_CHEETAH : RobotType::CHEETAH_3;
+
+  printf("[Simulation] Ready!\n");
 }
 
 /*!
@@ -53,44 +78,62 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
 void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelControl) {
 
   if(_currentSimTime >= _timeOfNextLowLevelControl) {
-    if(_isMiniCheetah) {
-      // update spine board data:
-      for(int leg = 0; leg < 4; leg++) {
-        _spiData.q_abad[leg] = _simulator->getState().q[leg*3 + 0];
-        _spiData.q_hip[leg]  = _simulator->getState().q[leg*3 + 1];
-        _spiData.q_knee[leg] = _simulator->getState().q[leg*3 + 2];
-
-        _spiData.qd_abad[leg] = _simulator->getState().qd[leg*3 + 0];
-        _spiData.qd_hip[leg]  = _simulator->getState().qd[leg*3 + 1];
-        _spiData.qd_knee[leg] = _simulator->getState().qd[leg*3 + 2];
-      }
-
-      // run spine board control:
-      for(auto &spineBoard : _spineBoards) {
-        spineBoard.run();
-      }
-
-      // run actuator model and move torque into simulator
-      for(int leg = 0; leg < 4; leg++) {
-        for(int joint = 0; joint < 3; joint++) {
-          _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
-                          _simulator->getState().qd[leg*3 + joint]);
-        }
-      }
-    } else {
-      // todo Cheetah 3
-      assert(false);
-    }
+    lowLevelControl();
     _timeOfNextLowLevelControl = _timeOfNextLowLevelControl + dtLowLevelControl;
   }
 
   if(_currentSimTime >= _timeOfNextHighLevelControl) {
-    // run high level control
+#ifndef DISABLE_HIGH_LEVEL_CONTROL
+    highLevelControl();
+#endif
     _timeOfNextHighLevelControl = _timeOfNextHighLevelControl + dtHighLevelControl;
   }
 
   _currentSimTime += dt;
   _simulator->step(dt, _tau);
+}
+
+void Simulation::lowLevelControl() {
+  if(_isMiniCheetah) {
+    // update spine board data:
+    for(int leg = 0; leg < 4; leg++) {
+      _spiData.q_abad[leg] = _simulator->getState().q[leg*3 + 0];
+      _spiData.q_hip[leg]  = _simulator->getState().q[leg*3 + 1];
+      _spiData.q_knee[leg] = _simulator->getState().q[leg*3 + 2];
+
+      _spiData.qd_abad[leg] = _simulator->getState().qd[leg*3 + 0];
+      _spiData.qd_hip[leg]  = _simulator->getState().qd[leg*3 + 1];
+      _spiData.qd_knee[leg] = _simulator->getState().qd[leg*3 + 2];
+    }
+
+    // run spine board control:
+    for(auto &spineBoard : _spineBoards) {
+      spineBoard.run();
+    }
+
+    // run actuator model and move torque into simulator
+    for(int leg = 0; leg < 4; leg++) {
+      for(int joint = 0; joint < 3; joint++) {
+        _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
+                                                               _simulator->getState().qd[leg*3 + joint]);
+      }
+    }
+  } else {
+    // todo Cheetah 3
+    assert(false);
+  }
+}
+
+void Simulation::highLevelControl() {
+  // send joystick data to robot:
+  _sharedMemory().simToRobot.driverCommand = _window->getDriverCommand();
+  _sharedMemory().simToRobot.driverCommand.applyDeadband(_simParams.game_controller_deadband);
+
+  // signal to the robot that it can start running
+  _sharedMemory().simulatorIsDone();
+
+  // wait for robot code to finish
+  _sharedMemory().waitForRobot();
 }
 
 /*!
@@ -159,6 +202,8 @@ void Simulation::runAtSpeed(double dt, double dtLowLevelControl,
 
   double lastSimTime = _currentSimTime; // simulation time at last graphics update
 
+  printf("[Simulator] Starting run loop (dt %f, dt-low-level %f, dt-high-level %f speed %f graphics %d)...\n",
+          dt, dtLowLevelControl, dtHighLevelControl, x, graphics);
   while(_running) {
     frameTimer.start();
     int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);

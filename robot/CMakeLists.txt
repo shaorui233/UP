@@ -12,4 +12,4 @@ include_directories("../lcm-types/c_lcm_files")
 file(GLOB sources "src/*.cpp" "src/rt/*.c" "../lcm-types/c_lcm_files/*.c" "../lcm-types/c_lcm_files/*.h")
 
 add_executable(robot ${sources})
-target_link_libraries(robot biomimetics pthread lcm ${CMAKE_SOURCE_DIR}/third-party/libsoem.a ${CMAKE_SOURCE_DIR}/third-party/libvnc.a)
+target_link_libraries(robot biomimetics pthread lcm rt ${CMAKE_SOURCE_DIR}/third-party/libsoem.a ${CMAKE_SOURCE_DIR}/third-party/libvnc.a)

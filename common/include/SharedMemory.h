@@ -17,6 +17,8 @@
 #include <stdexcept>
 #include <semaphore.h>
 
+#define DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME "development-simulator"
+
 /*!
  * A POSIX semaphore for shared memory.
  * See https://linux.die.net/man/7/sem_overview for more deatils
@@ -120,11 +122,11 @@ public:
     }
 
     if(s.st_size) {
-      printf("[ERROR] SharedMemoryObject::createNew(%s) on something that wasn't new (size is %ld bytes)\n", _name.c_str(), s.st_size);
+      printf("[Shared Memory] SharedMemoryObject::createNew(%s) on something that wasn't new (size is %ld bytes)\n", _name.c_str(), s.st_size);
       hadToDelete = true;
       if(!allowOverwrite)
          throw std::runtime_error("Failed to create shared memory - it already exists.");
-      printf("\toverwriting existing shared memory!\n");
+      printf("\tusing existing shared memory!\n");
       //return false;
     }
 
@@ -140,6 +142,10 @@ public:
       throw std::runtime_error("Failed to create shared memory!");
       return false;
     }
+
+    // there is a chance that the shared memory is not zeroed if we are reusing old memory.
+    // this causes all sorts of weird issues, especially if the layout of the object in memory has changed.
+    memset(mem, 0, _size);
 
     _data = (T*)mem;
     return hadToDelete;
@@ -213,7 +219,6 @@ public:
     }
 
     _fd = 0;
-
   }
 
   /*!
