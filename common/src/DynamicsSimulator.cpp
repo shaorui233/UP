@@ -241,7 +241,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   _dstate.dBodyPosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
   _dstate.dBodyVelocity = afb;
   // qdd is set in the for loop above
-
 }
 
 template class DynamicsSimulator<double>;
