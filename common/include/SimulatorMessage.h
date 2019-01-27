@@ -10,20 +10,37 @@
 
 #include "SharedMemory.h"
 #include "DriverCommand.h"
+#include "IMUTypes.h"
+#include "SpineBoard.h"
+#include "ControlParameterInterface.h"
+
+/*!
+ * The mode for the simulator
+ */
+enum class SimulatorMode {
+  RUN_CONTROL_PARAMETERS,      // don't run the robot controller, just process Control Parameters
+  RUN_CONTROLLER,  // run the robot controller
+  EXIT             // quit!
+};
 
 /*!
  * A plain message from the simulator to the robot
  */
 struct SimulatorToRobotMessage {
-  char burp[20];
-  DriverCommand driverCommand;
-  RobotType robotType;
+  DriverCommand driverCommand;   // joystick
+  RobotType robotType;           // which robot the simulator thinks we are simulating
 
-  // todo add these:
-  // RobotControlParameters
-  // leg data to robot
-  // imu data to robot
-  // cheater data to robot
+  // imu data
+  KvhImuData kvh;
+  VectorNavData vectorNav;
+  CheaterState<double> cheaterState;
+
+  // leg data
+  SpiData spiData;
+  // todo cheetah 3
+  ControlParameterRequest controlParameterRequest;
+
+  SimulatorMode mode;
 };
 
 /*!
@@ -31,11 +48,11 @@ struct SimulatorToRobotMessage {
  */
 struct RobotToSimulatorMessage {
   RobotType robotType;
+  SpiCommand spiCommand;
 
   // todo add these:
-  // leg command from robot
   // visualization data
-  // RobotControlParameters
+  ControlParameterResponse controlParameterResponse;
 };
 
 /*!

@@ -47,6 +47,13 @@ public:
     _qddEffectsUpToDate = false;
   }
 
+  void resetCalculationFlags() {
+    _articulatedBodiesUpToDate = false;
+    _kinematicsUpToDate = false;
+    _forcePropagatorsUpToDate = false;
+    _qddEffectsUpToDate = false;
+  }
+
   /*!
    * Get the state of the robot
    * @return

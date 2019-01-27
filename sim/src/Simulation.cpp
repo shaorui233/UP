@@ -7,16 +7,17 @@
 // if DISABLE_HIGH_LEVEL_CONTROL is defined, the simulator will run freely, without trying to connect to a robot
 #define DISABLE_HIGH_LEVEL_CONTROL
 
-Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
+Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   printf("[Simulation] Build quadruped...\n");
-  _quadruped = useMiniCheetah ? buildMiniCheetah<double>() : buildCheetah3<double>();
+  _robot = robot;
+  _quadruped = _robot == RobotType::MINI_CHEETAH ? buildMiniCheetah<double>() : buildCheetah3<double>();
   printf("[Simulation] Build actuator model...\n");
   _actuatorModels = _quadruped.buildActuatorModels();
   _window = window;
-  _isMiniCheetah = useMiniCheetah;
-  printf("[Simulation] Setup Cheetah graphics...\n");
+
   if(_window) {
-    _robotID = useMiniCheetah ? window->setupMiniCheetah() : window->setupCheetah3();
+    printf("[Simulation] Setup Cheetah graphics...\n");
+    _robotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah() : window->setupCheetah3();
   }
   printf("[Simulation] Build rigid body model...\n");
   _model = _quadruped.buildModel();
@@ -42,7 +43,7 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
 
   printf("[Simulation] Setup low-level control...\n");
   // init spine:
-  if(useMiniCheetah) {
+  if(_robot == RobotType::MINI_CHEETAH) {
     for(int leg = 0; leg < 4; leg++) {
       _spineBoards[leg].init(Quadruped<float>::getSideSign(leg), leg);
       _spineBoards[leg].data = &_spiData;
@@ -67,9 +68,73 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
   printf("[Simulation] Setup shared memory...\n");
   _sharedMemory.createNew(DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME, true);
   _sharedMemory().init();
-  _sharedMemory().simToRobot.robotType = useMiniCheetah ? RobotType::MINI_CHEETAH : RobotType::CHEETAH_3;
+
+  // shared memory fields:
+  _sharedMemory().simToRobot.robotType = _robot;
+
+
+  // load control parameters
+  printf("[Simulation] Load control parameters...\n");
+  if(_robot == RobotType::MINI_CHEETAH) {
+    _robotParams.initializeFromIniFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+  } else {
+    assert(false);
+  }
+
+  if(!_robotParams.isFullyInitialized()) {
+    printf("Not all robot control parameters were initialized. Missing:\n%s\n", _robotParams.generateUnitializedList().c_str());
+    throw std::runtime_error("not all parameters initialized from ini file");
+  }
+
+  // send all control parameters
+  printf("[Simulation] Send control parameters to robot...\n");
+  for(auto& kv : _robotParams.collection._map) {
+    printf("send %s\n", kv.first.c_str());
+    sendControlParameter(kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
+  }
+
+  // init IMU simulator
+  printf("[Simulation] Setup IMU simulator...\n");
+  _imuSimulator = new ImuSimulator<double>(_simParams);
 
   printf("[Simulation] Ready!\n");
+}
+
+void Simulation::sendControlParameter(const std::string &name, ControlParameterValue value, ControlParameterValueKind kind) {
+  (void)name;
+  (void)value;
+  (void)kind;
+#ifndef DISABLE_HIGH_LEVEL_CONTROL
+  ControlParameterRequest& request = _sharedMemory().simToRobot.controlParameterRequest;
+  ControlParameterResponse& response = _sharedMemory().robotToSim.controlParameterResponse;
+
+  // first check no pending message
+  assert(request.requestNumber == response.requestNumber);
+
+  // new message
+  request.requestNumber++;
+
+  // message data
+  request.requestKind = ControlParameterRequestKind::SET_PARAM_BY_NAME;
+  strcpy(request.name, name.c_str());
+  request.value = value;
+  request.parameterKind = kind;
+  printf("%s\n", request.toString().c_str());
+
+  // run robot:
+  _robotMutex.lock();
+  _sharedMemory().simToRobot.mode = SimulatorMode::RUN_CONTROL_PARAMETERS;
+  _sharedMemory().simulatorIsDone();
+
+  // wait for robot code to finish
+  _sharedMemory().waitForRobot();
+  _robotMutex.unlock();
+
+  // verify response is good
+  assert(response.requestNumber == request.requestNumber);
+  assert(response.parameterKind == request.parameterKind);
+  assert(std::string(response.name) == request.name);
+#endif
 }
 
 /*!
@@ -77,11 +142,13 @@ Simulation::Simulation(bool useMiniCheetah, Graphics3D *window) : _tau(12) {
  */
 void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelControl) {
 
+  // Low level control (if needed)
   if(_currentSimTime >= _timeOfNextLowLevelControl) {
     lowLevelControl();
     _timeOfNextLowLevelControl = _timeOfNextLowLevelControl + dtLowLevelControl;
   }
 
+  // High level control
   if(_currentSimTime >= _timeOfNextHighLevelControl) {
 #ifndef DISABLE_HIGH_LEVEL_CONTROL
     highLevelControl();
@@ -89,12 +156,21 @@ void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelCon
     _timeOfNextHighLevelControl = _timeOfNextHighLevelControl + dtHighLevelControl;
   }
 
+  // actuator model:
+  for(int leg = 0; leg < 4; leg++) {
+    for(int joint = 0; joint < 3; joint++) {
+      _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
+                                                             _simulator->getState().qd[leg*3 + joint]);
+    }
+  }
+
+  // dynamics
   _currentSimTime += dt;
   _simulator->step(dt, _tau);
 }
 
 void Simulation::lowLevelControl() {
-  if(_isMiniCheetah) {
+  if(_robot == RobotType::MINI_CHEETAH) {
     // update spine board data:
     for(int leg = 0; leg < 4; leg++) {
       _spiData.q_abad[leg] = _simulator->getState().q[leg*3 + 0];
@@ -111,13 +187,7 @@ void Simulation::lowLevelControl() {
       spineBoard.run();
     }
 
-    // run actuator model and move torque into simulator
-    for(int leg = 0; leg < 4; leg++) {
-      for(int joint = 0; joint < 3; joint++) {
-        _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
-                                                               _simulator->getState().qd[leg*3 + joint]);
-      }
-    }
+
   } else {
     // todo Cheetah 3
     assert(false);
@@ -129,11 +199,41 @@ void Simulation::highLevelControl() {
   _sharedMemory().simToRobot.driverCommand = _window->getDriverCommand();
   _sharedMemory().simToRobot.driverCommand.applyDeadband(_simParams.game_controller_deadband);
 
+  // send IMU data to robot:
+  _imuSimulator->updateCheaterState(_simulator->getState(), _simulator->getDState(), _sharedMemory().simToRobot.cheaterState);
+  if(_robot == RobotType::MINI_CHEETAH) {
+    _imuSimulator->updateVectornav(_simulator->getState(), _simulator->getDState(),
+            &_sharedMemory().simToRobot.vectorNav);
+  } else {
+    _imuSimulator->updateKVH(_simulator->getState(), _simulator->getDState(),
+                                   &_sharedMemory().simToRobot.kvh);
+  }
+
+  // send leg data to robot
+  if(_robot == RobotType::MINI_CHEETAH) {
+    _sharedMemory().simToRobot.spiData = _spiData;
+  } else {
+    assert(false); // todo cheetah 3
+  }
+
   // signal to the robot that it can start running
+  // the _robotMutex is used to prevent qt (which runs in its own thread) from sending a control parameter
+  // while the robot code is already running.
+  _robotMutex.lock();
+  _sharedMemory().simToRobot.mode = SimulatorMode::RUN_CONTROLLER;
   _sharedMemory().simulatorIsDone();
 
   // wait for robot code to finish
   _sharedMemory().waitForRobot();
+  _robotMutex.unlock();
+
+  // update
+  if(_robot == RobotType::MINI_CHEETAH) {
+    _spiCommand = _sharedMemory().robotToSim.spiCommand;
+  } else {
+    assert(false);
+  }
+
 }
 
 /*!

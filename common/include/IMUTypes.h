@@ -26,4 +26,11 @@ struct VectorNavData {
   // todo is there status for the vectornav?
 };
 
+template <typename T>
+struct CheaterState {
+  Quat<T> orientation;
+  Vec3<T> acceleration;
+  Vec3<T> omega;
+};
+
 #endif //PROJECT_IMUTYPES_H

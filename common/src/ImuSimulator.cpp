@@ -51,7 +51,7 @@ void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const F
   data->gyro += robotState.bodyVelocity.template head<3>().template cast<float>();
 
   // quaternion
-  if(vectorNavNoise) {
+  if(_vectorNavOrientationNoise) {
     Vec3<float> omegaNoise;
     fillEigenWithRandom(omegaNoise, _mt, _vectornavQuatDistribution);
     Quat<float> floatQuat = robotState.bodyOrientation.template cast<float>();
@@ -59,6 +59,14 @@ void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const F
   } else {
     data->quat = robotState.bodyOrientation.template cast<float>();
   }
+}
+
+template <typename T>
+void ImuSimulator<T>::updateCheaterState(const FBModelState<T> &robotState, const FBModelStateDerivative<T>& robotStateD, CheaterState<T> &state) {
+  RotMat<T> R_body = quaternionToRotationMatrix(robotState.bodyOrientation);
+  state.acceleration = (R_body * Vec3<T>(0,0,9.81)) + spatial::sAccToClassicalAcc(robotStateD.dBodyVelocity, robotState.bodyVelocity);
+  state.omega = robotState.bodyVelocity.template head<3>();
+  state.orientation = robotState.bodyOrientation;
 }
 
 

@@ -10,8 +10,14 @@
 #include "SharedMemory.h"
 #include "SimulatorMessage.h"
 #include "SimulatorParameters.h"
+#include "RobotParameters.h"
+#include "ImuSimulator.h"
+#include "ControlParameterInterface.h"
 
 #include <vector>
+#include <mutex>
+#include <queue>
+#include <utility>
 
 
 
@@ -22,7 +28,7 @@
  */
 class Simulation {
 public:
-  explicit Simulation(bool useMiniCheetah, Graphics3D* window);
+  explicit Simulation(RobotType robot, Graphics3D* window);
 
   /*!
    * Explicitly set the state of the robot
@@ -48,6 +54,7 @@ public:
 
   void freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics = true);
   void runAtSpeed(double dt, double dtLowLevelControl, double dtHighLevelControl, double x, bool graphics = true);
+  void sendControlParameter(const std::string& name, ControlParameterValue value, ControlParameterValueKind kind);
 
   void resetSimTime() {
     _currentSimTime = 0.;
@@ -58,6 +65,7 @@ public:
 
   ~Simulation() {
       delete _simulator;
+      delete _imuSimulator;
   }
 
   const FBModelState<double>& getRobotState() {
@@ -66,8 +74,11 @@ public:
 
 
 private:
+  std::mutex _robotMutex;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
+  ImuSimulator<double>* _imuSimulator = nullptr;
   SimulatorControlParameters _simParams;
+  RobotControlParameters _robotParams;
   size_t _robotID;
   Graphics3D *_window = nullptr;
   Quadruped<double> _quadruped;
@@ -78,7 +89,7 @@ private:
   SpiCommand _spiCommand;
   SpiData    _spiData;
   SpineBoard _spineBoards[4];
-  bool _isMiniCheetah = false;
+  RobotType  _robot;
   bool _running = false;
   double _desiredSimSpeed = 1.;
   double _currentSimTime = 0.;

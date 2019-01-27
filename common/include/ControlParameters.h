@@ -22,6 +22,7 @@
 #include "cTypes.h"
 #include "utilities.h"
 
+#define CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH 64
 
 enum class ControlParameterValueKind : u64 {
   FLOAT = 0,
@@ -29,12 +30,21 @@ enum class ControlParameterValueKind : u64 {
   S64 = 2
 };
 
-union ControlParameterValue {
+std::string controlParameterValueKindToString(ControlParameterValueKind valueKind);
+
+union ControlParameterValuePtr {
   float* f;
   double* d;
   s64* i;
 };
 
+union ControlParameterValue {
+  float f;
+  double d;
+  s64 i;
+};
+
+std::string controlParameterValueToString(ControlParameterValue v, ControlParameterValueKind kind);
 
 class ControlParameter;
 
@@ -91,6 +101,7 @@ public:
    */
   ControlParameter(const std::string& name, double& value, ControlParameterCollection& collection, const std::string& units = "") {
     _name = name;
+    truncateName();
     _units = units;
     _value.d = &value;
     _kind = ControlParameterValueKind::DOUBLE;
@@ -100,6 +111,7 @@ public:
 
   ControlParameter(const std::string& name, float& value, ControlParameterCollection& collection, const std::string& units = "") {
     _name = name;
+    truncateName();
     _units = units;
     _value.f = &value;
     _kind = ControlParameterValueKind::FLOAT;
@@ -108,10 +120,19 @@ public:
 
   ControlParameter(const std::string& name, s64& value, ControlParameterCollection& collection, const std::string& units = "") {
     _name = name;
+    truncateName();
     _units = units;
     _value.i = &value;
     _kind = ControlParameterValueKind::S64;
     collection.addParameter(this, name);
+  }
+
+  void truncateName() {
+    if(_name.length() > CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH) {
+      printf("[Error] name %s is too long, shortening to ", _name.c_str());
+      _name.resize(CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH - 1);
+      printf("%s\n", _name.c_str());
+    }
   }
 
   /*!
@@ -142,6 +163,47 @@ public:
     *_value.i = i;
   }
 
+  void set(ControlParameterValue value, ControlParameterValueKind kind) {
+    if(kind != _kind) {
+      throw std::runtime_error("type mismatch in set");
+    }
+    switch(kind) {
+      case ControlParameterValueKind::FLOAT:
+        *_value.f = value.f;
+        break;
+      case ControlParameterValueKind::DOUBLE:
+        *_value.d = value.d;
+        break;
+      case ControlParameterValueKind::S64:
+        *_value.i = value.i;
+        break;
+      default:
+        throw std::runtime_error("invalid kind");
+    }
+    _set = true;
+  }
+
+  ControlParameterValue get(ControlParameterValueKind kind) {
+    ControlParameterValue value;
+    if(kind != _kind) {
+      throw std::runtime_error("type mismatch in get");
+    }
+    switch(_kind) {
+      case ControlParameterValueKind::FLOAT:
+        value.f = *_value.f;
+        break;
+      case ControlParameterValueKind::DOUBLE:
+         value.d = *_value.d;
+        break;
+      case ControlParameterValueKind::S64:
+        value.i = *_value.i;
+        break;
+      default:
+        throw std::runtime_error("invalid kind");
+    }
+    return value;
+  }
+
   /*!
    * Convert the value to a string that works in an INI file
    */
@@ -166,7 +228,7 @@ public:
 
 
   bool _set = false;
-  ControlParameterValue _value;
+  ControlParameterValuePtr _value;
   std::string _name;
   std::string _units;
   ControlParameterValueKind _kind;

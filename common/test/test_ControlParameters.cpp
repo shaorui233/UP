@@ -8,6 +8,7 @@
 
 #include "ControlParameters.h"
 #include "SimulatorParameters.h"
+#include "RobotParameters.h"
 
 class TestControlParameters : public ControlParameters {
 public:
@@ -91,4 +92,14 @@ TEST(ControlParams, CheckSimulatorDefaults) {
     printf("Missing parameters:\n%s\n", simParams.generateUnitializedList().c_str());
   }
   EXPECT_TRUE(simParams.isFullyInitialized());
+}
+
+// check to see that the simulator default settings file contains all the simulator settings.
+TEST(ControlParams, CheckMiniCheetahDefaults) {
+  RobotControlParameters robotParams;
+  robotParams.initializeFromIniFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+  if(!robotParams.isFullyInitialized()) {
+    printf("Missing parameters:\n%s\n", robotParams.generateUnitializedList().c_str());
+  }
+  EXPECT_TRUE(robotParams.isFullyInitialized());
 }

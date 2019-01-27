@@ -10,6 +10,37 @@
 
 #include <utility>
 
+std::string controlParameterValueKindToString(ControlParameterValueKind valueKind) {
+  switch(valueKind) {
+    case ControlParameterValueKind::S64:
+      return "s64";
+    case ControlParameterValueKind::DOUBLE:
+      return "double";
+    case ControlParameterValueKind::FLOAT:
+      return "float";
+    default:
+      return "unknown-ControlParameterValueKind";
+  }
+}
+
+std::string controlParameterValueToString(ControlParameterValue value, ControlParameterValueKind kind) {
+  std::string result;
+  switch(kind) {
+    case ControlParameterValueKind::DOUBLE:
+      result += numberToString(value.d);
+      break;
+    case ControlParameterValueKind::FLOAT:
+      result += numberToString(value.f);
+      break;
+    case ControlParameterValueKind::S64:
+      result += std::to_string(value.i);
+      break;
+    default:
+      result += "<unknown type " + std::to_string((u32)(kind)) + "> (add it yourself in ControlParameterInterface.h!)";
+      break;
+  }
+  return result;
+}
 
 bool ControlParameterCollection::checkIfAllSet() {
   for(auto& kv : _map) {

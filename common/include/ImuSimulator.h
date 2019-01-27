@@ -12,6 +12,8 @@
 
 #include <random>
 
+
+
 template <typename T>
 class ImuSimulator {
 public:
@@ -25,7 +27,7 @@ public:
     _vectornavAccelerometerDistribution(-simSettings.vectornav_imu_accelerometer_noise, simSettings.vectornav_imu_accelerometer_noise),
     _vectornavQuatDistribution(-simSettings.vectornav_imu_quat_noise, simSettings.vectornav_imu_quat_noise) {
     if(simSettings.vectornav_imu_quat_noise != 0) {
-      vectorNavNoise = true;
+      _vectorNavOrientationNoise = true;
     }
   }
 
@@ -35,6 +37,8 @@ public:
   void computeAcceleration(const FBModelState<T>& robotState, const FBModelStateDerivative<T>& robotStateD,
           Vec3<float>& acc, std::uniform_real_distribution<float>& dist, const RotMat<float>& R_body);
 
+  void updateCheaterState(const FBModelState<T> &robotState, const FBModelStateDerivative<T>& robotStateD, CheaterState<T>& state);
+
 private:
   SimulatorControlParameters& _simSettings;
   std::mt19937 _mt;
@@ -43,6 +47,6 @@ private:
   std::uniform_real_distribution<float> _vectornavGyroDistribution;
   std::uniform_real_distribution<float> _vectornavAccelerometerDistribution;
   std::uniform_real_distribution<float> _vectornavQuatDistribution;
-  bool vectorNavNoise = false;
+  bool _vectorNavOrientationNoise = false;
 };
 #endif //PROJECT_IMUSIMULATOR_H

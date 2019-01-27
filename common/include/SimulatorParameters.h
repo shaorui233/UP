@@ -12,6 +12,7 @@
 #include "ControlParameters.h"
 
 #define SIMULATOR_DEFAULT_PARAMETERS "/simulator-defaults.ini"
+#define MINI_CHEETAH_DEFAULT_PARAMETERS "/mini-cheetah-defaults.ini"
 
 class SimulatorControlParameters : public ControlParameters {
 public:

@@ -170,6 +170,7 @@ void DynamicsSimulator<T>::integrate(T dt) {
   _state.bodyVelocity += _dstate.dBodyVelocity * dt;
   _state.bodyPosition += _dstate.dBodyPosition * dt;
   _state.bodyOrientation = integrateQuat(_state.bodyOrientation, omega0, dt);
+  resetCalculationFlags();
 }
 
 /*!
