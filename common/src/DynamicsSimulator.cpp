@@ -18,6 +18,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   // allocate matrices
   _Xup.resize(_nb);
   _Xa.resize(_nb);
+  _ChiUp.resize(_nb);
   _Xuprot.resize(_nb);
   _IA.resize(_nb);
   _v.resize(_nb);
@@ -34,6 +35,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
   _pArot.resize(_nb);
   _d.resize(_nb);
   _u.resize(_nb);
+
   _pGC.resize(_nGC);
   _vGC.resize(_nGC);
   _fGC.resize(_nGC);
@@ -95,6 +97,9 @@ void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
  */
 template <typename T>
 void DynamicsSimulator<T>::forwardKinematics() {
+  if (_kinematicsUpToDate)
+    return;
+
   // calculate joint transformations
   _Xup[5] = createSXform(quaternionToRotationMatrix(_state.bodyOrientation), _state.bodyPosition);
   _v[5] = _state.bodyVelocity;
@@ -131,10 +136,12 @@ void DynamicsSimulator<T>::forwardKinematics() {
     _pGC.at(j) = sXFormPoint(Xai, _model._gcLocation.at(j));
     _vGC.at(j) = spatialToLinearVelocity(vSpatial, _pGC.at(j));
   }
+  _kinematicsUpToDate = true;
 }
 
 template <typename T>
 void DynamicsSimulator<T>::updateCollisions(T dt) {
+  forwardKinematics(); 
   for(auto& cp : _collisionPlanes) {
     cp.update(_externalForces, _model._gcParent, _pGC, _vGC, _fGC, dt);
   }
@@ -163,33 +170,125 @@ void DynamicsSimulator<T>::integrate(T dt) {
   _state.bodyOrientation = integrateQuat(_state.bodyOrientation, omega0, dt);
 }
 
+template <typename T>
+void DynamicsSimulator<T>::updateArticulatedBodies()
+{
+  if(_articulatedBodiesUpToDate)
+    return;
+
+  forwardKinematics();
+
+  _IA[5] = _model._Ibody[5].getMatrix();
+
+  // loop 1, down the tree
+  for(size_t i = 6; i < _nb; i++) {
+    _IA[i] = _model._Ibody[i].getMatrix(); // initialize
+    Mat6<T> XJrot = jointXform(_model._jointTypes[i], _model._jointAxes[i], _state.q[i - 6] * _model._gearRatios[i]);
+    _Xuprot[i] = XJrot * _model._Xrot[i];
+    _Srot[i] = _S[i] * _model._gearRatios[i];
+
+  }
+
+   // Pat's magic principle of least constraint (Guass too!)
+  for(size_t i = _nb - 1; i >= 6; i--) {
+    _U[i] = _IA[i] * _S[i];
+    _Urot[i] = _model._Irot[i].getMatrix() * _Srot[i];
+    _Utot[i] = _Xup[i].transpose() * _U[i] + _Xuprot[i].transpose() * _Urot[i];
+
+    _d[i] = _Srot[i].transpose() * _Urot[i];
+    _d[i] += _S[i].transpose() * _U[i];
+
+    // articulated inertia recursion
+    Mat6<T> Ia = _Xup[i].transpose() * _IA[i] * _Xup[i] + _Xuprot[i].transpose() * _model._Irot[i].getMatrix() * _Xuprot[i] - _Utot[i] * _Utot[i].transpose() / _d[i];
+    _IA[_model._parents[i]] += Ia;
+  }
+  _articulatedBodiesUpToDate = true;
+}
+
+template <typename T>
+void DynamicsSimulator<T>::updateForcePropagators()
+{
+  if(_forcePropagatorsUpToDate)
+    return;
+  forwardKinematics();
+  updateArticulatedBodies();
+  for(size_t i = 6; i < _nb; i++) {
+    _ChiUp[i] = _Xup[i] - _S[i]*_Utot[i].transpose()/_d[i];
+  }
+  _forcePropagatorsUpToDate = true;
+}
+
+
+
+template <typename T>
+DMat<T> 
+DynamicsSimulator<T>::invContactInertia(const int gc_index, const D6Mat<T>& force_directions) {
+    forwardKinematics();
+    updateArticulatedBodies();
+    updateForcePropagators();
+
+    size_t i_opsp = _model._gcParent.at(gc_index);
+    size_t i = i_opsp;
+
+    // Rotation to absolute coords
+    Mat3<T> Rai = _Xa[i].template block<3,3>(0,0).transpose();
+    Mat6<T> Xc = createSXform(Rai, _model._gcLocation.at(gc_index));
+    
+    // D is a subslice of an extended force propagator matrix (See Wensing, 2012 ICRA)
+    D6Mat<T> D = Xc.transpose() * force_directions;
+    
+    size_t m = force_directions.cols();
+
+    DMat<T> Lambda = DMat<T>::Zero(m,m); 
+    DVec<T> tmp = DVec<T>::Zero(m);
+
+    // from tips to base
+    while (i > 5) {
+      tmp = D.transpose()*_S[i];
+      Lambda += tmp*tmp.transpose()/_d[i];
+      
+      // Apply force propagator (see Pat's ICRA 2012 paper)
+      // essentially, since the joint is articulated, only a portion of the force
+      // is felt on the predecessor. So, while Xup^T sends a force backwards as if 
+      // the joint was locked, ChiUp^T sends the force backward as if the joint
+      // were free
+      D = _ChiUp[i].transpose()*D;
+      i = _model._parents[i];
+    }
+
+    // TODO: Only carry out the QR once within update Aritculated Bodies
+    Lambda+= D.transpose()*_IA[5].colPivHouseholderQr().solve(D);
+
+    return Lambda;
+}
+
+
 /*!
  * Articulated Body Algorithm, modified by Pat to add rotors
  */
 template <typename T>
 void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   (void)tau;
+    
+  forwardKinematics();
+  updateArticulatedBodies();
+
   // create spatial vector for gravity
   SVec<T> aGravity;
   aGravity << 0, 0, 0, _model._gravity[0], _model._gravity[1], _model._gravity[2];
 
+
   // float-base articulated inertia
-  _IA[5] = _model._Ibody[5].getMatrix();
   SVec<T> ivProduct = _model._Ibody[5].getMatrix() * _v[5];
   _pA[5] = forceCrossProduct(_v[5], ivProduct);
 
   // loop 1, down the tree
   for(size_t i = 6; i < _nb; i++) {
-
-    _IA[i] = _model._Ibody[i].getMatrix(); // initialize
     ivProduct = _model._Ibody[i].getMatrix() * _v[i];
     _pA[i] = forceCrossProduct(_v[i], ivProduct);
 
     // same for rotors
-    Mat6<T> XJrot = jointXform(_model._jointTypes[i], _model._jointAxes[i], _state.q[i - 6] * _model._gearRatios[i]);
-    _Srot[i] = _S[i] * _model._gearRatios[i];
     SVec<T> vJrot = _Srot[i] * _state.qd[i - 6];
-    _Xuprot[i] = XJrot * _model._Xrot[i];
     _vrot[i] = _Xuprot[i] * _v[_model._parents[i]] + vJrot;
     _crot[i] = motionCrossProduct(_vrot[i], vJrot);
     ivProduct = _model._Irot[i].getMatrix() * _vrot[i];
@@ -207,17 +306,9 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
 
   // Pat's magic principle of least constraint
   for(size_t i = _nb - 1; i >= 6; i--) {
-    _U[i] = _IA[i] * _S[i];
-    _Urot[i] = _model._Irot[i].getMatrix() * _Srot[i];
-    _Utot[i] = _Xup[i].transpose() * _U[i] + _Xuprot[i].transpose() * _Urot[i];
-
-    _d[i] = _Srot[i].transpose() * _Urot[i];
-    _d[i] += _S[i].transpose() * _U[i];
     _u[i] = tau[i - 6] - _S[i].transpose() * _pA[i] - _Srot[i].transpose() * _pArot[i] - _U[i].transpose()*_c[i] - _Urot[i].transpose() * _crot[i];
 
     // articulated inertia recursion
-    Mat6<T> Ia = _Xup[i].transpose() * _IA[i] * _Xup[i] + _Xuprot[i].transpose() * _model._Irot[i].getMatrix() * _Xuprot[i] - _Utot[i] * _Utot[i].transpose() / _d[i];
-    _IA[_model._parents[i]] += Ia;
     SVec<T> pa = _Xup[i].transpose() * (_pA[i] + _IA[i] * _c[i]) + _Xuprot[i].transpose() * (_pArot[i] + _model._Irot[i].getMatrix() * _crot[i]) + _Utot[i] * _u[i] / _d[i];
     _pA[_model._parents[i]] += pa;
   }
@@ -241,7 +332,6 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   _dstate.dBodyPosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
   _dstate.dBodyVelocity = afb;
   // qdd is set in the for loop above
-
 }
 
 template class DynamicsSimulator<double>;

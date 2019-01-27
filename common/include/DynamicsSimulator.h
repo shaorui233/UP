@@ -31,11 +31,17 @@ public:
   void forwardKinematics(); //! Do forward kinematics for feet
   void integrate(T dt); //! Integrate to find new _state
 
+
+  DMat<T> invContactInertia(const int gc_index, const D6Mat<T>& force_directions);
+
   /*!
    * Set the state of the robot being simulated
    */
   void setState(const FBModelState<T>& state) {
     _state = state;
+    _articulatedBodiesUpToDate = false;
+    _kinematicsUpToDate = false;
+    _forcePropagatorsUpToDate = false;
   }
 
   /*!
@@ -96,14 +102,14 @@ public:
   vectorAligned<Vec3<T> > _pGC; // position of ground contacts in world coordinates
   vectorAligned<Vec3<T> > _vGC; // velocity of ground contacts in world coordinates
   vectorAligned<Vec3<T> > _fGC; // reation force of ground contacts in world coordinates
-  vectorAligned<Mat6<T> > _Xup, _Xuprot, _IA, _Xa;
+  vectorAligned<Mat6<T> > _Xup, _Xuprot, _IA, _Xa, _ChiUp;
 
   const size_t & getTotalNumGC(){ return _model._nGroundContact; }
 private:
 
   void updateCollisions(T dt); //! Update ground collision list
-
-
+  void updateArticulatedBodies();
+  void updateForcePropagators();
 
   FBModelState<T> _state;
   FBModelStateDerivative<T> _dstate;
@@ -116,6 +122,9 @@ private:
   FloatingBaseModel<T>& _model;
   size_t _nb, _nGC;
 
+  bool  _articulatedBodiesUpToDate = false;
+  bool  _kinematicsUpToDate = false;
+  bool  _forcePropagatorsUpToDate = false;
 
   vectorAligned<SVec<T>> _externalForces;
   vector<CollisionPlane<T>> _collisionPlanes;

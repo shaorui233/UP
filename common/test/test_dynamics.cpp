@@ -175,6 +175,55 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
 
 
 /*!
+ * Run the contact inertia algorithm for cheetah 3
+ * Set a weird body orientation, velocity, q, dq, and tau
+ * Checks that it matches the result from J H^(-1) J^T
+ */
+TEST(Dynamics, simulatorContactInertiaCheetah3) {
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
+  DynamicsSimulator<double> sim(cheetahModel);
+
+  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
+                         coordinateRotation(CoordinateAxis::Y, .111);
+  SVec<double> bodyVel;
+  bodyVel << 1, 2, 3, 4, 5, 6;
+  FBModelState<double> x;
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tauref(12);
+  for (size_t i = 0; i < 12; i++) {
+    q[i] = i + 1;
+    dq[i] = (i + 1) * 2;
+    tauref[i] = (i + 1) * -30.;
+  }
+
+  // set state
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
+  x.bodyVelocity = bodyVel;
+  x.bodyPosition = Vec3<double>(6, 7, 8);
+  x.q = q;
+  x.qd = dq;
+
+
+  // do aba
+  sim.setState(x);
+  cheetahModel.setState(x);
+
+  cheetahModel.contactJacobians();
+  DMat<double> H = cheetahModel.massMatrix();
+  D3Mat<double> J0 = cheetahModel._Jc[15];
+  DMat<double> Lambda1 = J0*H.colPivHouseholderQr().solve(J0.transpose());
+
+  D6Mat<double> forceOnly = D6Mat<double>::Zero(6,3);
+  forceOnly.bottomRows<3>() = Mat3<double>::Identity();
+
+  DMat<double> Lambda2 = sim.invContactInertia(15, forceOnly);
+
+  EXPECT_TRUE(almostEqual(Lambda1,Lambda2, .001));
+}
+
+
+/*!
  * Run the RNEA and component H/Cqd/G algorithms on Cheetah 3
  * Set a weird body orientation, velocity, q, dq, qdd 
  * Checks that genForce matches MATLAB, and CRBA/Cqd/G agree the output as well
