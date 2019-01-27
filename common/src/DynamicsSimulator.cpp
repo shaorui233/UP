@@ -60,6 +60,8 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
     _pA[i] = SVec<T>::Zero();
     _pArot[i] = SVec<T>::Zero();
   }
+  _qdd_from_subqdd.resize(_nb-6,_nb-6);
+  _qdd_from_base_accel.resize(_nb-6,6);
 
   _state.bodyVelocity = SVec<T>::Zero();
   _state.bodyPosition = Vec3<T>::Zero();
@@ -126,7 +128,7 @@ void DynamicsSimulator<T>::forwardKinematics() {
   }
 
   // ground contact points
-//  // TODO : we end up inverting the same Xa a few times (like for the 8 points on the body). this isn't super efficient.
+  //  // TODO : we end up inverting the same Xa a few times (like for the 8 points on the body). this isn't super efficient.
   for(size_t j = 0; j < _nGC; j++) {
     size_t i = _model._gcParent.at(j);
     Mat6<T> Xai = invertSXform(_Xa[i]); // from link to absolute
@@ -170,6 +172,9 @@ void DynamicsSimulator<T>::integrate(T dt) {
   _state.bodyOrientation = integrateQuat(_state.bodyOrientation, omega0, dt);
 }
 
+/*!
+ * Support function for the ABA
+ */
 template <typename T>
 void DynamicsSimulator<T>::updateArticulatedBodies()
 {
@@ -202,26 +207,181 @@ void DynamicsSimulator<T>::updateArticulatedBodies()
     Mat6<T> Ia = _Xup[i].transpose() * _IA[i] * _Xup[i] + _Xuprot[i].transpose() * _model._Irot[i].getMatrix() * _Xuprot[i] - _Utot[i] * _Utot[i].transpose() / _d[i];
     _IA[_model._parents[i]] += Ia;
   }
+
+  _invIA5.compute(_IA[5]);
   _articulatedBodiesUpToDate = true;
 }
 
+/*!
+ * Support function for contact inertia algorithms
+ * Comptues force propagators across each joint
+ */
 template <typename T>
 void DynamicsSimulator<T>::updateForcePropagators()
 {
   if(_forcePropagatorsUpToDate)
     return;
-  forwardKinematics();
   updateArticulatedBodies();
-  for(size_t i = 6; i < _nb; i++) {
+  for (size_t i = 6 ; i < _nb ; i++) {
     _ChiUp[i] = _Xup[i] - _S[i]*_Utot[i].transpose()/_d[i];
   }
   _forcePropagatorsUpToDate = true;
 }
 
-
-
+/*!
+ * Support function for contact inertia algorithms
+ * Computes the qdd arising from "subqdd" components
+ * If you are familiar with Featherstone's sparse Op sp
+ * or jain's innovations factorization:
+ * H = L * D * L^T
+ * These subqdd components represnt the space in the middle
+ * i.e. if H^{-1} = L^{-T} * D^{-1} * L^{1}
+ * then what I am calling subqdd = L^{-1} * tau
+ * This is an awful explanation. It needs latex.
+ */
 template <typename T>
-DMat<T> 
+void DynamicsSimulator<T>::udpateQddEffects() {
+  if(_qddEffectsUpToDate)
+    return;
+  updateForcePropagators();
+  _qdd_from_base_accel.setZero();
+  _qdd_from_subqdd.setZero();
+
+  // Pass for force props
+  // This loop is semi-equivalent to a cholesky factorization on H
+  // akin to Featherstone's sparse operational space algo
+  // These computations are for treating the joint rates like a task space
+  // To do so, F computes the dynamic effect of torues onto bodies down the tree
+  // 
+  for (size_t i = 6 ; i < _nb ; i++) {
+    _qdd_from_subqdd(i-6,i-6) = 1;
+    SVec<T> F = (_ChiUp[i].transpose() - _Xup[i].transpose() ) * _S[i];
+    size_t j = _model._parents[i];
+    while ( j > 5) {
+      _qdd_from_subqdd(i-6,j-6) = _S[j].dot(F);
+      F = _ChiUp[j].transpose()*F;
+      j = _model._parents[j];
+    }
+    _qdd_from_base_accel.row(i-6) = F.transpose();
+  }
+  _qddEffectsUpToDate = true;
+}
+
+
+/*!
+ * Apply a unit test force at a contact. Returns the inv contact inertia  in that direction
+ * and computes the resultant qdd
+ * @param gc_index index of the contact
+ * @param force_ics_at_contact unit test forcoe
+ * @params dstate - Output paramter of resulting accelerations
+ * @return the 1x1 inverse contact inertia J H^{-1} J^T
+ */
+template <typename T>
+double
+DynamicsSimulator<T>:: applyTestForce(const int gc_index, const Vec3<T>& force_ics_at_contact, FBModelStateDerivative<T> & dstate_out)
+{
+  forwardKinematics();
+  updateArticulatedBodies();
+  updateForcePropagators();
+  udpateQddEffects();
+
+
+  size_t i_opsp = _model._gcParent.at(gc_index);
+  size_t i = i_opsp;
+
+  dstate_out.qdd.setZero();
+
+
+  // Rotation to absolute coords
+  Mat3<T> Rai = _Xa[i].template block<3,3>(0,0).transpose();
+  Mat6<T> Xc = createSXform(Rai, _model._gcLocation.at(gc_index));
+  
+  // D is one column of an extended force propagator matrix (See Wensing, 2012 ICRA)
+  SVec<T> F = Xc.transpose().template rightCols<3>() * force_ics_at_contact;
+
+  double LambdaInv = 0; 
+  double tmp = 0;
+
+  // from tips to base
+  while (i > 5) {
+    tmp = F.dot(_S[i]);
+    LambdaInv += tmp*tmp/_d[i];
+    dstate_out.qdd+= _qdd_from_subqdd.col(i-6) * tmp / _d[i];
+
+    // Apply force propagator (see Pat's ICRA 2012 paper)
+    // essentially, since the joint is articulated, only a portion of the force
+    // is felt on the predecessor. So, while Xup^T sends a force backwards as if 
+    // the joint was locked, ChiUp^T sends the force backward as if the joint
+    // were free
+    F = _ChiUp[i].transpose()*F;
+    i = _model._parents[i];
+  }
+
+  // TODO: Only carry out the QR once within update Aritculated Bodies
+  dstate_out.dBodyVelocity = _invIA5.solve(F);
+  LambdaInv+= F.dot(dstate_out.dBodyVelocity);
+  dstate_out.qdd+=_qdd_from_base_accel*dstate_out.dBodyVelocity;
+
+  return LambdaInv;  
+}
+
+/*!
+ * Compute the inverse of the contact inertia matrix (mxm) 
+ * @param force_ics_at_contact (3x1) 
+ *        e.g. if you want the cartesian inv. contact inertia in the z_ics
+ *             force_ics_at_contact = [0 0 1]^T
+ * @return the 1x1 inverse contact inertia J H^{-1} J^T
+ */
+template <typename T>
+double
+DynamicsSimulator<T>:: invContactInertia(const int gc_index, const Vec3<T>& force_ics_at_contact) {
+  forwardKinematics();
+  updateArticulatedBodies();
+  updateForcePropagators();
+
+  size_t i_opsp = _model._gcParent.at(gc_index);
+  size_t i = i_opsp;
+
+  // Rotation to absolute coords
+  Mat3<T> Rai = _Xa[i].template block<3,3>(0,0).transpose();
+  Mat6<T> Xc = createSXform(Rai, _model._gcLocation.at(gc_index));
+  
+  // D is one column of an extended force propagator matrix (See Wensing, 2012 ICRA)
+  SVec<T> F = Xc.transpose().template rightCols<3>() * force_ics_at_contact;
+
+  double LambdaInv = 0; 
+  double tmp = 0;
+
+  // from tips to base
+  while (i > 5) {
+    tmp = F.dot(_S[i]);
+    LambdaInv += tmp*tmp/_d[i];
+
+    // Apply force propagator (see Pat's ICRA 2012 paper)
+    // essentially, since the joint is articulated, only a portion of the force
+    // is felt on the predecessor. So, while Xup^T sends a force backwards as if 
+    // the joint was locked, ChiUp^T sends the force backward as if the joint
+    // were free
+    F = _ChiUp[i].transpose()*F;
+    i = _model._parents[i];
+  }
+  LambdaInv+= F.dot(_invIA5.solve(F));
+  return LambdaInv;  
+}
+
+
+/*!
+ * Compute the inverse of the contact inertia matrix (mxm) 
+ * @param force_directions (6xm) each column denotes a direction of interest 
+ *        col = [ moment in i.c.s., force in i.c.s.]
+ *        e.g. if you want the cartesian inv. contact inertia 
+ *             force_directions = [ 0_{3x3} I_{3x3}]^T
+ *             if you only want the cartesian inv. contact inertia in one direction
+ *             then use the overloaded version.
+ * @return the mxm inverse contact inertia J H^{-1} J^T
+ */
+template <typename T>
+DMat<T>
 DynamicsSimulator<T>::invContactInertia(const int gc_index, const D6Mat<T>& force_directions) {
     forwardKinematics();
     updateArticulatedBodies();
@@ -239,13 +399,13 @@ DynamicsSimulator<T>::invContactInertia(const int gc_index, const D6Mat<T>& forc
     
     size_t m = force_directions.cols();
 
-    DMat<T> Lambda = DMat<T>::Zero(m,m); 
+    DMat<T> LambdaInv = DMat<T>::Zero(m,m); 
     DVec<T> tmp = DVec<T>::Zero(m);
 
     // from tips to base
     while (i > 5) {
       tmp = D.transpose()*_S[i];
-      Lambda += tmp*tmp.transpose()/_d[i];
+      LambdaInv += tmp*tmp.transpose()/_d[i];
       
       // Apply force propagator (see Pat's ICRA 2012 paper)
       // essentially, since the joint is articulated, only a portion of the force
@@ -257,9 +417,9 @@ DynamicsSimulator<T>::invContactInertia(const int gc_index, const D6Mat<T>& forc
     }
 
     // TODO: Only carry out the QR once within update Aritculated Bodies
-    Lambda+= D.transpose()*_IA[5].colPivHouseholderQr().solve(D);
+    LambdaInv+= D.transpose()*_invIA5.solve(D);
 
-    return Lambda;
+    return LambdaInv;
 }
 
 
@@ -317,7 +477,7 @@ void DynamicsSimulator<T>::runABA(const DVec<T> &tau) {
   SVec<T> a0 = -aGravity;
   SVec<T> ub = -_pA[5];
   _a[5] = _Xup[5] * a0;
-  SVec<T> afb = _IA[5].colPivHouseholderQr().solve(ub - _IA[5].transpose() * _a[5]);
+  SVec<T> afb = _invIA5.solve(ub - _IA[5].transpose() * _a[5]);
   _a[5] += afb;
 
   // joint accelerations

@@ -212,15 +212,99 @@ TEST(Dynamics, simulatorContactInertiaCheetah3) {
   cheetahModel.contactJacobians();
   DMat<double> H = cheetahModel.massMatrix();
   D3Mat<double> J0 = cheetahModel._Jc[15];
-  DMat<double> Lambda1 = J0*H.colPivHouseholderQr().solve(J0.transpose());
+  DMat<double> LambdaInv1 = J0*H.colPivHouseholderQr().solve(J0.transpose());
 
   D6Mat<double> forceOnly = D6Mat<double>::Zero(6,3);
   forceOnly.bottomRows<3>() = Mat3<double>::Identity();
 
-  DMat<double> Lambda2 = sim.invContactInertia(15, forceOnly);
+  DMat<double> LambdaInv2 = sim.invContactInertia(15, forceOnly);
 
-  EXPECT_TRUE(almostEqual(Lambda1,Lambda2, .001));
+  EXPECT_TRUE(almostEqual(LambdaInv1,LambdaInv2, .001));
 }
+
+/*!
+ * Check a test force for cheetah 3
+ * Set a weird body orientation, velocity, q, dq, and tau
+ * Checks the result matches qdd = H^(-1) J^T F
+ */
+TEST(Dynamics, simulatorTestForceCheetah3) {
+  FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
+  DynamicsSimulator<double> sim(cheetahModel);
+
+  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
+                         coordinateRotation(CoordinateAxis::Y, .111);
+  SVec<double> bodyVel;
+  bodyVel << 1, 2, 3, 4, 5, 6;
+  FBModelState<double> x;
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tauref(12);
+  for (size_t i = 0; i < 12; i++) {
+    q[i] = i + 1;
+    dq[i] = (i + 1) * 2;
+    tauref[i] = (i + 1) * -30.;
+  }
+
+  // set state
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
+  x.bodyVelocity = bodyVel;
+  x.bodyPosition = Vec3<double>(6, 7, 8);
+  x.q = q;
+  x.qd = dq;
+
+  FBModelStateDerivative<double> dx;
+  dx.qdd.setZero(12);
+
+  sim.setState(x);
+  cheetahModel.setState(x);
+
+  cheetahModel.contactJacobians();
+  DMat<double> H = cheetahModel.massMatrix();
+  DMat<double> J0 = cheetahModel._Jc[15].bottomRows(1);
+
+  Vec3<double> zforce;
+  zforce << 0, 0 ,1;
+
+  double foot_accel_in_z = sim.applyTestForce(15,zforce, dx);
+
+  DVec<double> qddFull = H.colPivHouseholderQr().solve(J0.transpose());
+  DMat<double> LambdaInv = J0*qddFull;
+
+  SVec<double> dBodyVelocity = qddFull.head<6>();
+  DVec<double> qdd = qddFull.tail(12);
+
+  double foot_accel_2 = LambdaInv(0,0);
+
+  double LambdaInv2 = sim.invContactInertia(15, zforce);
+
+
+
+  //cout << "From H^{-1} J^T" << endl << dBodyVelocity.transpose() << endl;
+  cout << "Diff1" << endl << dBodyVelocity.transpose()- dx.dBodyVelocity.transpose() << endl;
+
+  //cout << "From H^{-1} J^T" << endl << qdd.transpose() << endl;
+  cout << "Diff2" << endl << (dx.qdd.transpose() -qdd.transpose()).norm()  << endl;
+
+  //cout << "Equal? " << almostEqual(qdd, dx.qdd, 1e-6) << endl;
+
+  cout << "Diff 3 " << abs(foot_accel_2- foot_accel_in_z ) << endl;
+
+
+  cout << "Diff 4 " << abs(LambdaInv2- foot_accel_in_z ) << endl;
+
+
+
+  EXPECT_TRUE(almostEqual(dBodyVelocity, dx.dBodyVelocity, .001));
+  EXPECT_TRUE(almostEqual(qdd, dx.qdd, 1e-6));
+  EXPECT_TRUE(abs(foot_accel_2- foot_accel_in_z) < .001);
+  EXPECT_TRUE(abs(LambdaInv2 - foot_accel_in_z) < .001);
+
+  qdd(0)+=5;
+  cout << "Diff After Perturb" << endl << (dx.qdd.transpose() -qdd.transpose()).norm()  << endl;
+  cout << "Equal? " << almostEqual(qdd, dx.qdd, 1e-6) << endl;
+
+}
+
 
 
 /*!

@@ -16,7 +16,7 @@
 
 using namespace ori;
 using namespace spatial;
-
+#include <eigen3/Eigen/Dense>
 
 /*!
  * Class (containing state) for dynamics simulation of a floating-base system
@@ -33,6 +33,8 @@ public:
 
 
   DMat<T> invContactInertia(const int gc_index, const D6Mat<T>& force_directions);
+  double invContactInertia(const int gc_index, const Vec3<T>& force_ics_at_contact); 
+  double applyTestForce(const int gc_index, const Vec3<T>& force_ics_at_contact, FBModelStateDerivative<T> & dstate_out);
 
   /*!
    * Set the state of the robot being simulated
@@ -42,6 +44,7 @@ public:
     _articulatedBodiesUpToDate = false;
     _kinematicsUpToDate = false;
     _forcePropagatorsUpToDate = false;
+    _qddEffectsUpToDate = false;
   }
 
   /*!
@@ -110,6 +113,8 @@ private:
   void updateCollisions(T dt); //! Update ground collision list
   void updateArticulatedBodies();
   void updateForcePropagators();
+  void udpateQddEffects();
+
 
   FBModelState<T> _state;
   FBModelStateDerivative<T> _dstate;
@@ -117,7 +122,11 @@ private:
   // aba stuff
   vectorAligned<SVec<T> > _v, _vrot, _a, _c, _crot, _U, _Urot, _Utot, _S, _Srot, _pA, _pArot;
 
+
   vector<T> _d, _u;
+  DMat<T> _qdd_from_base_accel;
+  DMat<T> _qdd_from_subqdd;
+  Eigen::ColPivHouseholderQR<Mat6<T> > _invIA5;
 
   FloatingBaseModel<T>& _model;
   size_t _nb, _nGC;
@@ -125,6 +134,7 @@ private:
   bool  _articulatedBodiesUpToDate = false;
   bool  _kinematicsUpToDate = false;
   bool  _forcePropagatorsUpToDate = false;
+  bool  _qddEffectsUpToDate = false;
 
   vectorAligned<SVec<T>> _externalForces;
   vector<CollisionPlane<T>> _collisionPlanes;
