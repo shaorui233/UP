@@ -277,32 +277,13 @@ TEST(Dynamics, simulatorTestForceCheetah3) {
 
   double LambdaInv2 = sim.invContactInertia(15, zforce);
 
-
-
-  //cout << "From H^{-1} J^T" << endl << dBodyVelocity.transpose() << endl;
-  cout << "Diff1" << endl << dBodyVelocity.transpose()- dx.dBodyVelocity.transpose() << endl;
-
-  //cout << "From H^{-1} J^T" << endl << qdd.transpose() << endl;
-  cout << "Diff2" << endl << (dx.qdd.transpose() -qdd.transpose()).norm()  << endl;
-
-  //cout << "Equal? " << almostEqual(qdd, dx.qdd, 1e-6) << endl;
-
-  cout << "Diff 3 " << abs(foot_accel_2- foot_accel_in_z ) << endl;
-
-
-  cout << "Diff 4 " << abs(LambdaInv2- foot_accel_in_z ) << endl;
-
-
-
   EXPECT_TRUE(almostEqual(dBodyVelocity, dx.dBodyVelocity, .001));
   EXPECT_TRUE(almostEqual(qdd, dx.qdd, 1e-6));
   EXPECT_TRUE(abs(foot_accel_2- foot_accel_in_z) < .001);
   EXPECT_TRUE(abs(LambdaInv2 - foot_accel_in_z) < .001);
 
   qdd(0)+=5;
-  cout << "Diff After Perturb" << endl << (dx.qdd.transpose() -qdd.transpose()).norm()  << endl;
-  cout << "Equal? " << almostEqual(qdd, dx.qdd, 1e-6) << endl;
-
+  EXPECT_FALSE(almostEqual(qdd, dx.qdd, 1e-6));
 }
 
 
@@ -368,7 +349,7 @@ TEST( Dynamics, inverseDynamicsNoContacts ) {
   SVec<double> fReturn = genForce.head(6);
 
   EXPECT_TRUE(almostEqual(zero6x1, fReturn , .03));
-  EXPECT_TRUE(almostEqual(tauref, tauReturn,  .0001));
+  EXPECT_TRUE(almostEqual(tauref, tauReturn,  .01));
   EXPECT_TRUE(almostEqual(component_ID_result, genForce, .0001));
 }
 

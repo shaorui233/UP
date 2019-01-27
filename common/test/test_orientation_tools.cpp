@@ -30,6 +30,23 @@ TEST(Orientation, almostEqual) {
   b << 1,2,3,4,5,6,7,8,9.1;
   EXPECT_EQ(true, almostEqual(a,b,.3));
   EXPECT_EQ(false, almostEqual(a,b,.01));
+
+  DVec<double> qdd(4);
+  qdd << 1,2,3,4;
+
+  DVec<double> qdd2 = qdd;
+
+  EXPECT_TRUE(almostEqual(qdd, qdd2, 1e-6));
+  qdd2(1) += .2;
+  EXPECT_FALSE(almostEqual(qdd,qdd2, 1e-6));
+
+  DMat<double> testDynamicMat(3,3);
+  DMat<double> testDynamicMat2(3,3);
+  testDynamicMat << 1,2,3,4,5,6,7,8,9.2;
+  testDynamicMat2 << 1,2,3,4,5,6,7,8,9.1;
+  EXPECT_EQ(true, almostEqual(testDynamicMat,testDynamicMat2,.3));
+  EXPECT_EQ(false, almostEqual(testDynamicMat,testDynamicMat2,.01));
+
 }
 
 /*!
