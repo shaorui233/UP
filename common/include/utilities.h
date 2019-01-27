@@ -100,6 +100,7 @@ T generator_gaussian_noise(T mean, T var){
     rand1 = -2*log(rand1);
     rand2 = rand() / ((T ) RAND_MAX) * M_PI * 2.;
 
+    //printf("rand: %f, %f\n", rand1, rand2);
     return mean + sqrt(var*rand1)*cos(rand2);
 }
 

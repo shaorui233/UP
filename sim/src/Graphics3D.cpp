@@ -345,10 +345,14 @@ void Graphics3D::_Additional_Drawing(){
 void Graphics3D::_DrawContactForce(){
     glLineWidth(2.0);
     double scale(0.02);
-   
+
+	glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
     for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
         glBegin(GL_LINES);
-        glColor3f(0.8f, 0.0f, 0.0f);
+        glColor4f(0.8f, 0.0f, 0.f, 0.5f);
 
         glVertex3f(_drawList.getGCPos(i)[0], 
                 _drawList.getGCPos(i)[1], 
@@ -360,13 +364,20 @@ void Graphics3D::_DrawContactForce(){
 
         glEnd();
     }
+    glPopAttrib();
+    glDisable(GL_BLEND);
 }
 
 void Graphics3D::_DrawContactPoint(){
     glPointSize(5);
+
+	glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
     for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
         glBegin(GL_POINTS);
-        glColor3f(0.8f, 0.0f, 0.0f);
+        glColor4f(0.8f, 0.0f, 0.1f, 0.3f);
 
         glVertex3f(_drawList.getGCPos(i)[0], 
                 _drawList.getGCPos(i)[1], 
@@ -374,4 +385,6 @@ void Graphics3D::_DrawContactPoint(){
 
         glEnd();
     }
+    glPopAttrib();
+    glDisable(GL_BLEND);
 }
