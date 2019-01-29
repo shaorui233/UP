@@ -46,7 +46,8 @@ int main(int argc, char *argv[]) {
   window->resize(1280, 720);  // set window size
 
   SimControlPanel panel;
-  panel.show();
+  // DH: For TEST
+  //panel.show();
 
 
 
@@ -69,12 +70,12 @@ void simulatorDemo() {
   Simulation sim(RobotType::MINI_CHEETAH, window);
 
   // Create a V-shaped floor with two planes at +/- 25 degrees
-  SXform<double> floorLocation1 = createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(25.)), Vec3<double>(0,0,-.5));
-  SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(20.)), Vec3<double>(0,0,-.5));
+  SXform<double> floorLocation1 = createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(0.)), Vec3<double>(0,0,-.5));
+  //SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(20.)), Vec3<double>(0,0,-.5));
 
   // add planes to simulator
   sim.addCollisionPlane(floorLocation1,  0.8, 5e5, 5e3);
-  sim.addCollisionPlane(floorLocation2,  0.8, 5e5, 5e3);
+  //sim.addCollisionPlane(floorLocation2,  0.8, 5e5, 5e3);
 
   // turn on graphics
   window->setAnimating(true);
@@ -82,6 +83,6 @@ void simulatorDemo() {
 
 
   // run the simulator with a 10 kHz timestep
-  sim.runAtSpeed(.0001, .0002, .001, 1);
+  sim.runAtSpeed(.0001, .0002, .001, 1.);
 }
 
