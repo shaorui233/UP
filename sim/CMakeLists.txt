@@ -23,7 +23,8 @@ find_package(Qt5Gui CONFIG REQUIRED)
 
 set(QOBJECT_HEADERS
         include/Graphics3D.h
-        include/GameController.h)
+        include/GameController.h
+        include/SimControlPanel.h)
 #        include/main_window.h
 #        include/gamepad_monitor.h
 #        include/spi_debug.h)
@@ -36,6 +37,7 @@ include_directories("include/")
 include_directories("../common/include/")
 include_directories("../third-party/include")
 include_directories("../lcm-types")
+include_directories("../build/sim/sim_autogen/include/")
 file(GLOB sources "src/*.cpp" "src/rt/*.c" "../lcm-types/c_lcm_files/*.c" "../lcm-types/c_lcm_files/*.h")
 
 find_package(Qt5Core COMPONENTS QtGamepad REQUIRED)

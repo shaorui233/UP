@@ -13,6 +13,7 @@
 #include "DrawList.h"
 #include "MiniCheetah.h"
 #include "Simulation.h"
+#include "SimControlPanel.h"
 
 
 #include <QApplication>
@@ -43,6 +44,9 @@ int main(int argc, char *argv[]) {
   window = new Graphics3D();
   window->show(); // make window visible
   window->resize(1280, 720);  // set window size
+
+  SimControlPanel panel;
+  panel.show();
 
 
 
