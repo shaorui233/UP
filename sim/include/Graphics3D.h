@@ -56,6 +56,7 @@ public:
     return _driverCommand;
   }
 
+  bool IsPaused(){ return _pause; }
 protected:
   void initializeGL() override;
   //void resizeGL(int w, int h) override;
@@ -126,6 +127,7 @@ private:
   float _targetSpeed = 2;
 
 
+  bool _pause = false;
 };
 
 #endif //PROJECT_GRAPHICS3D_H

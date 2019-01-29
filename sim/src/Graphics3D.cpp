@@ -188,6 +188,12 @@ void Graphics3D::keyPressEvent(QKeyEvent *e) {
 
   if (e->key() == Qt::Key_Right) _arrowsPressed[2] = true;
   else if (e->key() == Qt::Key_Left) _arrowsPressed[3] = true;
+  
+  if (e->key() == Qt::Key_V) {
+      if(_pause) _pause = false;
+      else _pause = true;
+  }
+
 
   if (e->key() == Qt::Key_Tab){
     _freeCamPos[0] = 0.f;

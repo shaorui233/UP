@@ -308,8 +308,10 @@ void Simulation::runAtSpeed(double dt, double dtLowLevelControl,
     frameTimer.start();
     int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);
 
-    for(int i = 0; i < nStepsPerFrame; i++) {
-      step(dt, dtLowLevelControl, dtHighLevelControl);
+    if(!_window->IsPaused()){
+        for(int i = 0; i < nStepsPerFrame; i++) {
+            step(dt, dtLowLevelControl, dtHighLevelControl);
+        }
     }
 
     double realElapsedTime = tim.getSeconds();
