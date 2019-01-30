@@ -91,13 +91,13 @@ void simulatorDemo() {
   ori_zyx[0] = 0.3;
   ori_zyx[1] = 0.4;
   EulerZYX_2_SO3(ori_zyx, ori);
-  sim.addCollisionBox(0.8, 0., 1.5, 0.7, 0.03, pos, ori);
+  sim.addCollisionBox(0.8, 0., 1.5, 0.7, 0.05, pos, ori);
 
   // Box 2
   pos[0] = 0.3; pos[1] = 0.05;  pos[2] = -0.30;
   ori_zyx[0] = 0.4; ori_zyx[1] = 0.;  ori_zyx[2] = 0.4;
   EulerZYX_2_SO3(ori_zyx, ori);
-  sim.addCollisionBox(0.8, 0., 0.7, 0.7, 0.03, pos, ori);
+  sim.addCollisionBox(0.8, 0., 0.7, 0.7, 0.05, pos, ori);
 
 
   // turn on graphics

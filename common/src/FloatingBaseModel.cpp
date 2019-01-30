@@ -257,6 +257,8 @@ void FloatingBaseModel<T>::resizeSystemMatricies() {
   }
   _qdd_from_subqdd.resize(_nDof-6,_nDof-6);
   _qdd_from_base_accel.resize(_nDof -6,6);
+  _state.q = DVec<T>::Zero(_nDof - 6);
+  _state.qd = DVec<T>::Zero(_nDof - 6);
 }
 
 /*!
@@ -825,6 +827,160 @@ void FloatingBaseModel<T>::runABA(const DVec<T> &tau, FBModelStateDerivative<T> 
     dstate.dBodyPosition = Rup.transpose() * _state.bodyVelocity.template block<3,1>(3,0);
     dstate.dBodyVelocity = afb;
     // qdd is set in the for loop above
+}
+
+
+/*!
+ * Apply a unit test force at a contact. Returns the inv contact inertia  in that direction
+ * and computes the resultant qdd
+ * @param gc_index index of the contact
+ * @param force_ics_at_contact unit test forcoe
+ * @params dstate - Output paramter of resulting accelerations
+ * @return the 1x1 inverse contact inertia J H^{-1} J^T
+ */
+template <typename T>
+T FloatingBaseModel<T>:: applyTestForce(const int gc_index, 
+        const Vec3<T>& force_ics_at_contact, FBModelStateDerivative<T> & dstate_out)
+{
+    forwardKinematics();
+    updateArticulatedBodies();
+    updateForcePropagators();
+    udpateQddEffects();
+
+
+    size_t i_opsp = _gcParent.at(gc_index);
+    size_t i = i_opsp;
+
+    dstate_out.qdd.setZero();
+
+
+    // Rotation to absolute coords
+    Mat3<T> Rai = _Xa[i].template block<3,3>(0,0).transpose();
+    Mat6<T> Xc = createSXform(Rai, _gcLocation.at(gc_index));
+
+    // D is one column of an extended force propagator matrix (See Wensing, 2012 ICRA)
+    SVec<T> F = Xc.transpose().template rightCols<3>() * force_ics_at_contact;
+
+    double LambdaInv = 0; 
+    double tmp = 0;
+
+    // from tips to base
+    while (i > 5) {
+        tmp = F.dot(_S[i]);
+        LambdaInv += tmp*tmp/_d[i];
+        dstate_out.qdd+= _qdd_from_subqdd.col(i-6) * tmp / _d[i];
+
+        // Apply force propagator (see Pat's ICRA 2012 paper)
+        // essentially, since the joint is articulated, only a portion of the force
+        // is felt on the predecessor. So, while Xup^T sends a force backwards as if 
+        // the joint was locked, ChiUp^T sends the force backward as if the joint
+        // were free
+        F = _ChiUp[i].transpose()*F;
+        i = _parents[i];
+    }
+
+    // TODO: Only carry out the QR once within update Aritculated Bodies
+    dstate_out.dBodyVelocity = _invIA5.solve(F);
+    LambdaInv+= F.dot(dstate_out.dBodyVelocity);
+    dstate_out.qdd+=_qdd_from_base_accel*dstate_out.dBodyVelocity;
+
+    return LambdaInv;  
+}
+
+/*!
+ * Compute the inverse of the contact inertia matrix (mxm) 
+ * @param force_ics_at_contact (3x1) 
+ *        e.g. if you want the cartesian inv. contact inertia in the z_ics
+ *             force_ics_at_contact = [0 0 1]^T
+ * @return the 1x1 inverse contact inertia J H^{-1} J^T
+ */
+template <typename T>
+T FloatingBaseModel<T>:: invContactInertia(const int gc_index, const Vec3<T>& force_ics_at_contact) {
+    forwardKinematics();
+    updateArticulatedBodies();
+    updateForcePropagators();
+
+    size_t i_opsp = _gcParent.at(gc_index);
+    size_t i = i_opsp;
+
+    // Rotation to absolute coords
+    Mat3<T> Rai = _Xa[i].template block<3,3>(0,0).transpose();
+    Mat6<T> Xc = createSXform(Rai, _gcLocation.at(gc_index));
+
+    // D is one column of an extended force propagator matrix (See Wensing, 2012 ICRA)
+    SVec<T> F = Xc.transpose().template rightCols<3>() * force_ics_at_contact;
+
+    double LambdaInv = 0; 
+    double tmp = 0;
+
+    // from tips to base
+    while (i > 5) {
+        tmp = F.dot(_S[i]);
+        LambdaInv += tmp*tmp/_d[i];
+
+        // Apply force propagator (see Pat's ICRA 2012 paper)
+        // essentially, since the joint is articulated, only a portion of the force
+        // is felt on the predecessor. So, while Xup^T sends a force backwards as if 
+        // the joint was locked, ChiUp^T sends the force backward as if the joint
+        // were free
+        F = _ChiUp[i].transpose()*F;
+        i = _parents[i];
+    }
+    LambdaInv+= F.dot(_invIA5.solve(F));
+    return LambdaInv;  
+}
+
+
+/*!
+ * Compute the inverse of the contact inertia matrix (mxm) 
+ * @param force_directions (6xm) each column denotes a direction of interest 
+ *        col = [ moment in i.c.s., force in i.c.s.]
+ *        e.g. if you want the cartesian inv. contact inertia 
+ *             force_directions = [ 0_{3x3} I_{3x3}]^T
+ *             if you only want the cartesian inv. contact inertia in one direction
+ *             then use the overloaded version.
+ * @return the mxm inverse contact inertia J H^{-1} J^T
+ */
+template <typename T>
+DMat<T>
+FloatingBaseModel<T>::invContactInertia(const int gc_index, const D6Mat<T>& force_directions) {
+    forwardKinematics();
+    updateArticulatedBodies();
+    updateForcePropagators();
+
+    size_t i_opsp = _gcParent.at(gc_index);
+    size_t i = i_opsp;
+
+    // Rotation to absolute coords
+    Mat3<T> Rai = _Xa[i].template block<3,3>(0,0).transpose();
+    Mat6<T> Xc = createSXform(Rai, _gcLocation.at(gc_index));
+
+    // D is a subslice of an extended force propagator matrix (See Wensing, 2012 ICRA)
+    D6Mat<T> D = Xc.transpose() * force_directions;
+
+    size_t m = force_directions.cols();
+
+    DMat<T> LambdaInv = DMat<T>::Zero(m,m); 
+    DVec<T> tmp = DVec<T>::Zero(m);
+
+    // from tips to base
+    while (i > 5) {
+        tmp = D.transpose()*_S[i];
+        LambdaInv += tmp*tmp.transpose()/_d[i];
+
+        // Apply force propagator (see Pat's ICRA 2012 paper)
+        // essentially, since the joint is articulated, only a portion of the force
+        // is felt on the predecessor. So, while Xup^T sends a force backwards as if 
+        // the joint was locked, ChiUp^T sends the force backward as if the joint
+        // were free
+        D = _ChiUp[i].transpose()*D;
+        i = _parents[i];
+    }
+
+    // TODO: Only carry out the QR once within update Aritculated Bodies
+    LambdaInv+= D.transpose()*_invIA5.solve(D);
+
+    return LambdaInv;
 }
 
 

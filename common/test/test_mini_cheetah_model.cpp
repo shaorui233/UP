@@ -284,6 +284,6 @@ TEST(MiniCheetah, simulatorFootPosVelMiniCheetah) {
 
   // I add the body points in a different order, so comparing them is kind of annoying.
   // this just one foot point.
-  EXPECT_TRUE(almostEqual(footpRefML, sim._pGC.at(15), .0005));
-  EXPECT_TRUE(almostEqual(footvRefML, sim._vGC.at(15), .0005));
+  EXPECT_TRUE(almostEqual(footpRefML, sim.getModel()._pGC.at(15), .0005));
+  EXPECT_TRUE(almostEqual(footvRefML, sim.getModel()._vGC.at(15), .0005));
 }

@@ -163,17 +163,35 @@ public:
     _compute_contact_info[gc_index] = flag;
   }
 
+  DMat<T> invContactInertia(const int gc_index, const D6Mat<T>& force_directions);
+  T invContactInertia(const int gc_index, const Vec3<T>& force_ics_at_contact); 
+
+  T applyTestForce(const int gc_index, const Vec3<T>& force_ics_at_contact, 
+          FBModelStateDerivative<T> & dstate_out);
+
+  T applyTestForce(const int gc_index, const Vec3<T>& force_ics_at_contact, 
+          DVec<T> & dstate_out);
+
 
   void addDynamicsVars(int count);
   
   void resizeSystemMatricies();
 
   void setState( FBModelState<T> & state) {
-    _state = state;
-    _kinematicsUpToDate = false;
-    _biasAccelerationsUpToDate = false;
-    _compositeInertiasUpToDate = false;
+      _state = state;
+
+      _biasAccelerationsUpToDate = false;
+      _compositeInertiasUpToDate = false;
+
+      resetCalculationFlags();
   }
+  void resetCalculationFlags() {
+      _articulatedBodiesUpToDate = false;
+      _kinematicsUpToDate = false;
+      _forcePropagatorsUpToDate = false;
+      _qddEffectsUpToDate = false;
+  }
+
 
   void forwardKinematics();
   void biasAccelerations();
@@ -185,7 +203,6 @@ public:
   DVec<T> coriolisForce();
   DMat<T> massMatrix();
   DVec<T> inverseDynamics(FBModelStateDerivative<T> & dState);
-  T applyTestForce( const int gc_index, const Vec3<T>& force_ics_at_contact, DVec<T> & dstate_out);
   void runABA(const DVec<T> &tau, FBModelStateDerivative<T> & dstate);
 
 
@@ -247,13 +264,6 @@ public:
     for(size_t i = 0; i < _nDof; i++) {
       _externalForces[i] = SVec<T>::Zero();
     }
-  }
-
-  void resetCalculationFlags() {
-    _articulatedBodiesUpToDate = false;
-    _kinematicsUpToDate = false;
-    _forcePropagatorsUpToDate = false;
-    _qddEffectsUpToDate = false;
   }
 
   bool  _articulatedBodiesUpToDate = false;

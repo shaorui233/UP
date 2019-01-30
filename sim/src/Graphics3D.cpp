@@ -369,7 +369,7 @@ void Graphics3D::_DrawBox(double depth, double width, double height)
     static float r, g, b;
     static int count(0);
     count++;
-    if(count < 4){ 
+    if(count < 6){ 
         r = rand()/(float)RAND_MAX;
         g = rand()/(float)RAND_MAX;
         b = rand()/(float)RAND_MAX;

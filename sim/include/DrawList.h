@@ -163,7 +163,8 @@ class DrawList {
             void updateRobotFromModel(DynamicsSimulator<T> &model, size_t id) {
                 for (size_t modelID = 5, graphicsID = id; 
                         modelID < model.getNumBodies(); modelID++, graphicsID++) {
-                    _kinematicXform.at(graphicsID) = spatialTransformToQT(model._Xa.at(modelID));
+                    _kinematicXform.at(graphicsID) = 
+                        spatialTransformToQT(model.getModel()._Xa.at(modelID));
                 }
             }
 
@@ -193,7 +194,7 @@ class DrawList {
                     // TODO: check touch boolean
                     _cp_touch[i] = true;
                     for(size_t j(0); j<3; ++j){
-                        _cp_pos[i][j] = model._pGC[i][j];
+                        _cp_pos[i][j] = model.getModel()._pGC[i][j];
                         _cp_force[i][j] = model.getContactForce(i)[j];
                     }
                 }
