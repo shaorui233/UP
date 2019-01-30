@@ -31,13 +31,13 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model) :_model(mod
  * @param tau : joint torques
  */
 template <typename T>
-void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
+void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau, T kp, T kd) {
     // fwd-kin on gc points
     // compute ground contact forces
     // aba
     // integrate
     forwardKinematics(); // compute forward kinematics
-    updateCollisions(dt);  // process collisions
+    updateCollisions(dt, kp, kd);  // process collisions
     runABA(tau);         // dynamics algorithm
     integrate(dt);       // step forward
     
@@ -47,9 +47,9 @@ void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau) {
 }
 
 template <typename T>
-void DynamicsSimulator<T>::updateCollisions(T dt) {
+void DynamicsSimulator<T>::updateCollisions(T dt, T kp, T kd) {
     _model.forwardKinematics(); 
-    _contact_constr->UpdateExternalForces(5e5, 5e3, dt);
+    _contact_constr->UpdateExternalForces(kp, kd, dt);
 }
 
 

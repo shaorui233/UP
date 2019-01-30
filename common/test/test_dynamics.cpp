@@ -377,7 +377,7 @@ TEST(Dynamics, simulatorDynamicsWithExternalForceCheetah3) {
   // do aba
   sim.setState(x);
   sim.setAllExternalForces(forces);
-  sim.step(0.0, tau);
+  sim.step(0.0, tau, 5e5, 5e3);
 
   // check:
   Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
@@ -438,7 +438,7 @@ TEST(Dynamics, simulatorFootPosVelCheetah3) {
   // fwd kin is included in this
   sim.setState(x);
   sim.setAllExternalForces(forces);
-  sim.step(0.0, tau);
+  sim.step(0.0, tau, 5e5, 5e3);
 
   Vec3<double> bodypRef1ML(6.25, 6.8271, 8.155);
   Vec3<double> footpRefML(5.1594, 7.3559, 7.674);

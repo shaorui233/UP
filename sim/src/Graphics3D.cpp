@@ -136,6 +136,7 @@ void Graphics3D::initializeGL() {
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
+  printf("done with initializeopengl\n");
 }
 
 /*-----------------------------------------*

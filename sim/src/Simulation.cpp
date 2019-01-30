@@ -7,6 +7,10 @@
 // if DISABLE_HIGH_LEVEL_CONTROL is defined, the simulator will run freely, without trying to connect to a robot
 //#define DISABLE_HIGH_LEVEL_CONTROL
 
+/*!
+ * Initialize the simulator here.  It is _not_ okay to block here waiting for the robot to connect.
+ * Use firstRun() instead!
+ */
 Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   printf("[Simulation] Build quadruped...\n");
   _robot = robot;
@@ -86,12 +90,6 @@ Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
     throw std::runtime_error("not all parameters initialized from ini file");
   }
 
-  // send all control parameters
-  printf("[Simulation] Send control parameters to robot...\n");
-  for(auto& kv : _robotParams.collection._map) {
-    sendControlParameter(kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
-  }
-
   // init IMU simulator
   printf("[Simulation] Setup IMU simulator...\n");
   _imuSimulator = new ImuSimulator<double>(_simParams);
@@ -138,6 +136,18 @@ void Simulation::sendControlParameter(const std::string &name, ControlParameterV
 }
 
 /*!
+ * Called before the simulator is run the first time.  It's okay to put stuff in here that blocks on having
+ * the robot connected.
+ */
+void Simulation::firstRun() {
+  // send all control parameters
+  printf("[Simulation] Send control parameters to robot...\n");
+  for(auto& kv : _robotParams.collection._map) {
+    sendControlParameter(kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
+  }
+}
+
+/*!
  * Take a single timestep of dt seconds
  */
 void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelControl) {
@@ -166,7 +176,7 @@ void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelCon
 
   // dynamics
   _currentSimTime += dt;
-  _simulator->step(dt, _tau);
+  _simulator->step(dt, _tau, _simParams.floor_kp, _simParams.floor_kd);
 }
 
 void Simulation::lowLevelControl() {
@@ -319,56 +329,88 @@ void Simulation::freeRun(double dt, double dtLowLevelControl, double dtHighLevel
  * @param dt
  */
 void Simulation::runAtSpeed(bool graphics) {
+  firstRun(); // load the control parameters
   assert(!_running);
   _running = true;
-  Timer tim;
-  Timer freeRunTimer;
   Timer frameTimer;
-  double lastFrameTime = 0;
+  Timer freeRunTimer;
+  u64 desiredSteps = 0;
+  u64 steps = 0;
 
-  double lastSimTime = _currentSimTime; // simulation time at last graphics update
 
-
-
+  double frameTime = 1./60.;
+  double lastSimTime = 0;
   double dt = _simParams.dynamics_dt;
   double dtLowLevelControl = _simParams.low_level_dt;
   double dtHighLevelControl = _simParams.high_level_dt;
   _desiredSimSpeed = _simParams.simulation_speed;
 
+  u64 nStepsPerFrame = (u64)(((1. / 60.) / dt) * _desiredSimSpeed);
+
   printf("[Simulator] Starting run loop (dt %f, dt-low-level %f, dt-high-level %f speed %f graphics %d)...\n",
          dt, dtLowLevelControl, dtHighLevelControl, _desiredSimSpeed, graphics);
 
+
   while(_running) {
     _desiredSimSpeed = _simParams.simulation_speed;
-    frameTimer.start();
-    int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);
-
-    if(!_window->IsPaused()){
-        for(int i = 0; i < nStepsPerFrame; i++) {
-            step(dt, dtLowLevelControl, dtHighLevelControl);
-        }
-    }
-
-    double realElapsedTime = tim.getSeconds();
-    if(graphics && _window) {
-      double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
-      lastSimTime = _currentSimTime;
-      tim.start();
-      sprintf(_window->infoString, "[Simulation Run %5.2fx]\n"
-                                   "real-time:  %8.3f\n"
-                                   "sim-time:   %8.3f\n"
-                                   "rate:       %8.3f\n"
-                                   "frame-time: %8.3f\n"
-                                   "cpu-pct:    %8.3f\n", _desiredSimSpeed, freeRunTimer.getSeconds(),
-                                   _currentSimTime, simRate, lastFrameTime * 1000., 100 * (lastFrameTime) / (1. / 60.));
-      updateGraphics();
-      double frameTime = frameTimer.getSeconds();
-      lastFrameTime = frameTime;
-      frameTimer.start();
-      double extraTime = (1. / 60.) - frameTime;
-      if(extraTime > 0) {
-        usleep((u32)(extraTime * 1000000));
+    if(!_window->IsPaused() && steps < desiredSteps) {
+      step(dt, dtLowLevelControl, dtHighLevelControl);
+      steps++;
+    } else {
+      double timeRemaining = frameTime - frameTimer.getSeconds();
+      if(timeRemaining >  0) {
+        usleep((u32)(timeRemaining * 1e6));
       }
     }
+    if(frameTimer.getSeconds() > frameTime) {
+      double realElapsedTime = frameTimer.getSeconds();
+      frameTimer.start();
+      if(graphics && _window) {
+        double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
+        lastSimTime = _currentSimTime;
+              sprintf(_window->infoString, "[Simulation Run %5.2fx]\n"
+                                   "real-time:  %8.3f\n"
+                                   "sim-time:   %8.3f\n"
+                                   "rate:       %8.3f\n", _desiredSimSpeed, freeRunTimer.getSeconds(),
+                                   _currentSimTime, simRate);
+        updateGraphics();
+      }
+      if(!_window->IsPaused())
+        desiredSteps += nStepsPerFrame;
+    }
   }
+
+//  while(_running) {
+//    _desiredSimSpeed = _simParams.simulation_speed;
+//    frameTimer.start();
+//    int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);
+//
+//    if(!_window->IsPaused()){
+//        for(int i = 0; i < nStepsPerFrame; i++) {
+//            step(dt, dtLowLevelControl, dtHighLevelControl);
+//        }
+//    }
+//
+//    double realElapsedTime = tim.getSeconds();
+//    if(graphics && _window) {
+//      double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
+//      lastSimTime = _currentSimTime;
+//      tim.start();
+//      sprintf(_window->infoString, "[Simulation Run %5.2fx]\n"
+//                                   "real-time:  %8.3f\n"
+//                                   "sim-time:   %8.3f\n"
+//                                   "rate:       %8.3f\n"
+//                                   "frame-time: %8.3f\n"
+//                                   "cpu-pct:    %8.3f\n", _desiredSimSpeed, freeRunTimer.getSeconds(),
+//                                   _currentSimTime, simRate, lastFrameTime * 1000., 100 * (lastFrameTime) / (1. / 60.));
+//      updateGraphics();
+//      double frameTime = frameTimer.getSeconds();
+//      lastFrameTime = frameTime;
+//      frameTimer.start();
+//      double extraTime = (1. / 60.) - frameTime;
+//      if(extraTime > 0) {
+//        usleep((u32)(extraTime * 1000000));
+//      }
+//    }
+//  }
 }

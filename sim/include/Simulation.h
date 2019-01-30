@@ -28,6 +28,7 @@
  */
 class Simulation {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   explicit Simulation(RobotType robot, Graphics3D* window);
 
   /*!
@@ -79,6 +80,15 @@ public:
     return _simulator->getState();
   }
 
+  void stop() {
+    _running = false;
+  }
+
+  SimulatorControlParameters& getParams() {
+    return _simParams;
+  }
+
+  void firstRun();
 
 private:
   std::mutex _robotMutex;

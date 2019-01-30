@@ -32,7 +32,9 @@ public:
           INIT_PARAMETER(simulation_paused),
           INIT_PARAMETER(high_level_dt),
           INIT_PARAMETER(low_level_dt),
-          INIT_PARAMETER(dynamics_dt)
+          INIT_PARAMETER(dynamics_dt),
+          INIT_PARAMETER(floor_kp),
+          INIT_PARAMETER(floor_kd)
   { }
 
 
@@ -49,6 +51,9 @@ public:
   DECLARE_PARAMETER(double, high_level_dt)
   DECLARE_PARAMETER(double, low_level_dt)
   DECLARE_PARAMETER(double, dynamics_dt)
+
+  DECLARE_PARAMETER(double, floor_kp)
+  DECLARE_PARAMETER(double, floor_kd)
 };
 
 #endif //PROJECT_SIMULATORPARAMETERS_H

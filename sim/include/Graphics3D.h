@@ -56,6 +56,10 @@ public:
     return _driverCommand;
   }
 
+  void resetGameController() {
+    _gameController.findNewController();
+  }
+
   bool IsPaused(){ return _pause; }
 protected:
   void initializeGL() override;
