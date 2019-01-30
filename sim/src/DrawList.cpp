@@ -232,4 +232,27 @@ void DrawList::buildDrawList() {
   _reloadNeeded = true;
 }
 
+void DrawList::addBox(double depth, double width, double height, 
+        const Vec3<double> & pos, const Mat3<double> & ori){
+    BoxInfo tmp;
+    tmp.depth = depth;
+    tmp.width = width;
+    tmp.height = height;
+
+    tmp.frame[3] = 0.; 
+    tmp.frame[7] = 0.; 
+    tmp.frame[11] = 0.; 
+    tmp.frame[15] = 1.; 
+
+    for(size_t i(0); i<3; ++i){
+        for(size_t j(0); j<3; ++j){
+            tmp.frame[4*i+j] = ori(j,i);
+        }
+    }
+    for(size_t i(0); i<3; ++i)    tmp.frame[12+i] = pos[i];
+
+    _box_list.push_back(tmp);
+}
+
+
 

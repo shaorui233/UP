@@ -238,22 +238,50 @@ void Simulation::highLevelControl() {
 
 /*!
  * Add an infinite collision plane to the simulator
- * @param plane : location of the plane
- * @param mu    : friction of the plane
- * @param K     : spring constant of plane
- * @param D     : damping constant of plane
+ * @param mu          : friction of the plane
+ * @param resti       : restitution coefficient
+ * @param height      : height of plane
  * @param addToWindow : if true, also adds graphics for the plane
  */
-void Simulation::addCollisionPlane(SXform<double>& plane, double mu, double K, double D, bool addToWindow) {
-  size_t simulatorID = _simulator->addCollisionPlane(plane, mu, K, D);
-  if(addToWindow && _window) {
-    Checkerboard checker(20,20,40,40);
-    _window->lockGfxMutex();
-    size_t graphicsID = _window->_drawList.addCheckerboard(checker);
-    _window->_drawList.buildDrawList();
-    _window->_drawList.updateCheckerboardFromCollisionPlane(_simulator->getCollisionPlane(simulatorID), graphicsID);
-    _window->unlockGfxMutex();
-  }
+void Simulation::addCollisionPlane(
+        double mu, double resti, double height, bool addToWindow){
+
+    _simulator->addCollisionPlane(mu, resti, height);
+    if(addToWindow && _window) {
+        _window->lockGfxMutex();
+        Checkerboard checker(20,20,40,40);
+
+        size_t graphicsID = _window->_drawList.addCheckerboard(checker);
+        _window->_drawList.buildDrawList();
+        _window->_drawList.updateCheckerboard(height, graphicsID);
+        _window->unlockGfxMutex();
+     }
+}
+
+
+/*!
+ * Add an box collision to the simulator
+ * @param mu          : location of the box
+ * @param resti       : restitution coefficient
+ * @param depth       : depth (x) of box
+ * @param width       : width (y) of box
+ * @param height      : height (z) of box 
+ * @param pos         : position of box
+ * @param ori         : orientation of box 
+ * @param addToWindow : if true, also adds graphics for the plane
+ */
+void Simulation::addCollisionBox(
+        double mu, double resti, 
+        double depth, double width, double height, 
+        const Vec3<double> & pos, const Mat3<double> & ori,
+        bool addToWindow){
+
+    _simulator->addCollisionBox(mu, resti, depth, width, height, pos, ori);
+    if(addToWindow && _window) {
+        _window->lockGfxMutex();
+        _window->_drawList.addBox(depth, width, height, pos, ori);
+        _window->unlockGfxMutex();
+     }
 }
 
 /*!

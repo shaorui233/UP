@@ -2,7 +2,8 @@
 #define PRINT_OUT_H
 
 #include "cppTypes.h"
-#include <vector>
+#include <string>
+#include <iostream>
 /*
  * print out 
  * */

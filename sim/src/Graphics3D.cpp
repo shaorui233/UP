@@ -321,8 +321,11 @@ void Graphics3D::paintGL() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
   _program->release();
+  /************     OpenGL Drawing (not in drawlist object data)     **********/
+  _BoxObstacleDrawing();
   // Useful information drawing
   _Additional_Drawing();
+  /********************     End of OpenGL Drawing     ********************/
   ++_frame;
   glDisable(GL_DEPTH_TEST);
   painter2.setPen(QColor(100,100,100,255));
@@ -334,6 +337,82 @@ void Graphics3D::paintGL() {
 
   painter2.end();
 }
+void Graphics3D::_BoxObstacleDrawing(){
+    glLoadMatrixf(_cameraMatrix.data());
+    glPushAttrib(GL_LIGHTING_BIT);
+    glDisable(GL_LIGHTING);
+
+    size_t nBox = _drawList.getBoxInfoList().size();
+    for(size_t i(0); i < nBox; ++i){
+        glPushMatrix();
+        glMultMatrixf(_drawList.getBoxInfoList()[i].frame);
+        _DrawBox(_drawList.getBoxInfoList()[i].depth, 
+                _drawList.getBoxInfoList()[i].width, 
+                _drawList.getBoxInfoList()[i].height);
+        glPopMatrix();
+    }
+    glEnable(GL_LIGHTING);
+    glPopAttrib();
+}
+
+void Graphics3D::_DrawBox(double depth, double width, double height)
+{
+    double x = depth/2.0;
+    double y = width/2.0;
+    double z = height/2.0;
+
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
+    static float r, g, b;
+    static int count(0);
+    count++;
+    if(count < 4){ 
+        r = rand()/(float)RAND_MAX;
+        g = rand()/(float)RAND_MAX;
+        b = rand()/(float)RAND_MAX;
+    printf("color: %f, %f, %f\n", r,g,b);
+    }
+    glColor4f(r, g, b, 0.7f);
+    glBegin(GL_QUADS);
+	{
+		glVertex3d( x,  y, -z);
+		glVertex3d(-x,  y, -z);
+		glVertex3d(-x,  y,  z);
+		glVertex3d( x,  y,  z);
+
+		glVertex3d( x, -y, -z);
+		glVertex3d( x,  y, -z);
+		glVertex3d( x,  y,  z);
+		glVertex3d( x, -y,  z);
+
+		glVertex3d( x, -y,  z);
+		glVertex3d(-x, -y,  z);
+		glVertex3d(-x, -y, -z);
+		glVertex3d( x, -y, -z);
+
+		glVertex3d(-x, -y,  z);
+		glVertex3d(-x,  y,  z);
+		glVertex3d(-x,  y, -z);
+		glVertex3d(-x, -y, -z);
+
+		glVertex3d(-x, -y, -z);
+		glVertex3d(-x,  y, -z);
+		glVertex3d( x,  y, -z);
+		glVertex3d( x, -y, -z);
+
+		glVertex3d(-x, -y,  z);
+		glVertex3d( x, -y,  z);
+		glVertex3d( x,  y,  z);
+		glVertex3d(-x,  y,  z);
+	} //GL_QUADS
+	glEnd();
+    glPopAttrib();
+    glDisable(GL_BLEND);
+}
+
 
 void Graphics3D::_Additional_Drawing(){
     glLoadMatrixf(_cameraMatrix.data());

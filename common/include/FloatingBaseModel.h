@@ -185,12 +185,16 @@ public:
   DVec<T> coriolisForce();
   DMat<T> massMatrix();
   DVec<T> inverseDynamics(FBModelStateDerivative<T> & dState);
+  T applyTestForce( const int gc_index, const Vec3<T>& force_ics_at_contact, DVec<T> & dstate_out);
+  void runABA(const DVec<T> &tau, FBModelStateDerivative<T> & dstate);
 
 
   size_t _nDof = 0;
   Vec3 <T> _gravity;
   vector<int> _parents;
   vector<T> _gearRatios;
+  vector<T> _d, _u;
+
   vector<JointType> _jointTypes;
   vector<CoordinateAxis> _jointAxes;
   vector<Mat6<T>, Eigen::aligned_allocator<Mat6<T>>> _Xtree, _Xrot;
@@ -212,10 +216,14 @@ public:
   /// BEGIN ALGORITHM SUPPORT VARIABLES
   FBModelState<T> _state;
 
-  vectorAligned< SVec<T> > _v, _vrot, _a, _arot, _avp,_avprot,  _c, _crot, _S, _Srot, _fvp, _fvprot, _ag, _agrot, _f, _frot;
-  vectorAligned< SpatialInertia<T> >  _IC ;
+  vectorAligned< SVec<T> > _v, _vrot, _a, _arot, _avp,_avprot,  _c, _crot, 
+      _S, _Srot, _fvp, _fvprot, _ag, _agrot, _f, _frot;
   
-  vectorAligned< Mat6<T> > _Xup, _Xa, _Xuprot;
+  vectorAligned<SVec<T> > _U, _Urot, _Utot, _pA, _pArot;
+  vectorAligned<SVec<T>> _externalForces;
+
+  vectorAligned< SpatialInertia<T> >  _IC ;
+  vectorAligned< Mat6<T> > _Xup, _Xa, _Xuprot, _IA, _ChiUp;
 
   DMat<T> _H, _C;
   DVec<T> _Cqd, _G;
@@ -231,6 +239,30 @@ public:
   bool  _biasAccelerationsUpToDate = false;
   bool  _compositeInertiasUpToDate = false;
 
+  void updateArticulatedBodies();
+  void updateForcePropagators();
+  void udpateQddEffects();
+
+  void resetExternalForces() {
+    for(size_t i = 0; i < _nDof; i++) {
+      _externalForces[i] = SVec<T>::Zero();
+    }
+  }
+
+  void resetCalculationFlags() {
+    _articulatedBodiesUpToDate = false;
+    _kinematicsUpToDate = false;
+    _forcePropagatorsUpToDate = false;
+    _qddEffectsUpToDate = false;
+  }
+
+  bool  _articulatedBodiesUpToDate = false;
+  bool  _forcePropagatorsUpToDate = false;
+  bool  _qddEffectsUpToDate = false;
+
+  DMat<T> _qdd_from_base_accel;
+  DMat<T> _qdd_from_subqdd;
+  Eigen::ColPivHouseholderQR<Mat6<T> > _invIA5;
 };
 
 

@@ -38,8 +38,15 @@ public:
   }
 
 
-  void addCollisionPlane(SXform<double>& plane, double mu, double K, double D, bool addToWindow = true);
   void step(double dt, double dtLowLevelControl, double dtHighLevelControl);
+
+  void addCollisionPlane(double mu, double resti, double height, bool addToWindow = true);
+  void addCollisionBox(
+          double mu, double resti, 
+          double depth, double width, double height, 
+          const Vec3<double> & pos, const Mat3<double> & ori,
+          bool addToWindow = true);
+
   void lowLevelControl();
   void highLevelControl();
 

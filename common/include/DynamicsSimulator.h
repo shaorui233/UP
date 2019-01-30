@@ -12,11 +12,14 @@
 #include "FloatingBaseModel.h"
 #include "spatial.h"
 #include "CollisionPlane.h"
-#include "collision_model.h"
+#include "CollisionBox.h"
+#include "ContactConstraint.h"
 
 using namespace ori;
 using namespace spatial;
 #include <eigen3/Eigen/Dense>
+
+
 
 /*!
  * Class (containing state) for dynamics simulation of a floating-base system
@@ -45,6 +48,8 @@ public:
     _kinematicsUpToDate = false;
     _forcePropagatorsUpToDate = false;
     _qddEffectsUpToDate = false;
+    // DH: Update Model state 
+    _model._state = state;
   }
 
   void resetCalculationFlags() {
@@ -89,21 +94,17 @@ public:
   }
 
   /*!
-   * Add a collision plane. Returns an index number which can be used to lookup the collision plane later on.
+   * Add a collision plane. 
    */
-  size_t addCollisionPlane(SXform<T>& location, T mu, T K, T D) {
-    size_t i0 = _collisionPlanes.size();
-    _collisionPlanes.emplace_back(location, _nGC, mu, K, D);
-    return i0;
+  void addCollisionPlane(T mu, T rest, T height) {
+    _contact_constr->AddCollision(new CollisionPlane<T>(mu, rest, height) );
   }
 
-  /*!
-   * Get the i-th collision plane
-   */
-  CollisionPlane<T>& getCollisionPlane(size_t i) {
-    return _collisionPlanes.at(i);
+  void addCollisionBox(T mu, T rest, T depth, T width, T height,
+          const Vec3<T> & pos, const Mat3<T> & ori) {
+    _contact_constr->AddCollision(
+            new CollisionBox<T>(mu, rest, depth, width, height, pos, ori) );
   }
-
 
   size_t getNumBodies() {
     return _nb;
@@ -115,6 +116,10 @@ public:
   vectorAligned<Mat6<T> > _Xup, _Xuprot, _IA, _Xa, _ChiUp;
 
   const size_t & getTotalNumGC(){ return _model._nGroundContact; }
+  const Vec3<T> & getContactForce(size_t idx){ 
+      return _contact_constr->getGCForce(idx); 
+  }
+
 private:
 
   void updateCollisions(T dt); //! Update ground collision list
@@ -145,6 +150,7 @@ private:
 
   vectorAligned<SVec<T>> _externalForces;
   vector<CollisionPlane<T>> _collisionPlanes;
+  ContactConstraint<T> * _contact_constr;
 };
 
 

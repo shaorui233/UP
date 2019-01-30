@@ -28,11 +28,13 @@ using namespace spatial;
  * @param D Ground damping
  * @param mu Ground friction
  * @param dt Timestep (used for deflection)
- * @param X The coordinate transformation to the ground plane (the ground plane is the xy-plane in its coordinates)
+ * @param X The coordinate transformation to the ground plane 
+ * (the ground plane is the xy-plane in its coordinates)
  */
 template <typename T>
 void groundContactModelWithOffset(vectorAligned<Vec3<T>>& _pGC, vectorAligned<Vec3<T>>& _vGC,
-                                  vectorAligned<Vec2<T>>& _deflections, vectorAligned<Vec3<T>>& _forces, T K, T D, T mu, T dt, Mat6<T>& X) {
+                                  vectorAligned<Vec2<T>>& _deflections, 
+                                  vectorAligned<Vec3<T>>& _forces, T K, T D, T mu, T dt, Mat6<T>& X) {
 
   Mat3<T> R = rotationFromSXform(X); // rotation to ground plane
   size_t nPt = _pGC.size();          // number of ground contact points

@@ -155,4 +155,29 @@ void writeStringToFile(const std::string& fileName, const std::string& fileData)
 std::string getCurrentTimeAndDate();
 std::string getConfigDirectoryPath();
 
+
+/*!
+ * Get the rotation matrix coincide with euler angle
+ * Intrisic ZYX rotation 
+ */
+template <typename T> 
+void EulerZYX_2_SO3(const Vec3<T> & euler_zyx, Mat3<T> & SO3 ){
+    Mat3<T> Mat3_Z, Mat3_Y, Mat3_X;
+    Mat3_Z << 
+        cos(euler_zyx[0]), -sin(euler_zyx[0]), 0,
+        sin(euler_zyx[0]), cos(euler_zyx[0]), 0,
+        0, 0, 1;
+    Mat3_Y << 
+        cos(euler_zyx[1]), 0, sin(euler_zyx[1]),
+        0, 1, 0,
+        -sin(euler_zyx[1]), 0, cos(euler_zyx[1]);
+    Mat3_X << 
+        1, 0, 0,
+        0, cos(euler_zyx[2]), -sin(euler_zyx[2]),
+        0, sin(euler_zyx[2]), cos(euler_zyx[2]);
+
+    SO3 = Mat3_Z * Mat3_Y * Mat3_X;
+}
+
+
 #endif //PROJECT_UTILITIES_H
