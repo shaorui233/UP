@@ -24,6 +24,9 @@
 
 #define CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH 64
 
+#define INIT_PARAMETER(name) param_##name(#name, name, collection)
+#define DECLARE_PARAMETER(type, name) type name; ControlParameter param_##name;
+
 enum class ControlParameterValueKind : u64 {
   FLOAT = 0,
   DOUBLE = 1,

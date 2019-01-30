@@ -5,7 +5,7 @@
 #include <include/GameController.h>
 
 // if DISABLE_HIGH_LEVEL_CONTROL is defined, the simulator will run freely, without trying to connect to a robot
-#define DISABLE_HIGH_LEVEL_CONTROL
+//#define DISABLE_HIGH_LEVEL_CONTROL
 
 Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   printf("[Simulation] Build quadruped...\n");
@@ -89,7 +89,6 @@ Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   // send all control parameters
   printf("[Simulation] Send control parameters to robot...\n");
   for(auto& kv : _robotParams.collection._map) {
-    printf("send %s\n", kv.first.c_str());
     sendControlParameter(kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
   }
 
@@ -107,6 +106,7 @@ void Simulation::sendControlParameter(const std::string &name, ControlParameterV
 #ifndef DISABLE_HIGH_LEVEL_CONTROL
   ControlParameterRequest& request = _sharedMemory().simToRobot.controlParameterRequest;
   ControlParameterResponse& response = _sharedMemory().robotToSim.controlParameterResponse;
+  (void)response;
 
   // first check no pending message
   assert(request.requestNumber == response.requestNumber);
@@ -318,11 +318,9 @@ void Simulation::freeRun(double dt, double dtLowLevelControl, double dtHighLevel
  * Runs simulation at the desired speed
  * @param dt
  */
-void Simulation::runAtSpeed(double dt, double dtLowLevelControl, 
-        double dtHighLevelControl, double x, bool graphics) {
+void Simulation::runAtSpeed(bool graphics) {
   assert(!_running);
   _running = true;
-  _desiredSimSpeed = x;
   Timer tim;
   Timer freeRunTimer;
   Timer frameTimer;
@@ -330,9 +328,18 @@ void Simulation::runAtSpeed(double dt, double dtLowLevelControl,
 
   double lastSimTime = _currentSimTime; // simulation time at last graphics update
 
+
+
+  double dt = _simParams.dynamics_dt;
+  double dtLowLevelControl = _simParams.low_level_dt;
+  double dtHighLevelControl = _simParams.high_level_dt;
+  _desiredSimSpeed = _simParams.simulation_speed;
+
   printf("[Simulator] Starting run loop (dt %f, dt-low-level %f, dt-high-level %f speed %f graphics %d)...\n",
-          dt, dtLowLevelControl, dtHighLevelControl, x, graphics);
+         dt, dtLowLevelControl, dtHighLevelControl, _desiredSimSpeed, graphics);
+
   while(_running) {
+    _desiredSimSpeed = _simParams.simulation_speed;
     frameTimer.start();
     int nStepsPerFrame = (int)(((1. / 60.) / dt) * _desiredSimSpeed);
 

@@ -15,19 +15,18 @@ public:
 
   RobotControlParameters() :
           ControlParameters("robot-parameters"),
-          myValueParam("myValue", myValue, collection),
-          testValueParam("testValue", testValue, collection)
+          INIT_PARAMETER(myValue),
+          INIT_PARAMETER(testValue),
+          INIT_PARAMETER(controller_dt)
   {
 
   }
 
 
 
-  double myValue;
-  ControlParameter myValueParam;
-
-  double testValue;
-  ControlParameter testValueParam;
+  DECLARE_PARAMETER(double, myValue)
+  DECLARE_PARAMETER(double, testValue)
+  DECLARE_PARAMETER(double, controller_dt)
 };
 
 #endif //PROJECT_ROBOTPARAMETERS_H

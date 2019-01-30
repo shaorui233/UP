@@ -14,44 +14,41 @@
 #define SIMULATOR_DEFAULT_PARAMETERS "/simulator-defaults.ini"
 #define MINI_CHEETAH_DEFAULT_PARAMETERS "/mini-cheetah-defaults.ini"
 
+
+
+
 class SimulatorControlParameters : public ControlParameters {
 public:
 
   SimulatorControlParameters() :
           ControlParameters("simulator-parameters"),
-          kvh_imu_accelerometer_noise_param("kvh_imu_accelerometer_noise", kvh_imu_accelerometer_noise, collection),
-          kvh_imu_gyro_noise_param("kvh_imu_gyro_noise", kvh_imu_gyro_noise, collection),
-          vectornav_imu_accelerometer_noise_param("vectornav_imu_accelerometer_noise", vectornav_imu_accelerometer_noise, collection),
-          vectornav_imu_gyro_noise_param("vectornav_imu_gyro_noise", vectornav_imu_gyro_noise, collection),
-          vectornav_imu_quat_noise_param("vectornav_imu_quat_noise", vectornav_imu_quat_noise, collection),
-          game_controller_deadband_param("game_controller_deadband", game_controller_deadband, collection)
+          INIT_PARAMETER(kvh_imu_accelerometer_noise),
+          INIT_PARAMETER(kvh_imu_gyro_noise),
+          INIT_PARAMETER(vectornav_imu_accelerometer_noise),
+          INIT_PARAMETER(vectornav_imu_gyro_noise),
+          INIT_PARAMETER(vectornav_imu_quat_noise),
+          INIT_PARAMETER(game_controller_deadband),
+          INIT_PARAMETER(simulation_speed),
+          INIT_PARAMETER(simulation_paused),
+          INIT_PARAMETER(high_level_dt),
+          INIT_PARAMETER(low_level_dt),
+          INIT_PARAMETER(dynamics_dt)
+  { }
 
-  {
 
-  }
+  DECLARE_PARAMETER(float, kvh_imu_accelerometer_noise)
+  DECLARE_PARAMETER(float, kvh_imu_gyro_noise)
+  DECLARE_PARAMETER(float, vectornav_imu_accelerometer_noise)
+  DECLARE_PARAMETER(float, vectornav_imu_gyro_noise)
+  DECLARE_PARAMETER(float, vectornav_imu_quat_noise)
 
+  DECLARE_PARAMETER(float, game_controller_deadband)
 
-
-
-
-  float kvh_imu_accelerometer_noise;
-  ControlParameter kvh_imu_accelerometer_noise_param;
-
-  float kvh_imu_gyro_noise;
-  ControlParameter kvh_imu_gyro_noise_param;
-
-  float vectornav_imu_accelerometer_noise;
-  ControlParameter vectornav_imu_accelerometer_noise_param;
-
-  float vectornav_imu_gyro_noise;
-  ControlParameter vectornav_imu_gyro_noise_param;
-
-  float vectornav_imu_quat_noise;
-  ControlParameter vectornav_imu_quat_noise_param;
-
-  float game_controller_deadband;
-  ControlParameter game_controller_deadband_param;
-
+  DECLARE_PARAMETER(double, simulation_speed)
+  DECLARE_PARAMETER(s64, simulation_paused)
+  DECLARE_PARAMETER(double, high_level_dt)
+  DECLARE_PARAMETER(double, low_level_dt)
+  DECLARE_PARAMETER(double, dynamics_dt)
 };
 
 #endif //PROJECT_SIMULATORPARAMETERS_H

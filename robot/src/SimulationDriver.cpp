@@ -6,13 +6,6 @@
 #include "SimulationDriver.h"
 #include "LegController.h"
 
-//if(_robotParams.isFullyInitialized()) {
-//printf("\tAll %ld control parameters are initialized\n", _robotParams.collection._map.size());
-//_simMode = SimulatorMode::RUN_CONTROLLER;
-//} else {
-//printf("\tbut not all control parameters were initialized. Missing:\n%s\n", _robotParams.generateUnitializedList().c_str());
-//throw std::runtime_error("not all parameters initialized when going into RUN_CONTROLLER");
-//}
 
 void SimulationDriver::run() {
   // init shared memory:
@@ -22,7 +15,6 @@ void SimulationDriver::run() {
 
   printf("[Simulation Driver] Starting main loop...\n");
   bool firstRun = true;
-  ;
   for(;;) {
     // wait for our turn to access the shared memory
     // on the first loop, this gives the simulator a chance to put stuff in shared memory before we start

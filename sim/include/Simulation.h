@@ -60,7 +60,7 @@ public:
   }
 
   void freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics = true);
-  void runAtSpeed(double dt, double dtLowLevelControl, double dtHighLevelControl, double x, bool graphics = true);
+  void runAtSpeed(bool graphics = true);
   void sendControlParameter(const std::string& name, ControlParameterValue value, ControlParameterValueKind kind);
 
   void resetSimTime() {
