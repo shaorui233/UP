@@ -16,7 +16,7 @@ bool CollisionBox<T>::ContactDetection(
     //std::cout<<"pos: "<<_position<<std::endl;
     //std::cout<<"ori: "<<_orientation<<std::endl;
     bool inside_box(true);
-    T err[3];
+    T err[3] = {0};
     for(size_t i(0); i<3; ++i){
         // Outside to the positive direction
         if(center2cp_local[i] >  _size[i]/2.) { inside_box = false; }
