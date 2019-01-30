@@ -69,16 +69,7 @@ void simulatorDemo() {
   // simulation of the mini cheetah
   Simulation sim(RobotType::MINI_CHEETAH, window);
 
-  // Create a V-shaped floor with two planes at +/- 25 degrees
-  //SXform<double> floorLocation1 = 
-      //createSXform(coordinateRotation(CoordinateAxis::Y, deg2rad(0.)), Vec3<double>(0,0,-.5));
-  //SXform<double> floorLocation2 = createSXform(coordinateRotation(CoordinateAxis::Y, -deg2rad(20.)), Vec3<double>(0,0,-.5));
-
-  // add planes to simulator
-  //sim.addCollisionPlane(floorLocation1,  0.8, 5e5, 5e3);
-  //sim.addCollisionPlane(floorLocation2,  0.8, 5e5, 5e3);
-
-  // add Collision to simulator
+  // add Collision Plane to simulator
   sim.addCollisionPlane(0.8, 0., -0.5);
 
   // Box 1
@@ -91,21 +82,23 @@ void simulatorDemo() {
   ori_zyx[0] = 0.3;
   ori_zyx[1] = 0.4;
   EulerZYX_2_SO3(ori_zyx, ori);
-  sim.addCollisionBox(0.8, 0., 1.5, 0.7, 0.05, pos, ori);
+  sim.addCollisionBox(0.8, 0., 1.5, 0.7, 0.07, pos, ori);
 
   // Box 2
   pos[0] = 0.3; pos[1] = 0.05;  pos[2] = -0.30;
   ori_zyx[0] = 0.4; ori_zyx[1] = 0.;  ori_zyx[2] = 0.4;
   EulerZYX_2_SO3(ori_zyx, ori);
-  sim.addCollisionBox(0.8, 0., 0.7, 0.7, 0.05, pos, ori);
+  sim.addCollisionBox(0.8, 0., 0.7, 0.7, 0.27, pos, ori);
 
 
   // turn on graphics
   window->setAnimating(true);
 
 
-
   // run the simulator with a 10 kHz timestep
-  sim.runAtSpeed(.0001, .0002, .001, 0.5);
+  //sim.runAtSpeed(.0001, .0002, .001, 1.);
+  
+  // run the simulator with a 1 kHz timestep
+  sim.runAtSpeed(.001, .002, .001, 0.5);
 }
 

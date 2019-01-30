@@ -93,8 +93,11 @@ TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
   DynamicsSimulator<double> sim(cheetahModel);
 
-  RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
-                         coordinateRotation(CoordinateAxis::Y, .111);
+  RotMat<double> rBody = 
+      coordinateRotation(CoordinateAxis::X, .123) * 
+      coordinateRotation(CoordinateAxis::Z, .232) *
+      coordinateRotation(CoordinateAxis::Y, .111);
+
   SVec<double> bodyVel;
   bodyVel << 1, 2, 3, 4, 5, 6;
   FBModelState<double> x;

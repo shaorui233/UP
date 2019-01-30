@@ -8,7 +8,6 @@
 #define COLLISION_H
 
 #include "cppTypes.h"
-#include <vector>
 
 /*!
  * Abstract Collision Class

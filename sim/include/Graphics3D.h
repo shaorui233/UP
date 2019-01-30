@@ -33,7 +33,7 @@ class Graphics3D: public QOpenGLWidget, protected QOpenGLFunctions {
 Q_OBJECT
 public:
   explicit Graphics3D(QWidget* parent = 0);
-  virtual ~Graphics3D() { }
+  virtual ~Graphics3D();
 
   void setAnimating(bool animating);
   size_t setupCheetah3();
@@ -73,6 +73,10 @@ protected:
   void keyReleaseEvent(QKeyEvent *e) override;
   void keyPressEvent(QKeyEvent *event) override;
 
+  float _color1[3] = {0.364784, 0.513401, 0.952230};
+  float _color2[3] = {0.553970, 0.477397, 0.628871};
+  float _color3[3] = {0.335223, 0.768230, 0.277775};
+
 
 private:
 
@@ -82,7 +86,7 @@ private:
   std::mutex _gfxMutex;
   void updateCameraMatrix();
   void _BoxObstacleDrawing();
-  void _DrawBox(double depth, double width, double height);
+  void _DrawBox( double depth, double width, double height);
   void _Additional_Drawing();
   void _DrawContactForce();
   void _DrawContactPoint();

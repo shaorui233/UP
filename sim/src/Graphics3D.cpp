@@ -61,7 +61,11 @@ Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(fals
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
 
 
+
   //setSurfaceType(QWindow::OpenGLSurface);
+}
+
+Graphics3D::~Graphics3D(){
 }
 
 /*!
@@ -325,7 +329,7 @@ void Graphics3D::paintGL() {
   _BoxObstacleDrawing();
   // Useful information drawing
   _Additional_Drawing();
-  /********************     End of OpenGL Drawing     ********************/
+  /********************       End of OpenGL Drawing        ********************/
   ++_frame;
   glDisable(GL_DEPTH_TEST);
   painter2.setPen(QColor(100,100,100,255));
@@ -366,16 +370,8 @@ void Graphics3D::_DrawBox(double depth, double width, double height)
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 
-    static float r, g, b;
-    static int count(0);
-    count++;
-    if(count < 6){ 
-        r = rand()/(float)RAND_MAX;
-        g = rand()/(float)RAND_MAX;
-        b = rand()/(float)RAND_MAX;
-    printf("color: %f, %f, %f\n", r,g,b);
-    }
-    glColor4f(r, g, b, 0.7f);
+    glColor4f(_color1[0], _color1[1], _color1[2], 0.7f);
+
     glBegin(GL_QUADS);
 	{
 		glVertex3d( x,  y, -z);
@@ -429,7 +425,8 @@ void Graphics3D::_Additional_Drawing(){
 
 void Graphics3D::_DrawContactForce(){
     glLineWidth(2.0);
-    double scale(0.02);
+    //double scale(0.02);
+    double scale(20.);
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
