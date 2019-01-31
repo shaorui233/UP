@@ -46,8 +46,7 @@ int main(int argc, char *argv[]) {
   window->resize(1280, 720);  // set window size
 
   SimControlPanel panel;
-  // DH: For TEST
-  //panel.show();
+  panel.show();
 
 
 

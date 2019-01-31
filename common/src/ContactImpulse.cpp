@@ -52,9 +52,11 @@ void ContactImpulse<T>::_UpdateVelocity(DVec<T> & qdot){
         cp_local_vel = CC::_cp_frame_list[i].transpose() * CC::_model->_vGC[CC::_idx_list[i]];
 
         if(cp_local_vel[2] < 0.){
-            des_vel_list[i] = -CC::_cp_resti_list[i] * cp_local_vel[2];
+            des_vel_list[i] = -CC::_cp_resti_list[i] * cp_local_vel[2] 
+                -_penetration_recover_ratio * CC::_cp_penetration_list[i];
         }else {
-            des_vel_list[i] = cp_local_vel[2];
+            des_vel_list[i] = std::max(cp_local_vel[2], 
+                    -_penetration_recover_ratio * CC::_cp_penetration_list[i]);
         }
         Jc_list[i] = CC::_cp_frame_list[i].transpose() * CC::_model->_Jc[CC::_idx_list[i]];
 

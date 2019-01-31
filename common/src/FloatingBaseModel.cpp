@@ -338,7 +338,6 @@ int FloatingBaseModel<T>::addGroundContactPoint(int bodyID, const Vec3 <T> &loca
   _Jc.push_back(J);
   _Jcdqd.push_back(zero3);
   //_compute_contact_info.push_back(false);
-  // DH TEST
   _compute_contact_info.push_back(true);
 
   // add foot to foot list

@@ -13,12 +13,13 @@ class ContactImpulse: public ContactConstraint<T>{
         virtual ~ContactImpulse(){}
 
         virtual void UpdateExternalForces(T K, T D, T dt){
-            // Do nothing
-            (void)K; (void)D; (void)dt;
+            (void)K; (void)D; 
+            _penetration_recover_ratio = 0.0/dt;
         }
         virtual void UpdateQdot(FBModelState<T> & state);
 
     protected:
+        T _penetration_recover_ratio = 0.;
         size_t _nDof;
         void _UpdateVelocity(DVec<T> & qdot);
         void _UpdateQdotOneDirection(
