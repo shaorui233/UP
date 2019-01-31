@@ -20,6 +20,7 @@
 enum class SimulatorMode {
   RUN_CONTROL_PARAMETERS,      // don't run the robot controller, just process Control Parameters
   RUN_CONTROLLER,  // run the robot controller
+  DO_NOTHING,      // just to check connection
   EXIT             // quit!
 };
 

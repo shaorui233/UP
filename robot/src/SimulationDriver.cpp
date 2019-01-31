@@ -12,6 +12,8 @@ void SimulationDriver::run() {
   _sharedMemory.attach(DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME);
   _sharedMemory().init();
 
+  // init Robot Controller
+
 
   printf("[Simulation Driver] Starting main loop...\n");
   bool firstRun = true;
@@ -29,16 +31,19 @@ void SimulationDriver::run() {
       }
     }
 
+    // the simulator tells us which mode to run in
     _simMode = _sharedMemory().simToRobot.mode;
     switch(_simMode) {
-      case SimulatorMode::RUN_CONTROL_PARAMETERS:
+      case SimulatorMode::RUN_CONTROL_PARAMETERS: // there is a new control parameter request
         handleControlParameters();
         break;
-      case SimulatorMode::RUN_CONTROLLER:
+      case SimulatorMode::RUN_CONTROLLER:  // the simulator is ready for the next robot controller run
         _iterations++;
         runRobotControl();
         break;
-      case SimulatorMode::EXIT:
+      case SimulatorMode::DO_NOTHING: // the simulator is just checking to see if we are alive yet
+        break;
+      case SimulatorMode::EXIT: // the simulator is done with us
         printf("[Simulation Driver] Transitioned to exit mode\n");
         return;
         break;
@@ -46,16 +51,20 @@ void SimulationDriver::run() {
         throw std::runtime_error("unknown simulator mode");
     }
 
+    // tell the simulator we are done
     _sharedMemory().robotIsDone();
   }
 }
 
-
+/*!
+ * This function handles a a control parameter message from the simulator
+ */
 void SimulationDriver::handleControlParameters() {
   ControlParameterRequest& request = _sharedMemory().simToRobot.controlParameterRequest;
   ControlParameterResponse& response = _sharedMemory().robotToSim.controlParameterResponse;
   if(request.requestNumber <= response.requestNumber) {
     // nothing to do!
+    printf("[SimulationDriver] Warning: the simulator has run a ControlParameter iteration, but there is no new request!\n");
     return;
   }
 
@@ -92,7 +101,7 @@ void SimulationDriver::handleControlParameters() {
       printf("%s\n", response.toString().c_str());
 
     }
-      break;
+    break;
 
 
     case ControlParameterRequestKind::GET_PARAM_BY_NAME:
@@ -117,7 +126,7 @@ void SimulationDriver::handleControlParameters() {
 
       printf("%s\n", response.toString().c_str());
     }
-      break;
+    break;
   }
 }
 
@@ -131,25 +140,24 @@ void SimulationDriver::runRobotControl() {
       printf("\tbut not all control parameters were initialized. Missing:\n%s\n", _robotParams.generateUnitializedList().c_str());
       throw std::runtime_error("not all parameters initialized when going into RUN_CONTROLLER");
     }
+
+    _robotController = new RobotController;
+
+    _robotController->driverCommand = &_sharedMemory().simToRobot.driverCommand;
+    _robotController->spiData       = &_sharedMemory().simToRobot.spiData;
+    _robotController->robotType     = _robot;
+    _robotController->kvhImuData    = &_sharedMemory().simToRobot.kvh;
+    _robotController->vectorNavData = &_sharedMemory().simToRobot.vectorNav;
+    _robotController->cheaterState  = &_sharedMemory().simToRobot.cheaterState;
+    _robotController->spiCommand    = &_sharedMemory().robotToSim.spiCommand;
+    _robotController->controlParameters = &_robotParams;
+
+    _robotController->initialize();
     _firstControllerRun = false;
   }
 
-
-
-  // run robot control
-//  if(!(_iterations % 100)) {
-//    printf("%s\n", _sharedMemory().simToRobot.driverCommand.toString().c_str());
-//    printf("%.3f\n", _sharedMemory().simToRobot.spiData.q_hip[2]);
-//  }
-
-  // hack
-
-  for(int leg = 0; leg < 4; leg++) {
-    for(int axis = 0; axis < 3; axis++) {
-      _sharedMemory().robotToSim.spiCommand.tau_abad_ff[leg] = _sharedMemory().simToRobot.driverCommand.leftStickAnalog[0] * 5;
-      _sharedMemory().robotToSim.spiCommand.tau_hip_ff[leg] = _sharedMemory().simToRobot.driverCommand.rightStickAnalog[1] * 5;
-      _sharedMemory().robotToSim.spiCommand.tau_knee_ff[leg] = _sharedMemory().simToRobot.driverCommand.leftStickAnalog[1] * 5;
-      _sharedMemory().robotToSim.spiCommand.flags[leg] = 1;
-    }
+  for(int i = 0; i < 4; i++) {
+    _robotController->spiCommand->flags[i] = 1;
   }
+  _robotController->step();
 }

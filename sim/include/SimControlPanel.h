@@ -46,6 +46,7 @@ private slots:
   void on_loadFavoriteButton_clicked();
 
   void loadSimulationParameters(SimulatorControlParameters& params);
+  void loadRobotParameters(RobotControlParameters& params);
 
 private:
   void updateUiEnable();
@@ -56,6 +57,7 @@ private:
   Graphics3D *_graphicsWindow = nullptr;
   bool _simulationMode = false;
   bool _firstStart = true;
+  bool _ignoreTableCallbacks = false;
 };
 
 #endif // SIMCONTROLPANEL_H

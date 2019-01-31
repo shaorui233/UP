@@ -84,8 +84,16 @@ public:
     _running = false;
   }
 
-  SimulatorControlParameters& getParams() {
+  SimulatorControlParameters& getSimParams() {
     return _simParams;
+  }
+
+  RobotControlParameters& getRobotParams() {
+    return _robotParams;
+  }
+
+  bool isRobotConnected() {
+    return _connected;
   }
 
   void firstRun();
@@ -108,6 +116,7 @@ private:
   SpineBoard _spineBoards[4];
   RobotType  _robot;
   bool _running = false;
+  bool _connected = false;
   double _desiredSimSpeed = 1.;
   double _currentSimTime = 0.;
   double _timeOfNextLowLevelControl = 0.;

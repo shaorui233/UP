@@ -47,7 +47,7 @@ Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   _tau = zero12;
   FBModelState<double> x0;
   x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
-  x0.bodyPosition = Vec3<double>(0,0,2);
+  x0.bodyPosition = Vec3<double>(0,0,0);
   SVec<double> v0 = SVec<double>::Zero();
   //v0[3] = 10;
   x0.bodyVelocity = v0;
@@ -145,6 +145,18 @@ void Simulation::sendControlParameter(const std::string &name, ControlParameterV
  * the robot connected.
  */
 void Simulation::firstRun() {
+  // connect to robot
+  _robotMutex.lock();
+  _sharedMemory().simToRobot.mode = SimulatorMode::DO_NOTHING;
+  _sharedMemory().simulatorIsDone();
+
+  printf("[Simulation] Waiting for robot...\n");
+  _sharedMemory().waitForRobot();
+  printf("Success! the robot is alive\n");
+  _connected = true;
+  _robotMutex.unlock();
+
+
   // send all control parameters
   printf("[Simulation] Send control parameters to robot...\n");
   for(auto& kv : _robotParams.collection._map) {

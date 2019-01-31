@@ -251,7 +251,7 @@ void Graphics3D::paintGL() {
   if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     _fps = (60.f * 1000.f / (now - last_frame_ms));
-    std::cout << "FPS: " << _fps << "\n";
+    //std::cout << "FPS: " << _fps << "\n";
     last_frame_ms = now;
   }
   QPainter painter2(this);
