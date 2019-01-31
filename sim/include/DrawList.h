@@ -176,8 +176,7 @@ class DrawList {
          */
         template<typename T>
             void updateAdditionalInfo(DynamicsSimulator<T> &model) {
-                static bool first_visit(true);
-                if(first_visit){
+                if(_additionalInfoFirstVisit){
                     _nTotalGC = model.getTotalNumGC();
                     _cp_touch.resize(_nTotalGC, false);
                     _cp_pos.resize(_nTotalGC);
@@ -187,7 +186,7 @@ class DrawList {
                         _cp_pos[i] = tmp;
                         _cp_force[i] = tmp;
                     }
-                    first_visit = false;
+                  _additionalInfoFirstVisit = false;
                 }
 
                 for(size_t i(0); i<_nTotalGC; ++i){
@@ -274,6 +273,7 @@ class DrawList {
         std::vector<QMatrix4x4> _kinematicXform;
 
         bool _reloadNeeded = false;
+        bool _additionalInfoFirstVisit = true;
 
         size_t _nTotalGC = 0;
         std::vector<bool> _cp_touch;

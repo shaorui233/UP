@@ -14,6 +14,7 @@
 Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   // init parameters
   printf("[Simulation] Load parameters...\n");
+  _simParams.lockMutex(); // we want exclusive access to the simparams at this point
   _simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
   if(!_simParams.isFullyInitialized()) {
     printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _simParams.generateUnitializedList().c_str());
@@ -97,6 +98,7 @@ Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   printf("[Simulation] Setup IMU simulator...\n");
   _imuSimulator = new ImuSimulator<double>(_simParams);
 
+  _simParams.unlockMutex();
   printf("[Simulation] Ready!\n");
 }
 
@@ -356,8 +358,11 @@ void Simulation::runAtSpeed(bool graphics) {
 
   while(_running) {
     _desiredSimSpeed = _simParams.simulation_speed;
+    nStepsPerFrame = (u64)(((1. / 60.) / dt) * _desiredSimSpeed);
     if(!_window->IsPaused() && steps < desiredSteps) {
+      _simParams.lockMutex();
       step(dt, dtLowLevelControl, dtHighLevelControl);
+      _simParams.unlockMutex();
       steps++;
     } else {
       double timeRemaining = frameTime - frameTimer.getSeconds();

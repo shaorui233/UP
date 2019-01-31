@@ -1,5 +1,7 @@
 #include "SimControlPanel.h"
 #include <QMessageBox>
+#include <QFileDialog>
+#include <ControlParameters.h>
 #include "ui_SimControlPanel.h"
 #include "../../build/sim/ui_SimControlPanel.h" // todo remove me!
 
@@ -33,12 +35,9 @@ void SimControlPanel::updateUiEnable() {
   ui->startButton->setEnabled(!_started);
   ui->stopButton->setEnabled(_started);
   ui->joystickButton->setEnabled(_started);
+  ui->saveSimulatorButton->setEnabled(_started && _simulationMode);
 }
 
-/*!
- * In simulation modE:
- *  - construct simulator/graphics, start simulator thread? (should move
- */
 void SimControlPanel::on_startButton_clicked() {
   RobotType robotType;
 
@@ -100,6 +99,9 @@ void SimControlPanel::on_stopButton_clicked() {
   updateUiEnable();
 }
 
+/*!
+ * Reload all values in the Simulation Parameter Table
+ */
 void SimControlPanel::loadSimulationParameters(SimulatorControlParameters &params) {
   ui->simulatorTable->setRowCount((s32)params.collection._map.size());
 
@@ -128,16 +130,59 @@ void SimControlPanel::on_driverButton_clicked() {
 }
 
 void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
-  (void) row;
-  (void) column;
+  if(!_simulation) {
+    createErrorMessage("can't do that now");
+    return;
+  }
+
+  if(column != 1) {
+    return;
+  }
+
+
+  auto cell = ui->simulatorTable->item(row, 0);
+  std::string cellName = cell->text().toStdString();
+
+  if(cellName == "") {
+    return;
+  }
+
+  printf("cell %s changed to %s\n", cellName.c_str(), ui->simulatorTable->item(row, 1)->text().toStdString().c_str());
+
+  auto& parameter = _simulation->getParams().collection.lookup(cellName);
+  parameter.setFromString(ui->simulatorTable->item(row, 1)->text().toStdString());
+//
+//  loadSimulationParameters(_simulation->getParams());
 }
 
 void SimControlPanel::on_saveSimulatorButton_clicked() {
-
+  QString fileName = QFileDialog::getSaveFileName(nullptr, ("Save Simulator Table Values"), "../config", "All Files (*)");
+  if(fileName == nullptr || fileName == "") {
+    createErrorMessage("File name is invalid");
+    return;
+  }
+  _simulation->getParams().lockMutex();
+  _simulation->getParams().writeToIniFile(fileName.toStdString());
+  _simulation->getParams().unlockMutex();
 }
 
 void SimControlPanel::on_loadSimulatorButton_clicked() {
+  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Save Simulator Table Values"), "../config", "All Files (*)");
+  if(fileName == nullptr || fileName == "") {
+    createErrorMessage("File name is invalid");
+    return;
+  }
 
+  _simulation->getParams().lockMutex();
+  _simulation->getParams().collection.clearAllSet();
+  _simulation->getParams().initializeFromIniFile(fileName.toStdString());
+  if(!_simulation->getParams().collection.checkIfAllSet()) {
+    printf("new settings file %s doesn't contain the following simulator parameters:\n%s\n",
+            fileName.toStdString().c_str(), _simulation->getParams().generateUnitializedList().c_str());
+    throw std::runtime_error("bad new settings file");
+  }
+  loadSimulationParameters(_simulation->getParams());
+  _simulation->getParams().unlockMutex();
 }
 
 void SimControlPanel::on_robotTable_cellChanged(int row, int column) {

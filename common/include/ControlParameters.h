@@ -19,6 +19,7 @@
 
 #include <string>
 #include <map>
+#include <mutex>
 #include "cTypes.h"
 #include "utilities.h"
 
@@ -85,6 +86,7 @@ public:
 
   std::string printToString(); //!< print all control parameters in the INI file format
   bool checkIfAllSet();        //!< are all the control parameters initialized?
+  void clearAllSet();
 
   std::map<std::string, ControlParameter*> _map;
 
@@ -229,6 +231,23 @@ public:
     return result;
   }
 
+  bool setFromString(const std::string& value) {
+    switch(_kind) {
+      case ControlParameterValueKind::DOUBLE:
+        *_value.d = std::stod(value);
+        break;
+      case ControlParameterValueKind::FLOAT:
+        *_value.f = std::stof(value);
+        break;
+      case ControlParameterValueKind::S64:
+        *_value.i = std::stoll(value);
+        break;
+      default:
+        return false;
+    }
+    return true;
+  }
+
 
   bool _set = false;
   ControlParameterValuePtr _value;
@@ -275,6 +294,14 @@ public:
     collection.lookup(name).initializeInteger(i);
   }
 
+  void lockMutex() {
+    _mutex.lock();
+  }
+
+  void unlockMutex() {
+    _mutex.unlock();
+  }
+
   void writeToIniFile(const std::string& path);
   void initializeFromIniFile(const std::string& path);
 
@@ -284,6 +311,7 @@ public:
 
 protected:
   std::string _name;
+  std::mutex _mutex;
 };
 
 #endif //PROJECT_CONTROLPAREMETERS_H

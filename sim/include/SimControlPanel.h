@@ -55,6 +55,7 @@ private:
   Simulation *_simulation = nullptr;
   Graphics3D *_graphicsWindow = nullptr;
   bool _simulationMode = false;
+  bool _firstStart = true;
 };
 
 #endif // SIMCONTROLPANEL_H

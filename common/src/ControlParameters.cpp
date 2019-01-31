@@ -51,6 +51,12 @@ bool ControlParameterCollection::checkIfAllSet() {
   return true;
 }
 
+void ControlParameterCollection::clearAllSet() {
+  for(auto& kv : _map) {
+    kv.second->_set = false;
+  }
+}
+
 std::string ControlParameters::generateUnitializedList() {
   std::string result;
   for(auto& kv : collection._map) {
