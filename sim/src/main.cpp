@@ -39,25 +39,12 @@ int main(int argc, char *argv[]) {
   QApplication a(argc, argv);
 
 
-
-//  // Create a new visualization window
-  window = new Graphics3D();
-  window->show(); // make window visible
-  window->resize(1280, 720);  // set window size
-
-  //SimControlPanel panel;
-  // DH: For TEST
-  //panel.show();
-
-
-
-  // run the simulator in a new thread (Qt needs to run a.exec() in the main thread)
-  std::thread simThread(simulatorDemo);
+  SimControlPanel panel;
+  panel.show();
 
   // run the Qt program
   a.exec();
 
-  simThread.join();
   return 0;
 }
 
