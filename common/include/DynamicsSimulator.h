@@ -27,7 +27,7 @@ template<typename T>
 class DynamicsSimulator {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-      DynamicsSimulator(FloatingBaseModel<T>& model); //! Initialize simulator with given model
+      DynamicsSimulator(FloatingBaseModel<T>& model, bool useSpringDamper = false); //! Initialize simulator with given model
   void step(T dt, const DVec<T>& tau, T kp, T kd); //! Simulate forward one step
   
   //! Find _dstate with the articulated body algorithm
@@ -96,12 +96,12 @@ public:
   const FloatingBaseModel<T>& getModel(){ return _model; }
 private:
   void updateCollisions(T dt, T kp, T kd); //! Update ground collision list
-
   FBModelState<T> _state;
   FBModelStateDerivative<T> _dstate;
   FloatingBaseModel<T>& _model;
   vector<CollisionPlane<T>> _collisionPlanes;
   ContactConstraint<T> * _contact_constr;
+  bool _useSpringDamper;
 };
 
 

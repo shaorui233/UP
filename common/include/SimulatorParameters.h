@@ -34,7 +34,8 @@ public:
           INIT_PARAMETER(low_level_dt),
           INIT_PARAMETER(dynamics_dt),
           INIT_PARAMETER(floor_kp),
-          INIT_PARAMETER(floor_kd)
+          INIT_PARAMETER(floor_kd),
+          INIT_PARAMETER(use_spring_damper)
   { }
 
 
@@ -54,6 +55,7 @@ public:
 
   DECLARE_PARAMETER(double, floor_kp)
   DECLARE_PARAMETER(double, floor_kd)
+  DECLARE_PARAMETER(s64, use_spring_damper)
 };
 
 #endif //PROJECT_SIMULATORPARAMETERS_H

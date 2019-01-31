@@ -12,6 +12,16 @@
  * Use firstRun() instead!
  */
 Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
+  // init parameters
+  printf("[Simulation] Load parameters...\n");
+  _simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+  if(!_simParams.isFullyInitialized()) {
+    printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _simParams.generateUnitializedList().c_str());
+    throw std::runtime_error("simulator not initialized");
+  }
+
+
+
   printf("[Simulation] Build quadruped...\n");
   _robot = robot;
   _quadruped = _robot == RobotType::MINI_CHEETAH ? buildMiniCheetah<double>() : buildCheetah3<double>();
@@ -25,7 +35,7 @@ Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
   }
   printf("[Simulation] Build rigid body model...\n");
   _model = _quadruped.buildModel();
-  _simulator = new DynamicsSimulator<double>(_model);
+  _simulator = new DynamicsSimulator<double>(_model, (bool)_simParams.use_spring_damper);
 
   DVec<double> zero12(12);
   for(u32 i = 0; i < 12; i++) {
@@ -60,13 +70,6 @@ Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
     assert(false); // todo
   }
 
-  // init parameters
-  printf("[Simulation] Load parameters...\n");
-  _simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
-  if(!_simParams.isFullyInitialized()) {
-    printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _simParams.generateUnitializedList().c_str());
-    throw std::runtime_error("simulator not initialized");
-  }
 
   // init shared memory
   printf("[Simulation] Setup shared memory...\n");

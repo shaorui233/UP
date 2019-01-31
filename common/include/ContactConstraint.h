@@ -34,15 +34,6 @@ class ContactConstraint{
             return _cp_pos_list; 
         }
         const Vec3<T> & getGCForce(size_t idx){ return _cp_force_list[idx]; }
-
-        const Vec3<T> & getGCForce(size_t idx){
-
-            //for(size_t i(0); i<_cp_force_list.size(); ++i){
-                //pretty_print(_cp_force_list[i], std::cout, "cp force");
-            //}
-            //printf("\n");
-            return _cp_force_list[idx];
-        }
     protected:
     vectorAligned<Vec2<T> > deflectionRate;
         void _groundContactWithOffset(T K, T D);

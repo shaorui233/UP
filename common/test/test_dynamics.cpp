@@ -91,7 +91,7 @@ TEST(Dynamics, cheetah3ModelTransforms) {
  */
 TEST(Dynamics, simulatorDynamicsABANoExternalForceCheetah3) {
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
-  DynamicsSimulator<double> sim(cheetahModel);
+  DynamicsSimulator<double> sim(cheetahModel, true);
 
   RotMat<double> rBody = 
       coordinateRotation(CoordinateAxis::X, .123) * 

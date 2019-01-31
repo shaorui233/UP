@@ -146,9 +146,9 @@ void SimulationDriver::runRobotControl() {
 
   for(int leg = 0; leg < 4; leg++) {
     for(int axis = 0; axis < 3; axis++) {
-      _sharedMemory().robotToSim.spiCommand.tau_abad_ff[leg] = 200;
-      _sharedMemory().robotToSim.spiCommand.tau_hip_ff[leg] = 200;
-      _sharedMemory().robotToSim.spiCommand.tau_knee_ff[leg] = _sharedMemory().simToRobot.driverCommand.leftStickAnalog[1];
+      _sharedMemory().robotToSim.spiCommand.tau_abad_ff[leg] = _sharedMemory().simToRobot.driverCommand.leftStickAnalog[0] * 5;
+      _sharedMemory().robotToSim.spiCommand.tau_hip_ff[leg] = _sharedMemory().simToRobot.driverCommand.rightStickAnalog[1] * 5;
+      _sharedMemory().robotToSim.spiCommand.tau_knee_ff[leg] = _sharedMemory().simToRobot.driverCommand.leftStickAnalog[1] * 5;
       _sharedMemory().robotToSim.spiCommand.flags[leg] = 1;
     }
   }
