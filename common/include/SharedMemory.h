@@ -60,6 +60,29 @@ public:
   }
 
   /*!
+   * If the semaphore's value is > 0, decrement the value and return true
+   * Otherwise, return false (doesn't decrement or wait)
+   * @return
+   */
+  bool tryDecrement() {
+    return (sem_trywait(&_sem)) == 0;
+  }
+
+  /*!
+   * Like decrement, but after waiting ms milliseconds, will give up
+   * Returns true if the semaphore is successfully decremented
+   */
+  bool decrementTimeout(u64 seconds, u64 nanoseconds) {
+    struct timespec ts;
+    clock_gettime(CLOCK_REALTIME, &ts);
+    ts.tv_nsec += nanoseconds;
+    ts.tv_sec += seconds;
+    ts.tv_sec += ts.tv_nsec / 1000000000;
+    ts.tv_nsec %= 1000000000;
+    return (sem_timedwait(&_sem, &ts) == 0);
+  }
+
+  /*!
    * Delete the semaphore.  Note that deleting a semaphore in one process while another is still using it
    * results in very strange behavior.
    */

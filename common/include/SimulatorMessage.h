@@ -99,6 +99,14 @@ struct SimulatorSyncronizedMessage : public SimulatorMessage {
     robotToSimSemaphore.decrement();
   }
 
+  bool tryWaitForRobot() {
+    return robotToSimSemaphore.tryDecrement();
+  }
+
+  bool waitForRobotWithTimeout() {
+    return robotToSimSemaphore.decrementTimeout(1,0);
+  }
+
   void robotIsDone() {
     robotToSimSemaphore.increment();
   }

@@ -81,7 +81,13 @@ public:
   }
 
   void stop() {
-    _running = false;
+    _running = false; // kill simulation loop
+    _wantStop = true; // if we're still trying to connect, this will kill us
+
+    if(_connected) {
+      _sharedMemory().simToRobot.mode = SimulatorMode::EXIT;
+      _sharedMemory().simulatorIsDone();
+    }
   }
 
   SimulatorControlParameters& getSimParams() {
@@ -117,6 +123,7 @@ private:
   RobotType  _robot;
   bool _running = false;
   bool _connected = false;
+  bool _wantStop = false;
   double _desiredSimSpeed = 1.;
   double _currentSimTime = 0.;
   double _timeOfNextLowLevelControl = 0.;
