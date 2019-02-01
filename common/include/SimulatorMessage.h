@@ -9,7 +9,7 @@
 #define PROJECT_SIMULATORTOROBOTMESSAGE_H
 
 #include "SharedMemory.h"
-#include "DriverCommand.h"
+#include "GamepadCommand.h"
 #include "IMUTypes.h"
 #include "SpineBoard.h"
 #include "ControlParameterInterface.h"
@@ -28,7 +28,7 @@ enum class SimulatorMode {
  * A plain message from the simulator to the robot
  */
 struct SimulatorToRobotMessage {
-  DriverCommand driverCommand;   // joystick
+  GamepadCommand gamepadCommand;   // joystick
   RobotType robotType;           // which robot the simulator thinks we are simulating
 
   // imu data

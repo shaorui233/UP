@@ -143,7 +143,7 @@ void SimulationDriver::runRobotControl() {
 
     _robotController = new RobotController;
 
-    _robotController->driverCommand = &_sharedMemory().simToRobot.driverCommand;
+    _robotController->driverCommand = &_sharedMemory().simToRobot.gamepadCommand;
     _robotController->spiData       = &_sharedMemory().simToRobot.spiData;
     _robotController->robotType     = _robot;
     _robotController->kvhImuData    = &_sharedMemory().simToRobot.kvh;

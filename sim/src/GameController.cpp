@@ -49,29 +49,29 @@ void GameController::findNewController() {
  * Overwrite a driverCommand with the current joystick state.  If there's no joystick, sends zeros
  * TODO: what happens if the joystick is unplugged?
  */
-void GameController::updateDriverCommand(DriverCommand &driverCommand) {
+void GameController::updateGamepadCommand(GamepadCommand &gamepadCommand) {
   if(_qGamepad) {
-    driverCommand.leftBumper = _qGamepad->buttonL1();
-    driverCommand.rightBumper = _qGamepad->buttonR1();
-    driverCommand.leftTriggerButton = _qGamepad->buttonL2() != 0.;
-    driverCommand.rightTriggerButton = _qGamepad->buttonR2() != 0.;
-    driverCommand.back = _qGamepad->buttonSelect();
-    driverCommand.start = _qGamepad->buttonStart();
-    driverCommand.a = _qGamepad->buttonA();
-    driverCommand.b = _qGamepad->buttonB();
-    driverCommand.x = _qGamepad->buttonX();
-    driverCommand.y = _qGamepad->buttonY();
-    driverCommand.leftStickButton = _qGamepad->buttonL3();
-    driverCommand.rightStickButton = _qGamepad->buttonR3();
-    driverCommand.leftTriggerAnalog = (float)_qGamepad->buttonL2();
-    driverCommand.rightTriggerAnalog = (float)_qGamepad->buttonR2();
-    driverCommand.leftStickAnalog = Vec2<float>(_qGamepad->axisLeftX(), -_qGamepad->axisLeftY());
-    driverCommand.rightStickAnalog = Vec2<float>(_qGamepad->axisRightX(), -_qGamepad->axisRightY());
+    gamepadCommand.leftBumper = _qGamepad->buttonL1();
+    gamepadCommand.rightBumper = _qGamepad->buttonR1();
+    gamepadCommand.leftTriggerButton = _qGamepad->buttonL2() != 0.;
+    gamepadCommand.rightTriggerButton = _qGamepad->buttonR2() != 0.;
+    gamepadCommand.back = _qGamepad->buttonSelect();
+    gamepadCommand.start = _qGamepad->buttonStart();
+    gamepadCommand.a = _qGamepad->buttonA();
+    gamepadCommand.b = _qGamepad->buttonB();
+    gamepadCommand.x = _qGamepad->buttonX();
+    gamepadCommand.y = _qGamepad->buttonY();
+    gamepadCommand.leftStickButton = _qGamepad->buttonL3();
+    gamepadCommand.rightStickButton = _qGamepad->buttonR3();
+    gamepadCommand.leftTriggerAnalog = (float)_qGamepad->buttonL2();
+    gamepadCommand.rightTriggerAnalog = (float)_qGamepad->buttonR2();
+    gamepadCommand.leftStickAnalog = Vec2<float>(_qGamepad->axisLeftX(), -_qGamepad->axisLeftY());
+    gamepadCommand.rightStickAnalog = Vec2<float>(_qGamepad->axisRightX(), -_qGamepad->axisRightY());
   } else {
-    driverCommand.zero(); // no joystick, return all zeros
+    gamepadCommand.zero(); // no joystick, return all zeros
   }
 
-  // printf("%s\n", driverCommand.toString().c_str());
+  // printf("%s\n", gamepadCommand.toString().c_str());
 }
 
 GameController::~GameController() {

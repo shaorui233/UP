@@ -246,7 +246,7 @@ void Graphics3D::setAnimating(bool animating) {
 GLuint buffID[3];
 void Graphics3D::paintGL() {
   // update joystick:
-  _gameController.updateDriverCommand(_driverCommand);
+  _gameController.updateGamepadCommand(_driverCommand);
   if(!_animating) return;
   if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();

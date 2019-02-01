@@ -6,9 +6,9 @@
 #include <RobotParameters.h>
 #include "LegController.h"
 #include "Quadruped.h"
-#include "DriverCommand.h"
+#include "GamepadCommand.h"
 
-// driverCommand
+// gamepadCommand
 // robotType
 // kvh
 // vectorNav
@@ -30,7 +30,7 @@ public:
   ~RobotController();
 
 
-  DriverCommand* driverCommand;
+  GamepadCommand* driverCommand;
   RobotType  robotType;
   KvhImuData* kvhImuData;
   VectorNavData* vectorNavData;

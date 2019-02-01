@@ -29,7 +29,7 @@
 class Simulation {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  explicit Simulation(RobotType robot, Graphics3D* window);
+  explicit Simulation(RobotType robot, Graphics3D* window, SimulatorControlParameters& params);
 
   /*!
    * Explicitly set the state of the robot
@@ -102,7 +102,7 @@ private:
   std::mutex _robotMutex;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
   ImuSimulator<double>* _imuSimulator = nullptr;
-  SimulatorControlParameters _simParams;
+  SimulatorControlParameters& _simParams;
   RobotControlParameters _robotParams;
   size_t _robotID;
   Graphics3D *_window = nullptr;

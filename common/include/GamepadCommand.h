@@ -1,15 +1,15 @@
-/*! @file DriverCommand.h
- *  @brief The DriverCommand type containing joystick information
+/*! @file GamepadCommand.h
+ *  @brief The GamepadCommand type containing joystick information
  */
 
-#ifndef PROJECT_DRIVERCOMMAND_H
-#define PROJECT_DRIVERCOMMAND_H
+#ifndef PROJECT_GAMEPADCOMMAND_H
+#define PROJECT_GAMEPADCOMMAND_H
 
 #include "cppTypes.h"
 #include "utilities.h"
 
-struct DriverCommand {
-  DriverCommand() {
+struct GamepadCommand {
+  GamepadCommand() {
     zero();
   }
 

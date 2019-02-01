@@ -55,6 +55,7 @@ private:
   Ui::SimControlPanel *ui;
   Simulation *_simulation = nullptr;
   Graphics3D *_graphicsWindow = nullptr;
+  SimulatorControlParameters _parameters;
   bool _simulationMode = false;
   bool _firstStart = true;
   bool _ignoreTableCallbacks = false;

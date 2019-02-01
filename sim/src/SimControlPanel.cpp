@@ -20,6 +20,8 @@ SimControlPanel::SimControlPanel(QWidget *parent) :
     ui(new Ui::SimControlPanel) {
   ui->setupUi(this);
   updateUiEnable();
+  _parameters.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+  loadSimulationParameters(_parameters);
 }
 
 SimControlPanel::~SimControlPanel() {
@@ -35,8 +37,8 @@ void SimControlPanel::updateUiEnable() {
   ui->startButton->setEnabled(!_started);
   ui->stopButton->setEnabled(_started);
   ui->joystickButton->setEnabled(_started);
-  ui->saveSimulatorButton->setEnabled(_started && _simulationMode);
-  ui->simulatorTable->setEnabled(_started && _simulationMode);
+//  ui->saveSimulatorButton->setEnabled(_started && _simulationMode);
+//  ui->simulatorTable->setEnabled(_started && _simulationMode);
   ui->robotTable->setEnabled(_started);
 }
 
@@ -63,7 +65,7 @@ void SimControlPanel::on_startButton_clicked() {
     _graphicsWindow = new Graphics3D();
     _graphicsWindow->show();
     _graphicsWindow->resize(1280, 720);
-    _simulation = new Simulation(robotType, _graphicsWindow);
+    _simulation = new Simulation(robotType, _graphicsWindow, _parameters);
     loadSimulationParameters(_simulation->getSimParams());
     loadRobotParameters(_simulation->getRobotParams());
 
@@ -166,11 +168,6 @@ void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
   if(_ignoreTableCallbacks) return;
 
 
-  if(!_simulation) {
-    createErrorMessage("can't do that now");
-    return;
-  }
-
   if(column != 1) {
     return;
   }
@@ -184,7 +181,7 @@ void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
 
   printf("cell %s changed to %s\n", cellName.c_str(), ui->simulatorTable->item(row, 1)->text().toStdString().c_str());
 
-  auto& parameter = _simulation->getSimParams().collection.lookup(cellName);
+  auto& parameter = _parameters.collection.lookup(cellName);
   parameter.setFromString(ui->simulatorTable->item(row, 1)->text().toStdString());
 }
 

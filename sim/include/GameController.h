@@ -7,7 +7,7 @@
 #ifndef PROJECT_GAMECONTROLLER_H
 #define PROJECT_GAMECONTROLLER_H
 
-#include "DriverCommand.h"
+#include "GamepadCommand.h"
 
 #include <QtCore/QObject>
 
@@ -17,7 +17,7 @@ class GameController : public QObject {
   Q_OBJECT
 public:
   explicit GameController(QObject *parent = 0);
-  void updateDriverCommand(DriverCommand& driverCommand);
+  void updateGamepadCommand(GamepadCommand &gamepadCommand);
   void findNewController();
   ~GameController();
 

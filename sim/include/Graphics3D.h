@@ -52,7 +52,7 @@ public:
   DrawList _drawList;
   char infoString[200] = "";
 
-  DriverCommand& getDriverCommand() {
+  GamepadCommand& getDriverCommand() {
     return _driverCommand;
   }
 
@@ -85,7 +85,7 @@ protected:
 private:
 
   GameController _gameController;
-  DriverCommand _driverCommand;
+  GamepadCommand _driverCommand;
 
   std::mutex _gfxMutex;
   void updateCameraMatrix();

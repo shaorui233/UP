@@ -11,11 +11,15 @@
  * Initialize the simulator here.  It is _not_ okay to block here waiting for the robot to connect.
  * Use firstRun() instead!
  */
-Simulation::Simulation(RobotType robot, Graphics3D *window) : _tau(12) {
+Simulation::Simulation(RobotType robot, Graphics3D *window, SimulatorControlParameters& params) :
+_simParams(params),
+_tau(12) {
+
+
   // init parameters
   printf("[Simulation] Load parameters...\n");
   _simParams.lockMutex(); // we want exclusive access to the simparams at this point
-  _simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+
   if(!_simParams.isFullyInitialized()) {
     printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _simParams.generateUnitializedList().c_str());
     throw std::runtime_error("simulator not initialized");
@@ -223,8 +227,8 @@ void Simulation::lowLevelControl() {
 
 void Simulation::highLevelControl() {
   // send joystick data to robot:
-  _sharedMemory().simToRobot.driverCommand = _window->getDriverCommand();
-  _sharedMemory().simToRobot.driverCommand.applyDeadband(_simParams.game_controller_deadband);
+  _sharedMemory().simToRobot.gamepadCommand = _window->getDriverCommand();
+  _sharedMemory().simToRobot.gamepadCommand.applyDeadband(_simParams.game_controller_deadband);
 
   // send IMU data to robot:
   _imuSimulator->updateCheaterState(_simulator->getState(), _simulator->getDState(), _sharedMemory().simToRobot.cheaterState);
