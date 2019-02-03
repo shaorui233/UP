@@ -12,14 +12,14 @@
 #define PROJECT_DRAWLIST_H
 
 #include "obj_loader.h"
-#include "FloatingBaseModel.h"
-#include "DynamicsSimulator.h"
+#include "Dynamics/FloatingBaseModel.h"
+#include "Dynamics/DynamicsSimulator.h"
 #include "sim_utilities.h"
 #include "cppTypes.h"
-#include "spatial.h"
+#include "Dynamics/spatial.h"
 #include "Colors.h"
 #include "Checkerboard.h"
-#include "CollisionPlane.h"
+#include "Collision/CollisionPlane.h"
 
 #include <QMatrix4x4>
 

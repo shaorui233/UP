@@ -5,9 +5,9 @@
  */
 
 #include "cppTypes.h"
-#include "orientation_tools.h"
-#include "spatial.h"
-#include "FirstOrderIIRFilter.h"
+#include "Math/orientation_tools.h"
+#include "Dynamics/spatial.h"
+#include "Math/FirstOrderIIRFilter.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 

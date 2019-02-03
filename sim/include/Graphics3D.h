@@ -10,7 +10,7 @@
 
 #include "obj_loader.h"
 #include "DrawList.h"
-#include "FirstOrderIIRFilter.h"
+#include "Math/FirstOrderIIRFilter.h"
 
 #include <QWindow>
 #include <QOpenGLFunctions>

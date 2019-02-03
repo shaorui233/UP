@@ -1,6 +1,6 @@
 #include "RobotController.h"
-#include "Cheetah3.h"
-#include "MiniCheetah.h"
+#include "Dynamics/Cheetah3.h"
+#include "Dynamics/MiniCheetah.h"
 
 
 void RobotController::initialize() {

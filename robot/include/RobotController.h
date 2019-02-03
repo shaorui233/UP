@@ -1,12 +1,12 @@
 #ifndef PROJECT_ROBOTCONTROLLER_H
 #define PROJECT_ROBOTCONTROLLER_H
 
-#include <IMUTypes.h>
-#include <ControlParameterInterface.h>
-#include <RobotParameters.h>
-#include "LegController.h"
-#include "Quadruped.h"
-#include "GamepadCommand.h"
+#include <SimUtilities/IMUTypes.h>
+#include <ControlParameters/ControlParameterInterface.h>
+#include <ControlParameters/RobotParameters.h>
+#include "Controllers/LegController.h"
+#include "Dynamics/Quadruped.h"
+#include "SimUtilities/GamepadCommand.h"
 
 // gamepadCommand
 // robotType

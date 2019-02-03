@@ -7,7 +7,7 @@
 #ifndef PROJECT_GAMECONTROLLER_H
 #define PROJECT_GAMECONTROLLER_H
 
-#include "GamepadCommand.h"
+#include "SimUtilities/GamepadCommand.h"
 
 #include <QtCore/QObject>
 

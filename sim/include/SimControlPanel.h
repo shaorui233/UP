@@ -5,7 +5,7 @@
 #include <thread>
 #include "Simulation.h"
 #include "Graphics3D.h"
-#include "SimulatorParameters.h"
+#include "ControlParameters/SimulatorParameters.h"
 
 namespace Ui {
   class SimControlPanel;

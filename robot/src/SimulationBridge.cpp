@@ -3,16 +3,16 @@
  *
  */
 
-#include "SimulationDriver.h"
-#include "LegController.h"
+#include "SimulationBridge.h"
+#include "Controllers/LegController.h"
 
 
-void SimulationDriver::run() {
+void SimulationBridge::run() {
   // init shared memory:
   _sharedMemory.attach(DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME);
   _sharedMemory().init();
 
-  // init Robot Controller
+  // init Quadruped Controller
 
 
   printf("[Simulation Driver] Starting main loop...\n");
@@ -59,12 +59,12 @@ void SimulationDriver::run() {
 /*!
  * This function handles a a control parameter message from the simulator
  */
-void SimulationDriver::handleControlParameters() {
+void SimulationBridge::handleControlParameters() {
   ControlParameterRequest& request = _sharedMemory().simToRobot.controlParameterRequest;
   ControlParameterResponse& response = _sharedMemory().robotToSim.controlParameterResponse;
   if(request.requestNumber <= response.requestNumber) {
     // nothing to do!
-    printf("[SimulationDriver] Warning: the simulator has run a ControlParameter iteration, but there is no new request!\n");
+    printf("[SimulationBridge] Warning: the simulator has run a ControlParameter iteration, but there is no new request!\n");
     return;
   }
 
@@ -130,7 +130,7 @@ void SimulationDriver::handleControlParameters() {
   }
 }
 
-void SimulationDriver::runRobotControl() {
+void SimulationBridge::runRobotControl() {
   if(_firstControllerRun) {
     printf("[Simulator Driver] First run of robot controller...\n");
     if(_robotParams.isFullyInitialized()) {

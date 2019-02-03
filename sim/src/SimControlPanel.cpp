@@ -1,7 +1,7 @@
 #include "SimControlPanel.h"
 #include <QMessageBox>
 #include <QFileDialog>
-#include <ControlParameters.h>
+#include <ControlParameters/ControlParameters.h>
 #include "ui_SimControlPanel.h"
 #include "../../build/sim/ui_SimControlPanel.h" // todo remove me!
 
@@ -245,7 +245,7 @@ void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
 
 void SimControlPanel::on_saveRobotButton_clicked() {
   printf("save callback\n");
-  QString fileName = QFileDialog::getSaveFileName(nullptr, ("Save Robot Table Values"), "../config", "All Files (*)");
+  QString fileName = QFileDialog::getSaveFileName(nullptr, ("Save Quadruped Table Values"), "../config", "All Files (*)");
   printf("2\n");
   if(fileName == nullptr || fileName == "") {
     createErrorMessage("File name is invalid");
@@ -256,7 +256,7 @@ void SimControlPanel::on_saveRobotButton_clicked() {
 }
 
 void SimControlPanel::on_loadRobotButton_clicked() {
-  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Save Robot Table Values"), "../config", "All Files (*)");
+  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Save Quadruped Table Values"), "../config", "All Files (*)");
   if(fileName == nullptr || fileName == "") {
     createErrorMessage("File name is invalid");
     return;

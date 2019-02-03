@@ -5,7 +5,7 @@
  */
 
 #include "Graphics3D.h"
-#include "utilities.h"
+#include "Utilities/utilities.h"
 
 #include <iostream>
 #include <unistd.h>

@@ -10,7 +10,7 @@
 #include <main.h>
 #include <cassert>
 
-#include "SimulationDriver.h"
+#include "SimulationBridge.h"
 
 MasterConfig gMasterConfig;
 
@@ -46,16 +46,16 @@ int main(int argc, char** argv) {
     return EXIT_FAILURE;
   }
 
-  printf("[Robot] Cheetah Software\n");
-  printf("        Robot:  %s\n", gMasterConfig._robot == RobotType::MINI_CHEETAH ? "Mini Cheetah" : "Cheetah 3");
-  printf("        Driver: %s\n", gMasterConfig.simulated ? "Development Simulation Driver" : "Robot Driver");
+  printf("[Quadruped] Cheetah Software\n");
+  printf("        Quadruped:  %s\n", gMasterConfig._robot == RobotType::MINI_CHEETAH ? "Mini Cheetah" : "Cheetah 3");
+  printf("        Driver: %s\n", gMasterConfig.simulated ? "Development Simulation Driver" : "Quadruped Driver");
 
   // dispatch the appropriate driver
   if(gMasterConfig.simulated) {
     if(gMasterConfig._robot == RobotType::MINI_CHEETAH) {
-      SimulationDriver simDriver(gMasterConfig._robot);
+      SimulationBridge simDriver(gMasterConfig._robot);
       simDriver.run();
-      printf("[Robot] SimDriver run() has finished!\n");
+      printf("[Quadruped] SimDriver run() has finished!\n");
     } else if (gMasterConfig._robot == RobotType::CHEETAH_3) {
       printf("[ERROR] Cheetah 3 Doesn't Exist Yet\n");
       assert(false);
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
       assert(false);
     }
   } else {
-    printf("[ERROR] Robot driver doesn't exist yet.\n");
+    printf("[ERROR] Quadruped driver doesn't exist yet.\n");
     assert(false);
   }
 

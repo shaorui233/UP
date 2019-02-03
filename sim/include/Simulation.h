@@ -1,18 +1,18 @@
 #ifndef PROJECT_SIMULATION_H
 #define PROJECT_SIMULATION_H
 
-#include "Quadruped.h"
+#include "Dynamics/Quadruped.h"
 #include "Graphics3D.h"
-#include "MiniCheetah.h"
-#include "Cheetah3.h"
-#include "Timer.h"
-#include "SpineBoard.h"
-#include "SharedMemory.h"
-#include "SimulatorMessage.h"
-#include "SimulatorParameters.h"
-#include "RobotParameters.h"
-#include "ImuSimulator.h"
-#include "ControlParameterInterface.h"
+#include "Dynamics/MiniCheetah.h"
+#include "Dynamics/Cheetah3.h"
+#include "Utilities/Timer.h"
+#include "SimUtilities/SpineBoard.h"
+#include "Utilities/SharedMemory.h"
+#include "SimUtilities/SimulatorMessage.h"
+#include "ControlParameters/SimulatorParameters.h"
+#include "ControlParameters/RobotParameters.h"
+#include "SimUtilities/ImuSimulator.h"
+#include "ControlParameters/ControlParameterInterface.h"
 
 #include <vector>
 #include <mutex>

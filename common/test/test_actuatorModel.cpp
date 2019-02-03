@@ -4,10 +4,10 @@
  *
  */
 
-#include "Quadruped.h"
-#include "MiniCheetah.h"
-#include "Cheetah3.h"
-#include "ActuatorModel.h"
+#include "Dynamics/Quadruped.h"
+#include "Dynamics/MiniCheetah.h"
+#include "Dynamics/Cheetah3.h"
+#include "Dynamics/ActuatorModel.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"

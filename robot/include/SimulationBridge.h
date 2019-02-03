@@ -7,18 +7,18 @@
 #define PROJECT_SIMULATIONDRIVER_H
 
 #include "Types.h"
-#include "SharedMemory.h"
-#include "SimulatorMessage.h"
-#include "RobotParameters.h"
+#include "Utilities/SharedMemory.h"
+#include "SimUtilities/SimulatorMessage.h"
+#include "ControlParameters/RobotParameters.h"
 #include "RobotController.h"
 
-class SimulationDriver {
+class SimulationBridge {
 public:
-  explicit SimulationDriver(RobotType robot) : _robot(robot) { }
+  explicit SimulationBridge(RobotType robot) : _robot(robot) { }
   void run();
   void handleControlParameters();
   void runRobotControl();
-  ~SimulationDriver() {
+  ~SimulationBridge() {
     delete _robotController;
   }
 private:

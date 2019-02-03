@@ -3,15 +3,15 @@
  */
 
 
-#include "FloatingBaseModel.h"
-#include "Quadruped.h"
-#include "utilities.h"
-#include "DynamicsSimulator.h"
-#include "Cheetah3.h"
-#include "CollisionPlane.h"
+#include "Dynamics/FloatingBaseModel.h"
+#include "Dynamics/Quadruped.h"
+#include "Utilities/utilities.h"
+#include "Dynamics/DynamicsSimulator.h"
+#include "Dynamics/Cheetah3.h"
+#include "Collision/CollisionPlane.h"
 #include "Graphics3D.h"
 #include "DrawList.h"
-#include "MiniCheetah.h"
+#include "Dynamics/MiniCheetah.h"
 #include "Simulation.h"
 #include "SimControlPanel.h"
 

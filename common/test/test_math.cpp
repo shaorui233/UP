@@ -3,9 +3,9 @@
  *
  */
 
-#include "MathUtilities.h"
+#include "Math/MathUtilities.h"
 #include "cppTypes.h"
-#include "Interpolation.h"
+#include "Math/Interpolation.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 

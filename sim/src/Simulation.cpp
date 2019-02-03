@@ -1,5 +1,5 @@
 #include "Simulation.h"
-#include "Quadruped.h"
+#include "Dynamics/Quadruped.h"
 
 #include <unistd.h>
 #include <include/GameController.h>

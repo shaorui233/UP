@@ -6,9 +6,9 @@
  */
 
 
-#include "orientation_tools.h"
-#include "SpatialInertia.h"
-#include "spatial.h"
+#include "Math/orientation_tools.h"
+#include "Dynamics/SpatialInertia.h"
+#include "Dynamics/spatial.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
