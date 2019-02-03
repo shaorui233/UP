@@ -10,7 +10,7 @@
 
 #include "obj_loader.h"
 #include "DrawList.h"
-#include "FirstOrderIIRFilter.h"
+#include "Math/FirstOrderIIRFilter.h"
 
 #include <QWindow>
 #include <QOpenGLFunctions>
@@ -52,8 +52,12 @@ public:
   DrawList _drawList;
   char infoString[200] = "";
 
-  DriverCommand& getDriverCommand() {
+  GamepadCommand& getDriverCommand() {
     return _driverCommand;
+  }
+
+  void resetGameController() {
+    _gameController.findNewController();
   }
 
   bool IsPaused(){ return _pause; }
@@ -81,7 +85,7 @@ protected:
 private:
 
   GameController _gameController;
-  DriverCommand _driverCommand;
+  GamepadCommand _driverCommand;
 
   std::mutex _gfxMutex;
   void updateCameraMatrix();

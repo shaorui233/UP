@@ -7,9 +7,9 @@
 
 
 #include "cppTypes.h"
-#include "orientation_tools.h"
-#include "collision_model.h"
-#include "spatial.h"
+#include "Math/orientation_tools.h"
+#include "Collision/collision_model.h"
+#include "Dynamics/spatial.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 

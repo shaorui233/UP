@@ -5,7 +5,7 @@
  */
 
 #include "Graphics3D.h"
-#include "utilities.h"
+#include "Utilities/utilities.h"
 
 #include <iostream>
 #include <unistd.h>
@@ -136,6 +136,7 @@ void Graphics3D::initializeGL() {
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
+  printf("done with initializeopengl\n");
 }
 
 /*-----------------------------------------*
@@ -245,12 +246,12 @@ void Graphics3D::setAnimating(bool animating) {
 GLuint buffID[3];
 void Graphics3D::paintGL() {
   // update joystick:
-  _gameController.updateDriverCommand(_driverCommand);
+  _gameController.updateGamepadCommand(_driverCommand);
   if(!_animating) return;
   if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     _fps = (60.f * 1000.f / (now - last_frame_ms));
-    std::cout << "FPS: " << _fps << "\n";
+    //std::cout << "FPS: " << _fps << "\n";
     last_frame_ms = now;
   }
   QPainter painter2(this);

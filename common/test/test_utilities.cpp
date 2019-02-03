@@ -5,7 +5,7 @@
  */
 
 #include "cppTypes.h"
-#include "utilities.h"
+#include "Utilities/utilities.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"

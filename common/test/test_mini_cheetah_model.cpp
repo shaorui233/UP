@@ -5,11 +5,11 @@
  */
 
 
-#include "FloatingBaseModel.h"
-#include "Quadruped.h"
-#include "utilities.h"
-#include "MiniCheetah.h"
-#include "DynamicsSimulator.h"
+#include "Dynamics/FloatingBaseModel.h"
+#include "Dynamics/Quadruped.h"
+#include "Utilities/utilities.h"
+#include "Dynamics/MiniCheetah.h"
+#include "Dynamics/DynamicsSimulator.h"
 
 #include <iostream>
 
@@ -199,7 +199,7 @@ TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
   // do aba
   sim.setState(x);
   sim.setAllExternalForces(forces);
-  sim.step(0.0, tau);
+  sim.step(0.0, tau, 5e5, 5e3);
 
   // check:
   Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
@@ -277,7 +277,7 @@ TEST(MiniCheetah, simulatorFootPosVelMiniCheetah) {
   // fwd kin is included in this
   sim.setState(x);
   sim.setAllExternalForces(forces);
-  sim.step(0.0, tau);
+  sim.step(0.0, tau, 5e5, 5e3);
 
   Vec3<double> footpRefML(5.4937, 7.1459, 7.8096);
   Vec3<double> footvRefML(-2.5284, 2.0944, 16.3732);

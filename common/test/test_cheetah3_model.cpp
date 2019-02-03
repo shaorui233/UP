@@ -5,11 +5,11 @@
  */
 
 
-#include "FloatingBaseModel.h"
-#include "Quadruped.h"
-#include "utilities.h"
+#include "Dynamics/FloatingBaseModel.h"
+#include "Dynamics/Quadruped.h"
+#include "Utilities/utilities.h"
 //#include "DynamicsSimulator.h"
-#include "Cheetah3.h"
+#include "include/Dynamics/Cheetah3.h"
 
 
 #include "gtest/gtest.h"

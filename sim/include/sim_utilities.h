@@ -6,8 +6,8 @@
 #define PROJECT_SIM_UTILITIES_H
 
 #include "cppTypes.h"
-#include "orientation_tools.h"
-#include "spatial.h"
+#include "Math/orientation_tools.h"
+#include "Dynamics/spatial.h"
 
 #include <QMatrix4x4>
 

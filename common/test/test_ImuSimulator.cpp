@@ -5,7 +5,7 @@
  */
 
 #include "cppTypes.h"
-#include "ImuSimulator.h"
+#include "SimUtilities/ImuSimulator.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"

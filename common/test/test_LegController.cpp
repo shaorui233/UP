@@ -3,9 +3,9 @@
  */
 
 
-#include "LegController.h"
-#include "Quadruped.h"
-#include "MiniCheetah.h"
+#include "Controllers/LegController.h"
+#include "Dynamics/Quadruped.h"
+#include "Dynamics/MiniCheetah.h"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 

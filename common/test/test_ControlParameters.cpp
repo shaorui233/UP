@@ -6,9 +6,9 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
-#include "ControlParameters.h"
-#include "SimulatorParameters.h"
-#include "RobotParameters.h"
+#include "ControlParameters/ControlParameters.h"
+#include "ControlParameters/SimulatorParameters.h"
+#include "ControlParameters/RobotParameters.h"
 
 class TestControlParameters : public ControlParameters {
 public:

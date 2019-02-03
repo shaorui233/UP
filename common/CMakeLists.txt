@@ -38,8 +38,8 @@ include_directories("include/" )                 # common includes
 include_directories("/usr/local/include/lcm/")   # lcm includes
 include_directories("../third-party/inih")       # inih includes
 
-file(GLOB sources "src/*.cpp")                   # common library cpp files
-file(GLOB test_sources "test/*.cpp")             # test cpp files
+file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
+file(GLOB_RECURSE test_sources "test/*.cpp")             # test cpp files
 
 # Library
 add_library(biomimetics STATIC ${sources})       # produce a library used by sim/robot

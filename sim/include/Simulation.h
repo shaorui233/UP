@@ -1,18 +1,18 @@
 #ifndef PROJECT_SIMULATION_H
 #define PROJECT_SIMULATION_H
 
-#include "Quadruped.h"
+#include "Dynamics/Quadruped.h"
 #include "Graphics3D.h"
-#include "MiniCheetah.h"
-#include "Cheetah3.h"
-#include "Timer.h"
-#include "SpineBoard.h"
-#include "SharedMemory.h"
-#include "SimulatorMessage.h"
-#include "SimulatorParameters.h"
-#include "RobotParameters.h"
-#include "ImuSimulator.h"
-#include "ControlParameterInterface.h"
+#include "Dynamics/MiniCheetah.h"
+#include "Dynamics/Cheetah3.h"
+#include "Utilities/Timer.h"
+#include "SimUtilities/SpineBoard.h"
+#include "Utilities/SharedMemory.h"
+#include "SimUtilities/SimulatorMessage.h"
+#include "ControlParameters/SimulatorParameters.h"
+#include "ControlParameters/RobotParameters.h"
+#include "SimUtilities/ImuSimulator.h"
+#include "ControlParameters/ControlParameterInterface.h"
 
 #include <vector>
 #include <mutex>
@@ -28,7 +28,8 @@
  */
 class Simulation {
 public:
-  explicit Simulation(RobotType robot, Graphics3D* window);
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  explicit Simulation(RobotType robot, Graphics3D* window, SimulatorControlParameters& params);
 
   /*!
    * Explicitly set the state of the robot
@@ -60,7 +61,7 @@ public:
   }
 
   void freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics = true);
-  void runAtSpeed(double dt, double dtLowLevelControl, double dtHighLevelControl, double x, bool graphics = true);
+  void runAtSpeed(bool graphics = true);
   void sendControlParameter(const std::string& name, ControlParameterValue value, ControlParameterValueKind kind);
 
   void resetSimTime() {
@@ -79,12 +80,35 @@ public:
     return _simulator->getState();
   }
 
+  void stop() {
+    _running = false; // kill simulation loop
+    _wantStop = true; // if we're still trying to connect, this will kill us
+
+    if(_connected) {
+      _sharedMemory().simToRobot.mode = SimulatorMode::EXIT;
+      _sharedMemory().simulatorIsDone();
+    }
+  }
+
+  SimulatorControlParameters& getSimParams() {
+    return _simParams;
+  }
+
+  RobotControlParameters& getRobotParams() {
+    return _robotParams;
+  }
+
+  bool isRobotConnected() {
+    return _connected;
+  }
+
+  void firstRun();
 
 private:
   std::mutex _robotMutex;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
   ImuSimulator<double>* _imuSimulator = nullptr;
-  SimulatorControlParameters _simParams;
+  SimulatorControlParameters& _simParams;
   RobotControlParameters _robotParams;
   size_t _robotID;
   Graphics3D *_window = nullptr;
@@ -98,6 +122,8 @@ private:
   SpineBoard _spineBoards[4];
   RobotType  _robot;
   bool _running = false;
+  bool _connected = false;
+  bool _wantStop = false;
   double _desiredSimSpeed = 1.;
   double _currentSimTime = 0.;
   double _timeOfNextLowLevelControl = 0.;
