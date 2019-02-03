@@ -3,7 +3,6 @@
 #include <QFileDialog>
 #include <ControlParameters/ControlParameters.h>
 #include "ui_SimControlPanel.h"
-#include "../../build/sim/ui_SimControlPanel.h" // todo remove me!
 
 /*!
  * Display an error messagebox with the given text
