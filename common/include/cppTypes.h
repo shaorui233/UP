@@ -11,6 +11,7 @@
 #include <eigen3/Eigen/Dense>
 
 #include <vector>
+#include "cTypes.h"
 
 // Rotation Matrix
 template<typename T>

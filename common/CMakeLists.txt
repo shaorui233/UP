@@ -37,6 +37,7 @@ include_directories(".")
 include_directories("include/" )                 # common includes
 include_directories("/usr/local/include/lcm/")   # lcm includes
 include_directories("../third-party/inih")       # inih includes
+include_directories("../third-party/osqp/include")       # osqp includes
 
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
 file(GLOB_RECURSE test_sources "test/*.cpp")             # test cpp files
@@ -46,5 +47,5 @@ add_library(biomimetics STATIC ${sources})       # produce a library used by sim
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main lcm rt inih)
+target_link_libraries(test-common gtest gmock_main lcm rt inih osqp)
 add_test(NAME example_test COMMAND test-common)
