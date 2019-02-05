@@ -44,7 +44,7 @@ public:
    */
   void setState(const FBModelState<T>& state) {
     _state = state;
-    _model._state = state;
+    _model.setState(state); // force recalculate dynamics
   }
 
   /*!

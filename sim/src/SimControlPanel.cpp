@@ -36,9 +36,9 @@ void SimControlPanel::updateUiEnable() {
   ui->startButton->setEnabled(!_started);
   ui->stopButton->setEnabled(_started);
   ui->joystickButton->setEnabled(_started);
-//  ui->saveSimulatorButton->setEnabled(_started && _simulationMode);
-//  ui->simulatorTable->setEnabled(_started && _simulationMode);
   ui->robotTable->setEnabled(_started);
+  ui->goHomeButton->setEnabled(_started);
+
 }
 
 void SimControlPanel::on_startButton_clicked() {
@@ -290,4 +290,34 @@ void SimControlPanel::on_favoritesTable_cellChanged(int row, int column) {
 
 void SimControlPanel::on_loadFavoriteButton_clicked() {
 
+}
+
+
+void SimControlPanel::on_goHomeButton_clicked() {
+  printf("go home\n");
+  FBModelState<double> homeState;
+  homeState.bodyOrientation << 1, 0, 0, 0;
+  homeState.bodyPosition = Vec3<double>(0,0,1);
+  homeState.bodyVelocity = SVec<double>::Zero();
+  homeState.q = DVec<double>(12);
+  homeState.q << 0,0,0,0,0,0,0,0,0,0,0,0;
+  homeState.qd = homeState.q;
+
+  _simulation->setRobotState(homeState);
+}
+
+void SimControlPanel::on_kickButton_clicked() {
+  // velocity of the floating base:
+  SVec<double> kickVelocity;
+  kickVelocity <<
+  ui->kickAngularX->text().toDouble(),
+  ui->kickAngularY->text().toDouble(),
+  ui->kickAngularZ->text().toDouble(),
+  ui->kickLinearX->text().toDouble(),
+  ui->kickLinearY->text().toDouble(),
+  ui->kickLinearZ->text().toDouble();
+
+  FBModelState<double> state = _simulation->getRobotState();
+  state.bodyVelocity += kickVelocity;
+  _simulation->setRobotState(state);
 }

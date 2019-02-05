@@ -41,6 +41,10 @@ private slots:
 
   void on_loadRobotButton_clicked();
 
+  void on_goHomeButton_clicked();
+
+  void on_kickButton_clicked();
+
   void on_favoritesTable_cellChanged(int row, int column);
 
   void on_loadFavoriteButton_clicked();

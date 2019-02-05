@@ -177,7 +177,7 @@ public:
   
   void resizeSystemMatricies();
 
-  void setState( FBModelState<T> & state) {
+  void setState( const FBModelState<T> & state) {
       _state = state;
 
       _biasAccelerationsUpToDate = false;
