@@ -22,7 +22,10 @@ void ContactImpulse<T>::UpdateQdot(FBModelState<T> & state){
         for(size_t i(0); i<CC::_nContact; ++i){
             CC::_cp_force_list[CC::_idx_list[i]] = 
                 CC::_cp_frame_list[i] * CC::_cp_local_force_list[i];
-            //pretty_print(CC::_cp_force_list[CC::_idx_list[i]], std::cout, "cp_force_list");
+
+            // Save the current local force for the next computation
+            CC::_cp_local_force_list_pre[CC::_idx_list[i]] = 
+                CC::_cp_local_force_list[i];
         }
     }
 }

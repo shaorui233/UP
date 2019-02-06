@@ -17,6 +17,7 @@ class ContactConstraint{
                 _model = model;            
                 for(size_t i(0); i< _model->_nGroundContact; ++i){
                     _cp_force_list.push_back(Vec3<T>::Zero());
+                    _cp_local_force_list_pre.push_back(Vec3<T>::Zero());
                 }
              }
 
@@ -54,6 +55,7 @@ class ContactConstraint{
 
         std::vector<T> _cp_penetration_list;
         vectorAligned<Vec3<T>> _cp_force_list; // For All contact point w.r.t Global
+        vectorAligned<Vec3<T>> _cp_local_force_list_pre; // For all contact point w.r.t local
         vectorAligned<Vec3<T>> _cp_local_force_list;
         vectorAligned<Vec3<T>> _cp_pos_list;
         vectorAligned<Mat3<T>> _cp_frame_list;
