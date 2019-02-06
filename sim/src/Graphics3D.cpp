@@ -427,7 +427,7 @@ void Graphics3D::_Additional_Drawing(){
 void Graphics3D::_DrawContactForce(){
     glLineWidth(2.0);
     //double scale(0.02);
-    double scale(0.5);
+    double scale(0.1);
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
