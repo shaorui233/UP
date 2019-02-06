@@ -12,17 +12,6 @@ bool ParamHandler::getString(const std::string & key, std::string& str_value) {
   return true;
 }
 
-bool ParamHandler::getVector(const std::string & key,
-                             std::vector<double> & vec_value) {
-  vec_value = config_[key].as<std::vector<double> >();
-  return true;
-}
-
-bool ParamHandler::getValue(const std::string & key, double & double_value) {
-  double_value = config_[key].as<double>();
-  return true;
-}
-
 bool ParamHandler::getBoolean(const std::string & key, bool & bool_value) {
   bool_value = config_[key].as<bool>();
   return true;

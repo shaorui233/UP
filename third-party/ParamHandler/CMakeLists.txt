@@ -7,6 +7,7 @@ set(GCC_EXTRA_OPTIONS "${GCC_EXTRA_OPTIONS} -fPIC")
 	#cmake_policy(SET CMP0015 OLD)
 #endif()
 
+set(CMAKE_CXX_FLAGS "-std=c++11")
 include(CheckCXXCompilerFlag)
 
 set(YAML_CPP_VERSION_MAJOR "0")
@@ -64,16 +65,16 @@ function(add_sources)
   # append to global list
   set_property(GLOBAL APPEND PROPERTY SRCS_LIST "${SRCS}")
 endfunction(add_sources)
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/include")
-set(header_directory "${CMAKE_CURRENT_SOURCE_DIR}/include/dynacore_yaml-cpp/")
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}")
+set(header_directory "${CMAKE_CURRENT_SOURCE_DIR}/dynacore_yaml-cpp/")
 
 file(GLOB sources "src/[a-zA-Z]*.cpp")
-file(GLOB_RECURSE public_headers "include/dynacore_yaml-cpp/[a-zA-Z]*.h")
+file(GLOB_RECURSE public_headers "dynacore_yaml-cpp/[a-zA-Z]*.h")
 file(GLOB private_headers "src/[a-zA-Z]*.h")
 
 if(YAML_CPP_BUILD_CONTRIB)
 	file(GLOB contrib_sources "src/contrib/[a-zA-Z]*.cpp")
-	file(GLOB contrib_public_headers "include/dynacore_yaml-cpp/contrib/[a-zA-Z]*.h")
+	file(GLOB contrib_public_headers "dynacore_yaml-cpp/contrib/[a-zA-Z]*.h")
 	file(GLOB contrib_private_headers "src/contrib/[a-zA-Z]*.h")
 else()
 	add_definitions(-DYAML_CPP_NO_CONTRIB)
@@ -97,10 +98,6 @@ if(VERBOSE)
 	message(STATUS "contrib_public_headers: ${contrib_public_headers}")
 	message(STATUS "contrib_private_headers: ${contrib_private_headers}")
 endif()
-
-include_directories(${YAML_CPP_SOURCE_DIR}/src)
-include_directories(${YAML_CPP_SOURCE_DIR}/include)
-
 
 
 ###
@@ -262,8 +259,12 @@ set(_INSTALL_DESTINATIONS
 ###
 ### Library
 ###
-add_library(dynacore_yaml-cpp SHARED ${library_sources})
-add_library(dynacore_param_handler SHARED ParamHandler.hpp ParamHandler.cpp)
+#add_library(dynacore_yaml-cpp SHARED ${library_sources})
+#add_library(dynacore_param_handler SHARED ParamHandler.hpp ParamHandler.cpp)
+
+add_library(dynacore_yaml-cpp STATIC ${library_sources})
+add_library(dynacore_param_handler STATIC ParamHandler.hpp ParamHandler.cpp)
+
 target_link_libraries(dynacore_param_handler dynacore_yaml-cpp)
 set_target_properties(dynacore_yaml-cpp PROPERTIES
   COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags}"
@@ -287,45 +288,3 @@ if(MSVC)
 	endif()
 endif()
 
-#export(
-    #TARGETS dynacore_yaml-cpp
-    #FILE "${PROJECT_BINARY_DIR}/dynacore_yaml-cpp-targets.cmake")
-#export(PACKAGE dynacore_yaml-cpp)
-#set(EXPORT_TARGETS dynacore_yaml-cpp CACHE INTERNAL "export targets")
-
-#set(CONFIG_INCLUDE_DIRS "${YAML_CPP_SOURCE_DIR}/include")
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/dynacore_yaml-cpp-config.cmake.in
-	#"${PROJECT_BINARY_DIR}/dynacore_yaml-cpp-config.cmake" @ONLY)
-
-#if(WIN32 AND NOT CYGWIN)
-	#set(INSTALL_CMAKE_DIR ${CMAKE_INSTALL_PREFIX}/CMake)
-#else()
-	#set(INSTALL_CMAKE_DIR ${LIB_INSTALL_DIR}/cmake/dynacore_yaml-cpp)
-#endif()
-
-#file(RELATIVE_PATH REL_INCLUDE_DIR "${INSTALL_CMAKE_DIR}" "${INCLUDE_INSTALL_ROOT_DIR}")
-#set(CONFIG_INCLUDE_DIRS "\${YAML_CPP_CMAKE_DIR}/${REL_INCLUDE_DIR}")
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/dynacore_yaml-cpp-config.cmake.in
-	#"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dynacore_yaml-cpp-config.cmake" @ONLY)
-
-#configure_file(${CMAKE_CURRENT_SOURCE_DIR}/dynacore_yaml-cpp-config-version.cmake.in
-	#"${PROJECT_BINARY_DIR}/dynacore_yaml-cpp-config-version.cmake" @ONLY)
-
-#install(FILES
-	#"${PROJECT_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/dynacore_yaml-cpp-config.cmake"
-	#"${PROJECT_BINARY_DIR}/dynacore_yaml-cpp-config-version.cmake"
-	#DESTINATION "${INSTALL_CMAKE_DIR}" COMPONENT dev)
-#install(EXPORT dynacore_yaml-cpp-targets DESTINATION ${INSTALL_CMAKE_DIR})
-
-#if(UNIX)
-	#set(PC_FILE ${CMAKE_BINARY_DIR}/dynacore_yaml-cpp.pc)
-	#configure_file("dynacore_yaml-cpp.pc.cmake" ${PC_FILE} @ONLY)
-	#install(FILES ${PC_FILE} DESTINATION ${LIB_INSTALL_DIR}/pkgconfig)
-#endif()
-
-### Formatting
-#get_property(all_sources GLOBAL PROPERTY SRCS_LIST)
-#add_custom_target(format
-	#COMMAND clang-format --style=file -i ${all_sources}
-	#COMMENT "Running clang-format"
-	#VERBATIM)
