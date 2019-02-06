@@ -123,7 +123,7 @@ csc* triplet_to_csr(const csc *T,
 /**
  * Convert sparse to dense
  */
-c_float* csc_to_dns(csc *M);
+//c_float* csc_to_dns(csc *M);
 
 
 /**
