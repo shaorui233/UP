@@ -8,6 +8,7 @@
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/GamepadCommand.h"
 
+#include <WBC_state/Cheetah_interface.hpp>
 // gamepadCommand
 // robotType
 // kvh
@@ -44,6 +45,11 @@ private:
   void finalizeStep();
   Quadruped<float> _quadruped;
   LegController<float>* _legController;
+
+  // For WBC stat
+  Cheetah_interface<float>* _wbc_state;
+  Cheetah_Data<float>* _data;
+  FloatingBaseModel<float> _model;
 };
 
 

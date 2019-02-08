@@ -259,11 +259,11 @@ set(_INSTALL_DESTINATIONS
 ###
 ### Library
 ###
-#add_library(dynacore_yaml-cpp SHARED ${library_sources})
-#add_library(dynacore_param_handler SHARED ParamHandler.hpp ParamHandler.cpp)
+add_library(dynacore_yaml-cpp SHARED ${library_sources})
+add_library(dynacore_param_handler SHARED ParamHandler.hpp ParamHandler.cpp)
 
-add_library(dynacore_yaml-cpp STATIC ${library_sources})
-add_library(dynacore_param_handler STATIC ParamHandler.hpp ParamHandler.cpp)
+#add_library(dynacore_yaml-cpp STATIC ${library_sources})
+#add_library(dynacore_param_handler STATIC ParamHandler.hpp ParamHandler.cpp)
 
 target_link_libraries(dynacore_param_handler dynacore_yaml-cpp)
 set_target_properties(dynacore_yaml-cpp PROPERTIES

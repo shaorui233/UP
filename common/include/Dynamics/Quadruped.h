@@ -17,6 +17,23 @@
 
 #include <vector>
 
+namespace cheetah{
+    constexpr size_t num_act_joint = 12;
+    constexpr size_t num_q = 19;
+    constexpr size_t dim_config = 18;
+    constexpr size_t num_leg = 4;
+    constexpr size_t num_leg_joint = 3;
+    constexpr float servo_rate = 0.001;
+}
+
+namespace linkID{
+    constexpr size_t FR = 9; // Front Right Foot
+    constexpr size_t FL = 11; // Front Left Foot
+    constexpr size_t HR = 13; // Hind Right Foot
+    constexpr size_t HL = 15; // Hind Left Foot
+}
+
+
 using std::vector;
 
 /*!

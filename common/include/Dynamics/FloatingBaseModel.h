@@ -228,6 +228,9 @@ public:
 
   vector< bool > _compute_contact_info;
 
+  const DMat<T> &  getMassMatrix() const { return _H; }
+  const DVec<T> &  getGravityForce() const { return _G; }
+  const DVec<T> &  getCoriolisForce() const { return _Cqd; }
 
 
   /// BEGIN ALGORITHM SUPPORT VARIABLES

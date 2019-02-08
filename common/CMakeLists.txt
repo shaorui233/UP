@@ -43,7 +43,9 @@ file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp fi
 file(GLOB_RECURSE test_sources "test/*.cpp")             # test cpp files
 
 # Library
-add_library(biomimetics STATIC ${sources})       # produce a library used by sim/robot
+#add_library(biomimetics STATIC ${sources})       # produce a library used by sim/robot
+add_library(biomimetics SHARED ${sources})       # produce a library used by sim/robot
+target_link_libraries(biomimetics inih)
 
 # Test
 add_executable(test-common ${test_sources} ${sources})

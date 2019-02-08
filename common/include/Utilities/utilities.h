@@ -179,5 +179,30 @@ void EulerZYX_2_SO3(const Vec3<T> & euler_zyx, Mat3<T> & SO3 ){
     SO3 = Mat3_Z * Mat3_Y * Mat3_X;
 }
 
+// Smooth Changing
+template <typename T> 
+T smooth_change(T ini, T end, T moving_duration, T curr_time){
+    if(curr_time > moving_duration){
+        return end;
+    }
+    return (ini + (end - ini)*0.5*(1-cos(curr_time/moving_duration * M_PI)));
+}
 
+template <typename T> 
+T smooth_change_vel(T ini, T end, T moving_duration, T curr_time){
+    if(curr_time>moving_duration){
+        return 0.0;
+    }
+    return ((end - ini)*0.5*(M_PI/moving_duration)*
+            sin(curr_time/moving_duration*M_PI));
+}
+
+template <typename T> 
+T smooth_change_acc(T ini, T end, T moving_duration, T curr_time){
+    if(curr_time>moving_duration){
+        return 0.0;
+    }
+    return ((end - ini)*0.5*(M_PI/moving_duration)*(M_PI/moving_duration)*
+            cos(curr_time/moving_duration*M_PI) );
+}
 #endif //PROJECT_UTILITIES_H

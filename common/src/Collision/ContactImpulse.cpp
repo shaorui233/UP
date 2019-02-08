@@ -96,8 +96,6 @@ void ContactImpulse<T>::_UpdateVelocity(DVec<T> & qdot){
             des_vel_list, min_list, max_list, qdot);
 
 
-    // TEST
-
     delete [] lambda_list;
     delete [] des_vel_list;
 
@@ -116,7 +114,7 @@ void ContactImpulse<T>::_UpdateQdotOneDirection(
         DVec<T> & qdot){
 
     T dforce, pre_force;
-    for(size_t iter(0); iter< 3; ++iter){
+    for(size_t iter(0); iter< 5; ++iter){
         for(size_t i(0); i<CC::_nContact; ++i){
             dforce = (des_vel_list[i] 
                     - (Jc_list[i].block(idx,0, 1, _nDof) * qdot)(0,0))*lambda_list[i];

@@ -1656,7 +1656,7 @@ namespace GolDIdnani{
     else
       return (abs_b == (T)0.0 ? (T)0.0 : abs_b * sqrt((T)1.0 + (abs_a / abs_b) * (abs_a / abs_b)));
   }
-
+/*
   template <typename T>
   void svd(const GMatr<T>& A, GMatr<T>& U, GVect<T>& W, GMatr<T>& V)
   {
@@ -2100,9 +2100,9 @@ namespace GolDIdnani{
       throw std::logic_error("Error in Cholesky decomposition: b vector must be of the same dimensions of LU matrix");
     GVect<T> x, y;
 
-    /* Solve L * y = b */
+    // Solve L * y = b 
     forward_elimination(LL, y, b);
-    /* Solve L^T * x = y */
+    // Solve L^T * x = y 
     backward_elimination(LL, x, y);
 
     return x;
@@ -2171,6 +2171,7 @@ namespace GolDIdnani{
 
     return x;
   }
+*/
 
   /* Setting default linear systems machinery */
 

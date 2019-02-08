@@ -1,0 +1,8 @@
+## Walking Test ********************************* 
+#test_name: walking_test
+
+## Body Ctrl Test ********************************* 
+test_name: body_ctrl_test
+
+## JPos Ctrl Test ********************************* 
+#test_name: jpos_ctrl_test

@@ -50,13 +50,32 @@ _tau(12) {
   // set some sane defaults:
   _tau = zero12;
   FBModelState<double> x0;
-  x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
-  x0.bodyPosition = Vec3<double>(0,0,0);
+  //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
+  x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .0));
+  //x0.bodyPosition = Vec3<double>(0,0,-0.0);
+  x0.bodyPosition = Vec3<double>(0,0,-0.449);
   SVec<double> v0 = SVec<double>::Zero();
   //v0[3] = 10;
   x0.bodyVelocity = v0;
   x0.q = zero12;
   x0.qd = zero12;
+
+  // Initial Posture
+  x0.q[0] = -0.807;
+  x0.q[1] = 1.2;
+  x0.q[2] = -2.4;
+
+  x0.q[3] = 0.807;
+  x0.q[4] = 1.2;
+  x0.q[5] = -2.4;
+
+  x0.q[6] = -0.807;
+  x0.q[7] = 1.2;
+  x0.q[8] = -2.4;
+
+  x0.q[9] = 0.807;
+  x0.q[10] = 1.2;
+  x0.q[11] = -2.4;
 
   setRobotState(x0);
 

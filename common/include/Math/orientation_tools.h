@@ -240,6 +240,25 @@ namespace ori {
     quatNew = quatNew / quatNew.norm();
     return quatNew;
   }
+
+
+  template<typename T>
+      void quaternionToso3(const Quat<T> quat, Vec3<T> & so3){
+          so3[0] = quat[1];
+          so3[1] = quat[2];
+          so3[2] = quat[3];
+
+          T theta = 2.0*asin(sqrt(so3[0] * so3[0] +
+                      so3[1] * so3[1] +
+                      so3[2] * so3[2]) );
+
+          if(fabs(theta)<0.0000001) {
+              so3.setZero();
+              return ;
+          }
+          so3 /= sin(theta/2.0);
+          so3 *= theta;
+      }
 }
 
 

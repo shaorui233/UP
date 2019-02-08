@@ -10,12 +10,11 @@ endif ()
 set(CMAKE_COLOR_MAKEFILE   ON)
 execute_process(COMMAND ../scripts/make_types.sh)
 
-#
-
 
 add_subdirectory(third-party/Goldfarb_Optimizer)
+add_subdirectory(third-party/ParamHandler)
 add_subdirectory(third-party/inih)
 add_subdirectory(third-party/osqp)
-add_subdirectory(common)
 add_subdirectory(robot)
+add_subdirectory(common)
 add_subdirectory(sim)
