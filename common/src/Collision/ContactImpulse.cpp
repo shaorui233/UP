@@ -24,8 +24,8 @@ void ContactImpulse<T>::UpdateQdot(FBModelState<T> & state){
                 CC::_cp_frame_list[i] * CC::_cp_local_force_list[i];
 
             // Save the current local force for the next computation
-            CC::_cp_local_force_list_pre[CC::_idx_list[i]] = 
-                CC::_cp_local_force_list[i];
+            //CC::_cp_local_force_list_pre[CC::_idx_list[i]] = 
+                //CC::_cp_local_force_list[i];
         }
     }
 }
