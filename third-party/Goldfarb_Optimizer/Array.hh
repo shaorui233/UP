@@ -559,7 +559,7 @@ namespace GolDIdnani{
     char comma;
     is >> elements;
     v.resize(elements);
-    for (unsigned int i = 0; i < elements; i++)
+    for (int i = 0; i < elements; i++)
       is >> v[i] >> comma;
 
     return is;
@@ -1060,15 +1060,16 @@ namespace GolDIdnani{
       v[i] = v[i - 1] + m;
   }
 
-  template <typename T>
-  inline void GMatr<T>::resize(const T& a, const unsigned int n, const unsigned int m)
-  {
-    unsigned int i, j;
-    resize(row, col);
-    for (i = 0; i < row; i++)
-      for (j = 0; j < col; j++)
-        v[i][j] = a;
-  }
+  // it seems like this function has a bug and doesn't use n or m for anything.
+//  template <typename T>
+//  inline void GMatr<T>::resize(const T& a, const unsigned int n, const unsigned int m)
+//  {
+//    unsigned int i, j;
+//    resize(row, col);
+//    for (i = 0; i < row; i++)
+//      for (j = 0; j < col; j++)
+//        v[i][j] = a;
+//  }
 
 
 
@@ -1631,8 +1632,8 @@ namespace GolDIdnani{
     char comma;
     is >> rows >> cols;
     m.resize(rows, cols);
-    for (unsigned int i = 0; i < rows; i++)
-      for (unsigned int j = 0; j < cols; j++)
+    for (int i = 0; i < rows; i++)
+      for (int j = 0; j < cols; j++)
         is >> m[i][j] >> comma;
 
     return is;
