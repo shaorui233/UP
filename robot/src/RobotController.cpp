@@ -23,6 +23,10 @@ void RobotController::initialize() {
 
 void RobotController::step() {
   setupStep();
+
+  // for now, we will always enable the legs:
+  _legController->setEnabled(true);
+  _legController->setMaxTorqueCheetah3(208.5);
  
 
   // ======= WBC state command computation  =============== //
@@ -65,11 +69,12 @@ void RobotController::step() {
 void RobotController::setupStep() {
   if(robotType == RobotType::MINI_CHEETAH) {
     _legController->updateData(spiData);
-    _legController->zeroCommand();
+  } else if(robotType == RobotType::CHEETAH_3) {
+    _legController->updateData(tiBoardData);
   } else {
     assert(false);
   }
-
+  _legController->zeroCommand();
   // todo safety checks, sanity checks, etc...
 }
 
@@ -77,6 +82,8 @@ void RobotController::setupStep() {
 void RobotController::finalizeStep() {
   if(robotType == RobotType::MINI_CHEETAH) {
     _legController->updateCommand(spiCommand);
+  } else if(robotType == RobotType::CHEETAH_3) {
+    _legController->updateCommand(tiBoardCommand);
   } else {
     assert(false);
   }
@@ -84,5 +91,5 @@ void RobotController::finalizeStep() {
 }
 
 RobotController::~RobotController() {
-
+  delete _legController;
 }

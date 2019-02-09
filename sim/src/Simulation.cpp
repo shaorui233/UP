@@ -89,9 +89,17 @@ _tau(12) {
       _spineBoards[leg].resetData();
       _spineBoards[leg].resetCommand();
     }
-  } else {
+  } else if(_robot == RobotType::CHEETAH_3) {
     // init ti board
-    assert(false); // todo
+    for(int leg = 0; leg < 4; leg++) {
+      _tiBoards[leg].init(Quadruped<float>::getSideSign(leg));
+      _tiBoards[leg].set_link_lengths(_quadruped._abadLinkLength, _quadruped._hipLinkLength, _quadruped._kneeLinkLenght);
+      _tiBoards[leg].reset_ti_board_command();
+      _tiBoards[leg].reset_ti_board_data();
+      _tiBoards[leg].run_ti_board_iteration();
+    }
+  } else {
+    assert(false);
   }
 
 
@@ -108,6 +116,8 @@ _tau(12) {
   printf("[Simulation] Load control parameters...\n");
   if(_robot == RobotType::MINI_CHEETAH) {
     _robotParams.initializeFromIniFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+  } else if(_robot == RobotType::CHEETAH_3) {
+    _robotParams.initializeFromIniFile(getConfigDirectoryPath() + CHEETAH_3_DEFAULT_PARAMETERS);
   } else {
     assert(false);
   }
@@ -126,13 +136,9 @@ _tau(12) {
 }
 
 void Simulation::sendControlParameter(const std::string &name, ControlParameterValue value, ControlParameterValueKind kind) {
-  (void)name;
-  (void)value;
-  (void)kind;
 #ifndef DISABLE_HIGH_LEVEL_CONTROL
   ControlParameterRequest& request = _sharedMemory().simToRobot.controlParameterRequest;
   ControlParameterResponse& response = _sharedMemory().robotToSim.controlParameterResponse;
-  (void)response;
 
   // first check no pending message
   assert(request.requestNumber == response.requestNumber);
@@ -225,12 +231,24 @@ void Simulation::step(double dt, double dtLowLevelControl, double dtHighLevelCon
   }
 
   // actuator model:
-  for(int leg = 0; leg < 4; leg++) {
-    for(int joint = 0; joint < 3; joint++) {
-      _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
-                                                             _simulator->getState().qd[leg*3 + joint]);
+  if(_robot == RobotType::MINI_CHEETAH) {
+    for(int leg = 0; leg < 4; leg++) {
+      for(int joint = 0; joint < 3; joint++) {
+        _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_spineBoards[leg].torque_out[joint],
+                                                               _simulator->getState().qd[leg*3 + joint]);
+      }
     }
+  } else if(_robot == RobotType::CHEETAH_3) {
+    for(int leg = 0; leg < 4; leg++) {
+      for(int joint = 0; joint < 3; joint++) {
+        _tau[leg*3 + joint] = _actuatorModels[joint].getTorque(_tiBoards[leg].data->tau_des[joint],
+                                                               _simulator->getState().qd[leg*3 + joint]);
+      }
+    }
+  } else {
+    assert(false);
   }
+
 
   // dynamics
   _currentSimTime += dt;
@@ -256,8 +274,21 @@ void Simulation::lowLevelControl() {
     }
 
 
+  } else if(_robot == RobotType::CHEETAH_3) {
+
+    // update data
+    for(int leg = 0; leg < 4; leg++) {
+      for(int joint = 0; joint < 3; joint++) {
+        _tiBoards[leg].data->q[joint] = _simulator->getState().q[leg*3 + joint];
+        _tiBoards[leg].data->dq[joint] = _simulator->getState().qd[leg*3 + joint];
+      }
+    }
+
+    // run control
+    for(auto &tiBoard : _tiBoards) {
+      tiBoard.run_ti_board_iteration();
+    }
   } else {
-    // todo Cheetah 3
     assert(false);
   }
 }
@@ -280,8 +311,12 @@ void Simulation::highLevelControl() {
   // send leg data to robot
   if(_robot == RobotType::MINI_CHEETAH) {
     _sharedMemory().simToRobot.spiData = _spiData;
+  } else if(_robot == RobotType::CHEETAH_3) {
+    for(int i = 0; i < 4; i++) {
+      _sharedMemory().simToRobot.tiBoardData[i] = *_tiBoards[i].data;
+    }
   } else {
-    assert(false); // todo cheetah 3
+    assert(false);
   }
 
   // signal to the robot that it can start running
@@ -310,6 +345,10 @@ void Simulation::highLevelControl() {
   // update
   if(_robot == RobotType::MINI_CHEETAH) {
     _spiCommand = _sharedMemory().robotToSim.spiCommand;
+  } else if(_robot == RobotType::CHEETAH_3) {
+    for(int i = 0; i < 4; i++) {
+      _tiBoards[i].command = _sharedMemory().robotToSim.tiBoardCommand[i];
+    }
   } else {
     assert(false);
   }

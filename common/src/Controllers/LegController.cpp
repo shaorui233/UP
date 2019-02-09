@@ -4,7 +4,7 @@
  *  Implements low-level leg control for Mini Cheetah and Cheetah 3 Robots
  *  Abstracts away the difference between the SPIne and the TI Boards
  *  All quantities are in the "leg frame" which has the same orientation as the body frame,
- *  but is shifted so that 0,0,0 is at the ab/ad pivot.
+ *  but is shifted so that 0,0,0 is at the ab/ad pivot (the "hip frame").
  */
 
 #include <eigen3/Eigen/Dense>
@@ -22,7 +22,6 @@ void LegControllerCommand<T>::zero() {
   qdDes = Vec3<T>::Zero();
   pDes = Vec3<T>::Zero();
   vDes = Vec3<T>::Zero();
-  tauEstimate = Vec3<T>::Zero();
   kpCartesian = Mat3<T>::Zero();
   kdCartesian = Mat3<T>::Zero();
   kpJoint = Mat3<T>::Zero();
@@ -36,6 +35,7 @@ void LegControllerData<T>::zero() {
   p = Vec3<T>::Zero();
   v = Vec3<T>::Zero();
   J = Mat3<T>::Zero();
+  tauEstimate = Vec3<T>::Zero();
 }
 
 /*!
@@ -47,6 +47,7 @@ void LegController<T>::zeroCommand() {
   for(auto& cmd : commands) {
     cmd.zero();
   }
+  _legsEnabled = false;
 }
 
 /*!
@@ -98,6 +99,23 @@ void LegController<T>::updateData(const SpiData *spiData) {
 }
 
 /*!
+ * Update the "leg data" from a TI Board message
+ */
+template<typename T>
+void LegController<T>::updateData(const TiBoardData *tiBoardData) {
+  for(int leg = 0; leg < 4; leg++) {
+    for(int joint = 0; joint < 3; joint++) {
+      datas[leg].q(joint) = tiBoardData[leg].q[joint];
+      datas[leg].qd(joint) = tiBoardData[leg].dq[joint];
+      datas[leg].p(joint) = tiBoardData[leg].position[joint];
+      datas[leg].v(joint) = tiBoardData[leg].velocity[joint];
+      computeLegJacobianAndPosition<T>(_quadruped, datas[leg].q, &datas[leg].J, nullptr, leg);
+      datas[leg].tauEstimate[joint] = tiBoardData[leg].tau[joint];
+    }
+  }
+}
+
+/*!
  * Update the "leg command" for the SPIne board message
  */
 template <typename T>
@@ -140,8 +158,34 @@ void LegController<T>::updateCommand(SpiCommand *spiCommand) {
     spiCommand->qd_des_knee[leg] = commands[leg].qdDes(2);
 
     // estimate torque
-    commands[leg].tauEstimate = legTorque + commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
-                                            commands[leg].kdJoint * (commands[leg].qdDes-datas[leg].qd) ;
+    datas[leg].tauEstimate = legTorque + commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
+                                            commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd) ;
+
+    spiCommand->flags[leg] = _legsEnabled ? 1 : 0;
+  }
+}
+
+/*!
+ * Update the "leg command" for the TI Board
+ */
+template<typename T>
+void LegController<T>::updateCommand(TiBoardCommand *tiBoardCommand) {
+  for(int leg = 0; leg < 4; leg++) {
+    Vec3<T> tauFF = commands[leg].tauFeedForward.template cast<T>();
+    tauFF += commands[leg].kpJoint * (commands[leg].qDes - datas[leg].q) +
+             commands[leg].kdJoint * (commands[leg].qdDes - datas[leg].qd);
+
+    for(int joint = 0; joint < 3; joint++) {
+      tiBoardCommand[leg].kp[joint] = commands[leg].kpCartesian(joint, joint);
+      tiBoardCommand[leg].kd[joint] = commands[leg].kdCartesian(joint, joint);
+      tiBoardCommand[leg].tau_ff[joint] = tauFF[joint];
+      tiBoardCommand[leg].position_des[joint] = commands[leg].pDes[joint];
+      tiBoardCommand[leg].velocity_des[joint] = commands[leg].vDes[joint];
+      tiBoardCommand[leg].force_ff[joint] = commands[leg].forceFeedForward[joint];
+    }
+
+    tiBoardCommand[leg].enable = _legsEnabled ? 1 : 0;
+    tiBoardCommand[leg].max_torque = _maxTorque;
   }
 }
 

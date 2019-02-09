@@ -4,7 +4,7 @@
  *  Implements low-level leg control for Mini Cheetah and Cheetah 3 Robots
  *  Abstracts away the difference between the SPIne and the TI Boards
  *  All quantities are in the "leg frame" which has the same orientation as the body frame,
- *  but is shifted so that 0,0,0 is at the ab/ad pivot.
+ *  but is shifted so that 0,0,0 is at the ab/ad pivot (the "hip frame").
  */
 
 #ifndef PROJECT_LEGCONTROLLER_H
@@ -13,6 +13,7 @@
 #include <eigen3/Eigen/Dense>
 #include "cppTypes.h"
 #include "SimUtilities/SpineBoard.h"
+#include "SimUtilities/ti_boardcontrol.h"
 #include "Dynamics/Quadruped.h"
 
 template <typename T>
@@ -26,7 +27,7 @@ struct LegControllerCommand {
 
   Vec3<T> tauFeedForward, forceFeedForward, qDes, qdDes, pDes, vDes;
   Mat3<T> kpCartesian, kdCartesian, kpJoint, kdJoint;
-  Vec3<T> tauEstimate;
+
 };
 
 template <typename T>
@@ -40,6 +41,7 @@ struct LegControllerData {
 
   Vec3<T> q, qd, p, v;
   Mat3<T> J;
+  Vec3<T> tauEstimate;
 };
 
 template <typename T>
@@ -50,13 +52,26 @@ public:
   void zeroCommand();
   void edampCommand(RobotType robot, T gain);
   void updateData(const SpiData* spiData);
+  void updateData(const TiBoardData* tiBoardData);
   void updateCommand(SpiCommand* spiCommand);
+  void updateCommand(TiBoardCommand* tiBoardCommand);
+  void setEnabled(bool enabled) {
+    _legsEnabled = enabled;
+  };
 
+  /*!
+   * Set the maximum torque.  This only works on cheetah 3!
+   */
+  void setMaxTorqueCheetah3(T tau) {
+    _maxTorque = tau;
+  }
 
 
   LegControllerCommand<T> commands[4];
   LegControllerData<T>    datas[4];
   Quadruped<T>& _quadruped;
+  bool _legsEnabled = false;
+  T _maxTorque = 0;
 };
 
 

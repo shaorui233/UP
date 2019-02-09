@@ -7,6 +7,7 @@
 #include "Dynamics/Cheetah3.h"
 #include "Utilities/Timer.h"
 #include "SimUtilities/SpineBoard.h"
+#include "SimUtilities/ti_boardcontrol.h"
 #include "Utilities/SharedMemory.h"
 #include "SimUtilities/SimulatorMessage.h"
 #include "ControlParameters/SimulatorParameters.h"
@@ -120,6 +121,7 @@ private:
   SpiCommand _spiCommand;
   SpiData    _spiData;
   SpineBoard _spineBoards[4];
+  TI_BoardControl _tiBoards[4];
   RobotType  _robot;
   bool _running = false;
   bool _connected = false;

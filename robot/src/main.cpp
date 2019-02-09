@@ -53,12 +53,12 @@ int main(int argc, char** argv) {
   // dispatch the appropriate driver
   if(gMasterConfig.simulated) {
     if(gMasterConfig._robot == RobotType::MINI_CHEETAH) {
-      SimulationBridge simDriver(gMasterConfig._robot);
-      simDriver.run();
+      SimulationBridge simulationBridge(gMasterConfig._robot);
+      simulationBridge.run();
       printf("[Quadruped] SimDriver run() has finished!\n");
     } else if (gMasterConfig._robot == RobotType::CHEETAH_3) {
-      printf("[ERROR] Cheetah 3 Doesn't Exist Yet\n");
-      assert(false);
+      SimulationBridge simulationBridge(gMasterConfig._robot);
+      simulationBridge.run();
     } else {
       printf("[ERROR] unknown robot\n");
       assert(false);

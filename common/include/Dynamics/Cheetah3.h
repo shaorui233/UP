@@ -48,7 +48,7 @@ Quadruped<T> buildCheetah3() {
   cheetah._motorR  = 0.45;
   cheetah._jointDamping = .1;
   cheetah._jointDryFriction = 1;
-  cheetah._motorTauMax = 27.2; // todo set me.
+  cheetah._motorTauMax = 27.2;
 
   MassProperties<T> abadMassProperties, hipMassProperties, kneeMassProperties,
     abadRotorMassProperties, hipRotorMassProperties, kneeRotorMassProperties;

@@ -38,13 +38,15 @@ public:
   CheaterState<double>* cheaterState;
   SpiData* spiData;
   SpiCommand* spiCommand;
+  TiBoardCommand* tiBoardCommand;
+  TiBoardData* tiBoardData;
   RobotControlParameters* controlParameters;
 
 private:
   void setupStep();
   void finalizeStep();
   Quadruped<float> _quadruped;
-  LegController<float>* _legController;
+  LegController<float>* _legController = nullptr;
 
   // For WBC stat
   Cheetah_interface<float>* _wbc_state;

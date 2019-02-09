@@ -13,6 +13,7 @@
 
 #define SIMULATOR_DEFAULT_PARAMETERS "/simulator-defaults.ini"
 #define MINI_CHEETAH_DEFAULT_PARAMETERS "/mini-cheetah-defaults.ini"
+#define CHEETAH_3_DEFAULT_PARAMETERS "/cheetah-3-defaults.ini"
 
 
 

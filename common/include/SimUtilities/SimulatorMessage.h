@@ -12,6 +12,7 @@
 #include "SimUtilities/GamepadCommand.h"
 #include "SimUtilities/IMUTypes.h"
 #include "SimUtilities/SpineBoard.h"
+#include "SimUtilities/ti_boardcontrol.h"
 #include "ControlParameters/ControlParameterInterface.h"
 
 /*!
@@ -38,6 +39,7 @@ struct SimulatorToRobotMessage {
 
   // leg data
   SpiData spiData;
+  TiBoardData tiBoardData[4];
   // todo cheetah 3
   ControlParameterRequest controlParameterRequest;
 
@@ -50,6 +52,7 @@ struct SimulatorToRobotMessage {
 struct RobotToSimulatorMessage {
   RobotType robotType;
   SpiCommand spiCommand;
+  TiBoardCommand tiBoardCommand[4];
 
   // todo add these:
   // visualization data
