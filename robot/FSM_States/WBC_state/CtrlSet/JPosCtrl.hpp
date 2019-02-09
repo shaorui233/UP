@@ -23,7 +23,7 @@ class JPosCtrl: public Controller<T>{
 
         virtual void CtrlInitialization(const std::string & setting_file_name);
 
-        void setMovingTime(T time) { end_time_ = time; }
+        void setMovingTime(const T & time) { end_time_ = time; }
         void setTargetPos(const std::vector<T> & jpos_target){ 
             for(size_t i(0); i<cheetah::num_act_joint; ++i)
                 _jpos_target[i] = jpos_target[i];

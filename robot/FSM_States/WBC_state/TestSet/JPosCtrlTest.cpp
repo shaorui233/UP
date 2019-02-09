@@ -47,7 +47,7 @@ int JPosCtrlTest<T>::_NextPhase(const int & phase){
 template <typename T>
 void JPosCtrlTest<T>::_SettingParameter(){
   ParamHandler handler(CheetahConfigPath"TEST_jpos_ctrl.yaml");
-  T tmp;
+  T tmp(0.);
   std::vector<T> tmp_vec;
   // Stance Time
   handler.getValue<T>("ini_jpos_move_time", tmp);
