@@ -164,6 +164,7 @@ void Simulation::sendControlParameter(const std::string &name, ControlParameterV
   } else {
     _wantStop = true;
     _running = false;
+    _connected = false;
     printf("[ERROR] Timed out waiting for message from robot!  Did it crash?\n");
     return;
   }
@@ -337,6 +338,7 @@ void Simulation::highLevelControl() {
   } else {
     _wantStop = true;
     _running = false;
+    _connected = false;
     printf("[ERROR] Timed out waiting for message from robot!  Did it crash?\n");
     return;
   }

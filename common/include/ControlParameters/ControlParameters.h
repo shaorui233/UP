@@ -31,7 +31,9 @@
 enum class ControlParameterValueKind : u64 {
   FLOAT = 0,
   DOUBLE = 1,
-  S64 = 2
+  S64 = 2,
+  VEC3_DOUBLE = 3,
+  VEC3_FLOAT = 4
 };
 
 std::string controlParameterValueKindToString(ControlParameterValueKind valueKind);
@@ -40,12 +42,16 @@ union ControlParameterValuePtr {
   float* f;
   double* d;
   s64* i;
+  float* vec3f;
+  double* vec3d;
 };
 
 union ControlParameterValue {
   float f;
   double d;
   s64 i;
+  float vec3f[3];
+  double vec3d[3];
 };
 
 std::string controlParameterValueToString(ControlParameterValue v, ControlParameterValueKind kind);
@@ -133,6 +139,24 @@ public:
     collection.addParameter(this, name);
   }
 
+  ControlParameter(const std::string& name, Vec3<float>& value, ControlParameterCollection& collection, const std::string& units = "") {
+    _name = name;
+    truncateName();
+    _units = units;
+    _value.vec3f = value.data();
+    _kind = ControlParameterValueKind::VEC3_FLOAT;
+    collection.addParameter(this, name);
+  }
+
+  ControlParameter(const std::string& name, Vec3<double>& value, ControlParameterCollection& collection, const std::string& units = "") {
+    _name = name;
+    truncateName();
+    _units = units;
+    _value.vec3d = value.data();
+    _kind = ControlParameterValueKind::VEC3_DOUBLE;
+    collection.addParameter(this, name);
+  }
+
   void truncateName() {
     if(_name.length() > CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH) {
       printf("[Error] name %s is too long, shortening to ", _name.c_str());
@@ -169,6 +193,26 @@ public:
     *_value.i = i;
   }
 
+  void initializeVec3f(const Vec3<float>& v) {
+    if(_kind != ControlParameterValueKind::VEC3_FLOAT) {
+      throw std::runtime_error("Tried to initialize control parameter " + _name + " as a vector3f");
+    }
+    _set = true;
+    _value.vec3f[0] = v[0];
+    _value.vec3f[1] = v[1];
+    _value.vec3f[2] = v[2];
+  }
+
+  void initializeVec3d(const Vec3<double>& v) {
+    if(_kind != ControlParameterValueKind::VEC3_DOUBLE) {
+      throw std::runtime_error("Tried to initialize control parameter " + _name + " as a vector3d");
+    }
+    _set = true;
+    _value.vec3d[0] = v[0];
+    _value.vec3d[1] = v[1];
+    _value.vec3d[2] = v[2];
+  }
+
   void set(ControlParameterValue value, ControlParameterValueKind kind) {
     if(kind != _kind) {
       throw std::runtime_error("type mismatch in set");
@@ -182,6 +226,16 @@ public:
         break;
       case ControlParameterValueKind::S64:
         *_value.i = value.i;
+        break;
+      case ControlParameterValueKind::VEC3_FLOAT:
+        _value.vec3f[0] = value.vec3f[0];
+        _value.vec3f[1] = value.vec3f[1];
+        _value.vec3f[2] = value.vec3f[2];
+        break;
+      case ControlParameterValueKind::VEC3_DOUBLE:
+        _value.vec3d[0] = value.vec3d[0];
+        _value.vec3d[1] = value.vec3d[1];
+        _value.vec3d[2] = value.vec3d[2];
         break;
       default:
         throw std::runtime_error("invalid kind");
@@ -204,6 +258,16 @@ public:
       case ControlParameterValueKind::S64:
         value.i = *_value.i;
         break;
+      case ControlParameterValueKind::VEC3_FLOAT:
+        value.vec3f[0] = _value.vec3f[0];
+        value.vec3f[1] = _value.vec3f[1];
+        value.vec3f[2] = _value.vec3f[2];
+        break;
+      case ControlParameterValueKind::VEC3_DOUBLE:
+        value.vec3d[0] = _value.vec3d[0];
+        value.vec3d[1] = _value.vec3d[1];
+        value.vec3d[2] = _value.vec3d[2];
+        break;
       default:
         throw std::runtime_error("invalid kind");
     }
@@ -211,7 +275,7 @@ public:
   }
 
   /*!
-   * Convert the value to a string that works in an INI file
+   * Convert the value to a string that works in a YAML file
    */
   std::string toString() {
     std::string result;
@@ -224,6 +288,18 @@ public:
         break;
       case ControlParameterValueKind::S64:
         result += std::to_string(*_value.i);
+        break;
+      case ControlParameterValueKind::VEC3_FLOAT:
+        result += "[";
+        result += numberToString(_value.vec3f[0]) + ", ";
+        result += numberToString(_value.vec3f[1]) + ", ";
+        result += numberToString(_value.vec3f[2]) + "]";
+        break;
+      case ControlParameterValueKind::VEC3_DOUBLE:
+        result += "[";
+        result += numberToString(_value.vec3d[0]) + ", ";
+        result += numberToString(_value.vec3d[1]) + ", ";
+        result += numberToString(_value.vec3d[2]) + "]";
         break;
       default:
         result += "<unknown type " + std::to_string((u32)(_kind)) + "> (add it yourself in ControlParameters.h!)";
@@ -242,6 +318,22 @@ public:
         break;
       case ControlParameterValueKind::S64:
         *_value.i = std::stoll(value);
+        break;
+      case ControlParameterValueKind::VEC3_FLOAT:
+      {
+        Vec3<float> v = stringToVec3<float>(value);
+        _value.vec3f[0] = v[0];
+        _value.vec3f[1] = v[1];
+        _value.vec3f[2] = v[2];
+      }
+      break;
+      case ControlParameterValueKind::VEC3_DOUBLE:
+      {
+        Vec3<double> v = stringToVec3<double>(value);
+        _value.vec3d[0] = v[0];
+        _value.vec3d[1] = v[1];
+        _value.vec3d[2] = v[2];
+      }
         break;
       default:
         return false;
@@ -293,6 +385,14 @@ public:
 
   void initializeInteger(const std::string& name, s64 i) {
     collection.lookup(name).initializeInteger(i);
+  }
+
+  void initializeVec3f(const std::string& name, Vec3<float>& v) {
+    collection.lookup(name).initializeVec3f(v);
+  }
+
+  void initializeVec3d(const std::string& name, Vec3<double>& v) {
+    collection.lookup(name).initializeVec3d(v);
   }
 
   void lockMutex() {

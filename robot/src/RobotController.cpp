@@ -48,10 +48,14 @@ void RobotController::step() {
 
   // run the controller:
   //Vec3<float> pDes(0,0,driverCommand->leftStickAnalog[1]);
-  float kp = controlParameters->stand_kp_cartesian;
-  float kd = controlParameters->stand_kd_cartesian;
-  Mat3<float> kpMat; kpMat << kp, 0, 0, 0, kp, 0, 0, 0, kp;
-  Mat3<float> kdMat; kdMat << kd, 0, 0, 0, kd, 0, 0, 0, kd;
+  Mat3<float> kpMat; kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
+  0, controlParameters->stand_kp_cartesian[1], 0,
+  0, 0, controlParameters->stand_kp_cartesian[2];
+
+  Mat3<float> kdMat; kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
+  0, controlParameters->stand_kd_cartesian[1], 0,
+  0, 0, controlParameters->stand_kd_cartesian[2];
+
   for(int leg = 0; leg < 4; leg++) {
     //_legController->commands[leg].pDes = pDes;
     //_legController->commands[leg].kpCartesian = kpMat;

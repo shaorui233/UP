@@ -205,4 +205,58 @@ T smooth_change_acc(T ini, T end, T moving_duration, T curr_time){
     return ((end - ini)*0.5*(M_PI/moving_duration)*(M_PI/moving_duration)*
             cos(curr_time/moving_duration*M_PI) );
 }
+
+template<typename T>
+T stringToNumber(const std::string& str) {
+  static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value, "stringToNumber only works for double/float");
+
+  if(std::is_same<T, double>::value) {
+    return std::stod(str);
+  } else if(std::is_same<T, float>::value) {
+    return std::stof(str);
+  }
+}
+
+template<typename T>
+T stringToNumber(const char* str) {
+  return stringToNumber<T>(std::string(str));
+}
+
+template<typename T>
+Vec3<T> stringToVec3(const std::string& str) {
+  Vec3<T> v;
+  size_t i = 0;
+
+  // seek past whitespace
+  while(str.at(i) == ' ') i++;
+
+  if(str.at(i) == '[') {
+    i++;
+  } else {
+    throw std::runtime_error("stringToVec3 didn't find open bracket");
+  }
+
+  // seek past whitespace
+  while(str.at(i) == ' ') i++;
+  size_t start = i;
+
+  // seek to end of first number
+  while(str.at(i) != ',') i++;
+  v[0] = stringToNumber<T>(str.substr(start, i - start));
+  i++;
+
+
+  while(str.at(i) == ' ') i++;
+  start = i;
+  while(str.at(i) != ',') i++;
+  v[1] = stringToNumber<T>(str.substr(start, i - start));
+  i++;
+
+  while(str.at(i) == ' ') i++;
+  start = i;
+  while(str.at(i) != ']') i++;
+  v[2] = stringToNumber<T>(str.substr(start, i - start));
+  return v;
+}
+
 #endif //PROJECT_UTILITIES_H

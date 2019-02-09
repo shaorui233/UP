@@ -21,6 +21,10 @@ std::string controlParameterValueKindToString(ControlParameterValueKind valueKin
       return "double";
     case ControlParameterValueKind::FLOAT:
       return "float";
+    case ControlParameterValueKind::VEC3_DOUBLE:
+      return "vec3d";
+    case ControlParameterValueKind::VEC3_FLOAT:
+      return "vec3f";
     default:
       return "unknown-ControlParameterValueKind";
   }
@@ -37,6 +41,18 @@ std::string controlParameterValueToString(ControlParameterValue value, ControlPa
       break;
     case ControlParameterValueKind::S64:
       result += std::to_string(value.i);
+      break;
+    case ControlParameterValueKind::VEC3_FLOAT:
+      result += "[";
+      result += numberToString(value.vec3f[0]) + ", ";
+      result += numberToString(value.vec3f[1]) + ", ";
+      result += numberToString(value.vec3f[2]) + "]";
+      break;
+    case ControlParameterValueKind::VEC3_DOUBLE:
+      result += "[";
+      result += numberToString(value.vec3d[0]) + ", ";
+      result += numberToString(value.vec3d[1]) + ", ";
+      result += numberToString(value.vec3d[2]) + "]";
       break;
     default:
       result += "<unknown type " + std::to_string((u32)(kind)) + "> (add it yourself in ControlParameterInterface.h!)";
@@ -253,18 +269,39 @@ void ControlParameters::initializeFromYamlFile(const std::string &path) {
         cp.initializeDouble(d);
       }
       break;
+
       case ControlParameterValueKind::FLOAT: {
         float f;
         assert(paramHandler.getValue(key, f));
         cp.initializeFloat(f);
       }
         break;
+
       case ControlParameterValueKind::S64: {
         s64 f;
         assert(paramHandler.getValue(key, f));
         cp.initializeInteger(f);
       }
         break;
+
+      case ControlParameterValueKind::VEC3_DOUBLE: {
+        std::vector<double> vv;
+        assert(paramHandler.getVector(key, vv));
+        assert(vv.size() == 3);
+        Vec3<double> v(vv[0], vv[1], vv[2]);
+        cp.initializeVec3d(v);
+      }
+      break;
+
+      case ControlParameterValueKind::VEC3_FLOAT: {
+        std::vector<float> vv;
+        assert(paramHandler.getVector(key, vv));
+        assert(vv.size() == 3);
+        Vec3<float> v(vv[0], vv[1], vv[2]);
+        cp.initializeVec3f(v);
+      }
+        break;
+
       default:
         throw std::runtime_error("can't read type " + std::to_string((u32)cp._kind) + " from yaml file");
         break;
