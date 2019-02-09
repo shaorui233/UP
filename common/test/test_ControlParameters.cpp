@@ -9,6 +9,7 @@
 #include "ControlParameters/ControlParameters.h"
 #include "ControlParameters/SimulatorParameters.h"
 #include "ControlParameters/RobotParameters.h"
+#include "Math/MathUtilities.h"
 
 class TestControlParameters : public ControlParameters {
 public:
@@ -26,6 +27,22 @@ public:
 
   s64 test_integer;
   ControlParameter test_integer_param;
+};
+
+
+class TestVectorControlParameters : public ControlParameters {
+public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  TestVectorControlParameters() :
+  ControlParameters("vector-params"),
+  test_double_param("test_double", test_double, collection),
+  test_float_param("test_float", test_float, collection){ }
+
+  Vec3<double> test_double;
+  ControlParameter test_double_param;
+
+  Vec3<float> test_float;
+  ControlParameter test_float_param;
 };
 
 TEST(ControlParams, testSimple) {
@@ -60,7 +77,6 @@ TEST(ControlParams, testSimple) {
 }
 
 TEST(ControlParams, testIni) {
-
   // create and initialize some parameters
   TestControlParameters settings;
   EXPECT_FALSE(settings.isFullyInitialized());
@@ -84,6 +100,26 @@ TEST(ControlParams, testIni) {
   EXPECT_TRUE(settings.test_integer == settingsFromIni.test_integer);
 }
 
+TEST(ControlParams, testVector) {
+  TestVectorControlParameters settings;
+  EXPECT_FALSE(settings.isFullyInitialized());
+  Vec3<float> v3f(1,2.2,54.45);
+  Vec3<double> v3d(.01, 1e-3, -2.23e-7);
+  settings.initializeVec3f("test_float", v3f);
+  settings.initializeVec3d("test_double", v3d);
+  EXPECT_TRUE(settings.isFullyInitialized());
+
+  settings.writeToYamlFile("test-yaml.yaml");
+
+  TestVectorControlParameters settingsFromFile;
+  EXPECT_FALSE(settingsFromFile.isFullyInitialized());
+  settingsFromFile.initializeFromYamlFile("test-yaml.yaml");
+  EXPECT_TRUE(settingsFromFile.isFullyInitialized());
+
+  EXPECT_TRUE(almostEqual(v3f, settingsFromFile.test_float, 1e-6f));
+  EXPECT_TRUE(almostEqual(v3d, settingsFromFile.test_double, 1e-10));
+}
+
 TEST(ControlParams, testYaml) {
   // create and initialize some parameters
   TestControlParameters settings;
@@ -105,7 +141,6 @@ TEST(ControlParams, testYaml) {
   EXPECT_TRUE(fpEqual(settings.test_double, settingsFromYaml.test_double, 1e-10));
   EXPECT_TRUE(fpEqual(settings.test_float,  settingsFromYaml.test_float, 1e-5f));
   EXPECT_TRUE(settings.test_integer == settingsFromYaml.test_integer);
-
 }
 
 // check to see that the simulator default settings file contains all the simulator settings.

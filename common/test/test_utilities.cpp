@@ -6,12 +6,28 @@
 
 #include "cppTypes.h"
 #include "Utilities/utilities.h"
+#include "Math/MathUtilities.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
 #include <string>
 #include <unordered_map>
+
+
+TEST(Utilities, strintToVec3) {
+  std::vector<std::string> strings = {"[1.1, 2.2, 3.3]", "  [  1.1  ,  2.2 ,3.3  ]  ", "[1.1,2.2  ,3.3]", "[1.1, 2.2, 3.3]"};
+
+  Vec3<double> ref(1.1, 2.2, 3.3);
+  Vec3<double> v1 = stringToVec3<double>("[1.1,2.2,3.3]");
+
+  EXPECT_TRUE(almostEqual(ref, v1, .0000001));
+
+  for(auto& str : strings) {
+    Vec3<double> vv = stringToVec3<double>(str);
+    EXPECT_TRUE(almostEqual(ref, vv, .0000001));
+  }
+}
 
 /*!
  * Test the coerce function

@@ -24,13 +24,11 @@ public:
 
   }
 
-
-
   DECLARE_PARAMETER(double, myValue)
   DECLARE_PARAMETER(double, testValue)
   DECLARE_PARAMETER(double, controller_dt)
-  DECLARE_PARAMETER(double, stand_kp_cartesian)
-  DECLARE_PARAMETER(double, stand_kd_cartesian)
+  DECLARE_PARAMETER(Vec3<double>, stand_kp_cartesian)
+  DECLARE_PARAMETER(Vec3<double>, stand_kd_cartesian)
 };
 
 #endif //PROJECT_ROBOTPARAMETERS_H
