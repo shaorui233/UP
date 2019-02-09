@@ -19,7 +19,7 @@ SimControlPanel::SimControlPanel(QWidget *parent) :
     ui(new Ui::SimControlPanel) {
   ui->setupUi(this);
   updateUiEnable();
-  _parameters.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+  _parameters.initializeFromYamlFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
   loadSimulationParameters(_parameters);
 }
 
@@ -167,6 +167,8 @@ void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
   if(_ignoreTableCallbacks) return;
 
 
+
+
   if(column != 1) {
     return;
   }
@@ -182,6 +184,12 @@ void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
 
   auto& parameter = _parameters.collection.lookup(cellName);
   parameter.setFromString(ui->simulatorTable->item(row, 1)->text().toStdString());
+
+  // this update "rewrites" the value.  If it's an integer, it kills any decimal.  If it's a float, it puts in
+  // scientific notation if needed.
+  _ignoreTableCallbacks = true;
+  ui->simulatorTable->item(row, 1)->setText(QString(parameter.toString().c_str()));
+  _ignoreTableCallbacks = false;
 }
 
 void SimControlPanel::on_saveSimulatorButton_clicked() {
@@ -190,9 +198,11 @@ void SimControlPanel::on_saveSimulatorButton_clicked() {
     createErrorMessage("File name is invalid");
     return;
   }
-  _simulation->getSimParams().lockMutex();
-  _simulation->getSimParams().writeToIniFile(fileName.toStdString());
-  _simulation->getSimParams().unlockMutex();
+
+
+  _parameters.lockMutex();
+  _parameters.writeToYamlFile(fileName.toStdString());
+  _parameters.unlockMutex();
 }
 
 void SimControlPanel::on_loadSimulatorButton_clicked() {
@@ -201,17 +211,16 @@ void SimControlPanel::on_loadSimulatorButton_clicked() {
     createErrorMessage("File name is invalid");
     return;
   }
-
-  _simulation->getSimParams().lockMutex();
-  _simulation->getSimParams().collection.clearAllSet();
-  _simulation->getSimParams().initializeFromIniFile(fileName.toStdString());
-  if(!_simulation->getSimParams().collection.checkIfAllSet()) {
+  ;
+  _parameters.collection.clearAllSet();
+  _parameters.initializeFromYamlFile(fileName.toStdString());
+  if(!_parameters.collection.checkIfAllSet()) {
     printf("new settings file %s doesn't contain the following simulator parameters:\n%s\n",
-            fileName.toStdString().c_str(), _simulation->getSimParams().generateUnitializedList().c_str());
+            fileName.toStdString().c_str(), _parameters.generateUnitializedList().c_str());
     throw std::runtime_error("bad new settings file");
   }
-  loadSimulationParameters(_simulation->getSimParams());
-  _simulation->getSimParams().unlockMutex();
+  loadSimulationParameters(_parameters);
+  _parameters.unlockMutex();
 }
 
 void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
@@ -251,7 +260,7 @@ void SimControlPanel::on_saveRobotButton_clicked() {
     return;
   }
   printf("3\n");
-  _simulation->getRobotParams().writeToIniFile(fileName.toStdString());
+  _simulation->getRobotParams().writeToYamlFile(fileName.toStdString());
 }
 
 void SimControlPanel::on_loadRobotButton_clicked() {
@@ -264,7 +273,7 @@ void SimControlPanel::on_loadRobotButton_clicked() {
   if(_simulationMode) {
     _simulation->getRobotParams().lockMutex();
     _simulation->getRobotParams().collection.clearAllSet();
-    _simulation->getRobotParams().initializeFromIniFile(fileName.toStdString());
+    _simulation->getRobotParams().initializeFromYamlFile(fileName.toStdString());
     if(!_simulation->getRobotParams().collection.checkIfAllSet()) {
       printf("new settings file %s doesn't contain the following simulator parameters:\n%s\n",
              fileName.toStdString().c_str(), _simulation->getRobotParams().generateUnitializedList().c_str());

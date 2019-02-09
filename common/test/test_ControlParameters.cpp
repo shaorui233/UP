@@ -84,10 +84,34 @@ TEST(ControlParams, testIni) {
   EXPECT_TRUE(settings.test_integer == settingsFromIni.test_integer);
 }
 
+TEST(ControlParams, testYaml) {
+  // create and initialize some parameters
+  TestControlParameters settings;
+  EXPECT_FALSE(settings.isFullyInitialized());
+  settings.initializeDouble("test_double", 2e-9);
+  settings.initializeFloat("test_float", 1);
+  settings.initializeInteger("test_integer", 8);
+  EXPECT_TRUE(settings.isFullyInitialized());
+
+  // write to yaml
+  settings.writeToYamlFile("control-params-test-file.yaml");
+
+  // read from yaml
+  TestControlParameters settingsFromYaml;
+  EXPECT_FALSE(settingsFromYaml.isFullyInitialized());
+  settingsFromYaml.initializeFromYamlFile("control-params-test-file.yaml");
+  EXPECT_TRUE(settingsFromYaml.isFullyInitialized());
+
+  EXPECT_TRUE(fpEqual(settings.test_double, settingsFromYaml.test_double, 1e-10));
+  EXPECT_TRUE(fpEqual(settings.test_float,  settingsFromYaml.test_float, 1e-5f));
+  EXPECT_TRUE(settings.test_integer == settingsFromYaml.test_integer);
+
+}
+
 // check to see that the simulator default settings file contains all the simulator settings.
 TEST(ControlParams, CheckSimulatorDefaults) {
   SimulatorControlParameters simParams;
-  simParams.initializeFromIniFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+  simParams.initializeFromYamlFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
   if(!simParams.isFullyInitialized()) {
     printf("Missing parameters:\n%s\n", simParams.generateUnitializedList().c_str());
   }
@@ -97,7 +121,17 @@ TEST(ControlParams, CheckSimulatorDefaults) {
 // check to see that the simulator default settings file contains all the simulator settings.
 TEST(ControlParams, CheckMiniCheetahDefaults) {
   RobotControlParameters robotParams;
-  robotParams.initializeFromIniFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+  robotParams.initializeFromYamlFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+  if(!robotParams.isFullyInitialized()) {
+    printf("Missing parameters:\n%s\n", robotParams.generateUnitializedList().c_str());
+  }
+  EXPECT_TRUE(robotParams.isFullyInitialized());
+}
+
+// check to see that the simulator default settings file contains all the simulator settings.
+TEST(ControlParams, CheckCheetah3Defulats) {
+  RobotControlParameters robotParams;
+  robotParams.initializeFromYamlFile(getConfigDirectoryPath() + CHEETAH_3_DEFAULT_PARAMETERS);
   if(!robotParams.isFullyInitialized()) {
     printf("Missing parameters:\n%s\n", robotParams.generateUnitializedList().c_str());
   }

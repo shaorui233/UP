@@ -15,27 +15,53 @@ public:
 
   template<typename T>
   bool getVector(const std::string &key, std::vector<T> &vec_value) {
-    vec_value = config_[key].as<std::vector<T> >();
+    try {
+      vec_value = config_[key].as<std::vector<T> >();
+    } catch (std::exception &e) {
+      return false;
+    }
     return true;
   }
 
   template<typename T>
   bool getVector(const std::string &category, const std::string &key, std::vector<T> &vec_value) {
-    vec_value = config_[category][key].as<std::vector<T>>();
+    try {
+      vec_value = config_[category][key].as<std::vector<T>>();
+    } catch (std::exception &e) {
+      return false;
+    }
     return true;
   }
 
 
   template<typename T>
   bool getValue(const std::string &key, T &T_value) {
-    T_value = config_[key].as<T>();
+    try {
+      T_value = config_[key].as<T>();
+    } catch (std::exception &e) {
+      return false;
+    }
     return true;
   }
 
   template<typename T>
-  bool getValue(const std::string& category, const std::string &key, T &T_value) {
-    T_value = config_[category][key].as<T>();
+  bool getValue(const std::string &category, const std::string &key, T &T_value) {
+    try {
+      T_value = config_[category][key].as<T>();
+      return true;
+    } catch (std::exception &e) {
+      return false;
+    }
     return true;
+  }
+
+  std::vector<std::string> getKeys() {
+    std::vector<std::string> v;
+    v.reserve(config_.size());
+    for(auto it = config_.begin(); it != config_.end(); it++) {
+      v.push_back(it->first.as<std::string>());
+    }
+    return v;
   }
 
 
@@ -43,8 +69,15 @@ public:
 
   bool getInteger(const std::string &key, int &int_value);
 
+  bool fileOpenedSuccessfully() {
+    return fileLoaded;
+  }
+
 protected:
   dynacore_YAML::Node config_;
+
+private:
+  bool fileLoaded = false;
 };
 
 #endif

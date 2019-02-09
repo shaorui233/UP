@@ -115,9 +115,9 @@ _tau(12) {
   // load control parameters
   printf("[Simulation] Load control parameters...\n");
   if(_robot == RobotType::MINI_CHEETAH) {
-    _robotParams.initializeFromIniFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+    _robotParams.initializeFromYamlFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
   } else if(_robot == RobotType::CHEETAH_3) {
-    _robotParams.initializeFromIniFile(getConfigDirectoryPath() + CHEETAH_3_DEFAULT_PARAMETERS);
+    _robotParams.initializeFromYamlFile(getConfigDirectoryPath() + CHEETAH_3_DEFAULT_PARAMETERS);
   } else {
     assert(false);
   }

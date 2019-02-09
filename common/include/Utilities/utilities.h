@@ -128,7 +128,7 @@ template <typename T>
 std::string numberToString(T number) {
   static_assert(std::is_floating_point<T>::value, "numberToString must use a floating point type!");
   char buffer[100];
-  sprintf(buffer, "%e", number);
+  sprintf(buffer, "%g", number);
   return std::string(buffer);
 }
 

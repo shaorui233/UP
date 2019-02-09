@@ -49,6 +49,6 @@ add_library(biomimetics SHARED ${sources})       # produce a library used by sim
 target_link_libraries(biomimetics inih)
 
 # Test
-add_executable(test-common ${test_sources} ${sources} test/test_yaml.cpp)
+add_executable(test-common ${test_sources} ${sources})
 target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler)
 add_test(NAME example_test COMMAND test-common)

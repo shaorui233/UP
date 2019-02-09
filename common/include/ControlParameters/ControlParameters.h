@@ -84,7 +84,8 @@ public:
     }
   }
 
-  std::string printToString(); //!< print all control parameters in the INI file format
+  std::string printToIniString(); //!< print all control parameters in the INI file format
+  std::string printToYamlString(); //!< print all control parameters in the YAML file format
   bool checkIfAllSet();        //!< are all the control parameters initialized?
   void clearAllSet();
 
@@ -304,6 +305,9 @@ public:
 
   void writeToIniFile(const std::string& path);
   void initializeFromIniFile(const std::string& path);
+  void initializeFromYamlFile(const std::string& path);
+
+  void writeToYamlFile(const std::string& path);
 
   std::string generateUnitializedList();
 
