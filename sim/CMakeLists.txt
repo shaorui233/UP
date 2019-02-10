@@ -36,8 +36,9 @@ QT5_WRAP_CPP(tst_hdr_moc ${QOBJECT_HEADERS})
 include_directories("include/")
 include_directories("../common/include/")
 include_directories("../third-party/include")
-include_directories("../lcm-types")
-file(GLOB sources "src/*.cpp" "src/rt/*.c" "../lcm-types/c_lcm_files/*.c" "../lcm-types/c_lcm_files/*.h")
+include_directories("../lcm-types/cpp")
+include_directories("/usr/local/include/lcm/")   # lcm includes
+file(GLOB sources "src/*.cpp")
 
 find_package(Qt5Core COMPONENTS QtGamepad REQUIRED)
 find_package(Qt5Gamepad REQUIRED)

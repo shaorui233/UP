@@ -11,6 +11,8 @@ kvh_imu_gyro_noise               : 0.002
 low_level_dt                     : 0.0002
 simulation_paused                : 0
 simulation_speed                 : 1
+sim_lcm_ttl                      : 0
+sim_state_lcm                    : 1
 use_spring_damper                : 0
 vectornav_imu_accelerometer_noise: 0.005
 vectornav_imu_gyro_noise         : 0.005

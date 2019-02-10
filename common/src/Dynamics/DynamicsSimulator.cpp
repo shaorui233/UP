@@ -29,6 +29,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model, bool useSpr
   _state.bodyOrientation = Quat<T>::Zero();
   _state.q = DVec<T>::Zero(_model._nDof - 6);
   _state.qd = DVec<T>::Zero(_model._nDof - 6);
+  _dstate.qdd = DVec<T>::Zero(_model._nDof - 6);
 }
 
 /*!

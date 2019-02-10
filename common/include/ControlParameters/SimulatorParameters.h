@@ -36,7 +36,9 @@ public:
           INIT_PARAMETER(dynamics_dt),
           INIT_PARAMETER(floor_kp),
           INIT_PARAMETER(floor_kd),
-          INIT_PARAMETER(use_spring_damper)
+          INIT_PARAMETER(use_spring_damper),
+          INIT_PARAMETER(sim_state_lcm),
+          INIT_PARAMETER(sim_lcm_ttl)
   { }
 
 
@@ -57,6 +59,8 @@ public:
   DECLARE_PARAMETER(double, floor_kp)
   DECLARE_PARAMETER(double, floor_kd)
   DECLARE_PARAMETER(s64, use_spring_damper)
+  DECLARE_PARAMETER(s64, sim_state_lcm)
+  DECLARE_PARAMETER(s64, sim_lcm_ttl)
 };
 
 #endif //PROJECT_SIMULATORPARAMETERS_H

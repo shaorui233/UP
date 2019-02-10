@@ -20,6 +20,10 @@
 #include <queue>
 #include <utility>
 
+#include <lcm/lcm-cpp.hpp>
+#include "simulator_lcmt.hpp"
+
+#define SIM_LCM_NAME "simulator_state"
 
 
 /*!
@@ -75,6 +79,7 @@ public:
   ~Simulation() {
       delete _simulator;
       delete _imuSimulator;
+      delete _lcm;
   }
 
   const FBModelState<double>& getRobotState() {
@@ -104,6 +109,7 @@ public:
   }
 
   void firstRun();
+  void buildLcmMessage();
 
 private:
   std::mutex _robotMutex;
@@ -123,6 +129,7 @@ private:
   SpineBoard _spineBoards[4];
   TI_BoardControl _tiBoards[4];
   RobotType  _robot;
+  lcm::LCM* _lcm = nullptr;
   bool _running = false;
   bool _connected = false;
   bool _wantStop = false;
@@ -130,6 +137,8 @@ private:
   double _currentSimTime = 0.;
   double _timeOfNextLowLevelControl = 0.;
   double _timeOfNextHighLevelControl = 0.;
+  s64 _highLevelIterations = 0;
+  simulator_lcmt _simLCM;
 };
 
 #endif //PROJECT_SIMULATION_H
