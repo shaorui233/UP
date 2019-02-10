@@ -104,8 +104,10 @@ TwoLegSwingCtrl<T>::TwoLegSwingCtrl(const FloatingBaseModel<T>* robot,
         _kin_contact_list.erase(_kin_contact_list.begin());
     }
 
-    sp_ = Cheetah_StateProvider<T>::getStateProvider();
+    _sp = Cheetah_StateProvider<T>::getStateProvider();
 
+    _dir_command[0] = 0.;
+    _dir_command[1] = 0.;
     printf("[Two Leg Swing Ctrl] Constructed\n");
 }
 
@@ -146,7 +148,7 @@ TwoLegSwingCtrl<T>::~TwoLegSwingCtrl(){
 template <typename T>
 void TwoLegSwingCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
-    Ctrl::state_machine_time_ = sp_->curr_time_ - ctrl_start_time_;
+    Ctrl::state_machine_time_ = _sp->curr_time_ - ctrl_start_time_;
 
     DVec<T> gamma;
     _contact_setup();
@@ -193,10 +195,17 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     DVec<T> acc_des(3); acc_des.setZero();
     Vec3<T> des_pos; des_pos.setZero();
     for(size_t i(0); i<2; ++i){
-        des_pos[i] = smooth_change(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
-        vel_des[i] = smooth_change_vel(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
-        acc_des[i] = smooth_change_acc(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
-    }
+        des_pos[i] = smooth_change(_ini_body_pos[i], 
+                _sp->_body_target_swing[i], end_time_, Ctrl::state_machine_time_);
+        vel_des[i] = smooth_change_vel(_ini_body_pos[i], 
+                _sp->_body_target_swing[i], end_time_, Ctrl::state_machine_time_);
+        acc_des[i] = smooth_change_acc(_ini_body_pos[i], 
+                _sp->_body_target_swing[i], end_time_, Ctrl::state_machine_time_);
+
+        //des_pos[i] = smooth_change(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
+        //vel_des[i] = smooth_change_vel(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
+        //acc_des[i] = smooth_change_acc(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
+     }
     des_pos[2] = target_body_height_;
 
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
@@ -218,7 +227,7 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
     _cp_pos_task2->UpdateTask(&(_foot_pos_des2), _foot_vel_des2, _foot_acc_des2);
 
-    kin_wbc_->FindConfiguration(sp_->Q_, 
+    kin_wbc_->FindConfiguration(_sp->Q_, 
             Ctrl::task_list_, _kin_contact_list, 
             des_jpos_, des_jvel_, des_jacc_);
 
@@ -260,14 +269,30 @@ void TwoLegSwingCtrl<T>::_contact_setup(){
 template <typename T>
 void TwoLegSwingCtrl<T>::FirstVisit(){
     ini_jpos_ = Ctrl::robot_sys_->_state.q;
-    ctrl_start_time_ = sp_->curr_time_;
+    ctrl_start_time_ = _sp->curr_time_;
     _ini_body_pos = Ctrl::robot_sys_->_state.bodyPosition;
 
     _foot_pos_ini1 = Ctrl::robot_sys_->_pGC[_cp1]; 
     _foot_pos_ini2 = Ctrl::robot_sys_->_pGC[_cp2]; 
 
-    _target_loc1 = _default_target_foot_loc_1; // + _ini_body_pos;
-    _target_loc2 = _default_target_foot_loc_2; // + _ini_body_pos;
+    _target_loc1 = _default_target_foot_loc_1;// + _sp->_local_frame_global_pos; 
+    _target_loc2 = _default_target_foot_loc_2;// + _sp->_local_frame_global_pos;
+
+    _dir_command[0] = -0.1 * _sp->_dir_command[0];
+    _dir_command[1] = 0.05 * _sp->_dir_command[1];
+
+    _sp->_body_target_swing[0] = 0.5*_dir_command[0];
+    _sp->_body_target_swing[1] = 1.0*_dir_command[1];
+    if(_sp->_dir_command[0] > 0.){
+        _target_loc1[0] += 0.3*_dir_command[0];
+        _target_loc2[0] += _dir_command[0];
+    }else{
+        _target_loc1[0] += _dir_command[0];
+        _target_loc2[0] += 0.3*_dir_command[0];
+    }
+
+    _target_loc1[1] += _dir_command[1];
+    _target_loc2[1] += _dir_command[1];
 }
 
 template <typename T>

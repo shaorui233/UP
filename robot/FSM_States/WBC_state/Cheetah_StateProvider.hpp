@@ -20,6 +20,9 @@ public:
   Vec3<T> _local_frame_global_pos;
 
   T curr_time_;
+
+  T _dir_command[2];
+  Vec3<T> _body_target_swing;
 private:
   Cheetah_StateProvider();
 };

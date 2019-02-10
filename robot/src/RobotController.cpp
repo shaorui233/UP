@@ -43,6 +43,9 @@ void RobotController::step() {
           _data->jvel[3*leg + jidx] = _legController->datas[leg].qd[jidx];
       }
   }
+  _data->dir_command[0] = driverCommand->leftStickAnalog[1];
+  _data->dir_command[1] = driverCommand->leftStickAnalog[0];
+
   _wbc_state->GetCommand(_data, _legController->commands);
   // === End of WBC state command computation  =========== //
 

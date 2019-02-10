@@ -68,7 +68,7 @@ TwoContactTransCtrl<T>::TwoContactTransCtrl(const FloatingBaseModel<T>* robot,
     wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, -150.);
     wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, 150.);
 
-    sp_ = Cheetah_StateProvider<T>::getStateProvider();
+    _sp = Cheetah_StateProvider<T>::getStateProvider();
 
     printf("[Two Contact Transition Ctrl] Constructed\n");
 }
@@ -97,7 +97,7 @@ TwoContactTransCtrl<T>::~TwoContactTransCtrl(){
 template <typename T>
 void TwoContactTransCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
-    Ctrl::state_machine_time_ = sp_->curr_time_ - ctrl_start_time_;
+    Ctrl::state_machine_time_ = _sp->curr_time_ - ctrl_start_time_;
 
     DVec<T> gamma;
     _contact_setup();
@@ -143,8 +143,14 @@ void TwoContactTransCtrl<T>::_task_setup(){
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
     Vec3<T> des_pos = ini_body_pos_;
-    des_pos[2] = ini_body_pos_[2] + 
-        Ctrl::state_machine_time_/end_time_ * (target_body_height_ - ini_body_pos_[2]);
+    if(_transit_dir > 0){ // IF swing initiating
+        des_pos = Ctrl::robot_sys_->_state.bodyPosition;
+    }else { // IF swing ends (the initial desired must be zero)
+        T alpha(Ctrl::state_machine_time_/end_time_); //0->1
+        des_pos = (1.-alpha)*_sp->_body_target_swing 
+            + alpha * Ctrl::robot_sys_->_state.bodyPosition;
+    }
+    des_pos[2] = target_body_height_;
 
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
@@ -156,7 +162,7 @@ void TwoContactTransCtrl<T>::_task_setup(){
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
     body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
-    kin_wbc_->FindConfiguration(sp_->Q_, 
+    kin_wbc_->FindConfiguration(_sp->Q_, 
             Ctrl::task_list_, Ctrl::contact_list_, 
             des_jpos_, des_jvel_, des_jacc_);
 
@@ -222,7 +228,7 @@ void TwoContactTransCtrl<T>::_SetContact(const size_t & cp_idx,
 
 template <typename T>
 void TwoContactTransCtrl<T>::FirstVisit(){
-    ctrl_start_time_ = sp_->curr_time_;
+    ctrl_start_time_ = _sp->curr_time_;
     ini_body_pos_ = Ctrl::robot_sys_->_state.bodyPosition;
 }
 

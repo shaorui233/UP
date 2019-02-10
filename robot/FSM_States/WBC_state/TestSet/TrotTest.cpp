@@ -12,7 +12,9 @@
 
 #include <Dynamics/Quadruped.h>
 
-    template <typename T>
+#include <Utilities/Utilities_print.h>
+
+template <typename T>
 TrotTest<T>::TrotTest(const FloatingBaseModel<T>* robot):Test<T>(),
     _robot_sys(robot)
 {
@@ -91,7 +93,8 @@ int TrotTest<T>::_NextPhase(const int & phase){
         _sp->_contact_pt[0] = linkID::FR;
         _sp->_contact_pt[1] = linkID::HL;
         _sp->_num_contact = 2;
-        //_sp->_local_frame_global_pos.head(2) += landing_loc_ave.head(2);
+        _sp->_local_frame_global_pos.head(2) += landing_loc_ave.head(2);
+    //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
     }
 
     if(next_phase == TrotPhase::frhl_swing_start_trans){
@@ -102,7 +105,8 @@ int TrotTest<T>::_NextPhase(const int & phase){
         _sp->_contact_pt[0] = linkID::FL;
         _sp->_contact_pt[1] = linkID::HR;
         _sp->_num_contact = 2;
-        //_sp->_local_frame_global_pos.head(2) += landing_loc_ave.head(2);
+        _sp->_local_frame_global_pos.head(2) += landing_loc_ave.head(2);
+    //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
     }
 
 

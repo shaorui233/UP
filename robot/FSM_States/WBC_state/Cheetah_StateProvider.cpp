@@ -18,6 +18,10 @@ Cheetah_StateProvider<T>::Cheetah_StateProvider():
     Q_.setZero();
     Qdot_.setZero();
     _local_frame_global_pos.setZero();
+    _dir_command[0] = 0.;
+    _dir_command[1] = 0.;
+
+    _body_target_swing.setZero();
 }
 
 template class Cheetah_StateProvider<double> ;

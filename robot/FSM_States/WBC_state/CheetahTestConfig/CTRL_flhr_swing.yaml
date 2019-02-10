@@ -1,10 +1,5 @@
-swing_height: 0.06
+swing_height: 0.1
 push_down_height: 0.0
-
-# Front Left
-default_target_foot_location_1: [0.2, 0.12, 0.0]
-# Hind Right
-default_target_foot_location_2: [-0.2, -0.12, 0.0]
 
 Kp: [ 100, 100, 100, 
       100, 100, 100, 
@@ -16,4 +11,14 @@ Kd: [ 5., 5., 5.,
       5., 5., 5., 
       5., 5., 5. ]
 
+
+#default_target_foot_location_1: [0.2, 0.12, 0.0] # Front Left
+#default_target_foot_location_2: [-0.2, -0.12, 0.0] # Hind Right
+
+default_target_foot_location_1: [0.2, 0.12, 0.0] # Front Left
+default_target_foot_location_2: [-0.2, -0.12, 0.0] # Hind Right
+
+
+#default_target_foot_location_1: [0.3, 0.2, 0.0] # Front Left
+#default_target_foot_location_2: [-0.3, -0.2, 0.0] # Hind Right
 
