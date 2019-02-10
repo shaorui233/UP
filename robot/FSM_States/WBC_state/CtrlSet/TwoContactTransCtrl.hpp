@@ -69,7 +69,7 @@ class TwoContactTransCtrl: public Controller<T>{
         void _contact_setup();
         void _compute_torque_wblc(DVec<T> & gamma);
 
-        Cheetah_StateProvider<T>* sp_;
+        Cheetah_StateProvider<T>* _sp;
 };
 
 #endif

@@ -136,14 +136,12 @@ void BodyCtrl<T>::_task_setup(){
     T body_height_cmd;
     if(b_set_height_target_) body_height_cmd = target_body_height_;
     else{ printf("No Height Command\n"); exit(0); }
+    
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    Vec3<T> des_pos = ini_body_pos_;
-
-    T amp(0.0);
-    T omega(0.5 * 2. * M_PI);
-    des_pos[2] = body_height_cmd + amp * sin(omega * Ctrl::state_machine_time_);
-    vel_des[2] = amp * omega * cos(omega * Ctrl::state_machine_time_);
+    //Vec3<T> des_pos = ini_body_pos_;
+    Vec3<T> des_pos = Ctrl::robot_sys_->_state.bodyPosition;
+    des_pos[2] = body_height_cmd;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation

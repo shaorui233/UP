@@ -77,8 +77,11 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
 
     //pretty_print(_state.bodyOrientation, std::cout, "body ori");
     //pretty_print(data->body_ori, "data body ori", 4);
-    
-    _state.bodyPosition = -ave_foot + _sp->_local_frame_global_pos;
+
+    //printf("joystick command: %f, %f \n", data->dir_command[0], data->dir_command[1]);
+    _sp->_dir_command[0] = data->dir_command[0];
+    _sp->_dir_command[1] = data->dir_command[1];
+    _state.bodyPosition = -ave_foot;// + _sp->_local_frame_global_pos;
     
     // Update with new body position
     _robot->setState(_state);

@@ -1,5 +1,6 @@
 # Initialization
-body_height: .25
+body_height: .25 #Mini cheetah
+#body_height: .45
 
 # Timing Parameters (sec)
 body_lifting_time: 1.0
