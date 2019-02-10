@@ -7,6 +7,8 @@
 #include "Graphics3D.h"
 #include "ControlParameters/SimulatorParameters.h"
 
+#define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
+
 namespace Ui {
   class SimControlPanel;
 }
@@ -49,6 +51,10 @@ private slots:
 
   void on_loadFavoriteButton_clicked();
 
+  void on_setTerrainButton_clicked();
+
+  void updateTerrainLabel();
+
   void loadSimulationParameters(SimulatorControlParameters& params);
   void loadRobotParameters(RobotControlParameters& params);
 
@@ -63,6 +69,7 @@ private:
   bool _simulationMode = false;
   bool _firstStart = true;
   bool _ignoreTableCallbacks = false;
+  std::string _terrainFileName;
 };
 
 #endif // SIMCONTROLPANEL_H

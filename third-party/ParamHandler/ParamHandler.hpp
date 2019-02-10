@@ -12,6 +12,7 @@ public:
   virtual ~ParamHandler();
 
   bool getString(const std::string &key, std::string &str_value);
+  bool getString(const std::string &category, const std::string &key, std::string & str_value);
 
   template<typename T>
   bool getVector(const std::string &key, std::vector<T> &vec_value) {

@@ -16,9 +16,11 @@ static void createErrorMessage(const std::string& text) {
 
 SimControlPanel::SimControlPanel(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::SimControlPanel) {
+    ui(new Ui::SimControlPanel),
+    _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE){
   ui->setupUi(this);
   updateUiEnable();
+  updateTerrainLabel();
 
   printf("[SimControlPanel] Init simulator parameters...\n");
   _parameters.initializeFromYamlFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
@@ -46,7 +48,10 @@ void SimControlPanel::updateUiEnable() {
   ui->joystickButton->setEnabled(_started);
   ui->robotTable->setEnabled(_started);
   ui->goHomeButton->setEnabled(_started);
+}
 
+void SimControlPanel::updateTerrainLabel() {
+  ui->terrainFileLabel->setText(QString(_terrainFileName.c_str()));
 }
 
 void SimControlPanel::on_startButton_clicked() {
@@ -79,8 +84,11 @@ void SimControlPanel::on_startButton_clicked() {
     loadSimulationParameters(_simulation->getSimParams());
     loadRobotParameters(_simulation->getRobotParams());
 
-    // hack
-    _simulation->addCollisionPlane(.8, 0, -0.5);
+    printf("[SimControlParameter] Load terrain...\n");
+    _simulation->loadTerrainFile(_terrainFileName);
+
+//    // hack
+//    _simulation->addCollisionPlane(.8, 0, -0.5);
 //    // Box 1
 //    Vec3<double> pos;
 //    Mat3<double> ori;
@@ -217,7 +225,7 @@ void SimControlPanel::on_saveSimulatorButton_clicked() {
 }
 
 void SimControlPanel::on_loadSimulatorButton_clicked() {
-  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Save Simulator Table Values"), "../config", "All Files (*)");
+  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Load Simulator Table Values"), "../config", "All Files (*)");
   if(fileName == nullptr || fileName == "") {
     createErrorMessage("File name is invalid");
     return;
@@ -275,7 +283,7 @@ void SimControlPanel::on_saveRobotButton_clicked() {
 }
 
 void SimControlPanel::on_loadRobotButton_clicked() {
-  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Save Quadruped Table Values"), "../config", "All Files (*)");
+  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Load Quadruped Table Values"), "../config", "All Files (*)");
   if(fileName == nullptr || fileName == "") {
     createErrorMessage("File name is invalid");
     return;
@@ -301,6 +309,17 @@ void SimControlPanel::on_loadRobotButton_clicked() {
   } else {
     assert(false);
   }
+}
+
+void SimControlPanel::on_setTerrainButton_clicked() {
+  QString fileName = QFileDialog::getOpenFileName(nullptr, ("Load Terrain Definition"), "../config", "All Files (*)");
+  if(fileName == nullptr || fileName == "") {
+    createErrorMessage("File name is invalid");
+    return;
+  }
+
+  _terrainFileName = fileName.toStdString();
+  updateTerrainLabel();
 }
 
 void SimControlPanel::on_favoritesTable_cellChanged(int row, int column) {

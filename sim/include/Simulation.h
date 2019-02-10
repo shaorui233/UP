@@ -46,7 +46,8 @@ public:
 
   void step(double dt, double dtLowLevelControl, double dtHighLevelControl);
 
-  void addCollisionPlane(double mu, double resti, double height, bool addToWindow = true);
+  void addCollisionPlane(double mu, double resti, double height, double sizeX = 20,
+          double sizeY = 20, double checkerX = 40, double checkerY = 40, bool addToWindow = true);
   void addCollisionBox(
           double mu, double resti, 
           double depth, double width, double height, 
@@ -60,7 +61,7 @@ public:
    * Updates the graphics from the connected window
    */
   void updateGraphics() {
-    _window->_drawList.updateRobotFromModel(*_simulator, _robotID);
+    _window->_drawList.updateRobotFromModel(*_simulator, _robotID, true);
     _window->_drawList.updateAdditionalInfo(*_simulator);
     _window->update();
   }
@@ -110,6 +111,7 @@ public:
 
   void firstRun();
   void buildLcmMessage();
+  void loadTerrainFile(const std::string& terrainFileName, bool addGraphics = true);
 
 private:
   std::mutex _robotMutex;

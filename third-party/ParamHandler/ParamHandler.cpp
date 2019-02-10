@@ -21,6 +21,15 @@ bool ParamHandler::getString(const std::string &key, std::string &str_value) {
   return true;
 }
 
+bool ParamHandler::getString(const std::string &category, const std::string &key, std::string &str_value) {
+  try {
+    str_value = config_[category][key].as<std::string>();
+  } catch(std::exception &e) {
+    return false;
+  }
+  return true;
+}
+
 bool ParamHandler::getBoolean(const std::string &key, bool &bool_value) {
   try {
     bool_value = config_[key].as<bool>();

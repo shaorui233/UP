@@ -199,3 +199,40 @@ TEST(Orientation, quaternionIntegration) {
   EXPECT_TRUE(almostEqual(quaternionToRotationMatrix(rot_y_quat), rot_y_ref, .0001));
   EXPECT_TRUE(almostEqual(quaternionToRotationMatrix(rot_z_quat), rot_z_ref, .0001));
 }
+
+/*!
+ * Check rpy to rotation matrix
+ */
+TEST(Orientation, rpyToRotMat) {
+  Vec3<double> rpy(deg2rad(20.), deg2rad(34.), deg2rad(160.));
+  Mat3<double> R = rpyToRotMat(rpy);
+  Quat<double> q = rotationMatrixToQuaternion(R);
+  Vec3<double> rpyAgain = quatToRPY(q);
+  EXPECT_TRUE(almostEqual(rpyAgain, rpy, .001));
+  std::cout << "1: " << rpy.transpose() << "\n2: " << rpyAgain.transpose() << "\n";
+}
+
+/*!
+ * Check all 6 possible conversions between rotation matrix, quaternion, and rpy
+ */
+ TEST(Orientation, allOrientationConversions) {
+   Vec3<double> refRPY(deg2rad(20.), deg2rad(34.), deg2rad(160.));
+   // do all rpy -> conversions
+   Quat<double> quatFromRPY = rpyToQuat(refRPY);
+   Mat3<double> rFromRPY = rpyToRotMat(refRPY);
+
+   // do all quat -> conversions
+   Mat3<double> rFromQuat = quaternionToRotationMatrix(quatFromRPY);
+   Vec3<double> rpyFromQuat = quatToRPY(quatFromRPY);
+
+   // do all r -> conversions
+   Vec3<double> rpyFromR = rotationMatrixToRPY(rFromRPY);
+   Quat<double> quatFromR = rotationMatrixToQuaternion(rFromQuat);
+
+   EXPECT_TRUE(almostEqual(refRPY, rpyFromQuat, .0001));
+   EXPECT_TRUE(almostEqual(refRPY, rpyFromR, .0001));
+
+   EXPECT_TRUE(almostEqual(rFromQuat, rFromRPY, .0001));
+
+   EXPECT_TRUE(almostEqual(quatFromR, quatFromRPY, .0001));
+ }

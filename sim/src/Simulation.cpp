@@ -1,5 +1,6 @@
 #include "Simulation.h"
 #include "Dynamics/Quadruped.h"
+#include "ParamHandler.hpp"
 
 #include <unistd.h>
 #include <include/GameController.h>
@@ -423,12 +424,13 @@ void Simulation::buildLcmMessage() {
  * @param addToWindow : if true, also adds graphics for the plane
  */
 void Simulation::addCollisionPlane(
-        double mu, double resti, double height, bool addToWindow){
+        double mu, double resti, double height, double sizeX, double sizeY, double checkerX,
+        double checkerY, bool addToWindow){
 
     _simulator->addCollisionPlane(mu, resti, height);
     if(addToWindow && _window) {
         _window->lockGfxMutex();
-        Checkerboard checker(20,20,40,40);
+        Checkerboard checker(sizeX, sizeY, checkerX, checkerY);
 
         size_t graphicsID = _window->_drawList.addCheckerboard(checker);
         _window->_drawList.buildDrawList();
@@ -549,6 +551,103 @@ void Simulation::runAtSpeed(bool graphics) {
       }
       if(!_window->IsPaused())
         desiredSteps += nStepsPerFrame;
+    }
+  }
+}
+
+void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGraphics) {
+  printf("load terrain %s\n", terrainFileName.c_str());
+  ParamHandler paramHandler(terrainFileName);
+
+  if(!paramHandler.fileOpenedSuccessfully()) {
+    printf("[ERROR] could not open yaml file for terrain\n");
+    throw std::runtime_error("yaml bad");
+  }
+
+  std::vector<std::string> keys = paramHandler.getKeys();
+
+  for(auto& key: keys) {
+
+    auto load = [&](double& val, const std::string& name) {
+      if(!paramHandler.getValue<double>(key, name, val))
+        throw std::runtime_error("terrain read bad: " + key + " " + name);};
+
+    auto loadVec = [&](double& val, const std::string& name, size_t idx) {
+      std::vector<double> v;
+      if(!paramHandler.getVector<double>(key, name, v))
+        throw std::runtime_error("terrain read bad: " + key + " " + name);
+      val = v.at(idx);
+    };
+
+    auto loadArray = [&](double* val, const std::string& name, size_t idx) {
+      std::vector<double> v;
+      if(!paramHandler.getVector<double>(key, name, v))
+        throw std::runtime_error("terrain read bad: " + key + " " + name);
+      assert(v.size() == idx);
+      for(size_t i = 0; i < idx; i++)
+        val[i] = v[i];
+    };
+
+    printf("terrain element %s\n", key.c_str());
+    std::string typeName;
+    paramHandler.getString(key, "type", typeName);
+    if(typeName == "infinite-plane") {
+      double mu, resti, height, gfxX, gfxY, checkerX, checkerY;
+      load(mu, "mu");
+      load(resti, "restitution");
+      load(height, "height");
+      loadVec(gfxX, "graphicsSize", 0);
+      loadVec(gfxY, "graphicsSize", 1);
+      loadVec(checkerX, "checkers", 0);
+      loadVec(checkerY, "checkers", 1);
+      addCollisionPlane(mu, resti, height, gfxX, gfxY, checkerX, checkerY, addGraphics);
+    } else if(typeName == "box") {
+      double mu, resti, depth, width, height;
+      double pos[3];
+      double ori[3];
+      load(mu, "mu");
+      load(resti, "restitution");
+      load(depth, "depth");
+      load(width, "width");
+      load(height, "height");
+      loadArray(pos, "position", 3);
+      loadArray(ori, "orientation", 3);
+      Mat3<double> R_box = ori::rpyToRotMat(Vec3<double>(ori));
+      R_box.transposeInPlace(); // collisionBox uses "rotation" matrix instead of "transformation"
+      addCollisionBox(mu, resti, depth, width, height, Vec3<double>(pos), R_box, addGraphics);
+    } else if(typeName == "stairs") {
+      double mu, resti, rise, run, stepsDouble, width;
+      double pos[3];
+      double ori[3];
+      load(mu, "mu");
+      load(resti, "restitution");
+      load(rise, "rise");
+      load(width, "width");
+      load(run, "run");
+      load(stepsDouble, "steps");
+      loadArray(pos, "position", 3);
+      loadArray(ori, "orientation", 3);
+
+      Mat3<double> R = ori::rpyToRotMat(Vec3<double>(ori));
+      Vec3<double> pOff(pos);
+      R.transposeInPlace(); // "graphics" rotation matrix
+
+      size_t steps = (size_t)stepsDouble;
+
+      double heightOffset = rise/2;
+      double runOffset = run/2;
+      for(size_t step = 0; step < steps; step++) {
+        Vec3<double> p(runOffset, 0, heightOffset);
+        p = R*p + pOff;
+
+        addCollisionBox(mu, resti, run, width, heightOffset * 2, p, R, addGraphics);
+
+        heightOffset += rise/2;
+        runOffset += run;
+      }
+
+    } else {
+      throw std::runtime_error("unknown terrain " + typeName);
     }
   }
 }

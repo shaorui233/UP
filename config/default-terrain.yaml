@@ -1,0 +1,28 @@
+ground-plane:
+    type: "infinite-plane"
+    mu: 0.7
+    restitution: 0
+    height: -0.5
+    graphicsSize: [20,20] # how large the plane appears
+    checkers: [40,40]     # how many checkers are on the plane
+    
+box-1:
+    type: "box"
+    mu: .4
+    restitution: 0
+    depth: 2
+    width: 1
+    height: .5
+    position:  [1,2,1]
+    orientation: [0,.2,0]  # roll pitch yaw
+
+stairs-1:
+    type: "stairs"
+    steps: 5
+    rise: 0.1778 # 7 inches
+    run: 0.2794 # 11 inches
+    width: 1.2
+    mu: .7
+    restitution: 0
+    position: [1,2,-0.5]
+    orientation: [0, .2, 1.5]

@@ -116,6 +116,7 @@ void Graphics3D::updateCameraMatrix() {
     _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
     _cameraMatrix.rotate(_ry, 1, 0, 0);
     _cameraMatrix.rotate(_rx, 0, 0, 1);
+    _cameraMatrix.translate(-_drawList.getCameraOrigin()[0], -_drawList.getCameraOrigin()[1], 0);
   }
 }
 
@@ -136,7 +137,6 @@ void Graphics3D::initializeGL() {
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
-  printf("done with initializeopengl\n");
 }
 
 /*-----------------------------------------*
@@ -350,7 +350,7 @@ void Graphics3D::_BoxObstacleDrawing(){
     size_t nBox = _drawList.getBoxInfoList().size();
     for(size_t i(0); i < nBox; ++i){
         glPushMatrix();
-        glMultMatrixf(_drawList.getBoxInfoList()[i].frame);
+        glMultMatrixf(_drawList.getBoxInfoList()[i].frame); // column major
         _DrawBox(_drawList.getBoxInfoList()[i].depth, 
                 _drawList.getBoxInfoList()[i].width, 
                 _drawList.getBoxInfoList()[i].height);

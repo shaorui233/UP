@@ -80,6 +80,18 @@ namespace ori {
   }
 
   /*!
+   * Go from rpy to rotation matrix.
+   */
+  template<typename T>
+  Mat3<typename T::Scalar> rpyToRotMat(const Eigen::MatrixBase<T>& v) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 3, "must have 3x1 vector");
+    Mat3<typename T::Scalar> m = coordinateRotation(CoordinateAxis::X, v[0]) *
+            coordinateRotation(CoordinateAxis::Y, v[1]) *
+            coordinateRotation(CoordinateAxis::Z, v[2]);
+    return m;
+  }
+
+  /*!
    * Convert a 3x1 vector to a skew-symmetric 3x3 matrix
    */
   template<typename T>
@@ -174,6 +186,22 @@ namespace ori {
     return rpy;
   }
 
+  template<typename T>
+  Quat<typename T::Scalar> rpyToQuat(const Eigen::MatrixBase<T>& rpy) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 3, "Must have 3x1 vec");
+    Mat3<typename T::Scalar> R = rpyToRotMat(rpy);
+    Quat<typename T::Scalar> q = rotationMatrixToQuaternion(R);
+    return q;
+  }
+
+
+  template<typename T>
+  Vec3<typename T::Scalar> rotationMatrixToRPY(const Eigen::MatrixBase<T>& R) {
+    static_assert(T::ColsAtCompileTime == 3 && T::RowsAtCompileTime == 3, "Must have 3x3 matrix");
+    Quat<typename T::Scalar> q = rotationMatrixToQuaternion(R);
+    Vec3<typename T::Scalar> rpy = quatToRPY(q);
+    return rpy;
+  }
   /*!
    * Quaternion derivative calculation, like rqd(q, omega) in MATLAB.
    * the omega is expressed in body frame

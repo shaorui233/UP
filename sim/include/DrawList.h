@@ -42,6 +42,7 @@ class BoxInfo {
 class DrawList {
     public:
         DrawList() {
+          _cameraOrigin = Vec3<double>::Zero();
             loadFiles();
         }
         size_t addCheetah3();
@@ -160,11 +161,15 @@ class DrawList {
          * @param id     : the id returned from the loadCheetah3 or loadMiniCheetah function.
          */
         template<typename T>
-            void updateRobotFromModel(DynamicsSimulator<T> &model, size_t id) {
+            void updateRobotFromModel(DynamicsSimulator<T> &model, size_t id, bool updateOrigin = false) {
                 for (size_t modelID = 5, graphicsID = id; 
                         modelID < model.getNumBodies(); modelID++, graphicsID++) {
                     _kinematicXform.at(graphicsID) = 
                         spatialTransformToQT(model.getModel()._Xa.at(modelID));
+                }
+
+                if(updateOrigin) {
+                  _cameraOrigin = model.getState().bodyPosition.template cast<T>();
                 }
             }
 
@@ -251,6 +256,9 @@ class DrawList {
         const std::vector<double> & getGCPos(size_t idx){ return _cp_pos[idx]; }
         const std::vector<double> & getGCForce(size_t idx){ return _cp_force[idx]; }
         const std::vector<BoxInfo> & getBoxInfoList(){ return _box_list; }
+        const Vec3<double>& getCameraOrigin() {
+          return _cameraOrigin;
+        }
 
     private:
         size_t _nUnique = 0, _nTotal = 0;
@@ -280,6 +288,8 @@ class DrawList {
         std::vector<std::vector<double> > _cp_pos;
         std::vector<std::vector<double> > _cp_force;
         std::vector<BoxInfo> _box_list;
+
+        Vec3<double> _cameraOrigin;
 
         size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0, _sphereLoadIndex = 0;
 
