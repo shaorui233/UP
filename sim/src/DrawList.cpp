@@ -8,9 +8,10 @@
 #include "DrawList.h"
 
 void DrawList::loadFiles() {
+  printf("[DrawList] Load object files...\n");
   std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", 
       "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", 
-      "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj", "sphere.obj"};
+      "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj", "sphere.obj", "cube.obj"};
   objLoader::ObjLoader loader;
   for (const auto &name : names) {
     std::string filename = _baseFileName + name;
@@ -18,17 +19,22 @@ void DrawList::loadFiles() {
     _normalData.emplace_back();
     _colorData.emplace_back();
     loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
+
     if(name == "sphere.obj") {
       setSolidColor(_colorData.back(), _vertexData.back().size(), 
               debugRedColor[0], debugRedColor[1], debugRedColor[2]);
+    } else if(name == "cube.obj") {
+      setSolidColor(_colorData.back(), _vertexData.back().size(),
+                    disgustingGreen[0], disgustingGreen[1], disgustingGreen[2]);
     } else {
-      setSolidColor(_colorData.back(), _vertexData.back().size(), 
-              defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
+        setSolidColor(_colorData.back(), _vertexData.back().size(),
+                defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
     }
 
     _nUnique++;
   }
   _sphereLoadIndex = 8;
+  _cubeLoadIndex = 9;
   _miniCheetahLoadIndex = 4;
   _cheetah3LoadIndex = 0;
 }
@@ -233,25 +239,49 @@ void DrawList::buildDrawList() {
 }
 
 void DrawList::addBox(double depth, double width, double height, 
-        const Vec3<double> & pos, const Mat3<double> & ori){
+        const Vec3<double> & pos, const Mat3<double> & ori, bool transparent){
+
+
+  if(transparent) {
     BoxInfo tmp;
     tmp.depth = depth;
     tmp.width = width;
     tmp.height = height;
 
-    tmp.frame[3] = 0.; 
-    tmp.frame[7] = 0.; 
-    tmp.frame[11] = 0.; 
-    tmp.frame[15] = 1.; 
+    tmp.frame[3] = 0.;
+    tmp.frame[7] = 0.;
+    tmp.frame[11] = 0.;
+    tmp.frame[15] = 1.;
 
     for(size_t i(0); i<3; ++i){
-        for(size_t j(0); j<3; ++j){
-            tmp.frame[4*i+j] = ori(j,i);
-        }
+      for(size_t j(0); j<3; ++j){
+        tmp.frame[4*i+j] = ori(j,i);
+      }
     }
     for(size_t i(0); i<3; ++i)    tmp.frame[12+i] = pos[i];
 
     _box_list.push_back(tmp);
+  } else {
+    QMatrix4x4 offset;
+
+    // scale box
+    offset.setToIdentity();
+    offset.scale(depth, width, height);
+    _modelOffsets.push_back(offset);
+
+    // move box
+    offset.setToIdentity();
+    offset.translate(pos[0], pos[1], pos[2]);
+    Quat<double> q = ori::rotationMatrixToQuaternion(ori.transpose());
+    QQuaternion qq(q[0], q[1], q[2], q[3]);
+    offset.rotate(qq);
+
+    _kinematicXform.push_back(offset);
+
+    _nTotal++;
+    _objectMap.push_back(_cubeLoadIndex);
+  }
+
 }
 
 

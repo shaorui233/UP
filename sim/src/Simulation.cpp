@@ -455,12 +455,12 @@ void Simulation::addCollisionBox(
         double mu, double resti, 
         double depth, double width, double height, 
         const Vec3<double> & pos, const Mat3<double> & ori,
-        bool addToWindow){
+        bool addToWindow, bool transparent){
 
     _simulator->addCollisionBox(mu, resti, depth, width, height, pos, ori);
     if(addToWindow && _window) {
         _window->lockGfxMutex();
-        _window->_drawList.addBox(depth, width, height, pos, ori);
+        _window->_drawList.addBox(depth, width, height, pos, ori, transparent);
         _window->unlockGfxMutex();
      }
 }
@@ -549,7 +549,7 @@ void Simulation::runAtSpeed(bool graphics) {
                                    _currentSimTime, simRate);
         updateGraphics();
       }
-      if(!_window->IsPaused())
+      if(!_window->IsPaused() && (desiredSteps - steps) < nStepsPerFrame)
         desiredSteps += nStepsPerFrame;
     }
   }
@@ -602,7 +602,7 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
       loadVec(checkerY, "checkers", 1);
       addCollisionPlane(mu, resti, height, gfxX, gfxY, checkerX, checkerY, addGraphics);
     } else if(typeName == "box") {
-      double mu, resti, depth, width, height;
+      double mu, resti, depth, width, height, transparent;
       double pos[3];
       double ori[3];
       load(mu, "mu");
@@ -612,11 +612,13 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
       load(height, "height");
       loadArray(pos, "position", 3);
       loadArray(ori, "orientation", 3);
+      load(transparent, "transparent");
+
       Mat3<double> R_box = ori::rpyToRotMat(Vec3<double>(ori));
       R_box.transposeInPlace(); // collisionBox uses "rotation" matrix instead of "transformation"
-      addCollisionBox(mu, resti, depth, width, height, Vec3<double>(pos), R_box, addGraphics);
+      addCollisionBox(mu, resti, depth, width, height, Vec3<double>(pos), R_box, addGraphics, transparent != 0.);
     } else if(typeName == "stairs") {
-      double mu, resti, rise, run, stepsDouble, width;
+      double mu, resti, rise, run, stepsDouble, width, transparent;
       double pos[3];
       double ori[3];
       load(mu, "mu");
@@ -627,6 +629,7 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
       load(stepsDouble, "steps");
       loadArray(pos, "position", 3);
       loadArray(ori, "orientation", 3);
+      load(transparent, "transparent");
 
       Mat3<double> R = ori::rpyToRotMat(Vec3<double>(ori));
       Vec3<double> pOff(pos);
@@ -640,7 +643,7 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
         Vec3<double> p(runOffset, 0, heightOffset);
         p = R*p + pOff;
 
-        addCollisionBox(mu, resti, run, width, heightOffset * 2, p, R, addGraphics);
+        addCollisionBox(mu, resti, run, width, heightOffset * 2, p, R, addGraphics, transparent != 0.);
 
         heightOffset += rise/2;
         runOffset += run;

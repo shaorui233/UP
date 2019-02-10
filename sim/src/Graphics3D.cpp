@@ -280,7 +280,6 @@ void Graphics3D::paintGL() {
     glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
                  GL_STATIC_DRAW);
-    printf("size: %lu, @ %p\n", _drawList.getSizeOfAllData(), _drawList.getVertexArray());
     glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
@@ -406,6 +405,9 @@ void Graphics3D::_DrawBox(double depth, double width, double height)
 		glVertex3d(-x,  y,  z);
 	} //GL_QUADS
 	glEnd();
+
+
+
     glPopAttrib();
     glDisable(GL_BLEND);
 }

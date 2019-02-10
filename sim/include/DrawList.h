@@ -52,7 +52,7 @@ class DrawList {
         size_t addCheckerboard(Checkerboard& checkerBoard);
         size_t addDebugSphere(float radius);
         void addBox(double depth, double width, double height, 
-                const Vec3<double> & pos, const Mat3<double> & ori);
+                const Vec3<double> & pos, const Mat3<double> & ori, bool transparent);
 
 
         /*!
@@ -291,7 +291,7 @@ class DrawList {
 
         Vec3<double> _cameraOrigin;
 
-        size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0, _sphereLoadIndex = 0;
+        size_t _cheetah3LoadIndex = 0, _miniCheetahLoadIndex = 0, _sphereLoadIndex = 0, _cubeLoadIndex = 0;
 
 };
 

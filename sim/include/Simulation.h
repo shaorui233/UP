@@ -52,7 +52,7 @@ public:
           double mu, double resti, 
           double depth, double width, double height, 
           const Vec3<double> & pos, const Mat3<double> & ori,
-          bool addToWindow = true);
+          bool addToWindow = true, bool transparent = true);
 
   void lowLevelControl();
   void highLevelControl();
