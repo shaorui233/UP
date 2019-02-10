@@ -19,14 +19,22 @@ _tau(12) {
   // init parameters
   printf("[Simulation] Load parameters...\n");
   _simParams.lockMutex(); // we want exclusive access to the simparams at this point
-
   if(!_simParams.isFullyInitialized()) {
     printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _simParams.generateUnitializedList().c_str());
     throw std::runtime_error("simulator not initialized");
   }
 
+  // init LCM
+  if(_simParams.sim_state_lcm) {
+    printf("[Simulation] Setup LCM...\n");
+    _lcm = new lcm::LCM(getLcmUrl(_simParams.sim_lcm_ttl));
+    if(!_lcm->good()) {
+      printf("[ERROR] Failed to set up LCM\n");
+      throw std::runtime_error("lcm bad");
+    }
+  }
 
-
+  // init quadruped info
   printf("[Simulation] Build quadruped...\n");
   _robot = robot;
   _quadruped = _robot == RobotType::MINI_CHEETAH ? buildMiniCheetah<double>() : buildCheetah3<double>();
@@ -34,10 +42,13 @@ _tau(12) {
   _actuatorModels = _quadruped.buildActuatorModels();
   _window = window;
 
+  // init graphics
   if(_window) {
     printf("[Simulation] Setup Cheetah graphics...\n");
     _robotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah() : window->setupCheetah3();
   }
+
+  // init rigid body dynamics
   printf("[Simulation] Build rigid body model...\n");
   _model = _quadruped.buildModel();
   _simulator = new DynamicsSimulator<double>(_model, (bool)_simParams.use_spring_damper);
@@ -112,7 +123,7 @@ _tau(12) {
   _sharedMemory().simToRobot.robotType = _robot;
 
 
-  // load control parameters
+  // load robot control parameters
   printf("[Simulation] Load control parameters...\n");
   if(_robot == RobotType::MINI_CHEETAH) {
     _robotParams.initializeFromYamlFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
@@ -327,7 +338,11 @@ void Simulation::highLevelControl() {
   _sharedMemory().simToRobot.mode = SimulatorMode::RUN_CONTROLLER;
   _sharedMemory().simulatorIsDone();
 
-  // wait for robot code to finish:
+  // wait for robot code to finish (and send LCM while waiting)
+  if(_lcm) {
+    buildLcmMessage();
+    _lcm->publish(SIM_LCM_NAME, &_simLCM);
+  }
 
   // first make sure we haven't killed the robot code
   if(_wantStop) return;
@@ -355,6 +370,49 @@ void Simulation::highLevelControl() {
     assert(false);
   }
 
+  _highLevelIterations++;
+
+}
+
+void Simulation::buildLcmMessage() {
+  _simLCM.time = _currentSimTime;
+  _simLCM.timesteps = _highLevelIterations;
+  auto& state = _simulator->getState();
+  auto& dstate = _simulator->getDState();
+
+  Vec3<double> rpy = ori::quatToRPY(state.bodyOrientation);
+  RotMat<double> Rbody = ori::quaternionToRotationMatrix(state.bodyOrientation);
+  Vec3<double> omega = Rbody.transpose() * state.bodyVelocity.head<3>();
+  Vec3<double> v = Rbody.transpose() * state.bodyVelocity.tail<3>();
+
+  for(size_t i = 0; i < 4; i++) {
+    _simLCM.quat[i] = state.bodyOrientation[i];
+  }
+
+  for(size_t i = 0; i < 3; i++) {
+    _simLCM.vb[i] = state.bodyVelocity[i + 3]; // linear velocity in body frame
+    _simLCM.rpy[i] = rpy[i];
+    for(size_t j = 0; j < 3; j++) {
+      _simLCM.R[i][j] = Rbody(i,j);
+    }
+    _simLCM.omegab[i] = state.bodyVelocity[i];
+    _simLCM.omega[i] = omega[i];
+    _simLCM.p[i] = state.bodyPosition[i];
+    _simLCM.v[i] = v[i];
+    _simLCM.vbd[i] = dstate.dBodyVelocity[i + 3];
+  }
+
+  for(size_t leg = 0; leg < 4; leg++) {
+    for(size_t joint = 0; joint < 3; joint++) {
+      _simLCM.q[leg][joint] = state.q[leg*3 + joint];
+      _simLCM.qd[leg][joint] = state.qd[leg*3 + joint];
+      _simLCM.qdd[leg][joint] = dstate.qdd[leg*3 + joint];
+      _simLCM.tau[leg][joint] = _tau[leg*3 + joint];
+      size_t gcID = _simulator->getModel()._footIndicesGC.at(leg);
+      _simLCM.p_foot[leg][joint] = _simulator->getModel()._pGC.at(gcID)[joint];
+      _simLCM.f_foot[leg][joint] = _simulator->getContactForce(gcID)[joint];
+    }
+  }
 }
 
 /*!

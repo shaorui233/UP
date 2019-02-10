@@ -1,28 +1,31 @@
 #!/bin/bash
+
+
+GREEN='\033[0;32m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN} Starting LCM type generation...${NC}"
+
 cd ../lcm-types
 # Clean
-rm *.jar
-rm -rf c_lcm_files
-rm */*.py
-rm */*.pyc
+rm */*.jar
 rm */*.java
 rm */*.hpp
 rm */*.class
 
 # Make
-lcm-gen -jcxp *.lcm
+lcm-gen -jx *.lcm
 cp /usr/local/share/java/lcm.jar .
 javac -cp lcm.jar */*.java
 jar cf my_types.jar */*.class
-mkdir c_lcm_files
-mv *.c c_lcm_files
-mv *.h c_lcm_files
-mkdir java
+mkdir -p java
 mv my_types.jar java
 mv lcm.jar java
+mkdir -p cpp
+mv *.hpp cpp
 
 FILES=$(ls */*.class)
 echo ${FILES} > file_list.txt
 
 
-
+echo -e "${GREEN} Done with LCM type generation${NC}"

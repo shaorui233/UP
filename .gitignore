@@ -8,3 +8,6 @@ lcm-types/interfacelcm
 lcm-types/java
 lcm-types/simulatorlcm
 lcm-types/wincontrollerlcm
+lcm-types/file_list.txt
+lcm-types/cpp/*
+lcm-types/lcmtypes/*

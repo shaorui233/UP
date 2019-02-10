@@ -19,7 +19,15 @@ SimControlPanel::SimControlPanel(QWidget *parent) :
     ui(new Ui::SimControlPanel) {
   ui->setupUi(this);
   updateUiEnable();
+
+  printf("[SimControlPanel] Init simulator parameters...\n");
   _parameters.initializeFromYamlFile(getConfigDirectoryPath() + SIMULATOR_DEFAULT_PARAMETERS);
+  if(!_parameters.isFullyInitialized()) {
+    printf("[ERROR] Simulator parameters are not fully initialized.  You forgot: \n%s\n", _parameters.generateUnitializedList().c_str());
+    throw std::runtime_error("simulator not initialized");
+  } else {
+    printf("\tsim parameters are all good\n");
+  }
   loadSimulationParameters(_parameters);
 }
 
@@ -61,9 +69,12 @@ void SimControlPanel::on_startButton_clicked() {
   _simulationMode = ui->simulatorButton->isChecked();
 
   if(_simulationMode) {
+    printf("[SimControlPanel] Initialize Graphics...\n");
     _graphicsWindow = new Graphics3D();
     _graphicsWindow->show();
     _graphicsWindow->resize(1280, 720);
+
+    printf("[SimControlPanel] Initialize simulator...\n");
     _simulation = new Simulation(robotType, _graphicsWindow, _parameters);
     loadSimulationParameters(_simulation->getSimParams());
     loadRobotParameters(_simulation->getRobotParams());
@@ -88,7 +99,7 @@ void SimControlPanel::on_startButton_clicked() {
 //    EulerZYX_2_SO3(ori_zyx, ori);
 //    _simulation->addCollisionBox(0.8, 0., 0.7, 0.7, 0.05, pos, ori);
 
-    //
+
     _simThread = std::thread([this](){_simulation->runAtSpeed();});
 
     _graphicsWindow->setAnimating(true);
