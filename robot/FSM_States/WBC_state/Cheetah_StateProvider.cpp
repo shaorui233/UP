@@ -1,5 +1,4 @@
 #include "Cheetah_StateProvider.hpp"
-#include "Cheetah_DynaCtrl_Definition.h"
 
 template<typename T>
 Cheetah_StateProvider<T>* Cheetah_StateProvider<T>::getStateProvider(){
@@ -9,12 +8,16 @@ Cheetah_StateProvider<T>* Cheetah_StateProvider<T>::getStateProvider(){
 
 template<typename T>
 Cheetah_StateProvider<T>::Cheetah_StateProvider():
-                                Q_(cheetah::num_q),
-                                Qdot_(cheetah::dim_config),
-                                curr_time_(0.)
+    Q_(cheetah::num_q),
+    Qdot_(cheetah::dim_config),
+    _num_contact(2),
+    curr_time_(0.)
 {
-  Q_.setZero();
-  Qdot_.setZero();
+    _contact_pt[0] = linkID::FL;
+    _contact_pt[1] = linkID::HR;
+    Q_.setZero();
+    Qdot_.setZero();
+    _local_frame_global_pos.setZero();
 }
 
 template class Cheetah_StateProvider<double> ;

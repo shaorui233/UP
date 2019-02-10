@@ -1,4 +1,4 @@
-#include "BodyCtrl.hpp"
+#include "TwoContactTransCtrl.hpp"
 
 #include <WBC_state/Cheetah_StateProvider.hpp>
 #include <WBC_state/Cheetah_DynaCtrl_Definition.h>
@@ -11,15 +11,19 @@
 #include <WBLC/WBLC.hpp>
 #include <ParamHandler/ParamHandler.hpp>
 
+
 template <typename T>
-BodyCtrl<T>::BodyCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
+TwoContactTransCtrl<T>::TwoContactTransCtrl(const FloatingBaseModel<T>* robot, 
+        size_t cp1, size_t cp2, int transit_dir):
+    Controller<T>(robot),
+    _cp1(cp1), _cp2(cp2), _transit_dir(transit_dir),
     Kp_(cheetah::num_act_joint),
     Kd_(cheetah::num_act_joint),
     des_jpos_(cheetah::num_act_joint),
     des_jvel_(cheetah::num_act_joint),
     des_jacc_(cheetah::num_act_joint),
     b_set_height_target_(false),
-    end_time_(1000.0),
+    end_time_(100.),
     dim_contact_(0),
     ctrl_start_time_(0.)
 {
@@ -29,7 +33,7 @@ BodyCtrl<T>::BodyCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
     Ctrl::task_list_.push_back(body_ori_task_);
     Ctrl::task_list_.push_back(body_pos_task_);
 
-   
+    // Pushback sequence is important !!
     fr_contact_ = new SingleContact<T>(Ctrl::robot_sys_, linkID::FR);
     fl_contact_ = new SingleContact<T>(Ctrl::robot_sys_, linkID::FL);
     hr_contact_ = new SingleContact<T>(Ctrl::robot_sys_, linkID::HR);
@@ -43,18 +47,20 @@ BodyCtrl<T>::BodyCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
     kin_wbc_ = new KinWBC<T>(cheetah::dim_config);
     wblc_ = new WBLC<T>(cheetah::dim_config, Ctrl::contact_list_);
     wblc_data_ = new WBLC_ExtraData<T>();
- 
+
     for(size_t i(0); i<Ctrl::contact_list_.size(); ++i){
         dim_contact_ += Ctrl::contact_list_[i]->getDim();
     }
 
-    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, 100.0);
-    wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, 1.);
-    wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, 1000.0);
+    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, Weight::tan_small);
+    wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, Weight::foot_big);
+
 
     int idx_offset(0);
     for(size_t i(0); i<Ctrl::contact_list_.size(); ++i){
-        wblc_data_->W_rf_[idx_offset + Ctrl::contact_list_[i]->getFzIndex()]= 0.01;
+        wblc_data_->W_rf_[idx_offset + Ctrl::contact_list_[i]->getFzIndex()] =
+            Weight::nor_small;
         idx_offset += Ctrl::contact_list_[i]->getDim();
     }
 
@@ -64,14 +70,14 @@ BodyCtrl<T>::BodyCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
 
     sp_ = Cheetah_StateProvider<T>::getStateProvider();
 
-    printf("[Body Control] Constructed\n");
+    printf("[Two Contact Transition Ctrl] Constructed\n");
 }
 
 template <typename T>
-BodyCtrl<T>::~BodyCtrl(){
+TwoContactTransCtrl<T>::~TwoContactTransCtrl(){
     delete wblc_;
-    delete wblc_data_;
     delete kin_wbc_;
+    delete wblc_data_;
 
     typename std::vector<Task<T>*>::iterator iter = Ctrl::task_list_.begin();
     while(iter < Ctrl::task_list_.end()){
@@ -89,11 +95,11 @@ BodyCtrl<T>::~BodyCtrl(){
 }
 
 template <typename T>
-void BodyCtrl<T>::OneStep(void* _cmd){
+void TwoContactTransCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
     Ctrl::state_machine_time_ = sp_->curr_time_ - ctrl_start_time_;
 
-    DVec<T> gamma = DVec<T>::Zero(cheetah::num_act_joint);
+    DVec<T> gamma;
     _contact_setup();
     _task_setup();
     _compute_torque_wblc(gamma);
@@ -114,7 +120,7 @@ void BodyCtrl<T>::OneStep(void* _cmd){
 }
 
 template <typename T>
-void BodyCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
+void TwoContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     // WBLC
     wblc_->UpdateSetting(Ctrl::A_, Ctrl::Ainv_, Ctrl::coriolis_, Ctrl::grav_);
     DVec<T> des_jacc_cmd = des_jacc_ 
@@ -127,66 +133,106 @@ void BodyCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
 }
 
 template <typename T>
-void BodyCtrl<T>::_task_setup(){
-    des_jpos_ = jpos_ini_;
+void TwoContactTransCtrl<T>::_task_setup(){
+    des_jpos_ = Ctrl::robot_sys_->_state.q;
     des_jvel_.setZero();
     des_jacc_.setZero();
-
+    
     // Calculate IK for a desired height and orientation.
-    T body_height_cmd;
-    if(b_set_height_target_) body_height_cmd = target_body_height_;
-    else{ printf("No Height Command\n"); exit(0); }
+    if(!b_set_height_target_) { printf("No Height Command\n"); exit(0); }
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
     Vec3<T> des_pos = ini_body_pos_;
+    des_pos[2] = ini_body_pos_[2] + 
+        Ctrl::state_machine_time_/end_time_ * (target_body_height_ - ini_body_pos_[2]);
 
-    T amp(0.0);
-    T omega(0.5 * 2. * M_PI);
-    des_pos[2] = body_height_cmd + amp * sin(omega * Ctrl::state_machine_time_);
-    vel_des[2] = amp * omega * cos(omega * Ctrl::state_machine_time_);
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    T theta(0.);
-    T amp_rot(0.);
-    T omega_ang(0.5*2.*M_PI);
-    theta = amp_rot*sin(omega_ang * Ctrl::state_machine_time_);
-    // pitch
-    des_quat[0] = cos(theta/2.);
-    des_quat[2] = sin(theta/2.);
-    //des_quat[0] = 1.;
+    des_quat[0] = 1.;
 
     DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
     body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
-    kin_wbc_->FindConfiguration(sp_->Q_,
+    kin_wbc_->FindConfiguration(sp_->Q_, 
             Ctrl::task_list_, Ctrl::contact_list_, 
             des_jpos_, des_jvel_, des_jacc_);
+
+    //pretty_print(des_jpos_, std::cout, "des_jpos");
+    //pretty_print(des_jvel_, std::cout, "des_jvel");
+    //pretty_print(des_jacc_, std::cout, "des_jacc");
 }
 
 template <typename T>
-void BodyCtrl<T>::_contact_setup(){
+void TwoContactTransCtrl<T>::_contact_setup(){
+    T alpha = 0.5 * (1-cos(M_PI * Ctrl::state_machine_time_/end_time_)); // 0 -> 1
+    T upper_lim(100.);
+    T rf_weight(100.);
+    T rf_weight_z(100.);
+    T foot_weight(1000.);
+
+    if(_transit_dir > 0){ // Decrease reaction force & Increase full acceleration
+        upper_lim = max_rf_z_ + alpha*(min_rf_z_ - max_rf_z_);
+        rf_weight   = (1.-alpha)*Weight::tan_small  + alpha*Weight::tan_big;
+        rf_weight_z = (1.-alpha)*Weight::nor_small + alpha*Weight::nor_big;
+        foot_weight = (1.-alpha)*Weight::foot_big   + alpha*Weight::foot_small;
+    } else {
+        upper_lim = min_rf_z_ + alpha*(max_rf_z_ - min_rf_z_);
+        rf_weight   = (1.-alpha)*Weight::tan_big  + alpha*Weight::tan_small;
+        rf_weight_z = (1.-alpha)*Weight::nor_big + alpha*Weight::nor_small;
+        foot_weight = (1.-alpha)*Weight::foot_small + alpha*Weight::foot_big;
+    }
+
+    if(_cp1 == linkID::FR || _cp2 == linkID::FR){
+        _SetContact(0, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    }
+    if(_cp1 == linkID::FL || _cp2 == linkID::FL){
+        _SetContact(1, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    }
+
+    if(_cp1 == linkID::HR || _cp2 == linkID::HR){
+        _SetContact(2, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    }
+
+    if(_cp1 == linkID::HL || _cp2 == linkID::HL){
+        _SetContact(3, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    }
+
+
     typename std::vector<ContactSpec<T> *>::iterator iter = Ctrl::contact_list_.begin();
     while(iter < Ctrl::contact_list_.end()){
-        (*iter)->UpdateContactSpec();
+       (*iter)->UpdateContactSpec();
         ++iter;
     }
 }
 
 template <typename T>
-void BodyCtrl<T>::FirstVisit(){
-    jpos_ini_ = Ctrl::robot_sys_->_state.q;
+void TwoContactTransCtrl<T>::_SetContact(const size_t & cp_idx, 
+        const T & upper_lim, const T & rf_weight, const T & rf_weight_z, const T & foot_weight){
+
+    ((SingleContact<T>*)Ctrl::contact_list_[cp_idx])->setMaxFz(upper_lim);
+    for(size_t i(0); i<3; ++i){
+        wblc_data_->W_rf_[i + 3*cp_idx] = rf_weight;
+        wblc_data_->W_xddot_[i + 3*cp_idx] = foot_weight;
+    }
+        wblc_data_->W_rf_[2 + 3*cp_idx] = rf_weight_z;
+}
+
+template <typename T>
+void TwoContactTransCtrl<T>::FirstVisit(){
     ctrl_start_time_ = sp_->curr_time_;
     ini_body_pos_ = Ctrl::robot_sys_->_state.bodyPosition;
 }
 
 template <typename T>
-void BodyCtrl<T>::LastVisit(){}
+void TwoContactTransCtrl<T>::LastVisit(){
+    // printf("[ContactTransBody] End\n");
+}
 
 template <typename T>
-bool BodyCtrl<T>::EndOfPhase(){
+bool TwoContactTransCtrl<T>::EndOfPhase(){
     if(Ctrl::state_machine_time_ > end_time_){
         return true;
     }
@@ -194,14 +240,13 @@ bool BodyCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void BodyCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
-    jpos_ini_ = Ctrl::robot_sys_->_state.q;
-
-    ini_body_pos_ = Ctrl::robot_sys_->_state.bodyPosition;
+void TwoContactTransCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
     ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
+    handler.getValue<T>("max_rf_z", max_rf_z_);
+    handler.getValue<T>("min_rf_z", min_rf_z_);
 
-    std::vector<T> tmp_vec;
     // Feedback Gain
+    std::vector<T> tmp_vec;
     handler.getVector<T>("Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kp_[i] = tmp_vec[i];
@@ -213,14 +258,13 @@ void BodyCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
 }
 
 template <typename T>
-void BodyCtrl<T>::SetTestParameter(const std::string & test_file){
+void TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file){
     ParamHandler handler(test_file);
     if(handler.getValue<T>("body_height", target_body_height_)){
         b_set_height_target_ = true;
     }
-    handler.getValue<T>("stance_time", end_time_);
+    handler.getValue<T>("transition_time", end_time_);
 }
 
-template class BodyCtrl<double>;
-template class BodyCtrl<float>;
-
+template class TwoContactTransCtrl<double>;
+template class TwoContactTransCtrl<float>;

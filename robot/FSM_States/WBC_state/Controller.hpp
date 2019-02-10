@@ -8,6 +8,17 @@
 
 #define Ctrl Controller<T>
 
+namespace Weight{
+    constexpr float tan_big = 5.;
+    constexpr float tan_small = 1.;
+    constexpr float nor_big = 0.5;
+    constexpr float nor_small = 0.01;
+    constexpr float foot_big = 1000.;
+    constexpr float foot_small = 0.001;
+    constexpr float qddot_relax = 100.;
+}
+
+
 template <typename T>
 class Controller{
 public:
@@ -19,6 +30,7 @@ public:
   virtual void LastVisit() = 0;
   virtual bool EndOfPhase() = 0;
   virtual void CtrlInitialization(const std::string & setting_file_name) = 0;
+  virtual void SetTestParameter(const std::string & test_file) = 0;
 
 protected:
   void _DynConsistent_Inverse(const DMat<T> & J, DMat<T> & Jinv){

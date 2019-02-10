@@ -153,6 +153,18 @@ void JPosCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
     }
 }
 
+template <typename T>
+void JPosCtrl<T>::SetTestParameter(const std::string & test_file){
+    ParamHandler handler(test_file);
+
+    std::vector<T> tmp_vec;
+    handler.getVector<T>("target_jpos", tmp_vec);
+    for(size_t i(0); i<cheetah::num_act_joint; ++i) _jpos_target[i] = tmp_vec[i];
+
+    b_set_target_ = true;
+}
+
+
 template class JPosCtrl<double>;
 template class JPosCtrl<float>;
 

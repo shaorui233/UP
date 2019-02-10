@@ -48,17 +48,14 @@ int BodyCtrlTest<T>::_NextPhase(const int & phase){
 
 template <typename T>
 void BodyCtrlTest<T>::_SettingParameter(){
-  ParamHandler handler(CheetahConfigPath"TEST_body_ctrl.yaml");
-  T tmp;
-  // Stance Time
-  handler.getValue<T>("body_lifting_time", tmp);
-  ((FullContactTransCtrl<T>*)body_up_ctrl_)->setStanceTime(tmp);
-  handler.getValue<T>("body_stay_time", tmp);
-  ((BodyCtrl<T>*)body_ctrl_)->setStanceTime(tmp);
+    typename std::vector< Controller<T> *>::iterator iter 
+        = Test<T>::state_list_.begin();
 
-  handler.getValue<T>("body_height", tmp);
-  ((FullContactTransCtrl<T>*)body_up_ctrl_)->setStanceHeight(tmp);
-  ((BodyCtrl<T>*)body_ctrl_)->setStanceHeight(tmp);
+    while(iter < Test<T>::state_list_.end()){
+        (*iter)->SetTestParameter(
+                CheetahConfigPath"TEST_body_ctrl.yaml");
+        ++iter;
+    }
 }
 
 template class BodyCtrlTest<double>;

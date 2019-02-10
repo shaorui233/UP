@@ -29,7 +29,7 @@ class Cheetah_interface{
         void _ParameterSetting();
         bool _Initialization(const Cheetah_Data<T>* , LegControllerCommand<T>* );
         
-        Cheetah_StateProvider<T>* sp_;
+        Cheetah_StateProvider<T>* _sp;
 };
 
 #endif

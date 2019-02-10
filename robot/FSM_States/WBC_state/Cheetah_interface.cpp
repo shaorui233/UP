@@ -9,16 +9,17 @@
 // Body Ctrl Test
 #include <WBC_state/TestSet/BodyCtrlTest.hpp>
 #include <WBC_state/TestSet/JPosCtrlTest.hpp>
+#include <WBC_state/TestSet/TrotTest.hpp>
 #include <Utilities/Utilities_print.h>
 
 template <typename T>
 Cheetah_interface<T>::Cheetah_interface(FloatingBaseModel<T> * robot):
     _robot(robot),
     count_(0),
-    waiting_count_(2),
+    waiting_count_(100),
     running_time_(0.)
 {
-    sp_ = Cheetah_StateProvider<T>::getStateProvider();
+    _sp = Cheetah_StateProvider<T>::getStateProvider();
     _ParameterSetting();
     _state.q = DVec<T>::Zero(cheetah::num_act_joint);
     _state.qd = DVec<T>::Zero(cheetah::num_act_joint);
@@ -37,8 +38,8 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
         _state.q[i] = data->jpos[i];
         _state.qd[i] = data->jvel[i];
         
-        sp_->Q_[i+6] = data->jpos[i];
-        sp_->Qdot_[i+6] = data->jvel[i];
+        _sp->Q_[i+6] = data->jpos[i];
+        _sp->Qdot_[i+6] = data->jvel[i];
     }
     for(size_t i(0); i<4; ++i){
         _state.bodyOrientation[i] = data->body_ori[i];
@@ -57,11 +58,15 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     Vec3<T> ave_foot;
     ave_foot.setZero();
 
-    ave_foot += 0.25 *_robot->_pGC[linkID::FR];
-    ave_foot += 0.25 *_robot->_pGC[linkID::FL];
-    ave_foot += 0.25 *_robot->_pGC[linkID::HL];
-    ave_foot += 0.25 *_robot->_pGC[linkID::HR];
-   
+    for(size_t i(0); i<_sp->_num_contact; ++i){
+        ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
+    }
+    //ave_foot += 0.25 *_robot->_pGC[linkID::FR];
+    //ave_foot += 0.25 *_robot->_pGC[linkID::FL];
+    //ave_foot += 0.25 *_robot->_pGC[linkID::HL];
+    //ave_foot += 0.25 *_robot->_pGC[linkID::HR];
+
+    
     //for(size_t i(0); i<_robot->_pGC.size(); ++i){
     //pretty_print(_robot->_pGC[i], std::cout, "contact position ");
     //}
@@ -73,7 +78,7 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     //pretty_print(_state.bodyOrientation, std::cout, "body ori");
     //pretty_print(data->body_ori, "data body ori", 4);
     
-    _state.bodyPosition = - ave_foot;
+    _state.bodyPosition = -ave_foot + _sp->_local_frame_global_pos;
     
     // Update with new body position
     _robot->setState(_state);
@@ -94,7 +99,7 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
    running_time_ = (T)(count_) * cheetah::servo_rate;
     ++count_;
     // When there is sensed time
-    sp_->curr_time_ = running_time_;
+    _sp->curr_time_ = running_time_;
 }
 
 template <typename T>
@@ -127,7 +132,8 @@ void Cheetah_interface<T>::_ParameterSetting(){
     // Test SETUP
     handler.getString("test_name", tmp_string);
     // Walking Test ***********************************
-    if(tmp_string == "walking_test"){
+    if(tmp_string == "trot_test"){
+        _test = new TrotTest<T>(_robot);
     // Body Ctrl Test ***********************************
     }else if(tmp_string == "body_ctrl_test"){
         _test = new BodyCtrlTest<T>(_robot);    

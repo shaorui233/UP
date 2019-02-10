@@ -34,17 +34,17 @@ bool LinkPosTask<T>::_UpdateCommand(void* pos_des,
         TK::acc_des_[i] = acc_des[i];
     }
     //printf("[Link Pos Task]\n");
-    //dynacore::pretty_print(acc_des, std::cout, "acc_des");
-    //dynacore::pretty_print(pos_err_, std::cout, "pos_err_");
-    //dynacore::pretty_print(*pos_cmd, std::cout, "pos cmd");
-    //dynacore::pretty_print(Jt_, std::cout, "Jt");
+    //pretty_print(acc_des, std::cout, "acc_des");
+    //pretty_print(TK::pos_err_, std::cout, "pos_err_");
+    //pretty_print(*pos_cmd, std::cout, "pos cmd");
+    //pretty_print(TK::Jt_, std::cout, "Jt");
 
     return true;
 }
 
 template <typename T>
 bool LinkPosTask<T>::_UpdateTaskJacobian(){
-    TK::Jt_ = robot_sys_->_Jc[link_idx_].block(3,0, 3, cheetah::dim_config);
+    TK::Jt_ = robot_sys_->_Jc[link_idx_];
     if(!virtual_depend_){
         TK::Jt_.block(0,0, 3, 6) = DMat<T>::Zero(3,6);
     }
@@ -53,7 +53,7 @@ bool LinkPosTask<T>::_UpdateTaskJacobian(){
 
 template <typename T>
 bool LinkPosTask<T>::_UpdateTaskJDotQdot(){
-    TK::JtDotQdot_ = robot_sys_->_Jcdqd[link_idx_].tail(3);
+    TK::JtDotQdot_ = robot_sys_->_Jcdqd[link_idx_];
     return true;
 }
 

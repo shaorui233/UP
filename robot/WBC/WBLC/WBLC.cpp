@@ -17,7 +17,7 @@ WBLC<T>::WBLC(size_t num_qdot, const std::vector<ContactSpec<T>*> & contact_list
         dim_opt_ = WB::num_qdot_ + 2 * dim_rf_; // (delta_qddot, Fr, xddot_c)
         dim_eq_cstr_ = 6 + dim_rf_;
         dim_ieq_cstr_ = 2*WB::num_act_joint_ + dim_Uf_; // torque limit, friction cone
-        printf("dim: opt, eq, ieq = %lu, %lu, %lu\n", dim_opt_, dim_eq_cstr_, dim_ieq_cstr_);
+        //printf("dim: opt, eq, ieq = %lu, %lu, %lu\n", dim_opt_, dim_eq_cstr_, dim_ieq_cstr_);
 
         qddot_ = DVec<T>::Zero(WB::num_qdot_);
 
@@ -71,16 +71,12 @@ void WBLC<T>::MakeWBLC_Torque(
 
     // Contact Jacobian & Uf & Fr_ieq
 
-    _PrintDebug(1.);
     _BuildContactMtxVect();
 
-    _PrintDebug(2.);
     _Build_Equality_Constraint();
 
-    _PrintDebug(3.);
     _Build_Inequality_Constraint();
 
-    _PrintDebug(4.);
     _OptimizationPreparation(Aeq_, beq_, Cieq_, dieq_);
 
     T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
@@ -116,27 +112,20 @@ void WBLC<T>::MakeWBLC_Torque(
 template<typename T>
 void WBLC<T>::_Build_Inequality_Constraint(){
 
-    _PrintDebug(3.1);
     Cieq_ = DMat<T>::Zero(dim_ieq_cstr_, dim_opt_);
     dieq_ = DVec<T>::Zero(dim_ieq_cstr_);
     size_t row_idx(0);
     
-    _PrintDebug(3.2);
     Cieq_.block(row_idx, WB::num_qdot_, Uf_.rows(), dim_rf_) = Uf_;
     dieq_.head(Uf_.rows()) = Fr_ieq_;
     row_idx += Uf_.rows();
 
-    _PrintDebug(3.30);
     Cieq_.block(row_idx, 0, WB::num_act_joint_, WB::num_qdot_) = WB::Sa_ * WB::A_;
-    _PrintDebug(3.31);
     Cieq_.block(row_idx, WB::num_qdot_, WB::num_act_joint_, dim_rf_) = -WB::Sa_ * Jc_.transpose();
-    _PrintDebug(3.32);
     dieq_.segment(row_idx, WB::num_act_joint_) 
         = data_->tau_min_ - WB::Sa_ * (WB::cori_ + WB::grav_ + WB::A_ * qddot_);
-    _PrintDebug(3.33);
     row_idx += WB::num_act_joint_;
 
-    _PrintDebug(3.4);
     Cieq_.block(row_idx, 0, WB::num_act_joint_, WB::num_qdot_) = -WB::Sa_ * WB::A_;
     Cieq_.block(row_idx, WB::num_qdot_, WB::num_act_joint_, dim_rf_) = WB::Sa_ * Jc_.transpose();
     dieq_.segment(row_idx, WB::num_act_joint_) 

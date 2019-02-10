@@ -22,14 +22,9 @@ class JPosCtrl: public Controller<T>{
         virtual bool EndOfPhase();
 
         virtual void CtrlInitialization(const std::string & setting_file_name);
+        virtual void SetTestParameter(const std::string & test_file);
 
-        void setMovingTime(const T & time) { end_time_ = time; }
-        void setTargetPos(const std::vector<T> & jpos_target){ 
-            for(size_t i(0); i<cheetah::num_act_joint; ++i)
-                _jpos_target[i] = jpos_target[i];
-
-            b_set_target_ = true;
-        }
+        void setMovingTime(T time) { end_time_ = time; }
 
     protected:
         DVec<T> Kp_, Kd_;
