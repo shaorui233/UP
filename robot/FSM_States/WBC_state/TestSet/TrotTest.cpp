@@ -25,16 +25,16 @@ TrotTest<T>::TrotTest(const FloatingBaseModel<T>* robot):Test<T>(),
     body_ctrl_ = new BodyCtrl<T>(robot);
 
     frhl_swing_start_trans_ctrl_ = 
-        new TwoContactTransCtrl<T>(robot, linkID::FR, linkID::HL, -1);
+        new TwoContactTransCtrl<T>(robot, linkID::FR, linkID::HL, 1);
     frhl_swing_ctrl_ = new TwoLegSwingCtrl<T>(robot, linkID::FR, linkID::HL);
     frhl_swing_end_trans_ctrl_ = 
-        new TwoContactTransCtrl<T>(robot, linkID::FR, linkID::HL, 1);
+        new TwoContactTransCtrl<T>(robot, linkID::FR, linkID::HL, -1);
 
     flhr_swing_start_trans_ctrl_ = 
-        new TwoContactTransCtrl<T>(robot, linkID::FL, linkID::HR, -1);
+        new TwoContactTransCtrl<T>(robot, linkID::FL, linkID::HR, 1);
     flhr_swing_ctrl_ = new TwoLegSwingCtrl<T>(robot, linkID::FL, linkID::HR);
     flhr_swing_end_trans_ctrl_ = 
-        new TwoContactTransCtrl<T>(robot, linkID::FL, linkID::HR, 1);
+        new TwoContactTransCtrl<T>(robot, linkID::FL, linkID::HR, -1);
 
     Test<T>::state_list_.push_back(body_up_ctrl_);
 
@@ -85,8 +85,8 @@ int TrotTest<T>::_NextPhase(const int & phase){
     int next_phase = phase + 1;
     //printf("next phase: %i\n", next_phase);
 
-    //if(next_phase == TrotPhase::flhr_swing_start_trans){
-    if(next_phase == TrotPhase::flhr_swing){
+    if(next_phase == TrotPhase::flhr_swing_start_trans){
+    //if(next_phase == TrotPhase::flhr_swing){
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::FR];
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::HL];
@@ -99,8 +99,8 @@ int TrotTest<T>::_NextPhase(const int & phase){
         //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
     }
 
-    //if(next_phase == TrotPhase::frhl_swing_start_trans){
-    if(next_phase == TrotPhase::frhl_swing){
+    if(next_phase == TrotPhase::frhl_swing_start_trans){
+    //if(next_phase == TrotPhase::frhl_swing){
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::FL];
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::HR];

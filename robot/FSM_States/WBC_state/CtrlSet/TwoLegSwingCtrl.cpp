@@ -278,12 +278,12 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     _target_loc1 = _default_target_foot_loc_1;
     _target_loc2 = _default_target_foot_loc_2;
     
-    //_target_loc1 += _sp->_local_frame_global_pos;
-    //_target_loc2 += _sp->_local_frame_global_pos;
-    //_sp->_body_target = _sp->_local_frame_global_pos;
+    _target_loc1 += _sp->_local_frame_global_pos;
+    _target_loc2 += _sp->_local_frame_global_pos;
+    _sp->_body_target = _sp->_local_frame_global_pos;
     
-    _target_loc1.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
-    _target_loc2.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
+    //_target_loc1.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
+    //_target_loc2.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
 
 
     _dir_command[0] = -0.22 * _sp->_dir_command[0];

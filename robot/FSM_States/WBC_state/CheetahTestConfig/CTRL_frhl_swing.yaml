@@ -12,9 +12,7 @@ Kd: [ 5., 5., 5.,
       5., 5., 5. ]
 
 
-#default_target_foot_location_1: [0.2, -0.12, 0.0] # Front Right
-#default_target_foot_location_2: [-0.2, 0.12, 0.0] # Hind Left
-
+## Mini Cheetah
 default_target_foot_location_1: [0.2, -0.12, 0.0] # Front Right
 default_target_foot_location_2: [-0.2, 0.12, 0.0] # Hind Left
 
