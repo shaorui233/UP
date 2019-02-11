@@ -80,6 +80,7 @@ class TwoLegSwingCtrl: public Controller<T>{
         T target_body_height_;
         T ini_body_height_;
         Vec3<T> _ini_body_pos;
+        Vec3<T> _ini_body_target;
         
         T max_rf_z_;
         T min_rf_z_;

@@ -148,7 +148,8 @@ void FullContactTransCtrl<T>::_task_setup(){
     if(!b_set_height_target_) { printf("No Height Command\n"); exit(0); }
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    Vec3<T> des_pos = ini_body_pos_;
+    T alpha = (Ctrl::state_machine_time_/end_time_);
+    Vec3<T> des_pos = (1.-alpha) * ini_body_pos_ + alpha * sp_->_body_target;
     des_pos[2] = ini_body_pos_[2] + 
         Ctrl::state_machine_time_/end_time_ * (target_body_height_ - ini_body_pos_[2]);
 

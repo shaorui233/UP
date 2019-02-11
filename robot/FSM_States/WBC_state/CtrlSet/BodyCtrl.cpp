@@ -62,7 +62,7 @@ BodyCtrl<T>::BodyCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
     wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, -150.);
     wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, 150.);
 
-    sp_ = Cheetah_StateProvider<T>::getStateProvider();
+    _sp = Cheetah_StateProvider<T>::getStateProvider();
 
     printf("[Body Control] Constructed\n");
 }
@@ -91,7 +91,7 @@ BodyCtrl<T>::~BodyCtrl(){
 template <typename T>
 void BodyCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
-    Ctrl::state_machine_time_ = sp_->curr_time_ - ctrl_start_time_;
+    Ctrl::state_machine_time_ = _sp->curr_time_ - ctrl_start_time_;
 
     DVec<T> gamma = DVec<T>::Zero(cheetah::num_act_joint);
     _contact_setup();
@@ -140,7 +140,8 @@ void BodyCtrl<T>::_task_setup(){
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
     //Vec3<T> des_pos = ini_body_pos_;
-    Vec3<T> des_pos = Ctrl::robot_sys_->_state.bodyPosition;
+    //Vec3<T> des_pos = Ctrl::robot_sys_->_state.bodyPosition;
+    Vec3<T> des_pos = _sp->_body_target;
     des_pos[2] = body_height_cmd;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
@@ -159,7 +160,7 @@ void BodyCtrl<T>::_task_setup(){
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
     body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
-    kin_wbc_->FindConfiguration(sp_->Q_,
+    kin_wbc_->FindConfiguration(_sp->Q_,
             Ctrl::task_list_, Ctrl::contact_list_, 
             des_jpos_, des_jvel_, des_jacc_);
 }
@@ -176,7 +177,7 @@ void BodyCtrl<T>::_contact_setup(){
 template <typename T>
 void BodyCtrl<T>::FirstVisit(){
     jpos_ini_ = Ctrl::robot_sys_->_state.q;
-    ctrl_start_time_ = sp_->curr_time_;
+    ctrl_start_time_ = _sp->curr_time_;
     ini_body_pos_ = Ctrl::robot_sys_->_state.bodyPosition;
 }
 

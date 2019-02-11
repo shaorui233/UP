@@ -195,12 +195,12 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     DVec<T> acc_des(3); acc_des.setZero();
     Vec3<T> des_pos; des_pos.setZero();
     for(size_t i(0); i<2; ++i){
-        des_pos[i] = smooth_change(_ini_body_pos[i], 
-                _sp->_body_target_swing[i], end_time_, Ctrl::state_machine_time_);
-        vel_des[i] = smooth_change_vel(_ini_body_pos[i], 
-                _sp->_body_target_swing[i], end_time_, Ctrl::state_machine_time_);
-        acc_des[i] = smooth_change_acc(_ini_body_pos[i], 
-                _sp->_body_target_swing[i], end_time_, Ctrl::state_machine_time_);
+        des_pos[i] = smooth_change(_ini_body_target[i], 
+                _sp->_body_target[i], end_time_, Ctrl::state_machine_time_);
+        vel_des[i] = smooth_change_vel(_ini_body_target[i], 
+                _sp->_body_target[i], end_time_, Ctrl::state_machine_time_);
+        acc_des[i] = smooth_change_acc(_ini_body_target[i], 
+                _sp->_body_target[i], end_time_, Ctrl::state_machine_time_);
 
         //des_pos[i] = smooth_change(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
         //vel_des[i] = smooth_change_vel(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
@@ -275,28 +275,42 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     _foot_pos_ini1 = Ctrl::robot_sys_->_pGC[_cp1]; 
     _foot_pos_ini2 = Ctrl::robot_sys_->_pGC[_cp2]; 
 
-    _target_loc1 = _default_target_foot_loc_1;// + _sp->_local_frame_global_pos; 
-    _target_loc2 = _default_target_foot_loc_2;// + _sp->_local_frame_global_pos;
+    _target_loc1 = _default_target_foot_loc_1;
+    _target_loc2 = _default_target_foot_loc_2;
+    
+    //_target_loc1 += _sp->_local_frame_global_pos;
+    //_target_loc2 += _sp->_local_frame_global_pos;
+    //_sp->_body_target = _sp->_local_frame_global_pos;
+    
+    _target_loc1.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
+    _target_loc2.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
 
-    _dir_command[0] = -0.1 * _sp->_dir_command[0];
-    _dir_command[1] = 0.05 * _sp->_dir_command[1];
 
-    _sp->_body_target_swing[0] = 0.5*_dir_command[0];
-    _sp->_body_target_swing[1] = 1.0*_dir_command[1];
+    _dir_command[0] = -0.22 * _sp->_dir_command[0];
+    _dir_command[1] = 0.08 * _sp->_dir_command[1];
+
+    _ini_body_target = _sp->_body_target;
+    _sp->_body_target[0] += 0.4 *_dir_command[0];
+    _sp->_body_target[1] += 0.6 * _dir_command[1];
+
     if(_sp->_dir_command[0] > 0.){
-        _target_loc1[0] += 0.3*_dir_command[0];
+        _target_loc1[0] += 0.6*_dir_command[0];
         _target_loc2[0] += _dir_command[0];
     }else{
         _target_loc1[0] += _dir_command[0];
-        _target_loc2[0] += 0.3*_dir_command[0];
+        _target_loc2[0] += 0.6*_dir_command[0];
     }
 
     _target_loc1[1] += _dir_command[1];
     _target_loc2[1] += _dir_command[1];
+
+    //pretty_print(_target_loc1, std::cout, "target loc 1");
+    //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
 
 template <typename T>
 void TwoLegSwingCtrl<T>::LastVisit(){
+    _sp->_jpos_des_pre = des_jpos_;
     // printf("[LegSwingBody] End\n");
 }
 

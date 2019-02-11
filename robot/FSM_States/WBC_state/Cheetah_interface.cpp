@@ -61,11 +61,6 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     for(size_t i(0); i<_sp->_num_contact; ++i){
         ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
     }
-    //ave_foot += 0.25 *_robot->_pGC[linkID::FR];
-    //ave_foot += 0.25 *_robot->_pGC[linkID::FL];
-    //ave_foot += 0.25 *_robot->_pGC[linkID::HL];
-    //ave_foot += 0.25 *_robot->_pGC[linkID::HR];
-
     
     //for(size_t i(0); i<_robot->_pGC.size(); ++i){
     //pretty_print(_robot->_pGC[i], std::cout, "contact position ");
@@ -81,7 +76,8 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     //printf("joystick command: %f, %f \n", data->dir_command[0], data->dir_command[1]);
     _sp->_dir_command[0] = data->dir_command[0];
     _sp->_dir_command[1] = data->dir_command[1];
-    _state.bodyPosition = -ave_foot;// + _sp->_local_frame_global_pos;
+    _state.bodyPosition = -ave_foot;
+    _state.bodyPosition += _sp->_local_frame_global_pos;
     
     // Update with new body position
     _robot->setState(_state);

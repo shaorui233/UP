@@ -130,6 +130,8 @@ void TwoContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     wblc_->MakeWBLC_Torque(
             des_jacc_cmd, 
             gamma, wblc_data_);
+
+    //pretty_print(wblc_data_->Fr_, std::cout, "reaction force");
 }
 
 template <typename T>
@@ -146,9 +148,9 @@ void TwoContactTransCtrl<T>::_task_setup(){
     if(_transit_dir > 0){ // IF swing initiating
         des_pos = Ctrl::robot_sys_->_state.bodyPosition;
     }else { // IF swing ends (the initial desired must be zero)
-        T alpha(Ctrl::state_machine_time_/end_time_); //0->1
-        des_pos = (1.-alpha)*_sp->_body_target_swing 
-            + alpha * Ctrl::robot_sys_->_state.bodyPosition;
+        //T alpha(Ctrl::state_machine_time_/end_time_); //0->1
+        //_sp->_body_target *= (1. -alpha);
+        des_pos = _sp->_body_target;
     }
     des_pos[2] = target_body_height_;
 
@@ -166,6 +168,10 @@ void TwoContactTransCtrl<T>::_task_setup(){
             Ctrl::task_list_, Ctrl::contact_list_, 
             des_jpos_, des_jvel_, des_jacc_);
 
+    if(_transit_dir<0){
+        T alpha(Ctrl::state_machine_time_/end_time_); //0->1
+        des_jpos_ = alpha * des_jpos_ + (1.-alpha) * _sp->_jpos_des_pre;
+    }
     //pretty_print(des_jpos_, std::cout, "des_jpos");
     //pretty_print(des_jvel_, std::cout, "des_jvel");
     //pretty_print(des_jacc_, std::cout, "des_jacc");

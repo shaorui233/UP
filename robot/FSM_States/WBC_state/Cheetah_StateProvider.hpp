@@ -13,6 +13,7 @@ public:
   DVec<T> Q_;
   DVec<T> Qdot_;
   DVec<T> jpos_ini_;
+  DVec<T> _jpos_des_pre;
   DVec<T> des_jpos_prev_;
 
   size_t _contact_pt[cheetah::num_leg];
@@ -22,7 +23,7 @@ public:
   T curr_time_;
 
   T _dir_command[2];
-  Vec3<T> _body_target_swing;
+  Vec3<T> _body_target;
 private:
   Cheetah_StateProvider();
 };

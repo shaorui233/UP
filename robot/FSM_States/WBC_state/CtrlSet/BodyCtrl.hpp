@@ -56,7 +56,7 @@ class BodyCtrl: public Controller<T>{
 
         T ctrl_start_time_;
         
-        Cheetah_StateProvider<T>* sp_;
+        Cheetah_StateProvider<T>* _sp;
 };
 
 #endif

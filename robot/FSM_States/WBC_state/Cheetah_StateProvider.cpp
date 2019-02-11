@@ -10,6 +10,7 @@ template<typename T>
 Cheetah_StateProvider<T>::Cheetah_StateProvider():
     Q_(cheetah::num_q),
     Qdot_(cheetah::dim_config),
+    _jpos_des_pre(cheetah::num_act_joint),
     _num_contact(2),
     curr_time_(0.)
 {
@@ -21,7 +22,7 @@ Cheetah_StateProvider<T>::Cheetah_StateProvider():
     _dir_command[0] = 0.;
     _dir_command[1] = 0.;
 
-    _body_target_swing.setZero();
+    _body_target.setZero();
 }
 
 template class Cheetah_StateProvider<double> ;

@@ -1,4 +1,4 @@
-max_rf_z: 40
+max_rf_z: 55
 min_rf_z: 3
 
 Kp: [ 100, 100, 100, 

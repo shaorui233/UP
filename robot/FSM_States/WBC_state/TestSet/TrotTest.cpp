@@ -85,7 +85,8 @@ int TrotTest<T>::_NextPhase(const int & phase){
     int next_phase = phase + 1;
     //printf("next phase: %i\n", next_phase);
 
-    if(next_phase == TrotPhase::flhr_swing_start_trans){
+    //if(next_phase == TrotPhase::flhr_swing_start_trans){
+    if(next_phase == TrotPhase::flhr_swing){
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::FR];
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::HL];
@@ -93,11 +94,13 @@ int TrotTest<T>::_NextPhase(const int & phase){
         _sp->_contact_pt[0] = linkID::FR;
         _sp->_contact_pt[1] = linkID::HL;
         _sp->_num_contact = 2;
-        _sp->_local_frame_global_pos.head(2) += landing_loc_ave.head(2);
-    //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
+        _sp->_local_frame_global_pos = landing_loc_ave;
+        _sp->_local_frame_global_pos[2] = 0.;
+        //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
     }
 
-    if(next_phase == TrotPhase::frhl_swing_start_trans){
+    //if(next_phase == TrotPhase::frhl_swing_start_trans){
+    if(next_phase == TrotPhase::frhl_swing){
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::FL];
         landing_loc_ave += 0.5 * _robot_sys->_pGC[linkID::HR];
@@ -105,8 +108,10 @@ int TrotTest<T>::_NextPhase(const int & phase){
         _sp->_contact_pt[0] = linkID::FL;
         _sp->_contact_pt[1] = linkID::HR;
         _sp->_num_contact = 2;
-        _sp->_local_frame_global_pos.head(2) += landing_loc_ave.head(2);
-    //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
+
+        _sp->_local_frame_global_pos = landing_loc_ave;
+        _sp->_local_frame_global_pos[2] = 0.;
+        //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
     }
 
 
