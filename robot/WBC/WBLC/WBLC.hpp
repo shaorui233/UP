@@ -67,18 +67,18 @@ class WBLC: public WBC<T>{
         size_t dim_first_task_; // first task dimension
         WBLC_ExtraData<T>* data_;
 
-        GolDIdnani::GVect<T> z;
+        GolDIdnani::GVect<double> z;
         // Cost
-        GolDIdnani::GMatr<T> G;
-        GolDIdnani::GVect<T> g0;
+        GolDIdnani::GMatr<double> G;
+        GolDIdnani::GVect<double> g0;
 
         // Equality
-        GolDIdnani::GMatr<T> CE;
-        GolDIdnani::GVect<T> ce0;
+        GolDIdnani::GMatr<double> CE;
+        GolDIdnani::GVect<double> ce0;
 
         // Inequality
-        GolDIdnani::GMatr<T> CI;
-        GolDIdnani::GVect<T> ci0;
+        GolDIdnani::GMatr<double> CI;
+        GolDIdnani::GVect<double> ci0;
 
         size_t dim_rf_;
         size_t dim_Uf_;

@@ -95,16 +95,6 @@ void FullContactTransCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
     Ctrl::state_machine_time_ = sp_->curr_time_ - ctrl_start_time_;
 
-    //pretty_print(Ctrl::robot_sys_->_pGC[linkID::FR], std::cout, "FR");
-    //pretty_print(Ctrl::robot_sys_->_pGC[linkID::FL], std::cout, "FL");
-    //pretty_print(Ctrl::robot_sys_->_pGC[linkID::HR], std::cout, "HR");
-    //pretty_print(Ctrl::robot_sys_->_pGC[linkID::HL], std::cout, "HL");
- 
-    //pretty_print(Ctrl::robot_sys_->_Jc[linkID::FR], std::cout, "Jc 0");
-    //pretty_print(Ctrl::robot_sys_->_Jc[linkID::FL], std::cout, "Jc 1");
-    //pretty_print(Ctrl::robot_sys_->_Jc[linkID::HL], std::cout, "Jc 2");
-    //pretty_print(Ctrl::robot_sys_->_Jc[linkID::HR], std::cout, "Jc 3");
-
     DVec<T> gamma;
     _contact_setup();
     _task_setup();
@@ -136,6 +126,8 @@ void FullContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     wblc_->MakeWBLC_Torque(
             des_jacc_cmd, 
             gamma, wblc_data_);
+
+    //pretty_print(wblc_data_->Fr_, std::cout, "Fr");
 }
 
 template <typename T>

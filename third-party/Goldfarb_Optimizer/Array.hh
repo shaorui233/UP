@@ -52,7 +52,7 @@ namespace GolDIdnani{
     inline GVect<T>& operator/=(const T& a);
     inline GVect<T>& operator^=(const T& a);
   private:
-    unsigned int dim; // size of array. upper index is n-1
+    unsigned int row; // size of array. upper index is n-1
     T* v; // storage for data
   };
   template <typename T>
@@ -67,21 +67,21 @@ namespace GolDIdnani{
 
   template <typename T>
   GVect<T>::GVect()
-    : dim(0), v(0)
+    : row(0), v(0)
   {}
 
   template <typename T>
   GVect<T>::GVect(const unsigned int n)
     : v(new T[n])
   {
-    this->dim = n;
+    this->row = n;
   }
 
   template <typename T>
   GVect<T>::GVect(const T& a, const unsigned int n)
     : v(new T[n])
   {
-    this->dim = n;
+    this->row = n;
     for (unsigned int i = 0; i < n; i++)
       v[i] = a;
   }
@@ -90,7 +90,7 @@ namespace GolDIdnani{
   GVect<T>::GVect(const T* a, const unsigned int n)
     : v(new T[n])
   {
-    this->dim = n;
+    this->row = n;
     for (unsigned int i = 0; i < n; i++)
       v[i] = *a++;
   }
@@ -99,8 +99,8 @@ namespace GolDIdnani{
   GVect<T>::GVect(const GVect<T>& rhs)
     : v(new T[rhs.n])
   {
-    this->dim = rhs.n;
-    for (unsigned int	i = 0; i < dim; i++)
+    this->row = rhs.n;
+    for (unsigned int	i = 0; i < row; i++)
       v[i] = rhs[i];
   }
 
@@ -114,12 +114,12 @@ namespace GolDIdnani{
   template <typename T>
   void GVect<T>::resize(const unsigned int n)
   {
-    if (n == this->dim)
+    if (n == this->row)
       return;
     if (v != 0)
       delete[] (v);
     v = new T[n];
-    this->dim = n;
+    this->row = n;
   }
 
   template <typename T>
@@ -139,8 +139,8 @@ namespace GolDIdnani{
   {
     if (this != &rhs)
       {
-        resize(rhs.dim);
-        for (unsigned int i = 0; i < dim; i++)
+        resize(rhs.n);
+        for (unsigned int i = 0; i < row; i++)
           v[i] = rhs[i];
       }
     return *this;
@@ -149,7 +149,7 @@ namespace GolDIdnani{
   template <typename T>
   inline GVect<T> & GVect<T>::operator=(const T& a) //assign a to every element
   {
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] = a;
     return *this;
   }
@@ -169,14 +169,14 @@ namespace GolDIdnani{
   template <typename T>
   inline unsigned int GVect<T>::size() const
   {
-    return dim;
+    return row;
   }
 
   template <typename T>
   inline void GVect<T>::set(const T* a, unsigned int n)
   {
     resize(n);
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < n; i++)
       v[i] = a[i];
   }
 
@@ -188,7 +188,7 @@ namespace GolDIdnani{
 
     for (std::set<unsigned int>::const_iterator el = indexes.begin(); el != indexes.end(); el++)
       {
-        if (*el >= dim)
+        if (*el >= row)
           throw std::logic_error("Error extracting subvector: the indexes are out of vector bounds");
         tmp[i++] = v[*el];
       }
@@ -201,7 +201,7 @@ namespace GolDIdnani{
   {
     if (this->size() != rhs.size())
       throw std::logic_error("Operator+=: vectors have different sizes");
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] += rhs[i];
 
     return *this;
@@ -211,7 +211,7 @@ namespace GolDIdnani{
   template <typename T>
   inline GVect<T>& GVect<T>::operator+=(const T& a)
   {
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] += a;
 
     return *this;
@@ -260,7 +260,7 @@ namespace GolDIdnani{
   {
     if (this->size() != rhs.size())
       throw std::logic_error("Operator-=: vectors have different sizes");
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] -= rhs[i];
 
     return *this;
@@ -270,7 +270,7 @@ namespace GolDIdnani{
   template <typename T>
   inline GVect<T>& GVect<T>::operator-=(const T& a)
   {
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] -= a;
 
     return *this;
@@ -319,7 +319,7 @@ namespace GolDIdnani{
   {
     if (this->size() != rhs.size())
       throw std::logic_error("Operator*=: vectors have different sizes");
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] *= rhs[i];
 
     return *this;
@@ -329,7 +329,7 @@ namespace GolDIdnani{
   template <typename T>
   inline GVect<T>& GVect<T>::operator*=(const T& a)
   {
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] *= a;
 
     return *this;
@@ -372,7 +372,7 @@ namespace GolDIdnani{
   {
     if (this->size() != rhs.size())
       throw std::logic_error("Operator/=: vectors have different sizes");
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] /= rhs[i];
 
     return *this;
@@ -382,7 +382,7 @@ namespace GolDIdnani{
   template <typename T>
   inline GVect<T>& GVect<T>::operator/=(const T& a)
   {
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] /= a;
 
     return *this;
@@ -457,7 +457,7 @@ namespace GolDIdnani{
   {
     if (this->size() != rhs.size())
       throw std::logic_error("Operator^=: vectors have different sizes");
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] = pow(v[i], rhs[i]);
 
     return *this;
@@ -466,7 +466,7 @@ namespace GolDIdnani{
   template <typename T>
   inline GVect<T>& GVect<T>::operator^=(const T& a)
   {
-    for (unsigned int i = 0; i < dim; i++)
+    for (unsigned int i = 0; i < row; i++)
       v[i] = pow(v[i], a);
 
     return *this;
@@ -559,7 +559,7 @@ namespace GolDIdnani{
     char comma;
     is >> elements;
     v.resize(elements);
-    for (int i = 0; i < elements; i++)
+    for (unsigned int i = 0; i < elements; i++)
       is >> v[i] >> comma;
 
     return is;
@@ -993,7 +993,7 @@ namespace GolDIdnani{
 
   template <typename T>
   GMatr<T>::GMatr(const GMatr<T>& rhs)
-    : v(new T*[rhs.row])
+    : v(new T*[rhs.n])
   {
     unsigned int i, j;
     row = rhs.row; col = rhs.col;
@@ -1023,7 +1023,7 @@ namespace GolDIdnani{
     unsigned int i, j;
     if (this != &rhs)
       {
-        resize(rhs.row, rhs.col);
+        resize(rhs.n, rhs.m);
         for (i = 0; i < row; i++)
           for (j = 0; j < col; j++)
             v[i][j] = rhs[i][j];
@@ -1060,16 +1060,15 @@ namespace GolDIdnani{
       v[i] = v[i - 1] + m;
   }
 
-  // it seems like this function has a bug and doesn't use n or m for anything.
-//  template <typename T>
-//  inline void GMatr<T>::resize(const T& a, const unsigned int n, const unsigned int m)
-//  {
-//    unsigned int i, j;
-//    resize(row, col);
-//    for (i = 0; i < row; i++)
-//      for (j = 0; j < col; j++)
-//        v[i][j] = a;
-//  }
+  template <typename T>
+  inline void GMatr<T>::resize(const T& a, const unsigned int n, const unsigned int m)
+  {
+    unsigned int i, j;
+    resize(n, m);
+    for (i = 0; i < n; i++)
+      for (j = 0; j < m; j++)
+        v[i][j] = a;
+  }
 
 
 
@@ -1632,8 +1631,8 @@ namespace GolDIdnani{
     char comma;
     is >> rows >> cols;
     m.resize(rows, cols);
-    for (int i = 0; i < rows; i++)
-      for (int j = 0; j < cols; j++)
+    for (unsigned int i = 0; i < rows; i++)
+      for (unsigned int j = 0; j < cols; j++)
         is >> m[i][j] >> comma;
 
     return is;
@@ -1657,7 +1656,7 @@ namespace GolDIdnani{
     else
       return (abs_b == (T)0.0 ? (T)0.0 : abs_b * sqrt((T)1.0 + (abs_a / abs_b) * (abs_a / abs_b)));
   }
-/*
+
   template <typename T>
   void svd(const GMatr<T>& A, GMatr<T>& U, GVect<T>& W, GMatr<T>& V)
   {
@@ -2101,9 +2100,9 @@ namespace GolDIdnani{
       throw std::logic_error("Error in Cholesky decomposition: b vector must be of the same dimensions of LU matrix");
     GVect<T> x, y;
 
-    // Solve L * y = b 
+    /* Solve L * y = b */
     forward_elimination(LL, y, b);
-    // Solve L^T * x = y 
+    /* Solve L^T * x = y */
     backward_elimination(LL, x, y);
 
     return x;
@@ -2172,7 +2171,6 @@ namespace GolDIdnani{
 
     return x;
   }
-*/
 
   /* Setting default linear systems machinery */
 

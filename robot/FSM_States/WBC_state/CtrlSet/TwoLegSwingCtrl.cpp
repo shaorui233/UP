@@ -259,8 +259,6 @@ template <typename T>
 void TwoLegSwingCtrl<T>::_contact_setup(){
     typename std::vector<ContactSpec<T> *>::iterator iter = Ctrl::contact_list_.begin();
     while(iter < Ctrl::contact_list_.end()){
-        ((SingleContact<T>*)(*iter))->setMaxFz(
-        min_rf_z_ + Ctrl::state_machine_time_/end_time_ * (max_rf_z_ - min_rf_z_) );
         (*iter)->UpdateContactSpec();
         ++iter;
     }
