@@ -21,19 +21,6 @@ TEST(Goldfarb_Optimizer, Goldfarb_opt_test) {
     GVect<double> g0(2);
     g0[0] = 1.;
     g0[1] = 1.;
-    //c_float P_x[4] = {4.00, 1.00, 1.00, 2.00, };
-    //c_int P_nnz = 4;
-    //c_int P_i[4] = {0, 1, 0, 1, };
-    //c_int P_p[3] = {0, 2, 4, };
-
-    // gradient
-    //c_float q[2] = {1.00, 1.00, };
-
-    // constraint grad
-    //c_float A_x[4] = {1.00, 1.00, 1.00, 1.00, };
-    //c_int A_nnz = 4;
-    //c_int A_i[4] = {0, 1, 0, 2, };
-    //c_int A_p[3] = {0, 2, 4, };
 
     GMatr<double> CE(2, 1);
     CE[0][0] = 1.;
@@ -52,24 +39,7 @@ TEST(Goldfarb_Optimizer, Goldfarb_opt_test) {
     ci0[1] = 0.;
     ci0[2] = 0.7;
     ci0[3] = 0.7;
-    // bounds
-    //c_float l[3] = {1.00, 0.00, 0.00, };
-    //c_float u[3] = {1.00, 0.70, 0.70, };
-    //c_int n = 2; // number of vars
-    //c_int m = 3; // number of constraints
-
-    // osqp things
-    //GoldfarbSettings* settings = (GoldfarbSettings*)malloc(sizeof(GoldfarbSettings));
-    //GoldfarbWorkspace* workspace;
-    //GoldfarbData* data = (GoldfarbData*)malloc(sizeof(GoldfarbData));
-    //data->n = n;
-    //data->m = m;
-    //data->P = csc_matrix(data->n, data->n, P_nnz, P_x, P_i, P_p);
-    //data->q = q;
-    //data->A = csc_matrix(data->m, data->n, A_nnz, A_x, A_i, A_p);
-    //data->l = l;
-    //data->u = u;
-
+   
     GVect<double> x;
     double f = solve_quadprog(G, g0, CE, ce0, CI, ci0, x);
 

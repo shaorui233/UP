@@ -284,7 +284,7 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     //_target_loc2.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
 
 
-    _dir_command[0] = -0.22 * _sp->_dir_command[0];
+    _dir_command[0] = 0.22 * _sp->_dir_command[0];
     _dir_command[1] = 0.08 * _sp->_dir_command[1];
 
     _ini_body_target = _sp->_body_target;
@@ -292,11 +292,11 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     _sp->_body_target[1] += 0.6 * _dir_command[1];
 
     if(_sp->_dir_command[0] > 0.){
-        _target_loc1[0] += 0.6*_dir_command[0];
-        _target_loc2[0] += _dir_command[0];
-    }else{
         _target_loc1[0] += _dir_command[0];
-        _target_loc2[0] += 0.6*_dir_command[0];
+        _target_loc2[0] += 0.4*_dir_command[0];
+    }else{
+        _target_loc1[0] += 0.4 * _dir_command[0];
+        _target_loc2[0] += _dir_command[0];
     }
 
     _target_loc1[1] += _dir_command[1];
