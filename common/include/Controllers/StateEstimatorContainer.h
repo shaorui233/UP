@@ -102,7 +102,6 @@ public:
    */
   void run() {
     for(auto estimator : _estimators) {
-      printf("run %p\n", estimator);
       estimator->run();
     }
   }
