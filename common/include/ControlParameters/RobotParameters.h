@@ -19,7 +19,14 @@ public:
           INIT_PARAMETER(testValue),
           INIT_PARAMETER(controller_dt),
           INIT_PARAMETER(stand_kp_cartesian),
-          INIT_PARAMETER(stand_kd_cartesian)
+          INIT_PARAMETER(stand_kd_cartesian),
+          INIT_PARAMETER(cheater_mode),
+          INIT_PARAMETER(imu_process_noise_position),
+          INIT_PARAMETER(imu_process_noise_velocity),
+          INIT_PARAMETER(foot_process_noise_position),
+          INIT_PARAMETER(foot_sensor_noise_position),
+          INIT_PARAMETER(foot_sensor_noise_velocity),
+          INIT_PARAMETER(foot_height_sensor_noise)
   {
 
   }
@@ -29,6 +36,15 @@ public:
   DECLARE_PARAMETER(double, controller_dt)
   DECLARE_PARAMETER(Vec3<double>, stand_kp_cartesian)
   DECLARE_PARAMETER(Vec3<double>, stand_kd_cartesian)
+
+  // state estimator
+  DECLARE_PARAMETER(s64, cheater_mode)
+  DECLARE_PARAMETER(double, imu_process_noise_position)
+  DECLARE_PARAMETER(double, imu_process_noise_velocity)
+  DECLARE_PARAMETER(double, foot_process_noise_position)
+  DECLARE_PARAMETER(double, foot_sensor_noise_position)
+  DECLARE_PARAMETER(double, foot_sensor_noise_velocity)
+  DECLARE_PARAMETER(double, foot_height_sensor_noise)
 };
 
 #endif //PROJECT_ROBOTPARAMETERS_H

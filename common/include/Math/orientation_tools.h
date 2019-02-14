@@ -182,7 +182,7 @@ namespace ori {
     typename T::Scalar as = std::min(-2.*(q[1]*q[3]-q[0]*q[2]),.99999);
     rpy(2) = std::atan2(2*(q[1]*q[2]+q[0]*q[3]),square(q[0]) + square(q[1]) - square(q[2]) - square(q[3]));
     rpy(1) = std::asin(as);
-    rpy(0) = atan2(2*(q[2]*q[3]+q[0]*q[1]),square(q[0]) - square(q[1]) - square(q[2]) + square(q[3]));
+    rpy(0) = std::atan2(2*(q[2]*q[3]+q[0]*q[1]),square(q[0]) - square(q[1]) - square(q[2]) + square(q[3]));
     return rpy;
   }
 

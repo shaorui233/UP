@@ -1,6 +1,9 @@
+#include "Controllers/OrientationEstimator.h"
 #include "RobotController.h"
 #include "Dynamics/Cheetah3.h"
 #include "Dynamics/MiniCheetah.h"
+#include "Controllers/ContactEstimator.h"
+
 
 
 void RobotController::initialize() {
@@ -12,6 +15,10 @@ void RobotController::initialize() {
   }
 
   _legController = new LegController<float>(_quadruped);
+  _stateEstimator = new StateEstimatorContainer<float>(cheaterState, kvhImuData, vectorNavData,
+          _legController->datas, &_stateEstimate, controlParameters);
+  initializeStateEstimator(false);
+
 
   // For WBC state
   _model = _quadruped.buildModel();
@@ -23,6 +30,7 @@ void RobotController::initialize() {
 
 void RobotController::step() {
   setupStep();
+  _stateEstimator->run();
 
   // for now, we will always enable the legs:
   _legController->setEnabled(true);
@@ -34,7 +42,7 @@ void RobotController::step() {
       _data->body_ori[i] = cheaterState->orientation[i];
   }
   for(int i(0);i<3; ++i){
-      _data->ang_vel[i] = cheaterState->omega[i];
+      _data->ang_vel[i] = cheaterState->omegaBody[i];
   }
 
   for(int leg(0); leg<4; ++leg){
@@ -74,6 +82,7 @@ void RobotController::step() {
 
 
 void RobotController::setupStep() {
+  // leg data
   if(robotType == RobotType::MINI_CHEETAH) {
     _legController->updateData(spiData);
   } else if(robotType == RobotType::CHEETAH_3) {
@@ -82,6 +91,25 @@ void RobotController::setupStep() {
     assert(false);
   }
   _legController->zeroCommand();
+
+  // state estimator
+  // check transition to cheater mode:
+  if(!_cheaterModeEnabled && controlParameters->cheater_mode) {
+    printf("[RobotController] Transitioning to Cheater Mode...\n");
+    initializeStateEstimator(true);
+    // todo any configuration
+    _cheaterModeEnabled = true;
+  }
+
+  // check transition from cheater mode:
+  if(_cheaterModeEnabled && !controlParameters->cheater_mode) {
+    printf("[RobotController] Transitioning from Cheater Mode...\n");
+    initializeStateEstimator(false);
+    // todo any configuration
+    _cheaterModeEnabled = false;
+  }
+
+
   // todo safety checks, sanity checks, etc...
 }
 
@@ -94,9 +122,22 @@ void RobotController::finalizeStep() {
   } else {
     assert(false);
   }
+}
 
+void RobotController::initializeStateEstimator(bool cheaterMode) {
+  _stateEstimator->removeAllEstimators();
+  if(cheaterMode) {
+    _stateEstimator->addEstimator<CheaterOrientationEstimator<float>>();
+  } else if(robotType == RobotType::MINI_CHEETAH) {
+    _stateEstimator->addEstimator<VectorNavOrientationEstimator<float>>();
+  } else if(robotType == RobotType::CHEETAH_3) {
+    _stateEstimator->addEstimator<KvhOrientationEstimator<float>>();
+  } else {
+    assert(false);
+  }
 }
 
 RobotController::~RobotController() {
   delete _legController;
+  delete _stateEstimator;
 }

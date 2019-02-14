@@ -287,3 +287,27 @@ TEST(MiniCheetah, simulatorFootPosVelMiniCheetah) {
   EXPECT_TRUE(almostEqual(footpRefML, sim.getModel()._pGC.at(15), .0005));
   EXPECT_TRUE(almostEqual(footvRefML, sim.getModel()._vGC.at(15), .0005));
 }
+
+/*!
+ * Check that the hip location convention is correct
+ */
+TEST(MiniCheetah, hipLocationConvention) {
+  Vec3<double> hipLocationRef[4];
+  hipLocationRef[0] = Vec3<double>(0.19, -0.049, 0.0);
+  hipLocationRef[1] = Vec3<double>(0.19, 0.049, 0.0);
+  hipLocationRef[2] = Vec3<double>(-0.19, -0.049, 0.0);
+  hipLocationRef[3] = Vec3<double>(-0.19, 0.049, 0.0);
+
+  Vec3<double> hipLocations[4];
+
+  auto quadruped = buildMiniCheetah<double>();
+
+  for(int i = 0; i < 4; i++) {
+    hipLocations[i] = quadruped.getHipLocation(i);
+  }
+
+  for(int i = 0; i < 4; i++) {
+    //std::cout << "ref: " << hipLocationRef[i].transpose() << "\nact: " << hipLocations[i].transpose() << "\n\n";
+    EXPECT_TRUE(almostEqual(hipLocations[i], hipLocationRef[i], .0001));
+  }
+}

@@ -13,11 +13,10 @@ include_directories("../common/include/")
 include_directories("../third-party")
 include_directories("../third-party/include")
 include_directories("../third-party/ParamHandler")
-include_directories("../lcm-types/c_lcm_files")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories("FSM_States/")
 include_directories("WBC/")
-file(GLOB sources "src/*.cpp" "src/rt/*.c" "../lcm-types/c_lcm_files/*.c" "../lcm-types/c_lcm_files/*.h")
+file(GLOB sources "src/*.cpp" "src/rt/*.c" )
 
 add_executable(robot ${sources})
 target_link_libraries(robot biomimetics pthread lcm rt inih 

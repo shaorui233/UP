@@ -25,6 +25,22 @@ using Vec2 = typename Eigen::Matrix<T, 2, 1>;
 template<typename T>
 using Vec3 = typename Eigen::Matrix<T, 3, 1>;
 
+// 4x1 Vector
+template<typename T>
+using Vec4 = typename Eigen::Matrix<T, 4, 1>;
+
+// 12x1 Vector
+template<typename T>
+using Vec12 = Eigen::Matrix<T, 12, 1>;
+
+// 18x1 Vector
+template<typename T>
+using Vec18 = Eigen::Matrix<T, 18, 1>;
+
+// 28x1 vector
+template<typename T>
+using Vec28 = Eigen::Matrix<T, 28, 1>;
+
 // 3x3 Matrix
 template<typename T>
 using Mat3 = typename Eigen::Matrix<T, 3, 3>;
@@ -44,6 +60,18 @@ using SXform = typename Eigen::Matrix<T, 6, 6>;
 // 6x6 Matrix
 template<typename T>
 using Mat6 = typename Eigen::Matrix<T, 6, 6>;
+
+// 12x12 Matrix
+template<typename T>
+using Mat12 = Eigen::Matrix<T, 12, 12>;
+
+// 18x18 Matrix
+template<typename T>
+using Mat18 = Eigen::Matrix<T, 18, 18>;
+
+// 28x28 Matrix
+template<typename T>
+using Mat28 = Eigen::Matrix<T, 28, 28>;
 
 // 4x4 Matrix
 template<typename T>

@@ -80,7 +80,7 @@ std::string ControlParameters::generateUnitializedList() {
   std::string result;
   for(auto& kv : collection._map) {
     if(!kv.second->_set) {
-      result += kv.second->_name + " (" + kv.first + ")\n";
+      result += kv.second->_name + "    :\n";
     }
   }
 

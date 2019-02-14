@@ -67,6 +67,19 @@ public:
     assert(leg >= 0 && leg < 4);
     return sideSigns[leg];
   }
+
+  /*!
+   * Get location of the hip for the given leg in robot frame
+   */
+  Vec3<T> getHipLocation(int leg) {
+    assert(leg >= 0 && leg < 4);
+    Vec3<T> pHip(
+            (leg == 0 || leg == 1) ? _abadLocation(0) : -_abadLocation(0),
+            (leg == 1 || leg == 3) ? _abadLocation(1) : -_abadLocation(1),
+            _abadLocation(2)
+            );
+    return pHip;
+  }
 };
 
 template<typename T, typename T2>

@@ -9,6 +9,7 @@
 #include "SimUtilities/GamepadCommand.h"
 
 #include <WBC_state/Cheetah_interface.hpp>
+#include <Controllers/StateEstimatorContainer.h>
 // gamepadCommand
 // robotType
 // kvh
@@ -25,9 +26,11 @@
 
 class RobotController {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   RobotController() = default;
   void initialize();
   void step();
+  void initializeStateEstimator(bool cheaterMode = false);
   ~RobotController();
 
 
@@ -47,6 +50,9 @@ private:
   void finalizeStep();
   Quadruped<float> _quadruped;
   LegController<float>* _legController = nullptr;
+  StateEstimate<float> _stateEstimate;
+  StateEstimatorContainer<float>* _stateEstimator;
+  bool _cheaterModeEnabled = false;
 
   // For WBC stat
   Cheetah_interface<float>* _wbc_state;
