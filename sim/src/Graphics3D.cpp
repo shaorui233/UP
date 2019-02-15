@@ -9,8 +9,9 @@
 
 #include <iostream>
 #include <unistd.h>
+#include <GL/glut.h>
 
-
+#define RADTODEG (180. / (3.14159265358979323846264338327950 ) )
 
 static constexpr auto clearColor = windows2000;
 
@@ -429,25 +430,18 @@ void Graphics3D::_Additional_Drawing(){
 void Graphics3D::_DrawContactForce(){
     glLineWidth(2.0);
     //double scale(0.02);
-    double scale(10.);
+    double scale(0.0025);
 
 	glPushAttrib(GL_COLOR_BUFFER_BIT);
     glEnable(GL_BLEND);
     glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 
     for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
-        glBegin(GL_LINES);
+
         glColor4f(0.8f, 0.0f, 0.f, 0.5f);
-
-        glVertex3f(_drawList.getGCPos(i)[0], 
-                _drawList.getGCPos(i)[1], 
-                _drawList.getGCPos(i)[2]);
-
-        glVertex3f(_drawList.getGCPos(i)[0] + scale * _drawList.getGCForce(i)[0],
-                _drawList.getGCPos(i)[1] + scale * _drawList.getGCForce(i)[1],
-                _drawList.getGCPos(i)[2] + scale * _drawList.getGCForce(i)[2]);
-
-        glEnd();
+        _drawArrow(_drawList.getGCPos(i)[0], _drawList.getGCPos(i)[1], _drawList.getGCPos(i)[2], 
+                scale * _drawList.getGCForce(i)[0], scale * _drawList.getGCForce(i)[1], scale * _drawList.getGCForce(i)[2] ,
+                .005, .015 , .04);
     }
     glPopAttrib();
     glDisable(GL_BLEND);
@@ -473,3 +467,96 @@ void Graphics3D::_DrawContactPoint(){
     glPopAttrib();
     glDisable(GL_BLEND);
 }
+
+
+void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength) {
+  
+  double len = sqrt(dx*dx + dy*dy + dz*dz);
+  double dxn = dx/len;
+  double dyn = dy/len;
+  double dzn = dz/len;
+  
+  // Note: We need to create a rotation such that the z-axis points in the direction of the 'direction' argument
+  //       Thus, we can realize the rotation with a pure x-y axial rotation
+  //       The rotation matrix of the rotated frame 'r' to the current frame 'c' (c_R_r) has special form.
+  //       It's 3-rd column in particular has form: [ wy*sin(theta) -wx*sin(theta) (1- cos(theta))]'
+  //       where theta , [wx wy 0] is the angle, axis of rotation
+  
+  // Find the rotation angle by comparing the z-axis of the current and rotated frame
+  const double cosTheta = dzn;
+  const double theta = acos(cosTheta);
+  const double sinTheta = sin(theta);
+  
+  
+  // Exploit the special form of the rotation matrix (explained above) for find the axis of rotation
+  double rX,rY,rZ;
+  if(theta > 0) { 
+    rX = - dyn/sinTheta;
+    rY =   dxn/sinTheta;
+    rZ = 0;
+  }
+  else {
+    rX = 0;
+    rY = 0;
+    rZ = 1;
+  }
+  
+  glPushMatrix();
+  glTranslatef(x0, y0, z0);
+  glRotated(RADTODEG * theta, rX, rY, rZ);
+    
+  double cylinderLength = len;
+  if (cylinderLength > headLength) {
+    cylinderLength -= headLength;
+  }
+  else {
+    headLength = cylinderLength ;
+    cylinderLength = 0;
+  }
+
+  const int detail = 8;
+
+  static  GLUquadric* quad = gluNewQuadric();
+
+  //glPolygonMode(GL_FRONT, GL_FILL);
+  //Draw Cylinder
+  gluCylinder(quad,lineWidth,lineWidth,cylinderLength,detail,detail);
+  
+  //Draw Cylinder Base
+  glRotated(180, 1, 0, 0);
+  gluDisk(quad,0,lineWidth,detail,detail);
+  glRotated(180, 1, 0, 0);
+  
+  glTranslatef(0, 0, cylinderLength);
+  //Draw Arrowhead
+  gluCylinder(quad,headWidth,0.0f,headLength,detail,detail);
+  
+  glRotated(180, 1, 0, 0);
+  //Draw Arrowhead Base
+  gluDisk(quad,lineWidth,headWidth,detail,detail);
+  glPopMatrix();
+
+  //again! (pmw note, I pulled this code from my PhD simulator, I don't know why the "Again!" is needed)
+  glPushMatrix();
+  glTranslatef(x0, y0, z0);
+  glRotated(RADTODEG * theta, rX, rY, rZ);
+  
+  cylinderLength = len;
+  if (cylinderLength > headLength) {
+    cylinderLength -= headLength;
+  }
+  else {
+    headLength = cylinderLength ;
+    cylinderLength = 0;
+  }
+  glPolygonMode(GL_FRONT, GL_LINE);
+  gluCylinder(quad,lineWidth,lineWidth,cylinderLength,detail,detail);
+  gluDisk(quad,0,lineWidth,detail,detail);
+  glTranslatef(0, 0, cylinderLength);
+  gluCylinder(quad,headWidth,0.0f,headLength,detail,detail);
+  gluDisk(quad,lineWidth,headWidth,detail,detail);
+  glLineWidth(1);
+  glPolygonMode(GL_FRONT, GL_FILL);
+  glPopMatrix();
+}
+

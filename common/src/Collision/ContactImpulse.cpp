@@ -20,8 +20,9 @@ void ContactImpulse<T>::UpdateQdot(FBModelState<T> & state){
         // the global contact forces are used for 
         // graphics
         for(size_t i(0); i<CC::_nContact; ++i){
+            // Divide by dt to convert impulses to forces
             CC::_cp_force_list[CC::_idx_list[i]] = 
-                CC::_cp_frame_list[i] * CC::_cp_local_force_list[i];
+                CC::_cp_frame_list[i] * CC::_cp_local_force_list[i] / _dt;
 
             // Save the current local force for the next computation
             //CC::_cp_local_force_list_pre[CC::_idx_list[i]] = 

@@ -15,6 +15,7 @@ class ContactImpulse: public ContactConstraint<T>{
         virtual void UpdateExternalForces(T K, T D, T dt){
             (void)K; (void)D; 
             _penetration_recover_ratio = 0.0/dt;
+            _dt = dt;
         }
         virtual void UpdateQdot(FBModelState<T> & state);
 
@@ -30,6 +31,8 @@ class ContactImpulse: public ContactConstraint<T>{
                 T * min_list, 
                 T * max_list, 
                 DVec<T> & qdot);
+    private:
+        T _dt;
 };
 
 #endif

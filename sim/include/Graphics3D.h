@@ -94,6 +94,7 @@ private:
   void _Additional_Drawing();
   void _DrawContactForce();
   void _DrawContactPoint();
+  void _drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength);
   bool _animating;
 
   // attributes for shader program
