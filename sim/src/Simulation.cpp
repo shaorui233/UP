@@ -361,6 +361,8 @@ void Simulation::highLevelControl() {
   _robotMutex.unlock();
 
   // update
+
+  _visualizationData = _sharedMemory().robotToSim.visualizationData;
   if(_robot == RobotType::MINI_CHEETAH) {
     _spiCommand = _sharedMemory().robotToSim.spiCommand;
   } else if(_robot == RobotType::CHEETAH_3) {

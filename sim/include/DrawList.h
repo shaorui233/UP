@@ -14,6 +14,7 @@
 #include "obj_loader.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "Dynamics/DynamicsSimulator.h"
+#include "SimUtilities/VisualizationData.h"
 #include "sim_utilities.h"
 #include "cppTypes.h"
 #include "Dynamics/spatial.h"
@@ -41,6 +42,9 @@ class BoxInfo {
 
 class DrawList {
     public:
+        
+        VisualizationData _visualizationData; 
+        
         DrawList() {
           _cameraOrigin = Vec3<double>::Zero();
             loadFiles();

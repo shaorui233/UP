@@ -12,6 +12,7 @@
 #include "DrawList.h"
 #include "Math/FirstOrderIIRFilter.h"
 
+#include "SimUtilities/VisualizationData.h"
 #include <QWindow>
 #include <QOpenGLFunctions>
 #include <QOpenGLPaintDevice>
@@ -94,6 +95,12 @@ private:
   void _Additional_Drawing();
   void _DrawContactForce();
   void _DrawContactPoint();
+  void _drawArrow(ArrowVisualization & arrow); 
+  void _drawBlock(BlockVisualization & box);
+  void _drawSphere(SphereVisualization & sphere);
+  void _drawCone(ConeVisualization & cone);
+  void _rotateZtoDirection(double dx, double dy, double dz);
+
   void _drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength);
   bool _animating;
 
@@ -103,6 +110,8 @@ private:
   GLuint _matrixUniform; // transformation matrix
   GLuint _normAttr; // vertex normal
   GLuint _textTexture = 0;
+
+
 
   // shader programs
   QOpenGLShaderProgram *_program;

@@ -138,6 +138,12 @@ void Graphics3D::initializeGL() {
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
+  std::cout << "[Graphics3D] Glut Init\n";
+  // char a = 'a';
+  // char * aptr = &a;
+
+  // glutInit(0,&aptr);
+  std::cout << "[Graphics3D] Glut Init Complete\n";
 }
 
 /*-----------------------------------------*
@@ -422,6 +428,34 @@ void Graphics3D::_Additional_Drawing(){
     _DrawContactForce();
     _DrawContactPoint();
 
+    for( size_t i = 0 ; i < _drawList._visualizationData.num_arrows ; i++) {
+      _drawArrow( _drawList._visualizationData.arrows[i] );
+    }
+
+    for( size_t i = 0 ; i < _drawList._visualizationData.num_cones; i++) {
+      _drawCone( _drawList._visualizationData.cones[i] );
+    }
+
+    for( size_t i = 0 ; i < _drawList._visualizationData.num_blocks ; i++) {
+      _drawBlock( _drawList._visualizationData.blocks[i] );
+    }
+
+    for( size_t i = 0 ; i < _drawList._visualizationData.num_spheres ; i++) {
+      _drawSphere( _drawList._visualizationData.spheres[i] );
+    }
+
+
+
+    for (size_t i = 0 ; i < _drawList._visualizationData.num_paths ; i++) {
+      PathVisualization path = _drawList._visualizationData.paths[i];
+      glColor4f(path.color[0], path.color[1], path.color[2], path.color[3]);
+      glBegin(GL_LINE_STRIP);
+      for (size_t j = 0 ; j < path.num_points ; j++) {
+        glVertex3d( path.position[j][0], path.position[j][1], path.position[j][2] );
+      }
+      glEnd();
+    }
+
     glPopAttrib();
     glEnable(GL_LIGHTING);
 }
@@ -469,9 +503,9 @@ void Graphics3D::_DrawContactPoint(){
 }
 
 
-void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength) {
-  
-  double len = sqrt(dx*dx + dy*dy + dz*dz);
+void Graphics3D::_rotateZtoDirection(double dx, double dy, double dz)
+{
+  double len = sqrt(dx*dx+dy*dy+dz*dz);
   double dxn = dx/len;
   double dyn = dy/len;
   double dzn = dz/len;
@@ -486,8 +520,7 @@ void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double d
   const double cosTheta = dzn;
   const double theta = acos(cosTheta);
   const double sinTheta = sin(theta);
-  
-  
+
   // Exploit the special form of the rotation matrix (explained above) for find the axis of rotation
   double rX,rY,rZ;
   if(theta > 0) { 
@@ -500,10 +533,60 @@ void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double d
     rY = 0;
     rZ = 1;
   }
+  glRotated(RADTODEG * theta, rX, rY, rZ);
+}
+
+void Graphics3D::_drawSphere(SphereVisualization & sphere)
+{
+  static  GLUquadric* quad = gluNewQuadric();
+  glPushMatrix();
+  glTranslatef(sphere.position[0], sphere.position[1], sphere.position[2]);
+  glColor4f(sphere.color[0], sphere.color[1], sphere.color[2], sphere.color[3]);
+  gluSphere(quad,sphere.radius, 16, 16);
+  glPopMatrix();
+}
+
+void Graphics3D::_drawCone(ConeVisualization & cone)
+{
+  static  GLUquadric* quad = gluNewQuadric();
+  double dx = cone.direction[0];
+  double dy = cone.direction[1];
+  double dz = cone.direction[2];
+  double len = sqrt(dx*dx + dy*dy + dz * dz);
+  glColor4f(cone.color[0], cone.color[1], cone.color[2], cone.color[3]);
+  glPushMatrix();
+  _rotateZtoDirection(dx,dy,dz);
+  const int detail = 8;
+  gluCylinder(quad,0,cone.radius,len,detail,detail);
+  glPopMatrix();
+}
+
+void Graphics3D::_drawBlock(BlockVisualization & box)
+{
+  glPushMatrix();
+  glTranslatef(box.corner_position[0], box.corner_position[1], box.corner_position[2]);
+  // glColor4f(box.color[0], box.color[1], box.color[2], box.color[3]);
+  // glScalef(box.dimension[0], box.dimension[1], box.dimension[2]);
+  // glTranslatef(.5, .5 , .5);
+  // glutSolidCube(1);
+  glPopMatrix();
+}
+
+void Graphics3D::_drawArrow(ArrowVisualization & arrow) 
+{
+  glColor4f( arrow.color[0], arrow.color[1], arrow.color[2], arrow.color[3]);
+  _drawArrow( arrow.base_position[0], arrow.base_position[1], arrow.base_position[2],
+              arrow.direction[0], arrow.direction[1], arrow.direction[2],
+              arrow.shaft_width, arrow.head_width, arrow.head_length);
+}
+void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength) 
+{
+  
+  double len = sqrt(dx*dx + dy*dy + dz*dz);
   
   glPushMatrix();
   glTranslatef(x0, y0, z0);
-  glRotated(RADTODEG * theta, rX, rY, rZ);
+  _rotateZtoDirection(dx, dy, dz);
     
   double cylinderLength = len;
   if (cylinderLength > headLength) {
@@ -539,7 +622,7 @@ void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double d
   //again! (pmw note, I pulled this code from my PhD simulator, I don't know why the "Again!" is needed)
   glPushMatrix();
   glTranslatef(x0, y0, z0);
-  glRotated(RADTODEG * theta, rX, rY, rZ);
+  _rotateZtoDirection(dx, dy, dz);
   
   cylinderLength = len;
   if (cylinderLength > headLength) {
