@@ -31,3 +31,4 @@ Dependencies:
 - LCM - https://lcm-proj.github.io/
 - Eigen - http://eigen.tuxfamily.org
 - `mesa-common-dev`
+- `freeglut3-dev`
