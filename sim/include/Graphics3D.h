@@ -90,6 +90,7 @@ private:
   std::mutex _gfxMutex;
   void updateCameraMatrix();
   void _BoxObstacleDrawing();
+  void _MeshObstacleDrawing();
   void _DrawBox( double depth, double width, double height);
   void _Additional_Drawing();
   void _DrawContactForce();

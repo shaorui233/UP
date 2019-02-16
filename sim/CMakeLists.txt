@@ -39,6 +39,7 @@ include_directories("../third-party/include")
 include_directories("../lcm-types/cpp")
 include_directories("/usr/local/include/lcm/")   # lcm includes
 include_directories("../third-party/ParamHandler")
+include_directories(${CMAKE_BINARY_DIR})
 file(GLOB sources "src/*.cpp")
 
 find_package(Qt5Core COMPONENTS QtGamepad REQUIRED)

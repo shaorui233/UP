@@ -284,5 +284,14 @@ void DrawList::addBox(double depth, double width, double height,
 
 }
 
+void DrawList::addMesh(const Vec3<double> & left_corner, 
+        const DMat<double> & height_map, bool transparent){
+
+    (void) transparent;
+
+    _height_map_left_corner = left_corner;
+    _height_map = height_map;
+}
+
 
 

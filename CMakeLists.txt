@@ -10,6 +10,9 @@ endif ()
 set(CMAKE_COLOR_MAKEFILE   ON)
 execute_process(COMMAND ../scripts/make_types.sh)
 
+SET (THIS_COM "${PROJECT_SOURCE_DIR}/" )
+CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
+    ${CMAKE_BINARY_DIR}/Configuration.h)
 
 add_subdirectory(third-party/Goldfarb_Optimizer)
 add_subdirectory(third-party/ParamHandler)

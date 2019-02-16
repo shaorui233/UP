@@ -328,6 +328,7 @@ void Graphics3D::paintGL() {
   _program->release();
   /************     OpenGL Drawing (not in drawlist object data)     **********/
   _BoxObstacleDrawing();
+  _MeshObstacleDrawing();
   // Useful information drawing
   _Additional_Drawing();
   /********************       End of OpenGL Drawing        ********************/
@@ -359,7 +360,50 @@ void Graphics3D::_BoxObstacleDrawing(){
     glEnable(GL_LIGHTING);
     glPopAttrib();
 }
+void Graphics3D::_MeshObstacleDrawing(){
+    glLoadMatrixf(_cameraMatrix.data());
+    glPushAttrib(GL_LIGHTING_BIT);
+    glDisable(GL_LIGHTING);
 
+    glPushMatrix();
+    glTranslatef(_drawList.getHeightMapLeftCorner()[0], 
+            _drawList.getHeightMapLeftCorner()[1], _drawList.getHeightMapLeftCorner()[2]);
+
+    double grid_size(0.03);
+    double height;
+    for(int i(0); i<_drawList.getHeightMap().rows(); ++i){
+        glBegin(GL_LINE_STRIP);
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
+        for(int j(0); j<_drawList.getHeightMap().cols(); ++j){
+            height = _drawList.getHeightMap()(i, j); 
+            glColor4f(height*1.5, 0.2, 1./(fabs(height)+0.05)*0.1, 0.7f);
+            glVertex3d(i*grid_size, j*grid_size, height );
+        }
+        glPopAttrib();
+        glDisable(GL_BLEND);
+        glEnd();
+    }
+    for(int j(0); j<_drawList.getHeightMap().cols(); ++j){
+        glBegin(GL_LINE_STRIP);
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+
+        for(int i(0); i<_drawList.getHeightMap().rows(); ++i){
+            height = _drawList.getHeightMap()(i, j); 
+            glColor4f(height*0.7, 0.3, 1./(height+0.05)*0.5, 0.7f);
+            glVertex3d(i*grid_size, j*grid_size, _drawList.getHeightMap()(i, j) );
+        }
+        glPopAttrib();
+        glDisable(GL_BLEND);
+        glEnd();
+    }
+    glPopMatrix();
+    glEnable(GL_LIGHTING);
+    glPopAttrib();
+
+}
 void Graphics3D::_DrawBox(double depth, double width, double height)
 {
     double x = depth/2.0;

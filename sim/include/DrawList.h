@@ -53,6 +53,8 @@ class DrawList {
         size_t addDebugSphere(float radius);
         void addBox(double depth, double width, double height, 
                 const Vec3<double> & pos, const Mat3<double> & ori, bool transparent);
+        void addMesh(const Vec3<double> & left_corner, 
+                const DMat<double> & height_map, bool transparent);
 
 
         /*!
@@ -256,6 +258,10 @@ class DrawList {
         const std::vector<double> & getGCPos(size_t idx){ return _cp_pos[idx]; }
         const std::vector<double> & getGCForce(size_t idx){ return _cp_force[idx]; }
         const std::vector<BoxInfo> & getBoxInfoList(){ return _box_list; }
+
+        const DMat<double> & getHeightMap(){ return _height_map; }
+        const Vec3<double> & getHeightMapLeftCorner(){ return _height_map_left_corner; }
+
         const Vec3<double>& getCameraOrigin() {
           return _cameraOrigin;
         }
@@ -288,6 +294,9 @@ class DrawList {
         std::vector<std::vector<double> > _cp_pos;
         std::vector<std::vector<double> > _cp_force;
         std::vector<BoxInfo> _box_list;
+
+        Vec3<double> _height_map_left_corner;
+        DMat<double> _height_map;
 
         Vec3<double> _cameraOrigin;
 

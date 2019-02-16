@@ -5,7 +5,7 @@
 #include <Dynamics/Quadruped.h>
 #include <Controllers/LegController.h>
 
-#define CheetahConfigPath THIS_COM"FSM_States/WBC_state/CheetahTestConfig/"
+#define CheetahConfigPath THIS_COM"robot/FSM_States/WBC_state/CheetahTestConfig/"
 
 template <typename T>
 class Cheetah_Data{

@@ -34,6 +34,15 @@ public:
     return true;
   }
 
+  template<typename T>
+  bool get2DArray(const std::string &category, const std::string &key, std::vector<std::vector<T> > &vec_value) {
+    try {
+      vec_value = config_[category][key].as<std::vector<std::vector<T> > >();
+    } catch (std::exception &e) {
+      return false;
+    }
+    return true;
+  }
 
   template<typename T>
   bool getValue(const std::string &key, T &T_value) {
@@ -55,6 +64,17 @@ public:
     }
     return true;
   }
+
+  bool getBoolean(const std::string & category, const std::string &key, bool &bool_value){
+    try {
+      bool_value = config_[category][key].as<bool>();
+      return true;
+    } catch (std::exception &e) {
+      return false;
+    }
+    return true;
+  }
+
 
   std::vector<std::string> getKeys() {
     std::vector<std::string> v;

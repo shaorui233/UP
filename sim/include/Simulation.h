@@ -53,6 +53,11 @@ public:
           double depth, double width, double height, 
           const Vec3<double> & pos, const Mat3<double> & ori,
           bool addToWindow = true, bool transparent = true);
+  void addCollisionMesh(
+          double mu, double resti,
+          const Vec3<double> & left_corner_loc, const DMat<double> & height_map,
+          bool addToWindow = true, bool transparent = true);
+
 
   void lowLevelControl();
   void highLevelControl();

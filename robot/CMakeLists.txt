@@ -13,7 +13,7 @@ include_directories("../common/include/")
 include_directories("../third-party")
 include_directories("../third-party/include")
 include_directories("../third-party/ParamHandler")
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_BINARY_DIR})
 include_directories("FSM_States/")
 include_directories("WBC/")
 file(GLOB sources "src/*.cpp" "src/rt/*.c" )
@@ -28,6 +28,3 @@ add_subdirectory(WBC)
 
 target_link_libraries(robot dynacore_param_handler WBC_state)
 
-SET (THIS_COM "${PROJECT_SOURCE_DIR}/" )
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/FSM_States/config.h.cmake 
-    ${CMAKE_CURRENT_BINARY_DIR}/Configuration.h)

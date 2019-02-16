@@ -4,6 +4,8 @@
 
 #include <unistd.h>
 #include <include/GameController.h>
+#include <fstream>
+#include <Configuration.h>
 
 // if DISABLE_HIGH_LEVEL_CONTROL is defined, the simulator will run freely, without trying to connect to a robot
 //#define DISABLE_HIGH_LEVEL_CONTROL
@@ -465,6 +467,19 @@ void Simulation::addCollisionBox(
      }
 }
 
+void Simulation::addCollisionMesh(
+        double mu, double resti,
+        const Vec3<double> & left_corner_loc, const DMat<double> & height_map,
+        bool addToWindow, bool transparent){
+
+    (void)mu; (void)resti;
+    if(addToWindow && _window){
+        _window->lockGfxMutex();
+        _window->_drawList.addMesh(left_corner_loc, height_map, transparent);
+        _window->unlockGfxMutex();
+     }
+}
+
 /*!
  * Runs the simulator in the current thread until the _running variable is set to false.
  * Updates graphics at 60 fps if desired.
@@ -648,6 +663,67 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
         heightOffset += rise/2;
         runOffset += run;
       }
+    } else if(typeName == "mesh"){
+
+        double mu, resti, transparent;
+        Vec3<double> left_corner;
+        std::vector<std::vector<double> > height_map_2d;
+        load(mu, "mu");
+        load(resti, "restitution");
+        load(transparent, "transparent");
+        loadVec(left_corner[0], "left_corner_loc", 0);
+        loadVec(left_corner[1], "left_corner_loc", 1);
+        loadVec(left_corner[2], "left_corner_loc", 2);
+
+        int x_len(0); 
+        int y_len(0);
+        bool file_input(false);
+        paramHandler.getBoolean(key, "heightmap_file", file_input);
+        if(file_input){
+            // Read from text file
+            std::string file_name;
+            paramHandler.getString(key, "heightmap_file_name", file_name);
+            std::ifstream f_height;
+            f_height.open(THIS_COM"/config/"+file_name);
+            if(!f_height.good()){
+                std::cout<<"file reading error: "<<
+                    THIS_COM"../config/"+file_name<<std::endl;
+            }
+            int i(0);
+            int j(0);
+            double tmp;
+
+            std::string line;
+            std::vector<double> height_map_vec;
+            while(getline(f_height, line)){
+                std::istringstream iss(line);
+                j=0;
+                while(iss>>tmp){
+                    height_map_vec.push_back(tmp);
+                    ++j;
+                }
+                x_len = j;
+                height_map_2d.push_back(height_map_vec);
+                height_map_vec.clear();
+                //printf("x len: %d\n", x_len);
+                ++i;
+            }
+            y_len = i;
+
+        }else{
+            paramHandler.get2DArray(key, "height_map", height_map_2d);
+            x_len = height_map_2d.size();
+            y_len = height_map_2d[0].size();
+            //printf("x, y len: %d, %d\n", x_len, y_len);
+        }
+
+       DMat<double> height_map(x_len, y_len);
+        for(int i(0); i<x_len; ++i){
+            for(int j(0); j<y_len; ++j){
+                height_map(i,j) = height_map_2d[i][j];
+            }
+        }
+        addCollisionMesh(mu, resti, left_corner, height_map, addGraphics, transparent !=0.);
 
     } else {
       throw std::runtime_error("unknown terrain " + typeName);
