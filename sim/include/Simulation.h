@@ -54,7 +54,7 @@ public:
           const Vec3<double> & pos, const Mat3<double> & ori,
           bool addToWindow = true, bool transparent = true);
   void addCollisionMesh(
-          double mu, double resti,
+          double mu, double resti, double grid_size,
           const Vec3<double> & left_corner_loc, const DMat<double> & height_map,
           bool addToWindow = true, bool transparent = true);
 

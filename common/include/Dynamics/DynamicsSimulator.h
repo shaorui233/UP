@@ -13,6 +13,7 @@
 #include "spatial.h"
 #include "Collision/CollisionPlane.h"
 #include "Collision/CollisionBox.h"
+#include "Collision/CollisionMesh.h"
 #include "Collision/ContactConstraint.h"
 
 using namespace ori;
@@ -83,6 +84,14 @@ public:
     _contact_constr->AddCollision(
             new CollisionBox<T>(mu, rest, depth, width, height, pos, ori) );
   }
+
+  // ! Add a collision Mesh
+  void addCollisionMesh(T mu, T rest, T grid_size, const Vec3<T> & left_corner_loc, 
+          const DMat<T> & height_map) {
+    _contact_constr->AddCollision(
+            new CollisionMesh<T>(mu, rest, grid_size, left_corner_loc, height_map) );
+  }
+
 
   size_t getNumBodies() {
     return _model._nDof;

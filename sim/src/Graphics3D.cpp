@@ -369,7 +369,7 @@ void Graphics3D::_MeshObstacleDrawing(){
     glTranslatef(_drawList.getHeightMapLeftCorner()[0], 
             _drawList.getHeightMapLeftCorner()[1], _drawList.getHeightMapLeftCorner()[2]);
 
-    double grid_size(0.03);
+    double grid_size(_drawList.getGridSize());
     double height;
     for(int i(0); i<_drawList.getHeightMap().rows(); ++i){
         glBegin(GL_LINE_STRIP);

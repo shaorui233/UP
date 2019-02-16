@@ -58,10 +58,10 @@ mesh-1:
     restitution: 0
     transparent: 1
     grid: 0.03
-    left_corner_loc: [-6.3, -4.7, 0.08]
-    #left_corner_loc: [.5, -.45, -0.5]
-    heightmap_file: true
-    #heightmap_file: false 
+    #left_corner_loc: [-6.3, -4.7, 0.08]
+    left_corner_loc: [.5, -.45, -0.5]
+    #heightmap_file: true
+    heightmap_file: false 
     heightmap_file_name: "heightmap_demo.txt"
     height_map: 
         [ [0.010, 0.010,  0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 

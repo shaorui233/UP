@@ -114,8 +114,6 @@ int TrotTest<T>::_NextPhase(const int & phase){
         //pretty_print(_sp->_local_frame_global_pos, std::cout, "local frame");
     }
 
-
-
     if (next_phase == TrotPhase::NUM_TROT_PHASE) {
         return TrotPhase::full_contact_1;
     }

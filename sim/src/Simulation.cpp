@@ -468,14 +468,14 @@ void Simulation::addCollisionBox(
 }
 
 void Simulation::addCollisionMesh(
-        double mu, double resti,
+        double mu, double resti, double grid_size,
         const Vec3<double> & left_corner_loc, const DMat<double> & height_map,
         bool addToWindow, bool transparent){
 
-    (void)mu; (void)resti;
+    _simulator->addCollisionMesh(mu, resti, grid_size, left_corner_loc, height_map);
     if(addToWindow && _window){
         _window->lockGfxMutex();
-        _window->_drawList.addMesh(left_corner_loc, height_map, transparent);
+        _window->_drawList.addMesh(grid_size, left_corner_loc, height_map, transparent);
         _window->unlockGfxMutex();
      }
 }
@@ -665,12 +665,13 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
       }
     } else if(typeName == "mesh"){
 
-        double mu, resti, transparent;
+        double mu, resti, transparent, grid;
         Vec3<double> left_corner;
         std::vector<std::vector<double> > height_map_2d;
         load(mu, "mu");
         load(resti, "restitution");
         load(transparent, "transparent");
+        load(grid, "grid");
         loadVec(left_corner[0], "left_corner_loc", 0);
         loadVec(left_corner[1], "left_corner_loc", 1);
         loadVec(left_corner[2], "left_corner_loc", 2);
@@ -723,7 +724,7 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
                 height_map(i,j) = height_map_2d[i][j];
             }
         }
-        addCollisionMesh(mu, resti, left_corner, height_map, addGraphics, transparent !=0.);
+        addCollisionMesh(mu, resti, grid, left_corner, height_map, addGraphics, transparent !=0.);
 
     } else {
       throw std::runtime_error("unknown terrain " + typeName);
