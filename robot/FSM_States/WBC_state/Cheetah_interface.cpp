@@ -16,7 +16,7 @@ template <typename T>
 Cheetah_interface<T>::Cheetah_interface(FloatingBaseModel<T> * robot):
     _robot(robot),
     count_(0),
-    waiting_count_(100),
+    waiting_count_(10),
     running_time_(0.)
 {
     _sp = Cheetah_StateProvider<T>::getStateProvider();

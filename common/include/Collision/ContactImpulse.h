@@ -20,7 +20,7 @@ class ContactImpulse: public ContactConstraint<T>{
         virtual void UpdateQdot(FBModelState<T> & state);
 
     protected:
-        T _penetration_recover_ratio = 0.;
+        T _penetration_recover_ratio = 0.0;
         size_t _nDof;
         void _UpdateVelocity(DVec<T> & qdot);
         void _UpdateQdotOneDirection(

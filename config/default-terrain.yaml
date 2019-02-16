@@ -6,51 +6,51 @@ ground-plane:
     graphicsSize: [20,20] # how large the plane appears
     checkers: [40,40]     # how many checkers are on the plane
     
-box-1:
-    type: "box"
-    mu: .4
-    restitution: 0
-    depth: 2
-    width: 1
-    height: .5
-    position:  [1,2,1]
-    orientation: [0,.2,0]  # roll pitch yaw
-    transparent: 1
+#box-1:
+    #type: "box"
+    #mu: .4
+    #restitution: 0
+    #depth: 2
+    #width: 1
+    #height: .5
+    #position:  [1,2,1]
+    #orientation: [0,.2,0]  # roll pitch yaw
+    #transparent: 1
 
-stairs-1:
-    type: "stairs"
-    steps: 5
-    rise: 0.1778 # 7 inches
-    run: 0.2794 # 11 inches
-    width: 1.2
-    mu: .7
-    restitution: 0
-    position: [1,2,-0.5]
-    orientation: [0, .2, 1.5]
-    transparent: 0
+#stairs-1:
+    #type: "stairs"
+    #steps: 5
+    #rise: 0.1778 # 7 inches
+    #run: 0.2794 # 11 inches
+    #width: 1.2
+    #mu: .7
+    #restitution: 0
+    #position: [1,2,-0.5]
+    #orientation: [0, .2, 1.5]
+    #transparent: 0
 
-box-2:
-    type: "box"
-    mu: .4
-    restitution: 0
-    depth: 1
-    width: 1
-    height: 1
-    position:  [-2,0,0]
-    orientation: [0,0,0]  # roll pitch yaw
-    transparent: 0
+#box-2:
+    #type: "box"
+    #mu: .4
+    #restitution: 0
+    #depth: 1
+    #width: 1
+    #height: 1
+    #position:  [-2,0,0]
+    #orientation: [0,0,0]  # roll pitch yaw
+    #transparent: 0
 
-stairs-2:
-    type: "stairs"
-    steps: 8
-    rise: 0.1778 # 7 inches
-    run: 0.2794 # 11 inches
-    width: 1.2
-    mu: .7
-    restitution: 0
-    position: [1,-2,-0.5]
-    orientation: [.2, -.4, 1.5]
-    transparent: 0
+#stairs-2:
+    #type: "stairs"
+    #steps: 8
+    #rise: 0.1778 # 7 inches
+    #run: 0.2794 # 11 inches
+    #width: 1.2
+    #mu: .7
+    #restitution: 0
+    #position: [1,-2,-0.5]
+    #orientation: [.2, -.4, 1.5]
+    #transparent: 0
 
 mesh-1:
     type: "mesh"
@@ -58,10 +58,10 @@ mesh-1:
     restitution: 0
     transparent: 1
     grid: 0.03
-    #left_corner_loc: [-6.3, -4.7, 0.08]
-    left_corner_loc: [.5, -.45, -0.5]
-    #heightmap_file: true
-    heightmap_file: false 
+    left_corner_loc: [-6.3, -4.7, 0.07]
+    #left_corner_loc: [.5, -.45, -0.5]
+    heightmap_file: true
+    #heightmap_file: false 
     heightmap_file_name: "heightmap_demo.txt"
     height_map: 
         [ [0.010, 0.010,  0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 
