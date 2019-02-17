@@ -138,12 +138,12 @@ void Graphics3D::initializeGL() {
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
-  std::cout << "[Graphics3D] Glut Init\n";
+  //std::cout << "[Graphics3D] Glut Init\n";
   // char a = 'a';
   // char * aptr = &a;
 
   // glutInit(0,&aptr);
-  std::cout << "[Graphics3D] Glut Init Complete\n";
+  //std::cout << "[Graphics3D] Glut Init Complete\n";
 }
 
 /*-----------------------------------------*
@@ -428,32 +428,41 @@ void Graphics3D::_Additional_Drawing(){
     _DrawContactForce();
     _DrawContactPoint();
 
-    for( size_t i = 0 ; i < _drawList._visualizationData.num_arrows ; i++) {
-      _drawArrow( _drawList._visualizationData.arrows[i] );
-    }
+    {
+      //glPushAttrib(GL_COLOR_BUFFER_BIT);
+      glEnable(GL_BLEND);
+      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
 
-    for( size_t i = 0 ; i < _drawList._visualizationData.num_cones; i++) {
-      _drawCone( _drawList._visualizationData.cones[i] );
-    }
-
-    for( size_t i = 0 ; i < _drawList._visualizationData.num_blocks ; i++) {
-      _drawBlock( _drawList._visualizationData.blocks[i] );
-    }
-
-    for( size_t i = 0 ; i < _drawList._visualizationData.num_spheres ; i++) {
-      _drawSphere( _drawList._visualizationData.spheres[i] );
-    }
-
-
-
-    for (size_t i = 0 ; i < _drawList._visualizationData.num_paths ; i++) {
-      PathVisualization path = _drawList._visualizationData.paths[i];
-      glColor4f(path.color[0], path.color[1], path.color[2], path.color[3]);
-      glBegin(GL_LINE_STRIP);
-      for (size_t j = 0 ; j < path.num_points ; j++) {
-        glVertex3d( path.position[j][0], path.position[j][1], path.position[j][2] );
+      for( size_t i = 0 ; i < _drawList._visualizationData.num_arrows ; i++) {
+        _drawArrow( _drawList._visualizationData.arrows[i] );
       }
-      glEnd();
+
+      for( size_t i = 0 ; i < _drawList._visualizationData.num_cones; i++) {
+        _drawCone( _drawList._visualizationData.cones[i] );
+      }
+
+      for( size_t i = 0 ; i < _drawList._visualizationData.num_blocks ; i++) {
+        _drawBlock( _drawList._visualizationData.blocks[i] );
+      }
+
+      for( size_t i = 0 ; i < _drawList._visualizationData.num_spheres ; i++) {
+        _drawSphere( _drawList._visualizationData.spheres[i] );
+      }
+      //glPopAttrib();
+      glDisable(GL_BLEND);
+
+
+      for (size_t i = 0 ; i < _drawList._visualizationData.num_paths ; i++) {
+        PathVisualization path = _drawList._visualizationData.paths[i];
+        glColor4f(path.color[0], path.color[1], path.color[2], path.color[3]);
+        glBegin(GL_LINE_STRIP);
+        for (size_t j = 0 ; j < path.num_points ; j++) {
+          glVertex3d( path.position[j][0], path.position[j][1], path.position[j][2] );
+        }
+        glEnd();
+      }
+      
+
     }
 
     glPopAttrib();
@@ -555,9 +564,11 @@ void Graphics3D::_drawCone(ConeVisualization & cone)
   double len = sqrt(dx*dx + dy*dy + dz * dz);
   glColor4f(cone.color[0], cone.color[1], cone.color[2], cone.color[3]);
   glPushMatrix();
+  glTranslatef(cone.point_position[0], cone.point_position[1], cone.point_position[2]);
+  
   _rotateZtoDirection(dx,dy,dz);
-  const int detail = 8;
-  gluCylinder(quad,0,cone.radius,len,detail,detail);
+  const int detail = 32;
+  gluCylinder(quad,0,cone.radius,len,detail,1);
   glPopMatrix();
 }
 
@@ -565,10 +576,10 @@ void Graphics3D::_drawBlock(BlockVisualization & box)
 {
   glPushMatrix();
   glTranslatef(box.corner_position[0], box.corner_position[1], box.corner_position[2]);
-  // glColor4f(box.color[0], box.color[1], box.color[2], box.color[3]);
-  // glScalef(box.dimension[0], box.dimension[1], box.dimension[2]);
-  // glTranslatef(.5, .5 , .5);
-  // glutSolidCube(1);
+  glColor4f(box.color[0], box.color[1], box.color[2], box.color[3]);
+  glScalef(box.dimension[0], box.dimension[1], box.dimension[2]);
+  glTranslatef(.5, .5 , .5);
+  _DrawBox(1,1,1);
   glPopMatrix();
 }
 
@@ -597,13 +608,15 @@ void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double d
     cylinderLength = 0;
   }
 
-  const int detail = 8;
+  const int detail = 32;
 
   static  GLUquadric* quad = gluNewQuadric();
 
+
+
   //glPolygonMode(GL_FRONT, GL_FILL);
   //Draw Cylinder
-  gluCylinder(quad,lineWidth,lineWidth,cylinderLength,detail,detail);
+  gluCylinder(quad,lineWidth,lineWidth,cylinderLength,detail,1);
   
   //Draw Cylinder Base
   glRotated(180, 1, 0, 0);
@@ -617,29 +630,6 @@ void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double d
   glRotated(180, 1, 0, 0);
   //Draw Arrowhead Base
   gluDisk(quad,lineWidth,headWidth,detail,detail);
-  glPopMatrix();
-
-  //again! (pmw note, I pulled this code from my PhD simulator, I don't know why the "Again!" is needed)
-  glPushMatrix();
-  glTranslatef(x0, y0, z0);
-  _rotateZtoDirection(dx, dy, dz);
-  
-  cylinderLength = len;
-  if (cylinderLength > headLength) {
-    cylinderLength -= headLength;
-  }
-  else {
-    headLength = cylinderLength ;
-    cylinderLength = 0;
-  }
-  glPolygonMode(GL_FRONT, GL_LINE);
-  gluCylinder(quad,lineWidth,lineWidth,cylinderLength,detail,detail);
-  gluDisk(quad,0,lineWidth,detail,detail);
-  glTranslatef(0, 0, cylinderLength);
-  gluCylinder(quad,headWidth,0.0f,headLength,detail,detail);
-  gluDisk(quad,lineWidth,headWidth,detail,detail);
-  glLineWidth(1);
-  glPolygonMode(GL_FRONT, GL_FILL);
   glPopMatrix();
 }
 

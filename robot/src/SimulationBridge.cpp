@@ -173,11 +173,11 @@ void SimulationBridge::runRobotControl() {
       cone.radius = (j+1)/10.;
       cone.direction[0] = 0;
       cone.direction[1] = 0;
-      cone.direction[2] = 1;
-      cone.point_position[0] = 0;
-      cone.point_position[1] = 2*j;
+      cone.direction[2] = .3*j+.2;
+      cone.point_position[0] = 3+j;
+      cone.point_position[1] = 3;
       cone.point_position[2] = 0;
-      cone.color[0] = 0; cone.color[1] = 1; cone.color[2] = 1;
+      cone.color[0] = .4; cone.color[1] = .1; cone.color[2] = .2; cone.color[3]=.2;
       _sharedMemory().robotToSim.visualizationData.cones[j] = cone;
     }
 
