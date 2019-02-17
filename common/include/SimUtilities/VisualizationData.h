@@ -61,7 +61,7 @@ struct ConeVisualization
 
 struct VisualizationData
 {
-	size_t num_paths, num_arrows, num_cones, num_spheres, num_blocks;
+	size_t num_paths = 0, num_arrows = 0, num_cones = 0, num_spheres = 0, num_blocks = 0;
 	SphereVisualization spheres[VISUALIZATION_MAX_ITEMS];
 	BlockVisualization blocks[VISUALIZATION_MAX_ITEMS];
 	ArrowVisualization arrows[VISUALIZATION_MAX_ITEMS];
