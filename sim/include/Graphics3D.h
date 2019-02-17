@@ -107,16 +107,23 @@ private:
   bool _animating;
 
   // attributes for shader program
-  GLuint _posAttr; // position of vertex
-  GLuint _colAttr; // color of vertex
-  GLuint _matrixUniform; // transformation matrix
-  GLuint _normAttr; // vertex normal
-  GLuint _textTexture = 0;
+  GLuint _posAttrColorArray; // position of vertex
+  GLuint _colAttrColorArray; // color of vertex
+  GLuint _matrixUniformColorArray; // transformation matrix
+  GLuint _normAttrColorArray; // vertex normal
+
+  GLuint _posAttrSolidColor; // position of vertex
+  GLuint _colUniformSolidColor; // color of vertex
+  GLuint _colAttrSolidColor;
+  GLuint _matrixUniformSolidColor; // transformation matrix
+  GLuint _normAttrSolidColor; // vertex normal
+
   GLuint _buffID[3];
 
 
   // shader programs
-  QOpenGLShaderProgram *_program;
+  QOpenGLShaderProgram *_colorArrayProgram;
+  QOpenGLShaderProgram *_solidColorProgram;
 
   // frame count
   int _frame;

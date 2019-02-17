@@ -15,7 +15,7 @@
 
 static constexpr auto clearColor = windows2000;
 
-static constexpr char vertexShaderSource[] = R"(
+static constexpr char vertexShaderSourceColorArray[] = R"(
 
 // inputs:
 attribute highp vec3 posAttr;   // position
@@ -30,6 +30,28 @@ varying vec3 pos_world;         // position
 
 void main() {
   col = vec4(colAttr,1);
+  gl_Position = matrix * vec4(posAttr,1);
+  normal = (matrix * vec4(normAttr,0)).xyz;
+  pos_world = posAttr;
+}
+)";
+
+static constexpr char vertexShaderSourceSolidColor[] = R"(
+
+// inputs:
+attribute highp vec3 posAttr;   // position
+uniform lowp vec4 colUniform;          // color
+attribute lowp vec3 colAttr;      // color
+attribute highp vec3 normAttr;  // normal
+uniform highp mat4 matrix;      // transformation
+
+// outputs:
+varying lowp vec4 col;          // color
+varying vec3 normal;            // normal
+varying vec3 pos_world;         // position
+
+void main() {
+  col = colUniform;
   gl_Position = matrix * vec4(posAttr,1);
   normal = (matrix * vec4(normAttr,0)).xyz;
   pos_world = posAttr;
@@ -57,7 +79,7 @@ void main() {
 /*!
  * Initialize a 3D visualization window
  */
-Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(false),  _program(0),
+Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(false),  _colorArrayProgram(0),
                                           _frame(0), _v0(0, 0, 0), _freeCamFilter(1, 60, _v0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
 
@@ -125,16 +147,27 @@ void Graphics3D::initializeGL() {
   std::cout << "[Graphics3D] Initialize OpenGL...\n";
   initializeOpenGLFunctions();
   // create GPU shaders
-  _program = new QOpenGLShaderProgram(this);
-  _program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-  _program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
-  _program->link();
+  _colorArrayProgram = new QOpenGLShaderProgram(this);
+  _colorArrayProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSourceColorArray);
+  _colorArrayProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+  _colorArrayProgram->link();
+
+  _solidColorProgram = new QOpenGLShaderProgram(this);
+  _solidColorProgram->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSourceSolidColor);
+  _solidColorProgram->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+  _solidColorProgram->link();
 
   // setup attributes/uniforms (inputs to shaders)
-  _posAttr = (GLuint) _program->attributeLocation("posAttr");
-  _colAttr = (GLuint) _program->attributeLocation("colAttr");
-  _normAttr = (GLuint) _program->attributeLocation("normAttr");
-  _matrixUniform = (GLuint) _program->uniformLocation("matrix");
+  _posAttrColorArray = (GLuint) _colorArrayProgram->attributeLocation("posAttr");
+  _colAttrColorArray = (GLuint) _colorArrayProgram->attributeLocation("colAttr");
+  _normAttrColorArray = (GLuint) _colorArrayProgram->attributeLocation("normAttr");
+  _matrixUniformColorArray = (GLuint) _colorArrayProgram->uniformLocation("matrix");
+
+  _posAttrSolidColor = (GLuint) _solidColorProgram->attributeLocation("posAttr");
+  _colUniformSolidColor = (GLuint) _solidColorProgram->uniformLocation("colUniform");
+  _colAttrSolidColor = (GLuint) _solidColorProgram->attributeLocation("colAttr");
+  _matrixUniformSolidColor = (GLuint) _solidColorProgram->attributeLocation("normAttr");
+  _normAttrSolidColor = (GLuint) _solidColorProgram->uniformLocation("matrix");
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
@@ -245,7 +278,11 @@ void Graphics3D::setAnimating(bool animating) {
 
 void Graphics3D::renderDrawlist(int pass) {
   (void)pass;
-  _program->bind();
+
+
+  // reload if needed
+
+
 
 
   if (_drawList.needsReload()) {
@@ -260,17 +297,17 @@ void Graphics3D::renderDrawlist(int pass) {
     glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
                  GL_STATIC_DRAW);
-    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(_posAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getColorArray(),
                  GL_STATIC_DRAW);
-    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(_colAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getNormalArray(),
                  GL_STATIC_DRAW);
-    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(_normAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -283,21 +320,33 @@ void Graphics3D::renderDrawlist(int pass) {
 //  glEnable(GL_DEPTH_TEST);
 //  glDepthFunc(GL_LESS);
 
+
+
+  // draw objects with color arrays
+  _colorArrayProgram->bind();
+
   glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
-  glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(_posAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
-  glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(_colAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
-  glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glVertexAttribPointer(_normAttrColorArray, 3, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-    _program->setUniformValue(_matrixUniform,
-                              _cameraMatrix * _drawList.getModelKinematicTransform(id) *
-                              _drawList.getModelBaseTransform(id));
-    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3,
-                 _drawList.getGLDrawArraySize(id) / 3);
+
+    if(_drawList._instanceColor[id].useSolidColor) {
+
+    } else {
+      _colorArrayProgram->setUniformValue(_matrixUniformColorArray,
+                                          _cameraMatrix * _drawList.getModelKinematicTransform(id) *
+                                          _drawList.getModelBaseTransform(id));
+
+
+      glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3,
+                   _drawList.getGLDrawArraySize(id) / 3);
+    }
   }
   glDisableVertexAttribArray(2);
   glDisableVertexAttribArray(1);
@@ -305,7 +354,43 @@ void Graphics3D::renderDrawlist(int pass) {
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-  _program->release();
+  _colorArrayProgram->release();
+
+  // draw objects without color arrays
+  _solidColorProgram->bind();
+
+  glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
+  glVertexAttribPointer(_posAttrSolidColor, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
+  glVertexAttribPointer(_colAttrSolidColor, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
+  glVertexAttribPointer(_normAttrSolidColor, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
+
+    if(_drawList._instanceColor[id].useSolidColor) {
+      _solidColorProgram->setUniformValue(_matrixUniformSolidColor,
+                                          _cameraMatrix * _drawList.getModelKinematicTransform(id) *
+                                          _drawList.getModelBaseTransform(id));
+      auto& col = _drawList._instanceColor[id];
+      _solidColorProgram->setUniformValue(_colUniformSolidColor, QVector4D(col.rgba[0], col.rgba[1], col.rgba[2], col.rgba[3]));
+
+
+      glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3,
+                   _drawList.getGLDrawArraySize(id) / 3);
+    } else {
+
+    }
+  }
+  glDisableVertexAttribArray(2);
+  glDisableVertexAttribArray(1);
+  glDisableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  _solidColorProgram->release();
 }
 
 void Graphics3D::paintGL() {
@@ -322,6 +407,7 @@ void Graphics3D::paintGL() {
 
   for(int pass = 0; pass < 5; pass++) {
     // setup pass:
+    glShadeModel( GL_SMOOTH );
     switch(pass) {
       case 0:
         // clear screen

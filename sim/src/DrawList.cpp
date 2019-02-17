@@ -21,15 +21,16 @@ void DrawList::loadFiles() {
     loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
 
     if(name == "sphere.obj") {
-      setSolidColor(_colorData.back(), _vertexData.back().size(), 
-              debugRedColor[0], debugRedColor[1], debugRedColor[2]);
+      setSolidColor(_colorData.back(), _vertexData.back().size(),
+                    debugRedColor[0], debugRedColor[1], debugRedColor[2]);
     } else if(name == "cube.obj") {
       setSolidColor(_colorData.back(), _vertexData.back().size(),
                     disgustingGreen[0], disgustingGreen[1], disgustingGreen[2]);
     } else {
-        setSolidColor(_colorData.back(), _vertexData.back().size(),
-                defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
+      setSolidColor(_colorData.back(), _vertexData.back().size(),
+                    defaultRobotColor[0], defaultRobotColor[1], defaultRobotColor[2]);
     }
+
 
     _nUnique++;
   }
@@ -44,7 +45,7 @@ void DrawList::loadFiles() {
  */
 size_t DrawList::addCheetah3() {
 
-  size_t i0 = _cheetah3LoadIndex; // todo don't hard code this
+  size_t i0 = _cheetah3LoadIndex;
   size_t j0 = _nTotal;
 
   // set model offsets:
@@ -74,26 +75,45 @@ size_t DrawList::addCheetah3() {
   lowerOffset.rotate(180,0,1,0);
   lowerOffset.translate(0, 0, 0);
 
+  SolidColor bodyColor, abadColor, link1Color, link2Color;
+  bodyColor.rgba = Vec4<float>(.2, .2, .2, .6);
+  bodyColor.useSolidColor = true;
+
+  abadColor.rgba = Vec4<float>(.3, .2, .2, .6);
+  abadColor.useSolidColor = true;
+
+  link1Color.rgba = Vec4<float>(.2, .3, .2, .6);
+  link1Color.useSolidColor = true;
+
+  link2Color.rgba = Vec4<float>(.2, .2, .3, .6);
+  link2Color.useSolidColor = true;
+
   // add bodies
   _objectMap.push_back(i0 + 0);
   _modelOffsets.push_back(bodyOffset);
   _kinematicXform.push_back(eye);
+  _instanceColor.push_back(bodyColor);
   _nTotal++;
 
   for(int i = 0; i < 4; i++) {
     _objectMap.push_back(i0 + 1);
     _modelOffsets.push_back(abadOffset);
     _kinematicXform.push_back(eye);
+    _instanceColor.push_back(abadColor);
 
     _objectMap.push_back(i0 + 2);
     _modelOffsets.push_back(upperOffsets[i%2]);
     _kinematicXform.push_back(eye);
+    _instanceColor.push_back(link1Color);
 
     _objectMap.push_back(i0 + 3);
     _modelOffsets.push_back(lowerOffset);
     _kinematicXform.push_back(eye);
+    _instanceColor.push_back(link2Color);
     _nTotal += 3;
   }
+
+
 
   printf("size of kinematicXform: %lu, j0: %lu\n", _kinematicXform.size(), j0);
 
@@ -148,24 +168,41 @@ size_t DrawList::addMiniCheetah() {
   lower.setToIdentity();
   lower.rotate(180, 0, 1, 0);
 
+  SolidColor bodyColor, abadColor, link1Color, link2Color;
+  bodyColor.rgba = Vec4<float>(.2, .2, .2, .6);
+  bodyColor.useSolidColor = true;
+
+  abadColor.rgba = Vec4<float>(.3, .2, .2, .6);
+  abadColor.useSolidColor = true;
+
+  link1Color.rgba = Vec4<float>(.2, .3, .2, .6);
+  link1Color.useSolidColor = true;
+
+  link2Color.rgba = Vec4<float>(.2, .2, .3, .6);
+  link2Color.useSolidColor = true;
+
   // add objects
   _objectMap.push_back(i0 + 0);
   _modelOffsets.push_back(bodyOffset);
   _kinematicXform.push_back(eye);
+  _instanceColor.push_back(bodyColor);
   _nTotal++;
 
   for(int i = 0; i < 4; i++) {
     _objectMap.push_back(i0 + 1);
     _modelOffsets.push_back(abadOffsets[i]);
     _kinematicXform.push_back(eye);
+    _instanceColor.push_back(abadColor);
 
     _objectMap.push_back(i0 + 2);
     _modelOffsets.push_back(upper);
     _kinematicXform.push_back(eye);
+    _instanceColor.push_back(link1Color);
 
     _objectMap.push_back(i0 + 3);
     _modelOffsets.push_back(lower);
     _kinematicXform.push_back(eye);
+    _instanceColor.push_back(link2Color);
     _nTotal += 3;
   }
   return j0;
@@ -179,6 +216,9 @@ size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
   size_t j0 = _nTotal;
   size_t i0 = _nUnique;
 
+  SolidColor checkerColor;
+  checkerColor.useSolidColor = false;
+
   _nUnique++;
   // add the object
   _vertexData.emplace_back();
@@ -191,6 +231,7 @@ size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
   offset.translate(-checkerBoard.getSize()[0]/2, -checkerBoard.getSize()[1]/2);
   _modelOffsets.push_back(offset);
   _kinematicXform.push_back(eye);
+  _instanceColor.push_back(checkerColor);
 
   _nTotal++;
   // add the instance
@@ -202,6 +243,7 @@ size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
  * Adds a sphere to the list of drawables.
  */
 size_t DrawList::addDebugSphere(float radius) {
+  assert(false);
   size_t j0 = _nTotal;
 
   QMatrix4x4 offset;
@@ -277,6 +319,11 @@ void DrawList::addBox(double depth, double width, double height,
     offset.rotate(qq);
 
     _kinematicXform.push_back(offset);
+
+    SolidColor boxColor;
+    boxColor.rgba = Vec4<float>(disgustingGreen[0], disgustingGreen[1], disgustingGreen[2], 1.f);
+    boxColor.useSolidColor = true;
+    _instanceColor.push_back(boxColor);
 
     _nTotal++;
     _objectMap.push_back(_cubeLoadIndex);
