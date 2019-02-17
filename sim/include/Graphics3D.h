@@ -90,9 +90,10 @@ private:
 
   std::mutex _gfxMutex;
   void updateCameraMatrix();
+  void renderDrawlist(int pass);
   void _BoxObstacleDrawing();
   void _DrawBox( double depth, double width, double height);
-  void _Additional_Drawing();
+  void _Additional_Drawing(int pass);
   void _DrawContactForce();
   void _DrawContactPoint();
   void _drawArrow(ArrowVisualization & arrow); 
@@ -111,7 +112,7 @@ private:
   GLuint _matrixUniform; // transformation matrix
   GLuint _normAttr; // vertex normal
   GLuint _textTexture = 0;
-
+  GLuint _buffID[3];
 
 
   // shader programs

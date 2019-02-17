@@ -153,63 +153,9 @@ void SimulationBridge::runRobotControl() {
     _robotController->spiCommand    = &_sharedMemory().robotToSim.spiCommand;
     _robotController->tiBoardCommand = _sharedMemory().robotToSim.tiBoardCommand;
     _robotController->controlParameters = &_robotParams;
+    _robotController->visualizationData = &_sharedMemory().robotToSim.visualizationData;
 
 
-    // Todo, move some of this into the robot controller.
-    // Test sphere visualization
-    SphereVisualization sphere; 
-    sphere.position[0] = 0; sphere.position[1] = 0; sphere.position[2] = 5;
-    sphere.radius = 1; 
-    sphere.color[0] = 1; sphere.color[1] = 1; sphere.color[2] = 0; sphere.color[3] = 1;
-    _sharedMemory().robotToSim.visualizationData.num_spheres = 1;
-    _sharedMemory().robotToSim.visualizationData.spheres[0] = sphere;
-
-
-    // Cones
-    _sharedMemory().robotToSim.visualizationData.num_cones = 5;
-    for (size_t j = 0 ; j < 5  ; j++)
-    {
-      ConeVisualization cone;
-      cone.radius = (j+1)/10.;
-      cone.direction << 0, 0 , .3*j+.2;
-      cone.point_position <<  3+j, 3,  0;
-      cone.color << .4 , .1 ,  .2, .2;
-      _sharedMemory().robotToSim.visualizationData.cones[j] = cone;
-    }
-
-    // boxes 
-    _sharedMemory().robotToSim.visualizationData.num_blocks = 1;
-    BlockVisualization block;
-    block.corner_position << -5, -5,  0;
-    block.dimension <<  1, .2, .3;
-    block.color<<  1,  0,  0, .3 ;
-    _sharedMemory().robotToSim.visualizationData.blocks[0] = block;
-
-
-    // Test Arrow Visualization
-    _sharedMemory().robotToSim.visualizationData.num_arrows = 1;
-
-    _sharedMemory().robotToSim.visualizationData.arrows[0].base_position << 1,1, 1;
-
-    _sharedMemory().robotToSim.visualizationData.arrows[0].direction << 1,1,1;
-
-    _sharedMemory().robotToSim.visualizationData.arrows[0].head_width = 0.1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].head_length = 0.2;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].shaft_width = 0.05;
-
-    _sharedMemory().robotToSim.visualizationData.arrows[0].color << 0, 1 , 1, .6;
-
-    // Test Path visualization
-    PathVisualization path;
-    path.num_points = 150;
-    for (size_t j = 0 ; j < path.num_points ; j++)
-    {
-      path.position[j] << j*2.0/ path.num_points, sin(j*10. / path.num_points) ,  .5;
-    }
-    path.color << 0 ,  0, 1 ,  1;
-
-    _sharedMemory().robotToSim.visualizationData.num_paths = 1;
-    _sharedMemory().robotToSim.visualizationData.paths[0] = path;
 
     _robotController->initialize();
     _firstControllerRun = false;

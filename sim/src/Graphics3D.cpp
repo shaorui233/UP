@@ -29,7 +29,7 @@ varying vec3 normal;            // normal
 varying vec3 pos_world;         // position
 
 void main() {
-  col = vec4(colAttr,0.3);
+  col = vec4(colAttr,1);
   gl_Position = matrix * vec4(posAttr,1);
   normal = (matrix * vec4(normAttr,0)).xyz;
   pos_world = posAttr;
@@ -243,8 +243,71 @@ void Graphics3D::setAnimating(bool animating) {
 }
 
 
+void Graphics3D::renderDrawlist(int pass) {
+  (void)pass;
+  _program->bind();
 
-GLuint buffID[3];
+
+  if (_drawList.needsReload()) {
+    // upload data
+
+    glDisableVertexAttribArray(2);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(0);
+
+    glGenBuffers(3, _buffID);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getColorArray(),
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getNormalArray(),
+                 GL_STATIC_DRAW);
+    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
+    printf("[Graphics 3D] Uploaded data (%f MB)\n", _drawList.getGLDataSizeMB());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  }
+
+  // old drawlist mode
+//  glEnable(GL_DEPTH_TEST);
+//  glDepthFunc(GL_LESS);
+
+  glBindBuffer(GL_ARRAY_BUFFER, _buffID[0]);
+  glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, _buffID[1]);
+  glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glBindBuffer(GL_ARRAY_BUFFER, _buffID[2]);
+  glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+  glEnableVertexAttribArray(1);
+  glEnableVertexAttribArray(2);
+  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
+    _program->setUniformValue(_matrixUniform,
+                              _cameraMatrix * _drawList.getModelKinematicTransform(id) *
+                              _drawList.getModelBaseTransform(id));
+    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3,
+                 _drawList.getGLDrawArraySize(id) / 3);
+  }
+  glDisableVertexAttribArray(2);
+  glDisableVertexAttribArray(1);
+  glDisableVertexAttribArray(0);
+
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+  _program->release();
+}
+
 void Graphics3D::paintGL() {
   // update joystick:
   _gameController.updateGamepadCommand(_driverCommand);
@@ -257,81 +320,53 @@ void Graphics3D::paintGL() {
   }
   QPainter painter2(this);
 
+  for(int pass = 0; pass < 5; pass++) {
+    // setup pass:
+    switch(pass) {
+      case 0:
+        // clear screen
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // update camera math
+        updateCameraMatrix();
 
+        glDisable(GL_CULL_FACE);
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        break;
+      case 1:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        glDepthFunc(GL_ALWAYS);
+        break;
+      case 2:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_FRONT);
+        glDepthFunc(GL_LEQUAL);
+        break;
+      case 3:
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+        glDepthFunc(GL_ALWAYS);
+        break;
+      case 4:
+        glDisable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);
+        break;
 
-  // magic copied from the internet to make things look good on hi-dpi screens
-  //const qreal retinaScale = devicePixelRatio();
-  //glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+      default:
+        assert(false);
+    }
 
-  updateCameraMatrix();
-  _program->bind();
-
-
-  if (_drawList.needsReload()) {
-    // upload data
-
-    glDisableVertexAttribArray(2);
-    glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
-
-    glGenBuffers(3, buffID);
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getVertexArray(),
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getColorArray(),
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * _drawList.getSizeOfAllData(), _drawList.getNormalArray(),
-                 GL_STATIC_DRAW);
-    glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-    printf("[Graphics 3D] Uploaded data (%f MB)\n", _drawList.getGLDataSizeMB());
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    // do rendering on all passes:
+    glEnable(GL_BLEND);
+    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    renderDrawlist(pass);
+    _Additional_Drawing(pass);
+    _BoxObstacleDrawing();
   }
 
-  glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LESS);
 
-  glBindBuffer(GL_ARRAY_BUFFER, buffID[0]);
-  glVertexAttribPointer(_posAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, buffID[1]);
-  glVertexAttribPointer(_colAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glBindBuffer(GL_ARRAY_BUFFER, buffID[2]);
-  glVertexAttribPointer(_normAttr, 3, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(0);
-  glEnableVertexAttribArray(1);
-  glEnableVertexAttribArray(2);
-  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-    _program->setUniformValue(_matrixUniform, 
-            _cameraMatrix * _drawList.getModelKinematicTransform(id) *
-            _drawList.getModelBaseTransform(id));
-    glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3, 
-            _drawList.getGLDrawArraySize(id) / 3);
-  }
-  glDisableVertexAttribArray(2);
-  glDisableVertexAttribArray(1);
-  glDisableVertexAttribArray(0);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-  _program->release();
-  /************     OpenGL Drawing (not in drawlist object data)     **********/
-  _BoxObstacleDrawing();
-  // Useful information drawing
-  _Additional_Drawing();
-  /********************       End of OpenGL Drawing        ********************/
-  ++_frame;
   glDisable(GL_DEPTH_TEST);
   painter2.setPen(QColor(100,100,100,255));
   painter2.fillRect(QRect(30,30,400,200), QColor(100,100,100,220));
@@ -339,8 +374,9 @@ void Graphics3D::paintGL() {
   painter2.setPen(QColor(210, 100, 100));
   painter2.setFont(font);
   painter2.drawText(QRect(30,30,1000,1000), Qt::AlignLeft, QString(infoString));
-
   painter2.end();
+
+  ++_frame;
 }
 void Graphics3D::_BoxObstacleDrawing(){
     glLoadMatrixf(_cameraMatrix.data());
@@ -414,7 +450,7 @@ void Graphics3D::_DrawBox(double depth, double width, double height)
 }
 
 
-void Graphics3D::_Additional_Drawing(){
+void Graphics3D::_Additional_Drawing(int pass){
     glLoadMatrixf(_cameraMatrix.data());
     glPushAttrib(GL_LIGHTING_BIT);
     glDisable(GL_LIGHTING);
@@ -422,10 +458,37 @@ void Graphics3D::_Additional_Drawing(){
     _DrawContactForce();
     _DrawContactPoint();
 
+
     {
-      //glPushAttrib(GL_COLOR_BUFFER_BIT);
+
+      switch(pass) {
+        case 0:
+          glDisable(GL_CULL_FACE);
+          glDepthFunc(GL_LESS);
+          break;
+        case 1:
+          glEnable(GL_CULL_FACE);
+          glCullFace(GL_FRONT);
+          glDepthFunc(GL_ALWAYS);
+          break;
+        case 2:
+          glEnable(GL_CULL_FACE);
+          glCullFace(GL_FRONT);
+          glDepthFunc(GL_LEQUAL);
+          break;
+        case 3:
+          glEnable(GL_CULL_FACE);
+          glCullFace(GL_BACK);
+          glDepthFunc(GL_ALWAYS);
+          break;
+        case 4:
+          glDisable(GL_CULL_FACE);
+          glDepthFunc(GL_LEQUAL);
+          break;
+      }
+//      //glPushAttrib(GL_COLOR_BUFFER_BIT);
       glEnable(GL_BLEND);
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
       for( size_t i = 0 ; i < _drawList._visualizationData.num_arrows ; i++) {
         _drawArrow( _drawList._visualizationData.arrows[i] );
