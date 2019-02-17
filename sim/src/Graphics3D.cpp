@@ -138,12 +138,6 @@ void Graphics3D::initializeGL() {
 
   // set clear color:
   glClearColor(clearColor[0], clearColor[1], clearColor[2], 0.f);
-  //std::cout << "[Graphics3D] Glut Init\n";
-  // char a = 'a';
-  // char * aptr = &a;
-
-  // glutInit(0,&aptr);
-  //std::cout << "[Graphics3D] Glut Init Complete\n";
 }
 
 /*-----------------------------------------*
@@ -482,8 +476,13 @@ void Graphics3D::_DrawContactForce(){
     for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
 
         glColor4f(0.8f, 0.0f, 0.f, 0.5f);
-        _drawArrow(_drawList.getGCPos(i)[0], _drawList.getGCPos(i)[1], _drawList.getGCPos(i)[2], 
-                scale * _drawList.getGCForce(i)[0], scale * _drawList.getGCForce(i)[1], scale * _drawList.getGCForce(i)[2] ,
+        Vec3<float> floatForce, floatPos;
+        for (size_t j = 0 ; j < 3 ; j++)
+        { 
+          floatPos(j) = _drawList.getGCPos(i)[j];
+          floatForce(j) = scale * _drawList.getGCForce(i)[j];
+        }
+        _drawArrow( floatPos, floatForce ,
                 .005, .015 , .04);
     }
     glPopAttrib();
@@ -512,12 +511,13 @@ void Graphics3D::_DrawContactPoint(){
 }
 
 
-void Graphics3D::_rotateZtoDirection(double dx, double dy, double dz)
+
+void Graphics3D::_rotateZtoDirection( const Vec3<float> & direction)
 {
-  double len = sqrt(dx*dx+dy*dy+dz*dz);
-  double dxn = dx/len;
-  double dyn = dy/len;
-  double dzn = dz/len;
+  float len = direction.norm();
+  float dxn = direction(0)/len;
+  float dyn = direction(1)/len;
+  float dzn = direction(2)/len;
   
   // Note: We need to create a rotation such that the z-axis points in the direction of the 'direction' argument
   //       Thus, we can realize the rotation with a pure x-y axial rotation
@@ -531,7 +531,7 @@ void Graphics3D::_rotateZtoDirection(double dx, double dy, double dz)
   const double sinTheta = sin(theta);
 
   // Exploit the special form of the rotation matrix (explained above) for find the axis of rotation
-  double rX,rY,rZ;
+  float rX,rY,rZ;
   if(theta > 0) { 
     rX = - dyn/sinTheta;
     rY =   dxn/sinTheta;
@@ -542,31 +542,28 @@ void Graphics3D::_rotateZtoDirection(double dx, double dy, double dz)
     rY = 0;
     rZ = 1;
   }
-  glRotated(RADTODEG * theta, rX, rY, rZ);
+  glRotatef(RADTODEG * theta, rX, rY, rZ);
 }
 
 void Graphics3D::_drawSphere(SphereVisualization & sphere)
 {
   static  GLUquadric* quad = gluNewQuadric();
   glPushMatrix();
-  glTranslatef(sphere.position[0], sphere.position[1], sphere.position[2]);
-  glColor4f(sphere.color[0], sphere.color[1], sphere.color[2], sphere.color[3]);
-  gluSphere(quad,sphere.radius, 16, 16);
+  _translate( sphere.position ); 
+  _setColor( sphere.color );
+   gluSphere(quad,sphere.radius, 16, 16);
   glPopMatrix();
 }
 
 void Graphics3D::_drawCone(ConeVisualization & cone)
 {
   static  GLUquadric* quad = gluNewQuadric();
-  double dx = cone.direction[0];
-  double dy = cone.direction[1];
-  double dz = cone.direction[2];
-  double len = sqrt(dx*dx + dy*dy + dz * dz);
-  glColor4f(cone.color[0], cone.color[1], cone.color[2], cone.color[3]);
-  glPushMatrix();
-  glTranslatef(cone.point_position[0], cone.point_position[1], cone.point_position[2]);
+  float len = cone.direction.norm();
   
-  _rotateZtoDirection(dx,dy,dz);
+  glPushMatrix();
+  _setColor( cone.color );
+  _translate( cone.point_position);
+  _rotateZtoDirection( cone.direction );
   const int detail = 32;
   gluCylinder(quad,0,cone.radius,len,detail,1);
   glPopMatrix();
@@ -575,9 +572,14 @@ void Graphics3D::_drawCone(ConeVisualization & cone)
 void Graphics3D::_drawBlock(BlockVisualization & box)
 {
   glPushMatrix();
-  glTranslatef(box.corner_position[0], box.corner_position[1], box.corner_position[2]);
-  glColor4f(box.color[0], box.color[1], box.color[2], box.color[3]);
-  glScalef(box.dimension[0], box.dimension[1], box.dimension[2]);
+  _translate(box.corner_position);
+  _setColor(box.color);
+  glRotatef(box.rpy(2),0,0,1);
+  glRotatef(box.rpy(1),0,1,0);
+  glRotatef(box.rpy(0),1,0,0);
+
+
+  glScalef(box.dimension(0), box.dimension(1), box.dimension(2) );
   glTranslatef(.5, .5 , .5);
   _DrawBox(1,1,1);
   glPopMatrix();
@@ -585,19 +587,18 @@ void Graphics3D::_drawBlock(BlockVisualization & box)
 
 void Graphics3D::_drawArrow(ArrowVisualization & arrow) 
 {
-  glColor4f( arrow.color[0], arrow.color[1], arrow.color[2], arrow.color[3]);
-  _drawArrow( arrow.base_position[0], arrow.base_position[1], arrow.base_position[2],
-              arrow.direction[0], arrow.direction[1], arrow.direction[2],
+  _setColor(arrow.color);
+  _drawArrow( arrow.base_position, arrow.direction,
               arrow.shaft_width, arrow.head_width, arrow.head_length);
 }
-void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength) 
+void Graphics3D::_drawArrow( const Vec3<float> & position, const Vec3<float> & direction ,float lineWidth, float headWidth, float headLength) 
 {
   
-  double len = sqrt(dx*dx + dy*dy + dz*dz);
+  double len = direction.norm();
   
   glPushMatrix();
-  glTranslatef(x0, y0, z0);
-  _rotateZtoDirection(dx, dy, dz);
+  _translate(position);
+  _rotateZtoDirection(direction);
     
   double cylinderLength = len;
   if (cylinderLength > headLength) {
@@ -609,10 +610,7 @@ void Graphics3D::_drawArrow(double x0, double y0, double z0, double dx, double d
   }
 
   const int detail = 32;
-
   static  GLUquadric* quad = gluNewQuadric();
-
-
 
   //glPolygonMode(GL_FRONT, GL_FILL);
   //Draw Cylinder

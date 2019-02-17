@@ -171,62 +171,42 @@ void SimulationBridge::runRobotControl() {
     {
       ConeVisualization cone;
       cone.radius = (j+1)/10.;
-      cone.direction[0] = 0;
-      cone.direction[1] = 0;
-      cone.direction[2] = .3*j+.2;
-      cone.point_position[0] = 3+j;
-      cone.point_position[1] = 3;
-      cone.point_position[2] = 0;
-      cone.color[0] = .4; cone.color[1] = .1; cone.color[2] = .2; cone.color[3]=.2;
+      cone.direction << 0, 0 , .3*j+.2;
+      cone.point_position <<  3+j, 3,  0;
+      cone.color << .4 , .1 ,  .2, .2;
       _sharedMemory().robotToSim.visualizationData.cones[j] = cone;
     }
 
     // boxes 
     _sharedMemory().robotToSim.visualizationData.num_blocks = 1;
     BlockVisualization block;
-    block.corner_position[0] = -5;
-    block.corner_position[1] =-5;
-    block.corner_position[2] = 0;
-    block.dimension[0] = 1;
-    block.dimension[1] = .2;
-    block.dimension[2] = .3;
-    block.color[0] = 1;
-    block.color[1] = 0 ;
-    block.color[2] = 0;
+    block.corner_position << -5, -5,  0;
+    block.dimension <<  1, .2, .3;
+    block.color<<  1,  0,  0, .3 ;
     _sharedMemory().robotToSim.visualizationData.blocks[0] = block;
 
 
     // Test Arrow Visualization
     _sharedMemory().robotToSim.visualizationData.num_arrows = 1;
 
-    _sharedMemory().robotToSim.visualizationData.arrows[0].base_position[0] = 1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].base_position[1] = 1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].base_position[2] = 1;
+    _sharedMemory().robotToSim.visualizationData.arrows[0].base_position << 1,1, 1;
 
-    _sharedMemory().robotToSim.visualizationData.arrows[0].direction[0] = 1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].direction[1] = 1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].direction[2] = 1;
+    _sharedMemory().robotToSim.visualizationData.arrows[0].direction << 1,1,1;
 
     _sharedMemory().robotToSim.visualizationData.arrows[0].head_width = 0.1;
     _sharedMemory().robotToSim.visualizationData.arrows[0].head_length = 0.2;
     _sharedMemory().robotToSim.visualizationData.arrows[0].shaft_width = 0.05;
 
-
-    _sharedMemory().robotToSim.visualizationData.arrows[0].color[0] = 0;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].color[1] = 1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].color[2] = 1;
-    _sharedMemory().robotToSim.visualizationData.arrows[0].color[3] = .6;
+    _sharedMemory().robotToSim.visualizationData.arrows[0].color << 0, 1 , 1, .6;
 
     // Test Path visualization
     PathVisualization path;
     path.num_points = 150;
     for (size_t j = 0 ; j < path.num_points ; j++)
     {
-      path.position[j][0] = j*2.0/ path.num_points;
-      path.position[j][1] = sin(j*10. / path.num_points);
-      path.position[j][2] = .5;
+      path.position[j] << j*2.0/ path.num_points, sin(j*10. / path.num_points) ,  .5;
     }
-    path.color[0] = 0; path.color[1] = 0; path.color[2] = 1; path.color[3] = 1;
+    path.color << 0 ,  0, 1 ,  1;
 
     _sharedMemory().robotToSim.visualizationData.num_paths = 1;
     _sharedMemory().robotToSim.visualizationData.paths[0] = path;

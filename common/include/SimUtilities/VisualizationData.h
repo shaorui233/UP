@@ -10,30 +10,31 @@
 #define VISUALIZATION_MAX_ITEMS 100
 #define VISUALIZATION_MAX_CHEETAHS 0
 
+#include "cppTypes.h"
 
 struct SphereVisualization
 {
-	double position[3];
-	double color[4];
+	Vec3<float> position;
+	Vec4<float> color;
 	double radius;
 };
 
 struct BlockVisualization
 {
-	double dimension[3];
-	double corner_position[3];
-	double rpy[3];
-	double color[4];
+	Vec3<float> dimension;
+	Vec3<float> corner_position;
+	Vec3<float> rpy;
+	Vec4<float> color;
 };
 
 struct ArrowVisualization
 {
-	double base_position[3];
-	double direction[3];
-	double color[4];
-	double head_width;
-	double head_length;
-	double shaft_width;
+	Vec3<float> base_position;
+	Vec3<float> direction;
+	Vec4<float> color;
+	float head_width;
+	float head_length;
+	float shaft_width;
 };
 
 struct CheetahVisualization
@@ -45,15 +46,15 @@ struct CheetahVisualization
 struct PathVisualization
 {
 	size_t num_points;
-	double color[4];
-	double position[VISUALIZATION_MAX_PATH_POINTS][3];
+	Vec4<float> color;
+	Vec3<float> position[VISUALIZATION_MAX_PATH_POINTS];
 };
 
 struct ConeVisualization
 {
-	double point_position[3];
-	double direction[3];
-	double color[4];
+	Vec3<float> point_position;
+	Vec3<float> direction;
+	Vec4<float> color;
 	double radius;
 };
 

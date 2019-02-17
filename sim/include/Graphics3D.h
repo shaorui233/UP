@@ -99,9 +99,10 @@ private:
   void _drawBlock(BlockVisualization & box);
   void _drawSphere(SphereVisualization & sphere);
   void _drawCone(ConeVisualization & cone);
-  void _rotateZtoDirection(double dx, double dy, double dz);
-
-  void _drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength);
+  void _rotateZtoDirection( const Vec3<float> & direction);
+  void _setColor( const Vec4<float> & color ) { glColor4f(color(0), color(1), color(2), color(3) ); }
+  void _translate( const Vec3<float> & position ) { glTranslatef(position(0), position(1), position(2)); }
+  void _drawArrow( const Vec3<float> & base, const Vec3<float> & direction ,float lineWidth, float headWidth, float headLength);
   bool _animating;
 
   // attributes for shader program
