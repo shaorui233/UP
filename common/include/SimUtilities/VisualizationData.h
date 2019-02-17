@@ -45,7 +45,7 @@ struct CheetahVisualization
 
 struct PathVisualization
 {
-	size_t num_points;
+	size_t num_points = 0;
 	Vec4<float> color;
 	Vec3<float> position[VISUALIZATION_MAX_PATH_POINTS];
 };
