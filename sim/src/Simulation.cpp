@@ -724,13 +724,13 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
                     height_map_vec.push_back(tmp);
                     ++j;
                 }
-                x_len = j;
+                y_len = j;
                 height_map_2d.push_back(height_map_vec);
                 height_map_vec.clear();
-                //printf("x len: %d\n", x_len);
+                //printf("y len: %d\n", y_len);
                 ++i;
             }
-            y_len = i;
+            x_len = i;
 
         }else{
             paramHandler.get2DArray(key, "height_map", height_map_2d);
