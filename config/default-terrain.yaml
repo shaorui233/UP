@@ -57,12 +57,16 @@ mesh-1:
     mu: 0.7
     restitution: 0
     transparent: 1
-    grid: 0.03
-    left_corner_loc: [-6.3, -4.7, 0.07]
-    #left_corner_loc: [.5, -.45, -0.5]
+    grid: 0.005
+    #grid: 0.03
+    #left_corner_loc: [-6.3, -4.7, 0.07]
+    left_corner_loc: [-0.2, -0.3, -0.43]
     heightmap_file: true
     #heightmap_file: false 
-    heightmap_file_name: "heightmap_demo.txt"
+    #heightmap_file_name: "heightmap_demo.txt"
+    #heightmap_file_name: "heightmap.txt"
+    #heightmap_file_name: "../optimization/optimization_data/2019-02-20-13_09_26/HeightMap.txt"
+    heightmap_file_name: "../optimization/optimization_data/2019-02-20-11_11_36/HeightMap.txt"
     height_map: 
         [ [0.010, 0.010,  0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 
         0.010, 0.010,  0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010, 0.010,

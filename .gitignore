@@ -11,3 +11,4 @@ lcm-types/wincontrollerlcm
 lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
+optimization_data
