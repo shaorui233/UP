@@ -6,6 +6,7 @@
 #include <WBC_state/TaskSet/LinkPosTask.hpp>
 #include <WBC_state/TaskSet/BodyOriTask.hpp>
 #include <WBC_state/TaskSet/BodyPosTask.hpp>
+#include <WBC_state/OptInterpreter.hpp>
 
 #include <WBLC/KinWBC.hpp>
 #include <WBLC/WBLC.hpp>
@@ -193,21 +194,14 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     if(!b_set_height_target_) { printf("No Height Command\n"); exit(0); }
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    Vec3<T> des_pos; des_pos.setZero();
-    for(size_t i(0); i<2; ++i){
-        des_pos[i] = smooth_change(_ini_body_target[i], 
-                _sp->_body_target[i], end_time_, Ctrl::state_machine_time_);
-        vel_des[i] = smooth_change_vel(_ini_body_target[i], 
-                _sp->_body_target[i], end_time_, Ctrl::state_machine_time_);
-        acc_des[i] = smooth_change_acc(_ini_body_target[i], 
-                _sp->_body_target[i], end_time_, Ctrl::state_machine_time_);
 
-        //des_pos[i] = smooth_change(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
-        //vel_des[i] = smooth_change_vel(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
-        //acc_des[i] = smooth_change_acc(_ini_body_pos[i], (T)0., end_time_, Ctrl::state_machine_time_);
-     }
-    des_pos[2] = target_body_height_;
-
+    if(_sp->_opt_play){
+        OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
+                _sp->curr_time_, _sp->_body_target, vel_des, acc_des);
+    }else{
+        _sp->_body_target[2] = _body_height_cmd;
+    }
+    Vec3<T> des_pos = _sp->_body_target;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation
@@ -219,9 +213,14 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
     // set Foot trajectory
-    _GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::state_machine_time_,
+    //_GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::state_machine_time_, 
+            //_foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
+    //_GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::state_machine_time_, 
+            //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
+
+    _GetBsplineSwingTrajectory(Ctrl::state_machine_time_, _foot_traj_1,
             _foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
-    _GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::state_machine_time_,
+    _GetBsplineSwingTrajectory(Ctrl::state_machine_time_, _foot_traj_2, 
             _foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
 
     _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
@@ -275,36 +274,104 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
 
     _target_loc1 = _default_target_foot_loc_1;
     _target_loc2 = _default_target_foot_loc_2;
-    
-    _target_loc1 += _sp->_local_frame_global_pos;
-    _target_loc2 += _sp->_local_frame_global_pos;
-    _sp->_body_target = _sp->_local_frame_global_pos;
-    
-    //_target_loc1.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
-    //_target_loc2.head(2) += Ctrl::robot_sys_->_state.bodyPosition.head(2);
 
-
-    _dir_command[0] = 0.22 * _sp->_dir_command[0];
-    _dir_command[1] = 0.08 * _sp->_dir_command[1];
-
-    _ini_body_target = _sp->_body_target;
-    _sp->_body_target[0] += 0.4 *_dir_command[0];
-    _sp->_body_target[1] += 0.6 * _dir_command[1];
-
-    if(_sp->_dir_command[0] > 0.){
-        _target_loc1[0] += _dir_command[0];
-        _target_loc2[0] += 0.4*_dir_command[0];
+    if(_sp->_opt_play){
+        for(int i(0); i<3; ++i){
+        _target_loc1[i] = 
+            OptInterpreter<T>::getOptInterpreter()->_foot_step_list[_sp->_num_step][i];
+        _target_loc2[i] = 
+            OptInterpreter<T>::getOptInterpreter()->_foot_step_list[_sp->_num_step][i+3];
+        }
     }else{
-        _target_loc1[0] += 0.4 * _dir_command[0];
-        _target_loc2[0] += _dir_command[0];
+        _target_loc1 += _sp->_local_frame_global_pos;
+        _target_loc2 += _sp->_local_frame_global_pos;
+        _sp->_body_target = _sp->_local_frame_global_pos;
+
+
+        _dir_command[0] = 0.12 * _sp->_dir_command[0];
+        _dir_command[1] = 0.05 * _sp->_dir_command[1];
+
+        _ini_body_target = _sp->_body_target;
+        _sp->_body_target[0] += 0.4 *_dir_command[0];
+        _sp->_body_target[1] += 0.6 * _dir_command[1];
+
+        if(_sp->_dir_command[0] > 0.){
+            _target_loc1[0] += _dir_command[0];
+            _target_loc2[0] += 0.4*_dir_command[0];
+        }else{
+            _target_loc1[0] += 0.4 * _dir_command[0];
+            _target_loc2[0] += _dir_command[0];
+        }
+
+        _target_loc1[1] += _dir_command[1];
+        _target_loc2[1] += _dir_command[1];
     }
 
-    _target_loc1[1] += _dir_command[1];
-    _target_loc2[1] += _dir_command[1];
+    _target_loc1 += _landing_offset;
+    _target_loc2 += _landing_offset;
+
+    _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
+    _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
     //pretty_print(_target_loc1, std::cout, "target loc 1");
     //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
+
+template<typename T>
+void TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des_pos, 
+        BS_Basic<double, 3, 3, 1, 2, 2> & spline){
+    // Trajectory Setup
+    double init[9];
+    double fin[9];
+    double** middle_pt = new double*[1];
+    middle_pt[0] = new double[3];
+    Vec3<T> middle_pos;
+
+    middle_pos = (st_pos + des_pos)/2.;
+    middle_pos[2] = _swing_height + std::max(st_pos[2], des_pos[2]);
+
+    // Initial and final position & velocity & acceleration
+    for(int i(0); i<3; ++i){
+        // Initial
+        init[i] = st_pos[i];
+        init[i+3] = 0.;
+        init[i+6] = 0.;
+        // Final
+        fin[i] = des_pos[i];
+        fin[i+3] = 0.;
+        fin[i+6] = 0.;
+        // Middle
+        middle_pt[0][i] = middle_pos[i];
+    }
+    // TEST
+    fin[5] = -0.05;
+    fin[8] = 5.;
+    spline.SetParam(init, fin, middle_pt, end_time_);
+
+    delete [] *middle_pt;
+    delete [] middle_pt;    
+}
+
+template<typename T>
+void TwoLegSwingCtrl<T>::_GetBsplineSwingTrajectory(const T & t, 
+        BS_Basic<double, 3, 3, 1, 2, 2> & spline,
+        Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des){
+
+    double pos[3];
+    double vel[3];
+    double acc[3];
+    
+    spline.getCurvePoint(t, pos);
+    spline.getCurveDerPoint(t, 1, vel);
+    spline.getCurveDerPoint(t, 2, acc);
+
+    for(int i(0); i<3; ++i){
+        pos_des[i] = pos[i];
+        vel_des[i] = vel[i];
+        acc_des[i] = acc[i];
+    }
+}
+ 
 
 template <typename T>
 void TwoLegSwingCtrl<T>::LastVisit(){
@@ -321,23 +388,38 @@ bool TwoLegSwingCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
-    ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
-
-    // Feedback Gain
+void TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
+    ParamHandler handler(_test_file_name);
     std::vector<T> tmp_vec;
-
-    handler.getVector<T>("default_target_foot_location_1", tmp_vec);
+    
+    handler.getVector<T>(category_name, "default_target_foot_location_1", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _default_target_foot_loc_1[i] = tmp_vec[i];
     }
-    handler.getVector<T>("default_target_foot_location_2", tmp_vec);
+    handler.getVector<T>(category_name, "default_target_foot_location_2", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _default_target_foot_loc_2[i] = tmp_vec[i];
     }
+    handler.getValue<T>(category_name, "swing_height", _swing_height);
 
-    handler.getValue<T>("swing_height", _swing_height);
+    // TEST 
+    handler.getVector<T>(category_name, "landing_offset", tmp_vec);
+    pretty_print(tmp_vec, "landing offset");
+    for(size_t i(0); i<3; ++i) _landing_offset[i] = tmp_vec[i];
+}
 
+
+template <typename T>
+void TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
+    _test_file_name = test_file;
+    ParamHandler handler(_test_file_name);
+    if(handler.getValue<T>("body_height", _body_height_cmd)){
+        b_set_height_target_ = true;
+    }
+    handler.getValue<T>("swing_time", end_time_);
+
+    // Feedback Gain
+    std::vector<T> tmp_vec;
     handler.getVector<T>("Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kp_[i] = tmp_vec[i];
@@ -346,16 +428,7 @@ void TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & setting_file_nam
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
-}
-
-
-template <typename T>
-void TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
-    ParamHandler handler(test_file);
-    if(handler.getValue<T>("body_height", target_body_height_)){
-        b_set_height_target_ = true;
-    }
-    handler.getValue<T>("swing_time", end_time_);
+    
 }
 
 template class TwoLegSwingCtrl<double>;

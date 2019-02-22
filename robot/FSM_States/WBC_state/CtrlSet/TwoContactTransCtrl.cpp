@@ -6,6 +6,7 @@
 #include <WBC_state/TaskSet/LinkPosTask.hpp>
 #include <WBC_state/TaskSet/BodyOriTask.hpp>
 #include <WBC_state/TaskSet/BodyPosTask.hpp>
+#include <WBC_state/OptInterpreter.hpp>
 
 #include <WBLC/KinWBC.hpp>
 #include <WBLC/WBLC.hpp>
@@ -131,7 +132,7 @@ void TwoContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
             des_jacc_cmd, 
             gamma, wblc_data_);
 
-    //pretty_print(wblc_data_->Fr_, std::cout, "reaction force");
+   //pretty_print(wblc_data_->Fr_, std::cout, "reaction force");
 }
 
 template <typename T>
@@ -144,16 +145,14 @@ void TwoContactTransCtrl<T>::_task_setup(){
     if(!b_set_height_target_) { printf("No Height Command\n"); exit(0); }
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    Vec3<T> des_pos = ini_body_pos_;
-    if(_transit_dir > 0){ // IF swing initiating
-        des_pos = Ctrl::robot_sys_->_state.bodyPosition;
-    }else { // IF swing ends (the initial desired must be zero)
-        //T alpha(Ctrl::state_machine_time_/end_time_); //0->1
-        //_sp->_body_target *= (1. -alpha);
-        des_pos = _sp->_body_target;
-    }
-    des_pos[2] = target_body_height_;
 
+    if(_sp->_opt_play){
+        OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
+                _sp->curr_time_, _sp->_body_target, vel_des, acc_des);
+    }else{
+        _sp->_body_target[2] = _body_height_cmd;
+    }
+    Vec3<T> des_pos = _sp->_body_target;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation
@@ -252,10 +251,23 @@ bool TwoContactTransCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void TwoContactTransCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
-    ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
-    handler.getValue<T>("max_rf_z", max_rf_z_);
-    handler.getValue<T>("min_rf_z", min_rf_z_);
+void TwoContactTransCtrl<T>::CtrlInitialization(const std::string & category_name){
+    //ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
+    ParamHandler handler(_test_file_name);
+    handler.getValue<T>(category_name, "max_rf_z", max_rf_z_);
+    handler.getValue<T>(category_name, "min_rf_z", min_rf_z_);
+
+    
+}
+
+template <typename T>
+void TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file){
+    _test_file_name = test_file;
+    ParamHandler handler(_test_file_name);
+    if(handler.getValue<T>("body_height", _body_height_cmd)){
+        b_set_height_target_ = true;
+    }
+    handler.getValue<T>("transition_time", end_time_);
 
     // Feedback Gain
     std::vector<T> tmp_vec;
@@ -266,17 +278,7 @@ void TwoContactTransCtrl<T>::CtrlInitialization(const std::string & setting_file
     handler.getVector<T>("Kd", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
-    }
-}
-
-template <typename T>
-void TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file){
-    ParamHandler handler(test_file);
-    if(handler.getValue<T>("body_height", target_body_height_)){
-        b_set_height_target_ = true;
-    }
-    handler.getValue<T>("transition_time", end_time_);
-}
+    }}
 
 template class TwoContactTransCtrl<double>;
 template class TwoContactTransCtrl<float>;

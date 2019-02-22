@@ -56,7 +56,7 @@ class TwoContactTransCtrl: public Controller<T>{
 
         bool b_set_height_target_;
         T end_time_;
-        T target_body_height_;
+        T _body_height_cmd;
         T ini_body_height_;
         Vec3<T> ini_body_pos_;
         
@@ -70,6 +70,7 @@ class TwoContactTransCtrl: public Controller<T>{
         void _compute_torque_wblc(DVec<T> & gamma);
 
         Cheetah_StateProvider<T>* _sp;
+        std::string _test_file_name;
 };
 
 #endif

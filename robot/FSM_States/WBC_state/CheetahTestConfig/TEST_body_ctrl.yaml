@@ -5,4 +5,20 @@ body_height: 0.2
 body_lifting_time: 1.0
 stance_time: 10000.
 
+Kp: [ 100, 100, 100, 
+      100, 100, 100, 
+      100, 100, 100, 
+      100, 100, 100 ]
+
+Kd: [ 5., 5., 5., 
+      5., 5., 5., 
+      5., 5., 5., 
+      5., 5., 5. ]
+
+CTRL_move_to_target_height:
+    max_rf_z: 50
+    min_rf_z: 3
+
+CTRL_fix_stance:
+
 

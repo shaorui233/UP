@@ -12,7 +12,9 @@ Cheetah_StateProvider<T>::Cheetah_StateProvider():
     Qdot_(cheetah::dim_config),
     _jpos_des_pre(cheetah::num_act_joint),
     _num_contact(2),
-    curr_time_(0.)
+    curr_time_(0.),
+    _num_step(-1),
+    _opt_play(false)
 {
     _contact_pt[0] = linkID::FL;
     _contact_pt[1] = linkID::HR;

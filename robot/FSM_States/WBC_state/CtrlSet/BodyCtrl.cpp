@@ -6,6 +6,7 @@
 #include <WBC_state/TaskSet/LinkPosTask.hpp>
 #include <WBC_state/TaskSet/BodyOriTask.hpp>
 #include <WBC_state/TaskSet/BodyPosTask.hpp>
+#include <WBC_state/OptInterpreter.hpp>
 
 #include <WBLC/KinWBC.hpp>
 #include <WBLC/WBLC.hpp>
@@ -141,8 +142,19 @@ void BodyCtrl<T>::_task_setup(){
     DVec<T> acc_des(3); acc_des.setZero();
     //Vec3<T> des_pos = ini_body_pos_;
     //Vec3<T> des_pos = Ctrl::robot_sys_->_state.bodyPosition;
+    //_sp->_body_target[0] = 
+        //Ctrl::robot_sys_->_state.bodyPosition[0] + _sp->_dir_command[0]*cheetah::servo_rate;
+    //_sp->_body_target[1] = 
+    //Ctrl::robot_sys_->_state.bodyPosition[1] + _sp->_dir_command[1]*cheetah::servo_rate;
+
+    if(_sp->_opt_play){
+        OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
+                _sp->curr_time_, _sp->_body_target, vel_des, acc_des);
+    }else{
+        _sp->_body_target[2] = body_height_cmd;
+    }
+
     Vec3<T> des_pos = _sp->_body_target;
-    des_pos[2] = body_height_cmd;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation
@@ -193,11 +205,20 @@ bool BodyCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void BodyCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
+void BodyCtrl<T>::CtrlInitialization(const std::string & category_name){
     jpos_ini_ = Ctrl::robot_sys_->_state.q;
-
     ini_body_pos_ = Ctrl::robot_sys_->_state.bodyPosition;
-    ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
+
+    (void)category_name;
+}
+
+template <typename T>
+void BodyCtrl<T>::SetTestParameter(const std::string & test_file){
+    ParamHandler handler(test_file);
+    if(handler.getValue<T>("body_height", target_body_height_)){
+        b_set_height_target_ = true;
+    }
+    handler.getValue<T>("stance_time", end_time_);
 
     std::vector<T> tmp_vec;
     // Feedback Gain
@@ -209,15 +230,6 @@ void BodyCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
-}
-
-template <typename T>
-void BodyCtrl<T>::SetTestParameter(const std::string & test_file){
-    ParamHandler handler(test_file);
-    if(handler.getValue<T>("body_height", target_body_height_)){
-        b_set_height_target_ = true;
-    }
-    handler.getValue<T>("stance_time", end_time_);
 }
 
 template class BodyCtrl<double>;

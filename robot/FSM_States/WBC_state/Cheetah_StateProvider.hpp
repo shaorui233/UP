@@ -24,6 +24,11 @@ public:
 
   T _dir_command[2];
   Vec3<T> _body_target;
+
+  // For optimization replay
+  int _num_step;
+  bool _opt_play;
+  DVec<T> upcoming_step_pos;
 private:
   Cheetah_StateProvider();
 };

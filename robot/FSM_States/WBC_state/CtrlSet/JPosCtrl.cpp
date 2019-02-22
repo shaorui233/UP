@@ -7,7 +7,7 @@
 #include <ParamHandler/ParamHandler.hpp>
 #include <Utilities/utilities.h>
 
-template <typename T>
+    template <typename T>
 JPosCtrl<T>::JPosCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
     Kp_(cheetah::num_act_joint),
     Kd_(cheetah::num_act_joint),
@@ -18,9 +18,10 @@ JPosCtrl<T>::JPosCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
     end_time_(1000.0),
     dim_contact_(0),
     ctrl_start_time_(0.),
-    _jpos_target(cheetah::num_act_joint)
+    _jpos_target(cheetah::num_act_joint),
+    _move_to_target(true)
 {
-   
+
     contact_ = new FixedBodyContact<T>();
 
     Ctrl::contact_list_.push_back(contact_);
@@ -28,7 +29,7 @@ JPosCtrl<T>::JPosCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
 
     wblc_ = new WBLC<T>(cheetah::dim_config, Ctrl::contact_list_);
     wblc_data_ = new WBLC_ExtraData<T>();
- 
+
     wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, 100.0);
     wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, 0.1);
     wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, 1000.0);
@@ -63,7 +64,7 @@ void JPosCtrl<T>::OneStep(void* _cmd){
     Ctrl::state_machine_time_ = sp_->curr_time_ - ctrl_start_time_;
 
     DVec<T> gamma = DVec<T>::Zero(cheetah::num_act_joint);
-    
+
     _contact_setup();
     _task_setup();
     _compute_torque_wblc(gamma);
@@ -101,14 +102,18 @@ void JPosCtrl<T>::_task_setup(){
     des_jvel_.setZero();
     des_jacc_.setZero();
 
-    for(size_t i(0); i<cheetah::num_act_joint; ++i){
-        des_jpos_[i] = smooth_change(jpos_ini_[i], _jpos_target[i], end_time_,
-                Ctrl::state_machine_time_);
-        des_jvel_[i] = smooth_change_vel(jpos_ini_[i], _jpos_target[i], end_time_,
-                Ctrl::state_machine_time_);
-        des_jacc_[i] = smooth_change_acc(jpos_ini_[i], _jpos_target[i], end_time_,
-                Ctrl::state_machine_time_);
-      }
+    if(_move_to_target){
+        for(size_t i(0); i<cheetah::num_act_joint; ++i){
+            des_jpos_[i] = smooth_change(jpos_ini_[i], _jpos_target[i], end_time_,
+                    Ctrl::state_machine_time_);
+            des_jvel_[i] = smooth_change_vel(jpos_ini_[i], _jpos_target[i], end_time_,
+                    Ctrl::state_machine_time_);
+            des_jacc_[i] = smooth_change_acc(jpos_ini_[i], _jpos_target[i], end_time_,
+                    Ctrl::state_machine_time_);
+        }
+    }else{
+        des_jpos_ = _jpos_target;
+    }
 }
 
 template <typename T>
@@ -138,10 +143,23 @@ bool JPosCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void JPosCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
-    ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
+void JPosCtrl<T>::CtrlInitialization(const std::string & category_name){
+    ParamHandler handler(_test_file_name);
+    handler.getValue<T>(category_name, "move_time", end_time_);
+    handler.getBoolean(category_name, "moving_to_target", _move_to_target);
+}
+
+template <typename T>
+void JPosCtrl<T>::SetTestParameter(const std::string & test_file){
+    ParamHandler handler(test_file);
+    _test_file_name = test_file;
 
     std::vector<T> tmp_vec;
+    handler.getVector<T>("target_jpos", tmp_vec);
+    for(size_t i(0); i<cheetah::num_act_joint; ++i) _jpos_target[i] = tmp_vec[i];
+
+    b_set_target_ = true;
+
     // Feedback Gain
     handler.getVector<T>("Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
@@ -151,17 +169,6 @@ void JPosCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
-}
-
-template <typename T>
-void JPosCtrl<T>::SetTestParameter(const std::string & test_file){
-    ParamHandler handler(test_file);
-
-    std::vector<T> tmp_vec;
-    handler.getVector<T>("target_jpos", tmp_vec);
-    for(size_t i(0); i<cheetah::num_act_joint; ++i) _jpos_target[i] = tmp_vec[i];
-
-    b_set_target_ = true;
 }
 
 

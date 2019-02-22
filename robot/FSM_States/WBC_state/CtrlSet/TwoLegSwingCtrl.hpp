@@ -2,6 +2,7 @@
 #define TWO_SWING_CHEETAH
 
 #include <WBC_state/Controller.hpp>
+#include <Utilities/BSplineBasic.h>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBLC;
@@ -28,12 +29,17 @@ class TwoLegSwingCtrl: public Controller<T>{
                 const Vec3<T> & ini, const Vec3<T> & fin, const T & t, 
                 Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des);
 
+        void _GetBsplineSwingTrajectory(const T & t, BS_Basic<double, 3, 3, 1, 2, 2> & spline,
+                Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des);
+        void _SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des_pos, 
+                BS_Basic<double, 3, 3, 1, 2, 2> & spline);
         void _SetContact(const size_t & cp_idx, const T & upper_lim, 
                 const T & rf_weight, const T & rf_weight_z, const T & foot_weight);
 
         size_t _cp1, _cp2;
         Vec3<T> _default_target_foot_loc_1;
         Vec3<T> _default_target_foot_loc_2;
+        Vec3<T> _landing_offset;
         T _swing_height;
 
         Task<T>* _cp_pos_task1;
@@ -77,7 +83,7 @@ class TwoLegSwingCtrl: public Controller<T>{
 
         bool b_set_height_target_;
         T end_time_;
-        T target_body_height_;
+        T _body_height_cmd;
         T ini_body_height_;
         Vec3<T> _ini_body_pos;
         Vec3<T> _ini_body_target;
@@ -93,6 +99,9 @@ class TwoLegSwingCtrl: public Controller<T>{
 
         Cheetah_StateProvider<T>* _sp;
         T _dir_command[2];
+        std::string _test_file_name;
+        BS_Basic<double, 3, 3, 1, 2, 2> _foot_traj_1;
+        BS_Basic<double, 3, 3, 1, 2, 2> _foot_traj_2;
 };
 
 #endif

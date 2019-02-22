@@ -20,8 +20,10 @@ class BodyCtrl: public Controller<T>{
         virtual void LastVisit();
         virtual bool EndOfPhase();
 
-        virtual void CtrlInitialization(const std::string & setting_file_name);
+        virtual void CtrlInitialization(const std::string & category_name);
         virtual void SetTestParameter(const std::string & test_file);
+
+        void SetStanceTime(const T & t){ end_time_ = t; }
 
     protected:
         DVec<T> Kp_, Kd_;

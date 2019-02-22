@@ -1,6 +1,6 @@
 ground-plane:
     type: "infinite-plane"
-    mu: 0.7
+    mu: 10.01
     restitution: 0
     height: -0.5
     graphicsSize: [20,20] # how large the plane appears
@@ -12,9 +12,9 @@ ground-plane:
     #restitution: 0
     #depth: 2
     #width: 1
-    #height: .5
-    #position:  [1,2,1]
-    #orientation: [0,.2,0]  # roll pitch yaw
+    #height: .01
+    #position:  [0,0,-0.5]
+    #orientation: [0,.0,0]  # roll pitch yaw
     #transparent: 1
 
 #stairs-1:

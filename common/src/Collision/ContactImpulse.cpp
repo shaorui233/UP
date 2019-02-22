@@ -25,8 +25,7 @@ void ContactImpulse<T>::UpdateQdot(FBModelState<T> & state){
                 CC::_cp_frame_list[i] * CC::_cp_local_force_list[i] / _dt;
 
             // Save the current local force for the next computation
-            //CC::_cp_local_force_list_pre[CC::_idx_list[i]] = 
-                //CC::_cp_local_force_list[i];
+            //pretty_print(CC::_cp_frame_list[i], std::cout, "cp frame list");
         }
     }
 }
@@ -109,9 +108,9 @@ void ContactImpulse<T>::_UpdateQdotOneDirection(
         size_t idx, const vectorAligned<D3Mat<T> > & Jc_list, 
         const T * lambda_list, 
         const vectorAligned<DVec<T> > AinvB_list, 
-        T * des_vel_list,
-        T * min_list, 
-        T * max_list, 
+        const T * des_vel_list,
+        const T * min_list, 
+        const T * max_list, 
         DVec<T> & qdot){
 
     T dforce, pre_force;
@@ -124,10 +123,18 @@ void ContactImpulse<T>::_UpdateQdotOneDirection(
                 std::max(min_list[i], std::min(pre_force + dforce, max_list[i]));
 
             dforce = CC::_cp_local_force_list[i][idx] - pre_force;
-            qdot += (AinvB_list[i] * dforce );
+           qdot += (AinvB_list[i] * dforce );
         }
     }
-}
+            //if(idx == 1){
+                //DMat<T> tmp = Jc_list[i].block(idx,0, 1, _nDof);
+                //pretty_print(tmp, std::cout, "Jc y");
+                //pretty_print(Jc_list[i], std::cout, "Jc");
+                //T vel = (Jc_list[i].block(idx,0, 1, _nDof) * qdot)(0,0);
+                //printf("dforce: %f, vel: %f \n", dforce, vel);
+                //dforce = -0.00001;
+            //} 
+ }
 
 template class ContactImpulse<double>;
 template class ContactImpulse<float>;

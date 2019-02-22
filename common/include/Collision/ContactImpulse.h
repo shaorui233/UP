@@ -13,23 +13,24 @@ class ContactImpulse: public ContactConstraint<T>{
         virtual ~ContactImpulse(){}
 
         virtual void UpdateExternalForces(T K, T D, T dt){
-            (void)K; (void)D; 
-            _penetration_recover_ratio = 0.0/dt;
+            (void)K; (void)D;
+            // Set penetration recovery ration here
+            _penetration_recover_ratio = 0.1 /dt;
             _dt = dt;
         }
         virtual void UpdateQdot(FBModelState<T> & state);
 
     protected:
-        T _penetration_recover_ratio = 0.0;
+        T _penetration_recover_ratio;
         size_t _nDof;
         void _UpdateVelocity(DVec<T> & qdot);
         void _UpdateQdotOneDirection(
                 size_t idx, const vectorAligned<D3Mat<T> > & Jc_list, 
                 const T * lambda_list, 
                 const vectorAligned<DVec<T> > AinvB_list, 
-                T * des_vel_list, 
-                T * min_list, 
-                T * max_list, 
+                const T * des_vel_list, 
+                const T * min_list, 
+                const T * max_list, 
                 DVec<T> & qdot);
     private:
         T _dt;

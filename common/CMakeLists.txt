@@ -51,5 +51,5 @@ target_link_libraries(biomimetics inih)
 # Test
 add_executable(test-common ${test_sources} ${sources})
 target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler)
-target_link_libraries(test-common Goldfarb_Optimizer)
+target_link_libraries(test-common Goldfarb_Optimizer nlopt)
 add_test(NAME example_test COMMAND test-common)

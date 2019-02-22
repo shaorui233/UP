@@ -64,6 +64,7 @@ class FullContactTransCtrl: public Controller<T>{
         void _compute_torque_wblc(DVec<T> & gamma);
 
         Cheetah_StateProvider<T>* sp_;
+        std::string _test_file_name;
 };
 
 #endif

@@ -10,6 +10,7 @@
 #include <WBC_state/TestSet/BodyCtrlTest.hpp>
 #include <WBC_state/TestSet/JPosCtrlTest.hpp>
 #include <WBC_state/TestSet/TrotTest.hpp>
+#include <WBC_state/TestSet/OptPlayTest.hpp>
 #include <Utilities/Utilities_print.h>
 
 template <typename T>
@@ -130,10 +131,13 @@ void Cheetah_interface<T>::_ParameterSetting(){
     std::string tmp_string;
     // Test SETUP
     handler.getString("test_name", tmp_string);
-    // Walking Test ***********************************
+    // Walking Test **************************************
     if(tmp_string == "trot_test"){
         _test = new TrotTest<T>(_robot);
-    // Body Ctrl Test ***********************************
+    // Optimization play Test ****************************
+    }else if(tmp_string == "opt_play_test"){
+        _test = new OptPlayTest<T>(_robot);
+     // Body Ctrl Test ***********************************
     }else if(tmp_string == "body_ctrl_test"){
         _test = new BodyCtrlTest<T>(_robot);    
     // JPos Ctrl Test ************************************

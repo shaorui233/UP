@@ -126,8 +126,7 @@ void FullContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     wblc_->MakeWBLC_Torque(
             des_jacc_cmd, 
             gamma, wblc_data_);
-
-    //pretty_print(wblc_data_->Fr_, std::cout, "Fr");
+    //pretty_print(wblc_data_->Fr_, std::cout, "fr full contact");
 }
 
 template <typename T>
@@ -140,6 +139,7 @@ void FullContactTransCtrl<T>::_task_setup(){
     if(!b_set_height_target_) { printf("No Height Command\n"); exit(0); }
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
+    
     T alpha = (Ctrl::state_machine_time_/end_time_);
     Vec3<T> des_pos = (1.-alpha) * ini_body_pos_ + alpha * sp_->_body_target;
     des_pos[2] = ini_body_pos_[2] + 
@@ -196,10 +196,21 @@ bool FullContactTransCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void FullContactTransCtrl<T>::CtrlInitialization(const std::string & setting_file_name){
-    ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
-    handler.getValue<T>("max_rf_z", max_rf_z_);
-    handler.getValue<T>("min_rf_z", min_rf_z_);
+void FullContactTransCtrl<T>::CtrlInitialization(const std::string & category_name){
+    ParamHandler handler(_test_file_name);
+    handler.getValue<T>(category_name, "max_rf_z", max_rf_z_);
+    handler.getValue<T>(category_name, "min_rf_z", min_rf_z_);
+}
+
+template <typename T>
+void FullContactTransCtrl<T>::SetTestParameter(
+        const std::string & test_file){
+    _test_file_name = test_file;
+    ParamHandler handler(_test_file_name);
+    if(handler.getValue<T>("body_height", target_body_height_)){
+        b_set_height_target_ = true;
+    }
+    handler.getValue<T>("body_lifting_time", end_time_);
 
     // Feedback Gain
     std::vector<T> tmp_vec;
@@ -211,17 +222,6 @@ void FullContactTransCtrl<T>::CtrlInitialization(const std::string & setting_fil
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
-}
-
-template <typename T>
-void FullContactTransCtrl<T>::SetTestParameter(
-        const std::string & test_file){
-    ParamHandler handler(test_file);
-    if(handler.getValue<T>("body_height", target_body_height_)){
-        b_set_height_target_ = true;
-    }
-    handler.getValue<T>("body_lifting_time", end_time_);
-
 }
 template class FullContactTransCtrl<double>;
 template class FullContactTransCtrl<float>;

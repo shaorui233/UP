@@ -31,7 +31,7 @@ template <typename T>
 void JPosCtrlTest<T>::TestInitialization(){
   // Yaml file name
   ini_jpos_ctrl_->CtrlInitialization("CTRL_jpos_move_to_target");
-  jpos_swing_->CtrlInitialization("CTRL_jpos_swing");
+  jpos_swing_->CtrlInitialization("CTRL_jpos_stay");
 }
 
 template <typename T>
@@ -46,15 +46,6 @@ int JPosCtrlTest<T>::_NextPhase(const int & phase){
 
 template <typename T>
 void JPosCtrlTest<T>::_SettingParameter(){
-  ParamHandler handler(CheetahConfigPath"TEST_jpos_ctrl.yaml");
-  T tmp(0.);
- 
-  // Stance Time
-  handler.getValue<T>("ini_jpos_move_time", tmp);
-  ((JPosCtrl<T>*)ini_jpos_ctrl_)->setMovingTime(tmp);
-  handler.getValue<T>("swing_time", tmp);
-  ((JPosCtrl<T>*)jpos_swing_)->setMovingTime(tmp);
-
   typename std::vector< Controller<T> *>::iterator iter = Test<T>::state_list_.begin();
   while(iter < Test<T>::state_list_.end()){
       (*iter)->SetTestParameter(

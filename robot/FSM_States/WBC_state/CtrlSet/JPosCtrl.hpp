@@ -21,7 +21,7 @@ class JPosCtrl: public Controller<T>{
         virtual void LastVisit();
         virtual bool EndOfPhase();
 
-        virtual void CtrlInitialization(const std::string & setting_file_name);
+        virtual void CtrlInitialization(const std::string & category_name);
         virtual void SetTestParameter(const std::string & test_file);
 
         void setMovingTime(T time) { end_time_ = time; }
@@ -52,6 +52,8 @@ class JPosCtrl: public Controller<T>{
         void _compute_torque_wblc(DVec<T> & gamma);
 
         Cheetah_StateProvider<T>* sp_;
+        std::string _test_file_name;
+        bool _move_to_target;
 };
 
 #endif
