@@ -17,8 +17,7 @@ template <typename T>
 Cheetah_interface<T>::Cheetah_interface(FloatingBaseModel<T> * robot):
     _robot(robot),
     count_(0),
-    waiting_count_(10),
-    running_time_(0.)
+    waiting_count_(10)
 {
     _sp = Cheetah_StateProvider<T>::getStateProvider();
     _ParameterSetting();
@@ -45,6 +44,11 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     for(size_t i(0); i<4; ++i){
         _state.bodyOrientation[i] = data->body_ori[i];
     }
+    _sp->Q_[cheetah::dim_config] = _state.bodyOrientation[0];
+    _sp->Q_[0] = _state.bodyOrientation[1];
+    _sp->Q_[1] = _state.bodyOrientation[2];
+    _sp->Q_[2] = _state.bodyOrientation[3];
+
 
     _state.bodyPosition.setZero();
     _state.bodyVelocity.setZero();
@@ -62,24 +66,15 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     for(size_t i(0); i<_sp->_num_contact; ++i){
         ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
     }
-    
-    //for(size_t i(0); i<_robot->_pGC.size(); ++i){
-    //pretty_print(_robot->_pGC[i], std::cout, "contact position ");
-    //}
-    //pretty_print(_robot->_pGC[linkID::FR], std::cout, "FR");
-    //pretty_print(_robot->_pGC[linkID::FL], std::cout, "FL");
-    //pretty_print(_robot->_pGC[linkID::HR], std::cout, "HR");
-    //pretty_print(_robot->_pGC[linkID::HL], std::cout, "HL");
-
-    //pretty_print(_state.bodyOrientation, std::cout, "body ori");
-    //pretty_print(data->body_ori, "data body ori", 4);
-
-    //printf("joystick command: %f, %f \n", data->dir_command[0], data->dir_command[1]);
     _sp->_dir_command[0] = data->dir_command[0];
     _sp->_dir_command[1] = data->dir_command[1];
     _state.bodyPosition = -ave_foot;
     _state.bodyPosition += _sp->_local_frame_global_pos;
-    
+   
+    _sp->Q_[3] = _state.bodyPosition[0];
+    _sp->Q_[4] = _state.bodyPosition[1];
+    _sp->Q_[5] = _state.bodyPosition[2];
+  
     // Update with new body position
     _robot->setState(_state);
     _robot->forwardKinematics();
@@ -96,10 +91,9 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
         _test->getCommand(command);
     }
     
-   running_time_ = (T)(count_) * cheetah::servo_rate;
     ++count_;
     // When there is sensed time
-    _sp->curr_time_ = running_time_;
+    _sp->curr_time_ += cheetah::servo_rate;
 }
 
 template <typename T>

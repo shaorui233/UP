@@ -344,7 +344,7 @@ void TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des
         middle_pt[0][i] = middle_pos[i];
     }
     // TEST
-    fin[5] = -0.05;
+    fin[5] = 0.0;
     fin[8] = 5.;
     spline.SetParam(init, fin, middle_pt, end_time_);
 

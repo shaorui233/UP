@@ -126,15 +126,7 @@ void ContactImpulse<T>::_UpdateQdotOneDirection(
            qdot += (AinvB_list[i] * dforce );
         }
     }
-            //if(idx == 1){
-                //DMat<T> tmp = Jc_list[i].block(idx,0, 1, _nDof);
-                //pretty_print(tmp, std::cout, "Jc y");
-                //pretty_print(Jc_list[i], std::cout, "Jc");
-                //T vel = (Jc_list[i].block(idx,0, 1, _nDof) * qdot)(0,0);
-                //printf("dforce: %f, vel: %f \n", dforce, vel);
-                //dforce = -0.00001;
-            //} 
- }
+}
 
 template class ContactImpulse<double>;
 template class ContactImpulse<float>;

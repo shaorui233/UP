@@ -256,8 +256,6 @@ void TwoContactTransCtrl<T>::CtrlInitialization(const std::string & category_nam
     ParamHandler handler(_test_file_name);
     handler.getValue<T>(category_name, "max_rf_z", max_rf_z_);
     handler.getValue<T>(category_name, "min_rf_z", min_rf_z_);
-
-    
 }
 
 template <typename T>

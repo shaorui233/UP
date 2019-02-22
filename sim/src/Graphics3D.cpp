@@ -61,6 +61,23 @@ Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(fals
                                           _frame(0), _v0(0, 0, 0), _freeCamFilter(1, 60, _v0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
 
+    // 0   ~ 1/8:  0.2422    0.1504    0.6603
+    // 1/8 ~ 2/8:  0.2810    0.3228    0.9579
+    // 2/8 ~ 3/8: 0.1786    0.5289    0.9682
+    // 3/8 ~ 4/8: 0.0689    0.6948    0.8394
+    // 4/8 ~ 5/8: 0.2161    0.7843    0.5923
+    // 5/8 ~ 6/8: 0.6720    0.7793    0.2227
+    // 6/8 ~ 7/8: 0.9970    0.7659    0.2199
+    // 7/8 ~ 1  : 0.9769    0.9839    0.0805
+  _r[0] = 0.2422;    _g[0]= 0.1504;    _b[0] = 0.6603;
+  _r[1] = 0.2810;    _g[1]= 0.3228;    _b[1] = 0.9579;
+  _r[2] = 0.1786;    _g[2]= 0.5289;    _b[2] = 0.9682;
+  _r[3] = 0.0689;    _g[3]= 0.6948;    _b[3] = 0.8394;
+  _r[4] = 0.2161;    _g[4]= 0.7843;    _b[4] = 0.5923;
+  _r[5] = 0.6720;    _g[5]= 0.7793;    _b[5] = 0.2227;
+  _r[6] = 0.9970;    _g[6]= 0.7659;    _b[6] = 0.2199;
+  _r[7] = 0.9769;    _g[7]= 0.9839;    _b[7] = 0.0805;
+
 
 
   //setSurfaceType(QWindow::OpenGLSurface);
@@ -360,6 +377,42 @@ void Graphics3D::_BoxObstacleDrawing(){
     glEnable(GL_LIGHTING);
     glPopAttrib();
 }
+
+void Graphics3D::getHeightColor(const double & h, float& r, float& g, float&b){
+    // 0 :  0.2422    0.1504    0.6603
+    // 1/7:  0.2810    0.3228    0.9579
+    // 2/7: 0.1786    0.5289    0.9682
+    // 3/7: 0.0689    0.6948    0.8394
+    // 4/7: 0.2161    0.7843    0.5923
+    // 5/7: 0.6720    0.7793    0.2227
+    // 6/7: 0.9970    0.7659    0.2199
+    //   1: 0.9769    0.9839    0.0805
+    double step(1./7.);
+    if(h > 6*step){ 
+        _SetRGBHeight(h, step, 6, r, g, b);
+    }else if (h > 5*step){
+        _SetRGBHeight(h, step, 5, r, g, b);
+    }else if (h > 4*step){
+        _SetRGBHeight(h, step, 4, r, g, b);
+    }else if (h > 3*step){
+        _SetRGBHeight(h, step, 3, r, g, b);
+    }else if (h > 2*step){
+        _SetRGBHeight(h, step, 2, r, g, b);
+    }else if (h > 1*step){
+        _SetRGBHeight(h, step, 1, r, g, b);
+    }else{
+        _SetRGBHeight(h, step, 0, r, g, b);
+    }
+}
+void Graphics3D::_SetRGBHeight(const double & h, const double & step, const int & idx, 
+        float & r, float & g, float & b){
+        double grade = ( h - idx*step)/step;
+        r = (_r[idx+1] - _r[idx])*grade + _r[idx]; 
+        g = (_g[idx+1] - _g[idx])*grade + _g[idx]; 
+        b = (_b[idx+1] - _b[idx])*grade + _b[idx]; 
+}
+
+
 void Graphics3D::_MeshObstacleDrawing(){
     glLoadMatrixf(_cameraMatrix.data());
     glPushAttrib(GL_LIGHTING_BIT);
@@ -369,6 +422,15 @@ void Graphics3D::_MeshObstacleDrawing(){
     glTranslatef(_drawList.getHeightMapLeftCorner()[0], 
             _drawList.getHeightMapLeftCorner()[1], _drawList.getHeightMapLeftCorner()[2]);
 
+    double height_min = -0.07;
+    double height_max = 0.04;
+    double height_gap = height_max - height_min;
+    double scaled_height(0.);
+
+    float color_r(0.f);
+    float color_g(0.f);
+    float color_b(0.f);
+ 
     double grid_size(_drawList.getGridSize());
     double height;
     for(int i(0); i<_drawList.getHeightMap().rows(); ++i){
@@ -378,7 +440,9 @@ void Graphics3D::_MeshObstacleDrawing(){
 
         for(int j(0); j<_drawList.getHeightMap().cols(); ++j){
             height = _drawList.getHeightMap()(i, j); 
-            glColor4f(height*1.5, 0.2, 1./(fabs(height)+0.05)*0.1, 0.7f);
+            scaled_height = (height-height_min)/height_gap;
+            getHeightColor(scaled_height, color_r, color_g, color_b);
+            glColor4f(color_r, color_g, color_b, 1.0f);
             glVertex3d(i*grid_size, j*grid_size, height );
         }
         glPopAttrib();
@@ -392,7 +456,9 @@ void Graphics3D::_MeshObstacleDrawing(){
 
         for(int i(0); i<_drawList.getHeightMap().rows(); ++i){
             height = _drawList.getHeightMap()(i, j); 
-            glColor4f(height*0.7, 0.3, 1./(height+0.05)*0.5, 0.7f);
+            scaled_height = (height-height_min)/height_gap;
+            getHeightColor(scaled_height, color_r, color_g, color_b);
+            glColor4f(color_r, color_g, color_b, 1.0f);
             glVertex3d(i*grid_size, j*grid_size, _drawList.getHeightMap()(i, j) );
         }
         glPopAttrib();

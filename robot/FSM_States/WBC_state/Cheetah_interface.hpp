@@ -22,7 +22,6 @@ class Cheetah_interface{
         FBModelState<T> _state;
         int count_;
         int waiting_count_;
-        T running_time_;
 
         Test<T>* _test;
 

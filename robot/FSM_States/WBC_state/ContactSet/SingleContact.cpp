@@ -13,22 +13,22 @@ SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     Contact::idx_Fz_ = 2;
     robot_sys_ = robot;
     Contact::Jc_ = DMat<T>(Contact::dim_contact_, cheetah::dim_config);
-  Contact::Uf_ = DMat<T>::Zero(dim_U_, Contact::dim_contact_);
+    Contact::Uf_ = DMat<T>::Zero(dim_U_, Contact::dim_contact_);
 
-  T mu (0.5);
+    T mu (0.4);
 
 
-  Contact::Uf_(0, 2) = 1.;
+    Contact::Uf_(0, 2) = 1.;
 
-  Contact::Uf_(1, 0) = 1.; Contact::Uf_(1, 2) = mu;
-  Contact::Uf_(2, 0) = -1.; Contact::Uf_(2, 2) = mu;
+    Contact::Uf_(1, 0) = 1.; Contact::Uf_(1, 2) = mu;
+    Contact::Uf_(2, 0) = -1.; Contact::Uf_(2, 2) = mu;
 
-  Contact::Uf_(3, 1) = 1.; Contact::Uf_(3, 2) = mu;
-  Contact::Uf_(4, 1) = -1.; Contact::Uf_(4, 2) = mu;
+    Contact::Uf_(3, 1) = 1.; Contact::Uf_(3, 2) = mu;
+    Contact::Uf_(4, 1) = -1.; Contact::Uf_(4, 2) = mu;
 
-  // Upper bound of normal force
-  Contact::Uf_(5,2) = -1.;
- 
+    // Upper bound of normal force
+    Contact::Uf_(5,2) = -1.;
+
 }
 
 template <typename T>
@@ -49,14 +49,14 @@ bool SingleContact<T>::_UpdateJcDotQdot(){
 
 template <typename T>
 bool SingleContact<T>::_UpdateUf(){
-   return true;
+    return true;
 }
 
 template <typename T>
 bool SingleContact<T>::_UpdateInequalityVector(){
-  Contact::ieq_vec_ = DVec<T>::Zero(dim_U_);
-  Contact::ieq_vec_[5] = -max_Fz_;
-  return true;
+    Contact::ieq_vec_ = DVec<T>::Zero(dim_U_);
+    Contact::ieq_vec_[5] = -max_Fz_;
+    return true;
 }
 
 template class SingleContact<double>;

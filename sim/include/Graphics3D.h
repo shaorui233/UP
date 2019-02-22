@@ -138,6 +138,15 @@ private:
 
   float _targetSpeed = 2;
 
+  float _r[8];
+  float _g[8];
+  float _b[8];
+
+
+  void getHeightColor(const double & height, float& r, float& g, float&b);
+  void _SetRGBHeight(const double & h, const double & step, const int & idx, 
+          float & r, float & g, float & b);
+
 
   bool _pause = false;
 };

@@ -17,6 +17,7 @@ WBLC<T>::WBLC(size_t num_qdot, const std::vector<ContactSpec<T>*> & contact_list
         dim_opt_ = WB::num_qdot_ + 2 * dim_rf_; // (delta_qddot, Fr, xddot_c)
         dim_eq_cstr_ = 6 + dim_rf_;
         dim_ieq_cstr_ = 2*WB::num_act_joint_ + dim_Uf_; // torque limit, friction cone
+        //dim_ieq_cstr_ = dim_Uf_; // torque limit, friction cone
         //printf("dim: opt, eq, ieq = %lu, %lu, %lu\n", dim_opt_, dim_eq_cstr_, dim_ieq_cstr_);
 
         qddot_ = DVec<T>::Zero(WB::num_qdot_);
@@ -66,7 +67,9 @@ void WBLC<T>::MakeWBLC_Torque(
     if(extra_input) data_ = static_cast<WBLC_ExtraData<T>*>(extra_input);
 
     for(size_t i(0); i<WB::num_act_joint_; ++i){
-        qddot_[i + 6] = des_jacc_cmd[i];
+        (void)des_jacc_cmd;
+        // TEST
+        //qddot_[i + 6] = des_jacc_cmd[i];
     }
 
     // Contact Jacobian & Uf & Fr_ieq
@@ -84,6 +87,21 @@ void WBLC<T>::MakeWBLC_Torque(
     (void)f;
     _GetSolution(cmd);
     //std::cout << "f: " << f << std::endl;
+    //char name[1];
+    //name[0] = 'x';
+    //print_vector(name, z);
+    //print_matrix("G", G);
+    //name[0] = 'g';
+    //print_vector(name, g0);
+
+    //print_matrix("CE", CE);
+    //name[0] = 'e';
+    //print_vector(name, ce0);
+
+    //print_matrix("CI", CI);
+    //name[0] = 'i';
+    //print_vector(name, ci0);
+ 
     //std::cout << "x: " << z << std::endl;
     //std::cout << "cmd: "<<cmd<<std::endl;
 
@@ -150,6 +168,14 @@ void WBLC<T>::_Build_Equality_Constraint(){
     Aeq_.bottomRightCorner(dim_rf_, dim_rf_) = -DMat<T>::Identity(dim_rf_, dim_rf_);
     beq_.tail(dim_rf_) = -Jc_ * qddot_ - JcDotQdot_;
 
+
+    //pretty_print(WB::Sv_, std::cout, "Sv");
+    //pretty_print(WB::A_, std::cout, "A");
+    //pretty_print(WB::cori_, std::cout, "cori");
+    //pretty_print(WB::grav_, std::cout, "grav");
+    
+    //pretty_print(Jc_, std::cout, "Jc");
+    //pretty_print(JcDotQdot_, std::cout, "JcDotQdot");
 
     //pretty_print(Aeq_, std::cout, "Aeq");
     //pretty_print(beq_, std::cout, "beq");
@@ -230,6 +256,8 @@ void WBLC<T>::_OptimizationPreparation(
         }
         ci0[i] = -dieq[i];
     }
+    //pretty_print(data_->W_rf_, std::cout, "W rf");
+    //pretty_print(data_->W_xddot_, std::cout, "W xddot");
     //printf("G:\n");
     //std::cout<<G<<std::endl;
     //printf("g0:\n");
@@ -240,9 +268,11 @@ void WBLC<T>::_OptimizationPreparation(
     //printf("ce0:\n");
     //std::cout<<ce0<<std::endl;
 
-    //printf("CI:\n");
     //std::cout<<CI<<std::endl;
-    //printf("ci0:\n");
+    //print_matrix("CI", CI);
+    //char name[10];
+    //name[0] = 'c';
+    //print_vector(name, ci0);
     //std::cout<<ci0<<std::endl;
 }
 
