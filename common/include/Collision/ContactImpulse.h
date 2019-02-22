@@ -9,20 +9,23 @@ class ContactImpulse: public ContactConstraint<T>{
     public:
         ContactImpulse(FloatingBaseModel<T>* model):ContactConstraint<T>(model){
             _nDof = CC::_model->_nDof;
+            _b_debug = false;
         }
         virtual ~ContactImpulse(){}
 
         virtual void UpdateExternalForces(T K, T D, T dt){
             (void)K; (void)D;
             // Set penetration recovery ration here
-            _penetration_recover_ratio = 0.007 /dt;
-            //_penetration_recover_ratio = 0.0 /dt;
+            //_penetration_recover_ratio = 0.007 /dt;
+            _penetration_recover_ratio = 0.0 /dt;
             _dt = dt;
         }
         virtual void UpdateQdot(FBModelState<T> & state);
 
     protected:
-        T _penetration_recover_ratio = 0.;
+        bool _b_debug;
+        T _tol = 1.e-6;
+        T _penetration_recover_ratio;
         size_t _nDof;
         void _UpdateVelocity(DVec<T> & qdot);
         void _UpdateQdotOneDirection(
@@ -33,6 +36,7 @@ class ContactImpulse: public ContactConstraint<T>{
                 const T * min_list, 
                 const T * max_list, 
                 DVec<T> & qdot);
+        size_t _iter_sum;
     private:
         T _dt;
 };

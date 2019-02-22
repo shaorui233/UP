@@ -65,7 +65,8 @@ _tau(12) {
   _tau = zero12;
   FBModelState<double> x0;
   //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
-  x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .0));
+  //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .0));
+  x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Z, 0.));
   //x0.bodyPosition = Vec3<double>(0,0,-0.0);
   x0.bodyPosition = Vec3<double>(0,0,-0.449);
   //x0.bodyPosition = Vec3<double>(0,0,-0.40);
@@ -95,7 +96,7 @@ _tau(12) {
   // Initial (stand)
   //x0.bodyPosition[2] = -0.26;
 
-  x0.bodyPosition[2] = -0.18;
+  x0.bodyPosition[2] = -0.185;
   x0.q[0] = -0.03;
   x0.q[1] = -0.79;
   x0.q[2] = 1.715;

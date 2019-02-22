@@ -269,6 +269,34 @@ namespace ori {
     return quatNew;
   }
 
+  /*!
+   * Compute new quaternion given:
+   * @param quat The old quaternion
+   * @param omega The angular velocity (IN INERTIAL COORDINATES!)
+   * @param dt The timestep
+   * @return
+   */
+  template<typename T, typename T2, typename T3>
+  Quat<typename T::Scalar> integrateQuatImplicit(const Eigen::MatrixBase<T>& quat, const Eigen::MatrixBase<T2>& omega, T3 dt) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 4, "Must have 4x1 quat");
+    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 3, "Must have 3x1 omega");
+    Vec3<typename T::Scalar> axis;
+    typename T::Scalar ang = omega.norm();
+    if (ang > 0) {
+      axis = omega / ang;
+    } else {
+      axis = Vec3<typename T::Scalar>(1, 0, 0);
+    }
+
+    ang *= dt;
+    Vec3<typename T::Scalar> ee = std::sin(ang / 2) * axis;
+    Quat<typename T::Scalar> quatD(std::cos(ang / 2), ee[0], ee[1], ee[2]);
+
+    Quat<typename T::Scalar> quatNew = quatProduct(quat, quatD);
+    quatNew = quatNew / quatNew.norm();
+    return quatNew;
+  }
+
 
   template<typename T>
       void quaternionToso3(const Quat<T> quat, Vec3<T> & so3){

@@ -8,7 +8,7 @@ ground-plane:
 
 mesh-1:
     type: "mesh"
-    mu: 5.7
+    mu: 3.7
     restitution: 0
     transparent: 1
     grid: 0.005

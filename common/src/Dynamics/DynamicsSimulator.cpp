@@ -93,12 +93,11 @@ void DynamicsSimulator<T>::integrate(T dt) {
 
     _dstate.dBodyPosition = R_body.transpose() * _state.bodyVelocity.template block<3, 1>(3, 0);
     Vec3<T> omegaBody = _state.bodyVelocity.template block<3, 1>(0, 0);
-    Vec3<T> omega0 = R_body.transpose() * omegaBody;
 
     // Position Update
     _state.q += _state.qd * dt;
     _state.bodyPosition += _dstate.dBodyPosition * dt;
-    _state.bodyOrientation = integrateQuat(_state.bodyOrientation, omega0, dt);
+    _state.bodyOrientation = integrateQuatImplicit(_state.bodyOrientation, omegaBody, dt);
   }
 }
 
