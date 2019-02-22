@@ -21,18 +21,30 @@ mesh-1:
     #heightmap_file_name: "heightmap.txt"
     #heightmap_file_name: "../optimization/optimization_data/2019-02-20-13_09_26/HeightMap.txt"
     heightmap_file_name: "../optimization/optimization_data/2019-02-20-11_11_36/HeightMap.txt"
-    
+
 #box-1:
     #type: "box"
-    #mu: .4
+    #mu: 0.7
     #restitution: 0
-    #depth: 2
-    #width: 1
-    #height: .01
-    #position:  [0,0,-0.5]
+    #depth: 0.45
+    #width: 0.6
+    #height: .1
+    #position:  [0.025, 0, -0.48]
     #orientation: [0,.0,0]  # roll pitch yaw
     #transparent: 1
 
+#box-2:
+    #type: "box"
+    #mu: 0.7
+    #restitution: 0
+    #depth: 0.45
+    #width: 0.6
+    #height: .1
+    #position:  [1.175, 0, -0.48]
+    #orientation: [0,.0,0]  # roll pitch yaw
+    #transparent: 1
+
+    
 #stairs-1:
     #type: "stairs"
     #steps: 5
@@ -43,17 +55,6 @@ mesh-1:
     #restitution: 0
     #position: [1,2,-0.5]
     #orientation: [0, .2, 1.5]
-    #transparent: 0
-
-#box-2:
-    #type: "box"
-    #mu: .4
-    #restitution: 0
-    #depth: 1
-    #width: 1
-    #height: 1
-    #position:  [-2,0,0]
-    #orientation: [0,0,0]  # roll pitch yaw
     #transparent: 0
 
 #stairs-2:
@@ -67,28 +68,6 @@ mesh-1:
     #position: [1,-2,-0.5]
     #orientation: [.2, -.4, 1.5]
     #transparent: 0
-
-box-1:
-    type: "box"
-    mu: 0.7
-    restitution: 0
-    depth: 0.45
-    width: 0.6
-    height: .1
-    position:  [0.025, 0, -0.48]
-    orientation: [0,.0,0]  # roll pitch yaw
-    transparent: 1
-
-box-2:
-    type: "box"
-    mu: 0.7
-    restitution: 0
-    depth: 0.45
-    width: 0.6
-    height: .1
-    position:  [1.175, 0, -0.48]
-    orientation: [0,.0,0]  # roll pitch yaw
-    transparent: 1
 
 
 

@@ -67,6 +67,7 @@ void WBLC<T>::MakeWBLC_Torque(
     if(extra_input) data_ = static_cast<WBLC_ExtraData<T>*>(extra_input);
 
     for(size_t i(0); i<WB::num_act_joint_; ++i){
+        //(void)des_jacc_cmd[i];
         qddot_[i + 6] = des_jacc_cmd[i];
     }
 

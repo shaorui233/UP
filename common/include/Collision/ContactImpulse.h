@@ -15,8 +15,8 @@ class ContactImpulse: public ContactConstraint<T>{
         virtual void UpdateExternalForces(T K, T D, T dt){
             (void)K; (void)D;
             // Set penetration recovery ration here
-            //_penetration_recover_ratio = 0.1 /dt;
-            _penetration_recover_ratio = 0.0 /dt;
+            _penetration_recover_ratio = 0.007 /dt;
+            //_penetration_recover_ratio = 0.0 /dt;
             _dt = dt;
         }
         virtual void UpdateQdot(FBModelState<T> & state);

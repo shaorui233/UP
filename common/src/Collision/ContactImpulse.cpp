@@ -123,7 +123,7 @@ void ContactImpulse<T>::_UpdateQdotOneDirection(
                 std::max(min_list[i], std::min(pre_force + dforce, max_list[i]));
 
             dforce = CC::_cp_local_force_list[i][idx] - pre_force;
-           qdot += (AinvB_list[i] * dforce );
+            qdot += (AinvB_list[i] * dforce );
         }
     }
 }

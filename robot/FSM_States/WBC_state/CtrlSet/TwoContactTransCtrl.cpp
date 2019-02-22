@@ -129,7 +129,7 @@ void TwoContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + Kd_.cwiseProduct(des_jvel_ - Ctrl::robot_sys_->_state.qd);
 
     // TEST
-    des_jacc_cmd.setZero();
+    //des_jacc_cmd.setZero();
     wblc_->MakeWBLC_Torque(
             des_jacc_cmd, 
             gamma, wblc_data_);

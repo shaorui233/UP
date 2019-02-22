@@ -95,7 +95,7 @@ _tau(12) {
   // Initial (stand)
   //x0.bodyPosition[2] = -0.26;
 
-  x0.bodyPosition[2] = -0.19;
+  x0.bodyPosition[2] = -0.18;
   x0.q[0] = -0.03;
   x0.q[1] = -0.79;
   x0.q[2] = 1.715;
