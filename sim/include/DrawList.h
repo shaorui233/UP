@@ -14,6 +14,7 @@
 #include "obj_loader.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "Dynamics/DynamicsSimulator.h"
+#include "SimUtilities/VisualizationData.h"
 #include "sim_utilities.h"
 #include "cppTypes.h"
 #include "Dynamics/spatial.h"
@@ -38,8 +39,17 @@ class BoxInfo {
            */
 };
 
+struct SolidColor {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  Vec4<float> rgba;
+  bool useSolidColor;
+};
+
 class DrawList {
     public:
+        
+        VisualizationData* _visualizationData;
+        
         DrawList() {
           _cameraOrigin = Vec3<double>::Zero();
             loadFiles();
@@ -265,7 +275,7 @@ class DrawList {
         const Vec3<double>& getCameraOrigin() {
           return _cameraOrigin;
         }
-
+        vectorAligned<SolidColor> _instanceColor;
     private:
         size_t _nUnique = 0, _nTotal = 0;
         std::vector<std::vector<float>> _vertexData;
@@ -285,6 +295,7 @@ class DrawList {
 
         std::vector<QMatrix4x4> _modelOffsets;
         std::vector<QMatrix4x4> _kinematicXform;
+
 
         bool _reloadNeeded = false;
         bool _additionalInfoFirstVisit = true;

@@ -12,6 +12,7 @@
 #include "DrawList.h"
 #include "Math/FirstOrderIIRFilter.h"
 
+#include "SimUtilities/VisualizationData.h"
 #include <QWindow>
 #include <QOpenGLFunctions>
 #include <QOpenGLPaintDevice>
@@ -89,24 +90,42 @@ private:
 
   std::mutex _gfxMutex;
   void updateCameraMatrix();
+  void renderDrawlist();
+  void configOpenGLPass(int pass);
   void _BoxObstacleDrawing();
   void _MeshObstacleDrawing();
   void _DrawBox( double depth, double width, double height);
-  void _Additional_Drawing();
+  void _Additional_Drawing(int pass);
   void _DrawContactForce();
   void _DrawContactPoint();
-  void _drawArrow(double x0, double y0, double z0, double dx, double dy, double dz ,double lineWidth, double headWidth, double headLength);
+  void _drawArrow(ArrowVisualization & arrow); 
+  void _drawBlock(BlockVisualization & box);
+  void _drawSphere(SphereVisualization & sphere);
+  void _drawCone(ConeVisualization & cone);
+  void _rotateZtoDirection( const Vec3<float> & direction);
+  void _setColor( const Vec4<float> & color ) { glColor4f(color(0), color(1), color(2), color(3) ); }
+  void _translate( const Vec3<float> & position ) { glTranslatef(position(0), position(1), position(2)); }
+  void _drawArrow( const Vec3<float> & base, const Vec3<float> & direction ,float lineWidth, float headWidth, float headLength);
   bool _animating;
 
   // attributes for shader program
-  GLuint _posAttr; // position of vertex
-  GLuint _colAttr; // color of vertex
-  GLuint _matrixUniform; // transformation matrix
-  GLuint _normAttr; // vertex normal
-  GLuint _textTexture = 0;
+  GLuint _posAttrColorArray; // position of vertex
+  GLuint _colAttrColorArray; // color of vertex
+  GLuint _matrixUniformColorArray; // transformation matrix
+  GLuint _normAttrColorArray; // vertex normal
+
+  GLuint _posAttrSolidColor; // position of vertex
+  GLuint _colUniformSolidColor; // color of vertex
+  GLuint _colAttrSolidColor;
+  GLuint _matrixUniformSolidColor; // transformation matrix
+  GLuint _normAttrSolidColor; // vertex normal
+
+  GLuint _buffID[3];
+
 
   // shader programs
-  QOpenGLShaderProgram *_program;
+  QOpenGLShaderProgram *_colorArrayProgram;
+  QOpenGLShaderProgram *_solidColorProgram;
 
   // frame count
   int _frame;

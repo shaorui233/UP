@@ -153,6 +153,9 @@ void SimulationBridge::runRobotControl() {
     _robotController->spiCommand    = &_sharedMemory().robotToSim.spiCommand;
     _robotController->tiBoardCommand = _sharedMemory().robotToSim.tiBoardCommand;
     _robotController->controlParameters = &_robotParams;
+    _robotController->visualizationData = &_sharedMemory().robotToSim.visualizationData;
+
+
 
     _robotController->initialize();
     _firstControllerRun = false;

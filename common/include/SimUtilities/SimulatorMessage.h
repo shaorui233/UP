@@ -10,6 +10,7 @@
 
 #include "Utilities/SharedMemory.h"
 #include "SimUtilities/GamepadCommand.h"
+#include "SimUtilities/VisualizationData.h"
 #include "SimUtilities/IMUTypes.h"
 #include "SimUtilities/SpineBoard.h"
 #include "SimUtilities/ti_boardcontrol.h"
@@ -54,8 +55,8 @@ struct RobotToSimulatorMessage {
   SpiCommand spiCommand;
   TiBoardCommand tiBoardCommand[4];
 
-  // todo add these:
-  // visualization data
+
+  VisualizationData visualizationData;
   ControlParameterResponse controlParameterResponse;
 };
 

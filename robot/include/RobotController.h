@@ -7,6 +7,7 @@
 #include "Controllers/LegController.h"
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/GamepadCommand.h"
+#include "SimUtilities/VisualizationData.h"
 
 #include <WBC_state/Cheetah_interface.hpp>
 #include <Controllers/StateEstimatorContainer.h>
@@ -44,10 +45,12 @@ public:
   TiBoardCommand* tiBoardCommand;
   TiBoardData* tiBoardData;
   RobotControlParameters* controlParameters;
+  VisualizationData* visualizationData;
 
 private:
   void setupStep();
   void finalizeStep();
+  void testDebugVisualization();
   Quadruped<float> _quadruped;
   LegController<float>* _legController = nullptr;
   StateEstimate<float> _stateEstimate;
@@ -58,6 +61,7 @@ private:
   Cheetah_interface<float>* _wbc_state;
   Cheetah_Data<float>* _data;
   FloatingBaseModel<float> _model;
+  u64 _iterations = 0;
 };
 
 

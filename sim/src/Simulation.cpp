@@ -146,6 +146,7 @@ _tau(12) {
 
   // shared memory fields:
   _sharedMemory().simToRobot.robotType = _robot;
+  _window->_drawList._visualizationData = &_sharedMemory().robotToSim.visualizationData;
 
 
   // load robot control parameters
@@ -500,34 +501,6 @@ void Simulation::addCollisionMesh(
         _window->_drawList.addMesh(grid_size, left_corner_loc, height_map, transparent);
         _window->unlockGfxMutex();
      }
-}
-
-/*!
- * Runs the simulator in the current thread until the _running variable is set to false.
- * Updates graphics at 60 fps if desired.
- * Runs simulation as fast as possible.
- * @param dt
- */
-void Simulation::freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics) {
-  assert(!_running);
-  _running = true;
-  Timer tim;
-  Timer freeRunTimer;
-  double lastSimTime = _currentSimTime;
-  while(_running) {
-    step(dt, dtLowLevelControl, dtHighLevelControl);
-    double realElapsedTime = tim.getSeconds();
-    if(graphics && _window && realElapsedTime >= (1./60.)) {
-      double simRate = (_currentSimTime - lastSimTime) / realElapsedTime;
-      lastSimTime = _currentSimTime;
-      tim.start();
-      sprintf(_window->infoString, "[Simulation Freerun]\n"
-                                   "real-time:%8.3f\n"
-                                   "sim-time: %8.3f\n"
-                                   "rate:     %8.3f\n",freeRunTimer.getSeconds(), _currentSimTime, simRate);
-      updateGraphics();
-    }
-  }
 }
 
 /*!
