@@ -79,16 +79,12 @@ void main() {
 /*!
  * Initialize a 3D visualization window
  */
-Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(false),  _colorArrayProgram(0),
+Graphics3D::Graphics3D(QWidget *parent) : QOpenGLWidget(parent), _animating(false), _colorArrayProgram(0),
                                           _frame(0), _v0(0, 0, 0), _freeCamFilter(1, 60, _v0) {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
-
-
-
-  //setSurfaceType(QWindow::OpenGLSurface);
 }
 
-Graphics3D::~Graphics3D(){
+Graphics3D::~Graphics3D() {
 }
 
 /*!
@@ -113,10 +109,10 @@ void Graphics3D::updateCameraMatrix() {
   _cameraMatrix.setToIdentity();
   _cameraMatrix.perspective(60.f, float(size().width()) / float(size().height()), .001f, 50.f);
 
-  if(_arrowsPressed[0]) _ry -= _targetSpeed/2.f;
-  if(_arrowsPressed[1]) _ry += _targetSpeed/2.f;
-  if(_arrowsPressed[2]) _rx += _targetSpeed/2.f;
-  if(_arrowsPressed[3]) _rx -= _targetSpeed/2.f;
+  if (_arrowsPressed[0]) _ry -= _targetSpeed / 2.f;
+  if (_arrowsPressed[1]) _ry += _targetSpeed / 2.f;
+  if (_arrowsPressed[2]) _rx += _targetSpeed / 2.f;
+  if (_arrowsPressed[3]) _rx -= _targetSpeed / 2.f;
   if (!_rotOrig) {
     _ry = coerce<float>(_ry, -180, 0);
     // velocity in camera coordinates
@@ -227,14 +223,14 @@ void Graphics3D::keyPressEvent(QKeyEvent *e) {
 
   if (e->key() == Qt::Key_Right) _arrowsPressed[2] = true;
   else if (e->key() == Qt::Key_Left) _arrowsPressed[3] = true;
-  
+
   if (e->key() == Qt::Key_V) {
-      if(_pause) _pause = false;
-      else _pause = true;
+    if (_pause) _pause = false;
+    else _pause = true;
   }
 
 
-  if (e->key() == Qt::Key_Tab){
+  if (e->key() == Qt::Key_Tab) {
     _freeCamPos[0] = 0.f;
     _freeCamPos[1] = 0.f;
     _freeCamPos[2] = 0.f;
@@ -277,7 +273,7 @@ void Graphics3D::setAnimating(bool animating) {
 
 
 void Graphics3D::renderDrawlist(int pass) {
-  (void)pass;
+  (void) pass;
 
 
   // reload if needed
@@ -316,11 +312,6 @@ void Graphics3D::renderDrawlist(int pass) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
 
-  // old drawlist mode
-//  glEnable(GL_DEPTH_TEST);
-//  glDepthFunc(GL_LESS);
-
-
 
   // draw objects with color arrays
   _colorArrayProgram->bind();
@@ -336,7 +327,7 @@ void Graphics3D::renderDrawlist(int pass) {
   glEnableVertexAttribArray(2);
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
 
-    if(_drawList._instanceColor[id].useSolidColor) {
+    if (_drawList._instanceColor[id].useSolidColor) {
 
     } else {
       _colorArrayProgram->setUniformValue(_matrixUniformColorArray,
@@ -370,12 +361,13 @@ void Graphics3D::renderDrawlist(int pass) {
   glEnableVertexAttribArray(2);
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
 
-    if(_drawList._instanceColor[id].useSolidColor) {
+    if (_drawList._instanceColor[id].useSolidColor) {
       _solidColorProgram->setUniformValue(_matrixUniformSolidColor,
                                           _cameraMatrix * _drawList.getModelKinematicTransform(id) *
                                           _drawList.getModelBaseTransform(id));
-      auto& col = _drawList._instanceColor[id];
-      _solidColorProgram->setUniformValue(_colUniformSolidColor, QVector4D(col.rgba[0], col.rgba[1], col.rgba[2], col.rgba[3]));
+      auto &col = _drawList._instanceColor[id];
+      _solidColorProgram->setUniformValue(_colUniformSolidColor,
+                                          QVector4D(col.rgba[0], col.rgba[1], col.rgba[2], col.rgba[3]));
 
 
       glDrawArrays(GL_TRIANGLES, _drawList.getGLDrawArrayOffset(id) / 3,
@@ -393,10 +385,51 @@ void Graphics3D::renderDrawlist(int pass) {
   _solidColorProgram->release();
 }
 
+void Graphics3D::configOpenGLPass(int pass) {
+  switch (pass) {
+    case 0:
+      // clear screen
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      // update camera math
+      updateCameraMatrix();
+
+      glDisable(GL_CULL_FACE);
+
+      glEnable(GL_BLEND);
+      glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      glEnable(GL_DEPTH_TEST);
+      glDepthFunc(GL_LESS);
+      break;
+    case 1:
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_FRONT);
+      glDepthFunc(GL_ALWAYS);
+      break;
+    case 2:
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_FRONT);
+      glDepthFunc(GL_LEQUAL);
+      break;
+    case 3:
+      glEnable(GL_CULL_FACE);
+      glCullFace(GL_BACK);
+      glDepthFunc(GL_ALWAYS);
+      break;
+    case 4:
+      glDisable(GL_CULL_FACE);
+      glDepthFunc(GL_LEQUAL);
+      break;
+
+    default:
+      assert(false);
+  }
+}
+
 void Graphics3D::paintGL() {
   // update joystick:
   _gameController.updateGamepadCommand(_driverCommand);
-  if(!_animating) return;
+  if (!_animating) return;
   if (_frame % 60 == 0) {
     qint64 now = QDateTime::currentMSecsSinceEpoch();
     _fps = (60.f * 1000.f / (now - last_frame_ms));
@@ -405,48 +438,16 @@ void Graphics3D::paintGL() {
   }
   QPainter painter2(this);
 
-  for(int pass = 0; pass < 5; pass++) {
+  int passes[] = {0};
+  for (int pass : passes) {
     // setup pass:
-    glShadeModel( GL_SMOOTH );
-    switch(pass) {
-      case 0:
-        // clear screen
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glShadeModel(GL_SMOOTH);
+    configOpenGLPass(pass);
 
-        // update camera math
-        updateCameraMatrix();
-
-        glDisable(GL_CULL_FACE);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-        break;
-      case 1:
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glDepthFunc(GL_ALWAYS);
-        break;
-      case 2:
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_FRONT);
-        glDepthFunc(GL_LEQUAL);
-        break;
-      case 3:
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        glDepthFunc(GL_ALWAYS);
-        break;
-      case 4:
-        glDisable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);
-        break;
-
-      default:
-        assert(false);
-    }
 
     // do rendering on all passes:
     glEnable(GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     renderDrawlist(pass);
     _Additional_Drawing(pass);
     _BoxObstacleDrawing();
@@ -454,239 +455,206 @@ void Graphics3D::paintGL() {
 
 
   glDisable(GL_DEPTH_TEST);
-  painter2.setPen(QColor(100,100,100,255));
-  painter2.fillRect(QRect(30,30,400,200), QColor(100,100,100,220));
+  painter2.setPen(QColor(100, 100, 100, 255));
+  painter2.fillRect(QRect(30, 30, 400, 200), QColor(100, 100, 100, 220));
   QFont font("Monospace", 20);
   painter2.setPen(QColor(210, 100, 100));
   painter2.setFont(font);
-  painter2.drawText(QRect(30,30,1000,1000), Qt::AlignLeft, QString(infoString));
+  painter2.drawText(QRect(30, 30, 1000, 1000), Qt::AlignLeft, QString(infoString));
   painter2.end();
 
   ++_frame;
 }
-void Graphics3D::_BoxObstacleDrawing(){
-    glLoadMatrixf(_cameraMatrix.data());
-    glPushAttrib(GL_LIGHTING_BIT);
-    glDisable(GL_LIGHTING);
 
-    size_t nBox = _drawList.getBoxInfoList().size();
-    for(size_t i(0); i < nBox; ++i){
-        glPushMatrix();
-        glMultMatrixf(_drawList.getBoxInfoList()[i].frame); // column major
-        _DrawBox(_drawList.getBoxInfoList()[i].depth, 
-                _drawList.getBoxInfoList()[i].width, 
-                _drawList.getBoxInfoList()[i].height);
-        glPopMatrix();
-    }
-    glEnable(GL_LIGHTING);
-    glPopAttrib();
+void Graphics3D::_BoxObstacleDrawing() {
+  glLoadMatrixf(_cameraMatrix.data());
+  glPushAttrib(GL_LIGHTING_BIT);
+  glDisable(GL_LIGHTING);
+
+  size_t nBox = _drawList.getBoxInfoList().size();
+  for (size_t i(0); i < nBox; ++i) {
+    glPushMatrix();
+    glMultMatrixf(_drawList.getBoxInfoList()[i].frame); // column major
+    _DrawBox(_drawList.getBoxInfoList()[i].depth,
+             _drawList.getBoxInfoList()[i].width,
+             _drawList.getBoxInfoList()[i].height);
+    glPopMatrix();
+  }
+  glEnable(GL_LIGHTING);
+  glPopAttrib();
 }
 
-void Graphics3D::_DrawBox(double depth, double width, double height)
-{
-    double x = depth/2.0;
-    double y = width/2.0;
-    double z = height/2.0;
+void Graphics3D::_DrawBox(double depth, double width, double height) {
+  double x = depth / 2.0;
+  double y = width / 2.0;
+  double z = height / 2.0;
 
-    glPushAttrib(GL_COLOR_BUFFER_BIT);
+  glPushAttrib(GL_COLOR_BUFFER_BIT);
 
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  glColor4f(_color1[0], _color1[1], _color1[2], 0.7f);
+
+  glBegin(GL_QUADS);
+  {
+    glVertex3d(x, y, -z);
+    glVertex3d(-x, y, -z);
+    glVertex3d(-x, y, z);
+    glVertex3d(x, y, z);
+
+    glVertex3d(x, -y, -z);
+    glVertex3d(x, y, -z);
+    glVertex3d(x, y, z);
+    glVertex3d(x, -y, z);
+
+    glVertex3d(x, -y, z);
+    glVertex3d(-x, -y, z);
+    glVertex3d(-x, -y, -z);
+    glVertex3d(x, -y, -z);
+
+    glVertex3d(-x, -y, z);
+    glVertex3d(-x, y, z);
+    glVertex3d(-x, y, -z);
+    glVertex3d(-x, -y, -z);
+
+    glVertex3d(-x, -y, -z);
+    glVertex3d(-x, y, -z);
+    glVertex3d(x, y, -z);
+    glVertex3d(x, -y, -z);
+
+    glVertex3d(-x, -y, z);
+    glVertex3d(x, -y, z);
+    glVertex3d(x, y, z);
+    glVertex3d(-x, y, z);
+  } //GL_QUADS
+  glEnd();
+
+
+  glPopAttrib();
+  glDisable(GL_BLEND);
+}
+
+
+void Graphics3D::_Additional_Drawing(int pass) {
+  glLoadMatrixf(_cameraMatrix.data());
+  glPushAttrib(GL_LIGHTING_BIT);
+  glDisable(GL_LIGHTING);
+
+  _DrawContactForce();
+  _DrawContactPoint();
+
+
+  {
+
+    configOpenGLPass(pass);
     glEnable(GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    glColor4f(_color1[0], _color1[1], _color1[2], 0.7f);
-
-    glBegin(GL_QUADS);
-	{
-		glVertex3d( x,  y, -z);
-		glVertex3d(-x,  y, -z);
-		glVertex3d(-x,  y,  z);
-		glVertex3d( x,  y,  z);
-
-		glVertex3d( x, -y, -z);
-		glVertex3d( x,  y, -z);
-		glVertex3d( x,  y,  z);
-		glVertex3d( x, -y,  z);
-
-		glVertex3d( x, -y,  z);
-		glVertex3d(-x, -y,  z);
-		glVertex3d(-x, -y, -z);
-		glVertex3d( x, -y, -z);
-
-		glVertex3d(-x, -y,  z);
-		glVertex3d(-x,  y,  z);
-		glVertex3d(-x,  y, -z);
-		glVertex3d(-x, -y, -z);
-
-		glVertex3d(-x, -y, -z);
-		glVertex3d(-x,  y, -z);
-		glVertex3d( x,  y, -z);
-		glVertex3d( x, -y, -z);
-
-		glVertex3d(-x, -y,  z);
-		glVertex3d( x, -y,  z);
-		glVertex3d( x,  y,  z);
-		glVertex3d(-x,  y,  z);
-	} //GL_QUADS
-	glEnd();
-
-
-
-    glPopAttrib();
-    glDisable(GL_BLEND);
-}
-
-
-void Graphics3D::_Additional_Drawing(int pass){
-    glLoadMatrixf(_cameraMatrix.data());
-    glPushAttrib(GL_LIGHTING_BIT);
-    glDisable(GL_LIGHTING);
-
-    _DrawContactForce();
-    _DrawContactPoint();
-
-
-    {
-
-      switch(pass) {
-        case 0:
-          glDisable(GL_CULL_FACE);
-          glDepthFunc(GL_LESS);
-          break;
-        case 1:
-          glEnable(GL_CULL_FACE);
-          glCullFace(GL_FRONT);
-          glDepthFunc(GL_ALWAYS);
-          break;
-        case 2:
-          glEnable(GL_CULL_FACE);
-          glCullFace(GL_FRONT);
-          glDepthFunc(GL_LEQUAL);
-          break;
-        case 3:
-          glEnable(GL_CULL_FACE);
-          glCullFace(GL_BACK);
-          glDepthFunc(GL_ALWAYS);
-          break;
-        case 4:
-          glDisable(GL_CULL_FACE);
-          glDepthFunc(GL_LEQUAL);
-          break;
-      }
-//      //glPushAttrib(GL_COLOR_BUFFER_BIT);
-      glEnable(GL_BLEND);
-      glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-      for( size_t i = 0 ; i < _drawList._visualizationData.num_arrows ; i++) {
-        _drawArrow( _drawList._visualizationData.arrows[i] );
-      }
-
-      for( size_t i = 0 ; i < _drawList._visualizationData.num_cones; i++) {
-        _drawCone( _drawList._visualizationData.cones[i] );
-      }
-
-      for( size_t i = 0 ; i < _drawList._visualizationData.num_blocks ; i++) {
-        _drawBlock( _drawList._visualizationData.blocks[i] );
-      }
-
-      for( size_t i = 0 ; i < _drawList._visualizationData.num_spheres ; i++) {
-        _drawSphere( _drawList._visualizationData.spheres[i] );
-      }
-      //glPopAttrib();
-      glDisable(GL_BLEND);
-
-
-      for (size_t i = 0 ; i < _drawList._visualizationData.num_paths ; i++) {
-        PathVisualization path = _drawList._visualizationData.paths[i];
-        glColor4f(path.color[0], path.color[1], path.color[2], path.color[3]);
-        glBegin(GL_LINE_STRIP);
-        for (size_t j = 0 ; j < path.num_points ; j++) {
-          glVertex3d( path.position[j][0], path.position[j][1], path.position[j][2] );
-        }
-        glEnd();
-      }
-      
-
+    for (size_t i = 0; i < _drawList._visualizationData->num_arrows; i++) {
+      _drawArrow(_drawList._visualizationData->arrows[i]);
     }
 
-    glPopAttrib();
-    glEnable(GL_LIGHTING);
-}
-
-
-void Graphics3D::_DrawContactForce(){
-    glLineWidth(2.0);
-    //double scale(0.02);
-    double scale(0.0025);
-
-	glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-
-    for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
-
-        glColor4f(0.8f, 0.0f, 0.f, 0.5f);
-        Vec3<float> floatForce, floatPos;
-        for (size_t j = 0 ; j < 3 ; j++)
-        { 
-          floatPos(j) = _drawList.getGCPos(i)[j];
-          floatForce(j) = scale * _drawList.getGCForce(i)[j];
-        }
-        _drawArrow( floatPos, floatForce ,
-                .005, .015 , .04);
+    for (size_t i = 0; i < _drawList._visualizationData->num_cones; i++) {
+      _drawCone(_drawList._visualizationData->cones[i]);
     }
-    glPopAttrib();
-    glDisable(GL_BLEND);
-}
 
-void Graphics3D::_DrawContactPoint(){
-    glPointSize(5);
-
-	glPushAttrib(GL_COLOR_BUFFER_BIT);
-    glEnable(GL_BLEND);
-    glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); 
-
-    for(size_t i(0); i<_drawList.getTotalNumGC(); ++i){
-        glBegin(GL_POINTS);
-        glColor4f(0.8f, 0.0f, 0.1f, 0.3f);
-
-        glVertex3f(_drawList.getGCPos(i)[0], 
-                _drawList.getGCPos(i)[1], 
-                _drawList.getGCPos(i)[2]);
-
-        glEnd();
+    for (size_t i = 0; i < _drawList._visualizationData->num_blocks; i++) {
+      _drawBlock(_drawList._visualizationData->blocks[i]);
     }
-    glPopAttrib();
+
+    for (size_t i = 0; i < _drawList._visualizationData->num_spheres; i++) {
+      _drawSphere(_drawList._visualizationData->spheres[i]);
+    }
     glDisable(GL_BLEND);
+
+
+    for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
+      PathVisualization path = _drawList._visualizationData->paths[i];
+      glColor4f(path.color[0], path.color[1], path.color[2], path.color[3]);
+      glBegin(GL_LINE_STRIP);
+      for (size_t j = 0; j < path.num_points; j++) {
+        glVertex3d(path.position[j][0], path.position[j][1], path.position[j][2]);
+      }
+      glEnd();
+    }
+  }
+
+  glPopAttrib();
+  glEnable(GL_LIGHTING);
 }
 
 
+void Graphics3D::_DrawContactForce() {
+  glLineWidth(2.0);
+  //double scale(0.02);
+  double scale(0.0025);
 
-void Graphics3D::_rotateZtoDirection( const Vec3<float> & direction)
-{
+  glPushAttrib(GL_COLOR_BUFFER_BIT);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  for (size_t i(0); i < _drawList.getTotalNumGC(); ++i) {
+
+    glColor4f(0.8f, 0.0f, 0.f, 0.5f);
+    Vec3<float> floatForce, floatPos;
+    for (size_t j = 0; j < 3; j++) {
+      floatPos(j) = _drawList.getGCPos(i)[j];
+      floatForce(j) = scale * _drawList.getGCForce(i)[j];
+    }
+    _drawArrow(floatPos, floatForce,
+               .005, .015, .04);
+  }
+  glPopAttrib();
+  glDisable(GL_BLEND);
+}
+
+void Graphics3D::_DrawContactPoint() {
+  glPointSize(5);
+
+  glPushAttrib(GL_COLOR_BUFFER_BIT);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  for (size_t i(0); i < _drawList.getTotalNumGC(); ++i) {
+    glBegin(GL_POINTS);
+    glColor4f(0.8f, 0.0f, 0.1f, 0.3f);
+
+    glVertex3f(_drawList.getGCPos(i)[0],
+               _drawList.getGCPos(i)[1],
+               _drawList.getGCPos(i)[2]);
+
+    glEnd();
+  }
+  glPopAttrib();
+  glDisable(GL_BLEND);
+}
+
+
+void Graphics3D::_rotateZtoDirection(const Vec3<float> &direction) {
   float len = direction.norm();
-  float dxn = direction(0)/len;
-  float dyn = direction(1)/len;
-  float dzn = direction(2)/len;
-  
+  float dxn = direction(0) / len;
+  float dyn = direction(1) / len;
+  float dzn = direction(2) / len;
+
   // Note: We need to create a rotation such that the z-axis points in the direction of the 'direction' argument
   //       Thus, we can realize the rotation with a pure x-y axial rotation
   //       The rotation matrix of the rotated frame 'r' to the current frame 'c' (c_R_r) has special form.
   //       It's 3-rd column in particular has form: [ wy*sin(theta) -wx*sin(theta) (1- cos(theta))]'
   //       where theta , [wx wy 0] is the angle, axis of rotation
-  
+
   // Find the rotation angle by comparing the z-axis of the current and rotated frame
   const double cosTheta = dzn;
   const double theta = acos(cosTheta);
   const double sinTheta = sin(theta);
 
   // Exploit the special form of the rotation matrix (explained above) for find the axis of rotation
-  float rX,rY,rZ;
-  if(theta > 0) { 
-    rX = - dyn/sinTheta;
-    rY =   dxn/sinTheta;
+  float rX, rY, rZ;
+  if (theta > 0) {
+    rX = -dyn / sinTheta;
+    rY = dxn / sinTheta;
     rZ = 0;
-  }
-  else {
+  } else {
     rX = 0;
     rY = 0;
     rZ = 1;
@@ -694,89 +662,85 @@ void Graphics3D::_rotateZtoDirection( const Vec3<float> & direction)
   glRotatef(RADTODEG * theta, rX, rY, rZ);
 }
 
-void Graphics3D::_drawSphere(SphereVisualization & sphere)
-{
-  static  GLUquadric* quad = gluNewQuadric();
+void Graphics3D::_drawSphere(SphereVisualization &sphere) {
+  static GLUquadric *quad = gluNewQuadric();
   glPushMatrix();
-  _translate( sphere.position ); 
-  _setColor( sphere.color );
-   gluSphere(quad,sphere.radius, 16, 16);
+  _translate(sphere.position);
+  _setColor(sphere.color);
+  gluSphere(quad, sphere.radius, 16, 16);
   glPopMatrix();
 }
 
-void Graphics3D::_drawCone(ConeVisualization & cone)
-{
-  static  GLUquadric* quad = gluNewQuadric();
+void Graphics3D::_drawCone(ConeVisualization &cone) {
+  static GLUquadric *quad = gluNewQuadric();
   float len = cone.direction.norm();
-  
+
   glPushMatrix();
-  _setColor( cone.color );
-  _translate( cone.point_position);
-  _rotateZtoDirection( cone.direction );
+  _setColor(cone.color);
+  _translate(cone.point_position);
+  _rotateZtoDirection(cone.direction);
   const int detail = 32;
-  gluCylinder(quad,0,cone.radius,len,detail,1);
+  gluCylinder(quad, 0, cone.radius, len, detail, 1);
   glPopMatrix();
 }
 
-void Graphics3D::_drawBlock(BlockVisualization & box)
-{
+void Graphics3D::_drawBlock(BlockVisualization &box) {
   glPushMatrix();
   _translate(box.corner_position);
   _setColor(box.color);
-  glRotatef(box.rpy(2),0,0,1);
-  glRotatef(box.rpy(1),0,1,0);
-  glRotatef(box.rpy(0),1,0,0);
+  glRotatef(box.rpy(2), 0, 0, 1);
+  glRotatef(box.rpy(1), 0, 1, 0);
+  glRotatef(box.rpy(0), 1, 0, 0);
 
 
-  glScalef(box.dimension(0), box.dimension(1), box.dimension(2) );
-  glTranslatef(.5, .5 , .5);
-  _DrawBox(1,1,1);
+  glScalef(box.dimension(0), box.dimension(1), box.dimension(2));
+  glTranslatef(.5, .5, .5);
+  _DrawBox(1, 1, 1);
   glPopMatrix();
 }
 
-void Graphics3D::_drawArrow(ArrowVisualization & arrow) 
-{
+void Graphics3D::_drawArrow(ArrowVisualization &arrow) {
   _setColor(arrow.color);
-  _drawArrow( arrow.base_position, arrow.direction,
-              arrow.shaft_width, arrow.head_width, arrow.head_length);
+  _drawArrow(arrow.base_position, arrow.direction,
+             arrow.shaft_width, arrow.head_width, arrow.head_length);
 }
-void Graphics3D::_drawArrow( const Vec3<float> & position, const Vec3<float> & direction ,float lineWidth, float headWidth, float headLength) 
-{
-  
+
+void Graphics3D::_drawArrow(const Vec3<float> &position, const Vec3<float> &direction, float lineWidth, float headWidth,
+                            float headLength) {
+
   double len = direction.norm();
-  
+
   glPushMatrix();
   _translate(position);
   _rotateZtoDirection(direction);
-    
+
   double cylinderLength = len;
   if (cylinderLength > headLength) {
     cylinderLength -= headLength;
-  }
-  else {
-    headLength = cylinderLength ;
+  } else {
+    headLength = cylinderLength;
     cylinderLength = 0;
   }
 
   const int detail = 32;
-  static  GLUquadric* quad = gluNewQuadric();
+  static GLUquadric *quad = gluNewQuadric();
 
   //glPolygonMode(GL_FRONT, GL_FILL);
   //Draw Cylinder
-  gluCylinder(quad,lineWidth,lineWidth,cylinderLength,detail,1);
-  
+  gluCylinder(quad, lineWidth, lineWidth, cylinderLength, detail, 1);
+
   //Draw Cylinder Base
   glRotated(180, 1, 0, 0);
-  gluDisk(quad,0,lineWidth,detail,detail);
+  gluDisk(quad, 0, lineWidth, detail, detail);
   glRotated(180, 1, 0, 0);
-  
+
   glTranslatef(0, 0, cylinderLength);
   //Draw Arrowhead
-  gluCylinder(quad,headWidth,0.0f,headLength,detail,detail);
-  
+  gluCylinder(quad, headWidth, 0.0f, headLength, detail, detail);
+
   glRotated(180, 1, 0, 0);
   //Draw Arrowhead Base
-  gluDisk(quad,lineWidth,headWidth,detail,detail);
+  gluDisk(quad, lineWidth, headWidth, detail, detail);
   glPopMatrix();
 }
 

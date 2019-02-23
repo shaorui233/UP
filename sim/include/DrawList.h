@@ -49,7 +49,7 @@ struct SolidColor {
 class DrawList {
     public:
         
-        VisualizationData _visualizationData; 
+        VisualizationData* _visualizationData;
         
         DrawList() {
           _cameraOrigin = Vec3<double>::Zero();

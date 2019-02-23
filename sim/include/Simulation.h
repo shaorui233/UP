@@ -63,13 +63,9 @@ public:
   void updateGraphics() {
     _window->_drawList.updateRobotFromModel(*_simulator, _robotID, true);
     _window->_drawList.updateAdditionalInfo(*_simulator);
-    
-    _window->_drawList._visualizationData = _sharedMemory().robotToSim.visualizationData;
-
     _window->update();
   }
 
-  void freeRun(double dt, double dtLowLevelControl, double dtHighLevelControl, bool graphics = true);
   void runAtSpeed(bool graphics = true);
   void sendControlParameter(const std::string& name, ControlParameterValue value, ControlParameterValueKind kind);
 
@@ -122,7 +118,6 @@ private:
   ImuSimulator<double>* _imuSimulator = nullptr;
   SimulatorControlParameters& _simParams;
   RobotControlParameters _robotParams;
-  VisualizationData _visualizationData;
 
   size_t _robotID;
   Graphics3D *_window = nullptr;

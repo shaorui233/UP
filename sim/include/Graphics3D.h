@@ -91,6 +91,7 @@ private:
   std::mutex _gfxMutex;
   void updateCameraMatrix();
   void renderDrawlist(int pass);
+  void configOpenGLPass(int pass);
   void _BoxObstacleDrawing();
   void _DrawBox( double depth, double width, double height);
   void _Additional_Drawing(int pass);
