@@ -185,9 +185,6 @@ void SimControlPanel::on_driverButton_clicked() {
 void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
   if(_ignoreTableCallbacks) return;
 
-
-
-
   if(column != 1) {
     return;
   }
@@ -199,16 +196,38 @@ void SimControlPanel::on_simulatorTable_cellChanged(int row, int column) {
     return;
   }
 
-  printf("cell %s changed to %s\n", cellName.c_str(), ui->simulatorTable->item(row, 1)->text().toStdString().c_str());
+
 
   auto& parameter = _parameters.collection.lookup(cellName);
-  parameter.setFromString(ui->simulatorTable->item(row, 1)->text().toStdString());
+  ControlParameterValueKind kind = parameter._kind;
+  ControlParameterValue oldValue = parameter.get(kind);
 
-  // this update "rewrites" the value.  If it's an integer, it kills any decimal.  If it's a float, it puts in
-  // scientific notation if needed.
-  _ignoreTableCallbacks = true;
-  ui->simulatorTable->item(row, 1)->setText(QString(parameter.toString().c_str()));
-  _ignoreTableCallbacks = false;
+  bool success = true;
+
+  try {
+    parameter.setFromString(ui->simulatorTable->item(row, 1)->text().toStdString());
+  } catch (std::exception& e) {
+    success = false;
+  }
+
+  if(!success) {
+    printf("[ERROR] invalid data, restoring old data!\n");
+    parameter.set(oldValue, kind);
+
+    assert(!_ignoreTableCallbacks);
+
+    _ignoreTableCallbacks = true;
+    ui->simulatorTable->item(row, 1)->setText(QString(_parameters.collection.lookup(cellName).toString().c_str()));
+    _ignoreTableCallbacks = false;
+  } else {
+    // this update "rewrites" the value.  If it's an integer, it kills any decimal.  If it's a float, it puts in
+    // scientific notation if needed.
+    _ignoreTableCallbacks = true;
+    ui->simulatorTable->item(row, 1)->setText(QString(parameter.toString().c_str()));
+    _ignoreTableCallbacks = false;
+  }
+
+
 }
 
 void SimControlPanel::on_saveSimulatorButton_clicked() {
@@ -255,18 +274,43 @@ void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
     return;
   }
 
-  printf("cell %s changed to %s\n", cellName.c_str(), ui->robotTable->item(row, 1)->text().toStdString().c_str());
-
   auto& parameter = _simulation->getRobotParams().collection.lookup(cellName);
-  parameter.setFromString(ui->robotTable->item(row, 1)->text().toStdString());
+  ControlParameterValueKind kind = parameter._kind;
+  ControlParameterValue oldValue = parameter.get(kind);
 
-  if(_simulationMode) {
-    if(_simulation->isRobotConnected()) {
-      _simulation->sendControlParameter(cellName, parameter.get(parameter._kind), parameter._kind);
-    }
-  } else {
-    assert(false);
+  bool success = true;
+
+  try {
+    parameter.setFromString(ui->robotTable->item(row, 1)->text().toStdString());
+  } catch (std::exception& e) {
+    success = false;
   }
+
+  if(!success) {
+    printf("[ERROR] invalid data, restoring old data!\n");
+    parameter.set(oldValue, kind);
+
+    assert(!_ignoreTableCallbacks);
+
+    _ignoreTableCallbacks = true;
+    ui->robotTable->item(row, 1)->setText(QString(_simulation->getRobotParams().collection.lookup(cellName).toString().c_str()));
+    _ignoreTableCallbacks = false;
+  } else {
+    if(_simulationMode) {
+      if(_simulation->isRobotConnected()) {
+        _simulation->sendControlParameter(cellName, parameter.get(parameter._kind), parameter._kind);
+      }
+
+      _ignoreTableCallbacks = true;
+      ui->robotTable->item(row, 1)->setText(QString(parameter.toString().c_str()));
+      _ignoreTableCallbacks = false;
+    } else {
+      assert(false);
+    }
+  }
+
+
+
 
 }
 
