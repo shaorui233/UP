@@ -17,7 +17,8 @@ template <typename T>
 Cheetah_interface<T>::Cheetah_interface(FloatingBaseModel<T> * robot):
     _robot(robot),
     count_(0),
-    waiting_count_(10)
+    waiting_count_(10),
+    _b_running(true)
 {
     _sp = Cheetah_StateProvider<T>::getStateProvider();
     _ParameterSetting();
@@ -59,7 +60,6 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->setState(_state);
     _robot->forwardKinematics();
 
-    // TEST
     Vec3<T> ave_foot;
     ave_foot.setZero();
 
@@ -80,6 +80,7 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->forwardKinematics();
 
     //pretty_print(_state.bodyPosition, std::cout, "body position");
+    //printf("yaw command: %f\n", data->yaw_command);
 
     // Update Mass, Gravity, Coriolis
     _robot->contactJacobians();
@@ -87,14 +88,43 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->gravityForce();
     _robot->coriolisForce();
 
-    if(!_Initialization(data, command)){
-        _test->getCommand(command);
+    _SafetyCheck();
+    if(_b_running){
+        if(!_Initialization(data, command)){
+            _test->getCommand(command);
+        }
+    }else{
+        _SafeCommand(data, command);
     }
-    
+
     ++count_;
     // When there is sensed time
     _sp->curr_time_ += cheetah::servo_rate;
 }
+template <typename T>
+void Cheetah_interface<T>::_SafetyCheck(){
+    if(fabs(_sp->Q_[0]) > _quat_x_limit){
+        _b_running = false;
+    }
+    if(fabs(_sp->Q_[1]) > _quat_y_limit){
+        _b_running = false;
+    }
+     //pretty_print(_sp->Q_, std::cout, "q");
+}
+
+template<typename T>
+void Cheetah_interface<T>::_SafeCommand(const Cheetah_Data<T>* data, 
+        LegControllerCommand<T> * command){
+
+    for(size_t leg(0); leg<cheetah::num_leg; ++leg){
+        for(size_t jidx(0); jidx<cheetah::num_leg_joint; ++jidx){
+            command[leg].tauFeedForward[jidx] = 0.;
+            command[leg].qDes[jidx] = data->jpos[3*leg + jidx];
+            command[leg].qdDes[jidx] = 0.;
+        }
+    }
+}
+
 
 template <typename T>
 bool Cheetah_interface<T>::_Initialization(
@@ -141,6 +171,9 @@ void Cheetah_interface<T>::_ParameterSetting(){
         printf("[Interfacce] There is no test matching with the name\n");
         exit(0);
     }
+
+    handler.getValue<T>("quat_x_limit", _quat_x_limit);
+    handler.getValue<T>("quat_y_limit", _quat_y_limit);
     printf("[Cheetah_interface] Parameter setup is done\n");
 }
 

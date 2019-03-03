@@ -31,7 +31,7 @@ void RobotController::initialize() {
 void RobotController::step() {
   setupStep();
   _stateEstimator->run();
-  testDebugVisualization();
+  //testDebugVisualization();
 
   // for now, we will always enable the legs:
   _legController->setEnabled(true);
@@ -54,6 +54,9 @@ void RobotController::step() {
   }
   _data->dir_command[0] = driverCommand->leftStickAnalog[1];
   _data->dir_command[1] = driverCommand->leftStickAnalog[0];
+  _data->yaw_command = driverCommand->rightStickAnalog[0];
+  //_data->yaw_command = driverCommand->rightStickAnalog[1];
+
 
   _wbc_state->GetCommand(_data, _legController->commands);
   // === End of WBC state command computation  =========== //

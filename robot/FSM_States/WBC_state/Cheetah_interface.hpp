@@ -24,9 +24,15 @@ class Cheetah_interface{
         int waiting_count_;
 
         Test<T>* _test;
+        T _quat_x_limit;
+        T _quat_y_limit;
+        bool _b_running;
 
         void _ParameterSetting();
         bool _Initialization(const Cheetah_Data<T>* , LegControllerCommand<T>* );
+
+        void _SafetyCheck();
+        void _SafeCommand(const Cheetah_Data<T>* , LegControllerCommand<T>* );
         
         Cheetah_StateProvider<T>* _sp;
 };

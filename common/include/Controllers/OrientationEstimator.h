@@ -30,7 +30,7 @@ class VectorNavOrientationEstimator : public GenericEstimator<T> {
 template <typename T>
 class KvhOrientationEstimator : public GenericEstimator<T> {
   virtual void run() {
-    printf("run kvh estimator!\n");
+    //printf("run kvh estimator!\n");
   }
 };
 

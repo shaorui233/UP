@@ -179,11 +179,11 @@ void TwoLegSwingCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + Kp_.cwiseProduct(des_jpos_ - Ctrl::robot_sys_->_state.q)
         + Kd_.cwiseProduct(des_jvel_ - Ctrl::robot_sys_->_state.qd);
 
-    //TEST
-    //des_jacc_cmd.setZero();
     wblc_->MakeWBLC_Torque(
             des_jacc_cmd, 
             gamma, wblc_data_);
+
+    //pretty_print(wblc_data_->Fr_, std::cout, "Fr");
 }
 
 template <typename T>
@@ -404,9 +404,8 @@ void TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
     }
     handler.getValue<T>(category_name, "swing_height", _swing_height);
 
-    // TEST 
     handler.getVector<T>(category_name, "landing_offset", tmp_vec);
-    pretty_print(tmp_vec, "landing offset");
+    //pretty_print(tmp_vec, "landing offset");
     for(size_t i(0); i<3; ++i) _landing_offset[i] = tmp_vec[i];
 }
 

@@ -1,11 +1,16 @@
 ## Optimization Replay Test ********************************* 
-test_name: opt_play_test
+#test_name: opt_play_test
 
 ## Walking Test ********************************* 
-#test_name: trot_test
+test_name: trot_test
 
 ## Body Ctrl Test ********************************* 
 #test_name: body_ctrl_test
 
 ## JPos Ctrl Test ********************************* 
 #test_name: jpos_ctrl_test
+
+
+# Safety
+quat_x_limit: 0.57
+quat_y_limit: 0.42

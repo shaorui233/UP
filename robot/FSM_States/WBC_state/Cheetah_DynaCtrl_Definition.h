@@ -16,6 +16,7 @@ class Cheetah_Data{
         T jvel[cheetah::num_act_joint];
         bool foot_contact[4];
         T dir_command[2];
+        T yaw_command;
 };
 
 #endif

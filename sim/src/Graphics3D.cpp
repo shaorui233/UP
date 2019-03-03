@@ -634,39 +634,36 @@ void Graphics3D::_Additional_Drawing(int pass) {
   _DrawContactPoint();
 
 
-  {
+  configOpenGLPass(pass);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    configOpenGLPass(pass);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    for (size_t i = 0; i < _drawList._visualizationData->num_arrows; i++) {
+  for (size_t i = 0; i < _drawList._visualizationData->num_arrows; i++) {
       _drawArrow(_drawList._visualizationData->arrows[i]);
-    }
+  }
 
-    for (size_t i = 0; i < _drawList._visualizationData->num_cones; i++) {
+  for (size_t i = 0; i < _drawList._visualizationData->num_cones; i++) {
       _drawCone(_drawList._visualizationData->cones[i]);
-    }
+  }
 
-    for (size_t i = 0; i < _drawList._visualizationData->num_blocks; i++) {
+  for (size_t i = 0; i < _drawList._visualizationData->num_blocks; i++) {
       _drawBlock(_drawList._visualizationData->blocks[i]);
-    }
+  }
 
-    for (size_t i = 0; i < _drawList._visualizationData->num_spheres; i++) {
+  for (size_t i = 0; i < _drawList._visualizationData->num_spheres; i++) {
       _drawSphere(_drawList._visualizationData->spheres[i]);
-    }
-    glDisable(GL_BLEND);
+  }
+  glDisable(GL_BLEND);
 
 
-    for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
+  for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
       PathVisualization path = _drawList._visualizationData->paths[i];
       glColor4f(path.color[0], path.color[1], path.color[2], path.color[3]);
       glBegin(GL_LINE_STRIP);
       for (size_t j = 0; j < path.num_points; j++) {
-        glVertex3d(path.position[j][0], path.position[j][1], path.position[j][2]);
+          glVertex3d(path.position[j][0], path.position[j][1], path.position[j][2]);
       }
       glEnd();
-    }
   }
 
   glPopAttrib();
