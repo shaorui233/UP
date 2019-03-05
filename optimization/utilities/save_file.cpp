@@ -4,7 +4,7 @@ void cleaning_file(std::string _file_name, std::string & _ret_file, bool b_opt){
     if(b_opt)
         _ret_file += THIS_COM"optimization/optimization_data/";
     else
-        _ret_file += THIS_COM"optimization/experiment_data/";
+        _ret_file += THIS_COM"path_planning/planning_data/";
 
     _ret_file += _file_name;
     _ret_file += ".txt";

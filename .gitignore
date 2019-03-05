@@ -12,3 +12,4 @@ lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
 optimization_data
+planning_data

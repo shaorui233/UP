@@ -21,7 +21,8 @@ RandomTerrain::RandomTerrain(int num_box,
 
     srand (time(NULL));
     for(int i(0); i<_num_box; ++i){
-        box.x_right_bottom = x_gap * (double)rand()/RAND_MAX + (_x_min - cover_area_extension);
+        box.x_right_bottom = x_gap * (double)rand()/RAND_MAX + 
+            (_x_min - cover_area_extension);
         box.y_right_bottom = y_gap * (double)rand()/RAND_MAX + (_y_min - cover_area_extension);
 
         box.depth = _depth_var * (double)rand()/RAND_MAX + _depth_min;

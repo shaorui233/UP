@@ -510,7 +510,7 @@ void Graphics3D::_MeshObstacleDrawing(){
       scaled_height = (height-height_min)/height_gap;
       getHeightColor(scaled_height, color_r, color_g, color_b);
       glColor4f(color_r, color_g, color_b, 1.0f);
-      glVertex3d(i*grid_size, j*grid_size, _drawList.getHeightMap()(i, j) );
+      glVertex3d(i*grid_size, j*grid_size, height );
     }
     glPopAttrib();
     glDisable(GL_BLEND);
