@@ -37,7 +37,11 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
     link_ori_inv[3]= -link_ori[3];
     link_ori_inv /= link_ori.norm();
 
-    Quat<T> ori_err = ori::quatProduct(*ori_cmd, link_ori_inv);
+    //Quat<T> ori_err = ori::quatProduct(*ori_cmd, link_ori_inv);
+    Quat<T> ori_err = ori::quatProduct(link_ori_inv, *ori_cmd);
+    if(ori_err[0] < 0.){
+        ori_err *= (-1.);
+    }
     Vec3<T> ori_err_so3;
     ori::quaternionToso3(ori_err, ori_err_so3);
 
@@ -48,14 +52,16 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
         TK::acc_des_[i] = acc_des[i];
     }
     //printf("[Body Ori Task]\n");
-    //pretty_print(acc_des, std::cout, "acc_des");
     //pretty_print(TK::pos_err_, std::cout, "pos_err_");
-    //pretty_print(*ori_cmd, std::cout, "cmd");
+    //pretty_print(*ori_cmd, std::cout, "des_ori");
+    //pretty_print(link_ori, std::cout, "curr_ori"); 
+    //pretty_print(ori_err, std::cout, "quat_err"); 
+    
     //pretty_print(link_ori_inv, std::cout, "ori_inv");
     //pretty_print(ori_err, std::cout, "ori_err");
-    //pretty_print(*ori_cmd, std::cout, "des_ori");
-    //pretty_print(link_ori, std::cout, "curr_ori");
-    //pretty_print(Jt_, std::cout, "Jt");
+    //pretty_print(*ori_cmd, std::cout, "cmd");
+    //pretty_print(acc_des, std::cout, "acc_des");
+    //pretty_print(TK::Jt_, std::cout, "Jt");
 
     return true;
 }
@@ -63,6 +69,7 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
 template <typename T>
 bool BodyOriTask<T>::_UpdateTaskJacobian(){
     //TK::Jt_ = robot_sys_->_J[0].block(0,0, 3, cheetah::dim_config);
+    //TK::Jt_.block(0, 0, 3, 3) = robot_sys_->_Xa[5].template block<3,3> (0, 0);
     return true;
 }
 

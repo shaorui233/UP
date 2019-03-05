@@ -159,7 +159,15 @@ void TwoContactTransCtrl<T>::_task_setup(){
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    des_quat[0] = 1.;
+    //des_quat = rpyToQuat(_sp->_target_ori_command);
+    Mat3<T> Rot = rpyToRotMat(_sp->_target_ori_command);
+    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
+    des_quat[0] = eigen_quat.w();
+    des_quat[1] = eigen_quat.x();
+    des_quat[2] = eigen_quat.y();
+    des_quat[3] = eigen_quat.z();
+
+
 
     DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();

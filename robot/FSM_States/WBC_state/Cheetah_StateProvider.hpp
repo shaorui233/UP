@@ -10,6 +10,8 @@ public:
   static Cheetah_StateProvider<T>* getStateProvider();
   ~Cheetah_StateProvider(){}
 
+  void UpdateYawTargetRot(const T & yaw);
+
   DVec<T> Q_;
   DVec<T> Qdot_;
   DVec<T> jpos_ini_;
@@ -23,7 +25,11 @@ public:
   T curr_time_;
 
   T _dir_command[2];
+  T _ori_command[3];
+  Vec3<T> _target_ori_command;
   Vec3<T> _body_target;
+
+  Mat3<T> _YawRot;
 
   // For optimization replay
   int _num_step;

@@ -59,6 +59,14 @@ void pretty_print(DMat<T> const & mm, std::ostream & os,
 
 
 template<typename T>
+void pretty_print(Quat<T> const & vv, std::ostream & os,
+        std::string const & title,
+        std::string const & prefix="", bool nonl = false){
+    pretty_print((DMat<T> const &) vv, os, title, prefix, true, nonl);
+}
+
+
+template<typename T>
 void pretty_print(DVec<T> const & vv, std::ostream & os,
         std::string const & title,
         std::string const & prefix="", bool nonl = false){

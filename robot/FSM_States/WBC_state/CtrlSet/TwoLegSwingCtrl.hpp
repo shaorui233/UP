@@ -41,6 +41,7 @@ class TwoLegSwingCtrl: public Controller<T>{
         Vec3<T> _default_target_foot_loc_2;
         Vec3<T> _landing_offset;
         T _swing_height;
+        Vec3<T> _prev_ori_command;
 
         Task<T>* _cp_pos_task1;
         Task<T>* _cp_pos_task2;

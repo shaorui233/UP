@@ -68,8 +68,12 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     }
     _sp->_dir_command[0] = data->dir_command[0];
     _sp->_dir_command[1] = data->dir_command[1];
+
+    for(size_t i(0); i<3; ++i)
+        _sp->_ori_command[i] = data->ori_command[i];
+
     _state.bodyPosition = -ave_foot;
-    _state.bodyPosition += _sp->_local_frame_global_pos;
+    //_state.bodyPosition += _sp->_local_frame_global_pos;
    
     _sp->Q_[3] = _state.bodyPosition[0];
     _sp->Q_[4] = _state.bodyPosition[1];

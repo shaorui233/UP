@@ -36,7 +36,7 @@ bool BodyPosTask<T>::_UpdateCommand(void* pos_des,
     //dynacore::pretty_print(acc_des, std::cout, "acc_des");
     //dynacore::pretty_print(pos_err_, std::cout, "pos_err_");
     //dynacore::pretty_print(*pos_cmd, std::cout, "pos cmd");
-    //dynacore::pretty_print(Jt_, std::cout, "Jt");
+    //pretty_print(TK::Jt_, std::cout, "Jt");
 
     return true;
 }
@@ -44,6 +44,7 @@ bool BodyPosTask<T>::_UpdateCommand(void* pos_des,
 template <typename T>
 bool BodyPosTask<T>::_UpdateTaskJacobian(){
     //TK::Jt_ = robot_sys_->_J[0].block(3,0, 3, cheetah::dim_config);
+    //TK::Jt_.block(0, 3, 3, 3) = robot_sys_->_Xa[5].template block<3,3>(3, 3);
     return true;
 }
 

@@ -34,8 +34,8 @@ TwoLegSwingCtrl<T>::TwoLegSwingCtrl(const FloatingBaseModel<T>* robot,
     Ctrl::task_list_.push_back(body_ori_task_);
     Ctrl::task_list_.push_back(body_pos_task_);
 
-    _cp_pos_task1 = new LinkPosTask<T>(Ctrl::robot_sys_, _cp1);
-    _cp_pos_task2 = new LinkPosTask<T>(Ctrl::robot_sys_, _cp2);
+    _cp_pos_task1 = new LinkPosTask<T>(Ctrl::robot_sys_, _cp1, false);
+    _cp_pos_task2 = new LinkPosTask<T>(Ctrl::robot_sys_, _cp2, false);
     Ctrl::task_list_.push_back(_cp_pos_task1);
     Ctrl::task_list_.push_back(_cp_pos_task2);
 
@@ -208,7 +208,18 @@ void TwoLegSwingCtrl<T>::_task_setup(){
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    des_quat[0] = 1.;
+    Vec3<T> curr_rpy;
+    for(size_t i(0); i<3; ++i){
+        curr_rpy[i] = smooth_change(_prev_ori_command[i], _sp->_target_ori_command[i], 
+                end_time_, Ctrl::state_machine_time_);
+    }
+    //des_quat = rpyToQuat(curr_rpy);
+    Mat3<T> Rot = rpyToRotMat(curr_rpy);
+    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
+    des_quat[0] = eigen_quat.w();
+    des_quat[1] = eigen_quat.x();
+    des_quat[2] = eigen_quat.y();
+    des_quat[3] = eigen_quat.z();
 
     DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
@@ -277,6 +288,8 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     _target_loc1 = _default_target_foot_loc_1;
     _target_loc2 = _default_target_foot_loc_2;
 
+    Vec3<T> body_target; body_target.setZero();
+
     if(_sp->_opt_play){
         for(int i(0); i<3; ++i){
         _target_loc1[i] = 
@@ -285,17 +298,22 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
             OptInterpreter<T>::getOptInterpreter()->_foot_step_list[_sp->_num_step][i+3];
         }
     }else{
-        _target_loc1 += _sp->_local_frame_global_pos;
-        _target_loc2 += _sp->_local_frame_global_pos;
-        _sp->_body_target = _sp->_local_frame_global_pos;
+        //_target_loc1 += _sp->_local_frame_global_pos;
+        //_target_loc2 += _sp->_local_frame_global_pos;
+        //_sp->_body_target = _sp->_local_frame_global_pos;
 
 
+        _prev_ori_command = _sp->_target_ori_command;
+        for(size_t i(0); i<3; ++i) 
+            _sp->_target_ori_command[i] += 0.1*_sp->_ori_command[i];
+
+        _sp->UpdateYawTargetRot(_sp->_target_ori_command[2]);
         _dir_command[0] = 0.12 * _sp->_dir_command[0];
         _dir_command[1] = 0.05 * _sp->_dir_command[1];
 
         _ini_body_target = _sp->_body_target;
-        _sp->_body_target[0] += 0.4 *_dir_command[0];
-        _sp->_body_target[1] += 0.6 * _dir_command[1];
+        body_target[0] += 0.4 *_dir_command[0];
+        body_target[1] += 0.6 * _dir_command[1];
 
         if(_sp->_dir_command[0] > 0.){
             _target_loc1[0] += _dir_command[0];
@@ -307,14 +325,28 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
 
         _target_loc1[1] += _dir_command[1];
         _target_loc2[1] += _dir_command[1];
+
     }
 
     _target_loc1 += _landing_offset;
     _target_loc2 += _landing_offset;
 
+    // body rotation
+    body_target = _sp->_YawRot*body_target;
+    //_sp->_body_target = body_target + _sp->_local_frame_global_pos;
+    _sp->_body_target = body_target;
+    // Target Roation
+    _target_loc1 = (_sp->_YawRot*_target_loc1);// + _sp->_body_target);
+    _target_loc2 = (_sp->_YawRot*_target_loc2);// + _sp->_body_target);
+
+   //_target_loc1 = (_sp->_YawRot*_target_loc1 + _sp->_local_frame_global_pos);
+    //_target_loc2 = (_sp->_YawRot*_target_loc2 + _sp->_local_frame_global_pos);
+
+
     _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
     _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
+    //pretty_print(_sp->_YawRot, std::cout, "Ya"); 
     //pretty_print(_target_loc1, std::cout, "target loc 1");
     //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
@@ -346,7 +378,7 @@ void TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des
         middle_pt[0][i] = middle_pos[i];
     }
     // TEST
-    fin[5] = 0.0;
+    fin[5] = -0.05;
     fin[8] = 5.;
     spline.SetParam(init, fin, middle_pt, end_time_);
 

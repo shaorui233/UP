@@ -270,6 +270,8 @@ class DrawList {
 
         const DMat<double> & getHeightMap(){ return _height_map; }
         const Vec3<double> & getHeightMapLeftCorner(){ return _height_map_left_corner; }
+        const double & getHeightMapMax(){ return _height_map_max; }
+        const double & getHeightMapMin(){ return _height_map_min; }
         const double & getGridSize(){ return _grid_size; }
 
         const Vec3<double>& getCameraOrigin() {
@@ -309,6 +311,7 @@ class DrawList {
         double _grid_size;
         Vec3<double> _height_map_left_corner;
         DMat<double> _height_map;
+        double _height_map_max, _height_map_min;
 
         Vec3<double> _cameraOrigin;
 

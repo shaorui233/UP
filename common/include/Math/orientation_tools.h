@@ -315,6 +315,25 @@ namespace ori {
           so3 /= sin(theta/2.0);
           so3 *= theta;
       }
+  template<typename T>
+      Quat<T> so3ToQuat(Vec3<T> & so3){
+          Quat<T> quat;
+
+          T theta = sqrt(so3[0] * so3[0] +
+                      so3[1] * so3[1] +
+                      so3[2] * so3[2]);
+
+          if(fabs(theta) <1.e-6) {
+             quat.setZero();
+             quat[0] = 1.;
+              return quat;
+          }
+          quat[0] = cos(theta/2.);
+          quat[1] = so3[0]/theta * sin(theta/2.);
+          quat[2] = so3[1]/theta * sin(theta/2.);
+          quat[3] = so3[2]/theta * sin(theta/2.);
+          return quat;  
+      }
 }
 
 

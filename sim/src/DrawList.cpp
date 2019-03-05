@@ -339,6 +339,19 @@ void DrawList::addMesh(double grid_size, const Vec3<double> & left_corner,
     _grid_size = grid_size;
     _height_map_left_corner = left_corner;
     _height_map = height_map;
+    _height_map_min = 1.e5;
+    _height_map_max = -1.e5;
+
+    for(int i(0); i<height_map.cols(); ++i){
+        for(int j(0); j<height_map.rows(); ++j){
+            if(height_map(i,j) > _height_map_max){
+                _height_map_max = height_map(i,j);
+            }
+            if(height_map(i,j) < _height_map_min){
+                _height_map_min = height_map(i,j);
+            }
+        }
+    }
 }
 
 

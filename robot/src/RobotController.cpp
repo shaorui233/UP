@@ -54,8 +54,13 @@ void RobotController::step() {
   }
   _data->dir_command[0] = driverCommand->leftStickAnalog[1];
   _data->dir_command[1] = driverCommand->leftStickAnalog[0];
-  _data->yaw_command = driverCommand->rightStickAnalog[0];
-  //_data->yaw_command = driverCommand->rightStickAnalog[1];
+  
+  // Orientation
+  _data->ori_command[0] = driverCommand->rightTriggerAnalog;
+  _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
+
+  _data->ori_command[1] = driverCommand->rightStickAnalog[1];
+  _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
 
   _wbc_state->GetCommand(_data, _legController->commands);

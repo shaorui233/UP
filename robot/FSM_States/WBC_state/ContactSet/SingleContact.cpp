@@ -37,6 +37,7 @@ SingleContact<T>::~SingleContact(){  }
 template <typename T>
 bool SingleContact<T>::_UpdateJc(){
     Contact::Jc_ = robot_sys_->_Jc[contact_pt_];
+    Contact::Jc_.block(0, 3, 3, 3).setIdentity();
     //pretty_print(Contact::Jc_, std::cout, "Jc");
     return true;
 }

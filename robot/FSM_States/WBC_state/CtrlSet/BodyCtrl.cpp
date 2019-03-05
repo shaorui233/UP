@@ -159,14 +159,18 @@ void BodyCtrl<T>::_task_setup(){
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    T theta(0.);
-    T amp_rot(0.);
-    T omega_ang(0.5*2.*M_PI);
-    theta = amp_rot*sin(omega_ang * Ctrl::state_machine_time_);
-    // pitch
-    des_quat[0] = cos(theta/2.);
-    des_quat[2] = sin(theta/2.);
-    //des_quat[0] = 1.;
+    // TEST
+    //for(size_t i(0); i<3; ++i) _sp->_target_ori_command[i] += 0.001*_sp->_ori_command[i];
+
+    //des_quat = rpyToQuat(curr_rpy);
+    //if(_sp->_target_ori_command[2] > M_PI){ _sp->_target_ori_command[2] -= (2.*M_PI); }
+    Mat3<T> Rot = rpyToRotMat(_sp->_target_ori_command);
+    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
+    des_quat[0] = eigen_quat.w();
+    des_quat[1] = eigen_quat.x();
+    des_quat[2] = eigen_quat.y();
+    des_quat[3] = eigen_quat.z();
+
 
     DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
