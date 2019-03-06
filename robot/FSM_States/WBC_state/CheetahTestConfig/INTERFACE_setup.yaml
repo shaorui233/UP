@@ -1,8 +1,8 @@
 ## Optimization Replay Test ********************************* 
-#test_name: opt_play_test
+test_name: opt_play_test
 
 ## Walking Test ********************************* 
-test_name: trot_test
+#test_name: trot_test
 
 ## Body Ctrl Test ********************************* 
 #test_name: body_ctrl_test

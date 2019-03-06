@@ -14,7 +14,7 @@ mesh-1:
     #grid: 0.005
     grid: 0.03
     #left_corner_loc: [-6.3, -4.7, 0.07]
-    left_corner_loc: [-0.2, -0.3, 1.43]
+    left_corner_loc: [-0.0, -2.2, -0.501]
     heightmap_file: true
     #heightmap_file: false 
     #heightmap_file_name: "heightmap_demo.txt"
@@ -24,7 +24,8 @@ mesh-1:
     #heightmap_file_name: "../optimization/optimization_data/2019-03-03-00_00_00/HeightMap.txt"
     #heightmap_file_name: "../optimization/optimization_data/2019-03-04-00_00_00/heightmap2_fixed.txt"
     #heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_01/manual_heightmap.txt"
-    heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_02/manual_heightmap.txt"
+    #heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_02/manual_heightmap.txt"
+    heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_03/heightmap.txt"
 
 #box-1:
     #type: "box"
