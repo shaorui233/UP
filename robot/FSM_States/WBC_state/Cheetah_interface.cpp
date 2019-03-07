@@ -73,7 +73,7 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
         _sp->_ori_command[i] = data->ori_command[i];
 
     _state.bodyPosition = -ave_foot;
-    //_state.bodyPosition += _sp->_local_frame_global_pos;
+    _state.bodyPosition += _sp->_local_frame_global_pos;
    
     _sp->Q_[3] = _state.bodyPosition[0];
     _sp->Q_[4] = _state.bodyPosition[1];

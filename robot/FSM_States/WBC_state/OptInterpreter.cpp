@@ -10,12 +10,11 @@ OptInterpreter<T>* OptInterpreter<T>::getOptInterpreter(){
     return &inter;
 }
 
-
 template <typename T>
 OptInterpreter<T>::OptInterpreter(){
     _start_loc.setZero();
-    _start_loc[0] = 0.2;
-    _start_loc[1] = 0.3;
+    //_start_loc[0] = 0.2;
+    //_start_loc[1] = 0.3;
 }
 template <typename T>
 OptInterpreter<T>::~OptInterpreter(){
@@ -46,14 +45,15 @@ void OptInterpreter<T>::updateBodyTarget(const T & t,
     //pretty_print(body_acc, std::cout, "body acc");
 }
 
+
 template <typename T>
 void OptInterpreter<T>::SetParameter(const std::string & setup_file){
     ParamHandler handler(setup_file);
     std::string str_tmp;
     handler.getString("OPT_walking_forward", "folder_name", str_tmp);
 
-    std::string opt_result_file = THIS_COM"optimization/optimization_data/"+str_tmp+"/0_opt_result.txt";
-    std::string foot_loc_file = THIS_COM"optimization/optimization_data/"+str_tmp+"/0_foot_loc.txt";
+    std::string opt_result_file = THIS_COM"optimization/optimization_data/"+str_tmp+"/1_opt_result.txt";
+    std::string foot_loc_file = THIS_COM"optimization/optimization_data/"+str_tmp+"/1_foot_loc.txt";
 
     std::ifstream f_opt_result(opt_result_file);
     std::ifstream f_foot_loc(foot_loc_file);
@@ -102,17 +102,18 @@ void OptInterpreter<T>::SetParameter(const std::string & setup_file){
 
     // Build up body trajectory
     buildSpline(x);
+    buildOrientationSpline(x);
     printf("[Optimization Interpreter] Setting is done\n");
 }
 
 template<typename T>
 void OptInterpreter<T>::buildSpline(const std::vector<double> & x){ 
 
-    int idx_offset = 4*WalkingForward::_nStep;
+    int idx_offset = 4*OptCase::_nStep;
     double init[9];
     double fin[9];
 
-    int num_mid_pt = WalkingForward::_nStep-2;
+    int num_mid_pt = OptCase::_nStep-2;
     int degree = 1;
 
     init[0] = x[0 + idx_offset]; // starting loc
@@ -141,8 +142,8 @@ void OptInterpreter<T>::buildSpline(const std::vector<double> & x){
     fin[8] = 0.;
 
     // middle point allocation
-    double ** middle_pt = new double*[WalkingForward::nMiddle_pt];
-    for(int i(0); i<WalkingForward::nMiddle_pt; ++i) middle_pt[i] = new double[3];
+    double ** middle_pt = new double*[OptCase::nMiddle_pt];
+    for(int i(0); i<OptCase::nMiddle_pt; ++i) middle_pt[i] = new double[3];
 
     for(int i(0); i<num_mid_pt; ++i){
         for(int j(0); j<degree; ++j){
@@ -151,13 +152,129 @@ void OptInterpreter<T>::buildSpline(const std::vector<double> & x){
             middle_pt[degree*i+j][2] = x[idx_offset + 3*(i+1)+2];
         }
     }
-    _body_traj.SetParam(init, fin, middle_pt, WalkingForward::_tot_time);
+    _body_traj.SetParam(init, fin, middle_pt, OptCase::_tot_time);
     
-    for(int i(0); i<WalkingForward::nMiddle_pt; ++i){
+    for(int i(0); i<OptCase::nMiddle_pt; ++i){
         delete [] middle_pt[i];
     }
     delete [] middle_pt;
 }
+#if (OriSplineDim == 2)
+template<typename T>
+void OptInterpreter<T>::updateBodyOriTarget(const T & t, Vec3<T> & body_ori){
+
+    double ori[2]; ori[0] = 0.; ori[1] = 0.;
+    _body_ori_traj.getCurvePoint(t, ori);
+
+    for(size_t i(0); i<2; ++i){
+        body_ori[i+1] = ori[i];
+    }
+    body_ori[0] = 0. ; // Zero Roll
+
+    //printf("time: %f\n", t);
+    pretty_print(body_ori, std::cout, "body ori pitch & yaw");
+    //pretty_print(body_vel, std::cout, "body vel");
+    //pretty_print(body_acc, std::cout, "body acc");
+}
+template<typename T>
+void OptInterpreter<T>::buildOrientationSpline(const std::vector<double> & x){ 
+
+    int idx_offset = 4*OptCase::_nStep + 3*OptCase::_nStep;
+    double init[6];
+    double fin[6];
+
+    int num_mid_pt = OptCase::_nStep-2;
+    int degree = 1;
+
+    init[0] = x[0 + idx_offset]; // starting loc
+    init[1] = x[1 + idx_offset]; 
+
+    init[2] = 0.; //velocity
+    init[3] = 0.; 
+
+    init[4] = 0.; //acceleration 
+    init[5] = 0.; //acceleration 
+
+
+    fin[0] = x[0 + idx_offset + 2*(num_mid_pt+1)]; // end loc
+    fin[1] = x[1 + idx_offset + 2*(num_mid_pt+1)];
+
+    fin[2] = 0.;
+    fin[3] = 0.;
+
+    fin[4] = 0.;
+    fin[5] = 0.;
+
+    // middle point allocation
+    double ** middle_pt_ori = new double*[OptCase::nMiddle_pt];
+    for(int i(0); i<OptCase::nMiddle_pt; ++i) middle_pt_ori[i] = new double[2];
+
+    for(int i(0); i<num_mid_pt; ++i){
+        for(int j(0); j<degree; ++j){
+            middle_pt_ori[degree*i+j][0] = x[idx_offset + 2*(i+1)];
+            middle_pt_ori[degree*i+j][1] = x[idx_offset + 2*(i+1)+1];
+        }
+    }
+    _body_ori_traj.SetParam(init, fin, middle_pt_ori, OptCase::_tot_time);
+    
+    for(int i(0); i<OptCase::nMiddle_pt; ++i){
+        delete [] middle_pt_ori[i];
+    }
+    delete [] middle_pt_ori;
+}
+#elif (OriSplineDim == 1)
+template<typename T>
+void OptInterpreter<T>::buildOrientationSpline(const std::vector<double> & x){ 
+
+    int idx_offset = 4*OptCase::_nStep + 3*OptCase::_nStep;
+    double init[3];
+    double fin[3];
+
+    int num_mid_pt = OptCase::_nStep-2;
+    int degree = 1;
+
+    init[0] = x[0 + idx_offset]; // starting loc
+    init[1] = 0.; //velocity
+    init[2] = 0.; //acceleration 
+
+
+    fin[0] = x[0 + idx_offset + 1*(num_mid_pt+1)]; // end loc
+    fin[1] = 0.;
+    fin[2] = 0.;
+
+    // middle point allocation
+    double ** middle_pt_ori = new double*[OptCase::nMiddle_pt];
+    for(int i(0); i<OptCase::nMiddle_pt; ++i) middle_pt_ori[i] = new double[1];
+
+    for(int i(0); i<num_mid_pt; ++i){
+        for(int j(0); j<degree; ++j){
+            middle_pt_ori[degree*i+j][0] = x[idx_offset + (i+1)];
+        }
+    }
+    _body_ori_traj.SetParam(init, fin, middle_pt_ori, OptCase::_tot_time);
+    
+    for(int i(0); i<OptCase::nMiddle_pt; ++i){
+        delete [] middle_pt_ori[i];
+    }
+    delete [] middle_pt_ori;
+}
+
+template<typename T>
+void OptInterpreter<T>::updateBodyOriTarget(const T & t, Vec3<T> & body_ori){
+
+    double ori[1]; ori[0] = 0.;
+    _body_ori_traj.getCurvePoint(t, ori);
+
+    body_ori[0] = 0. ; // Zero Roll
+    body_ori[1] = ori[0];
+    body_ori[2] = 0.;
+    
+    //printf("time: %f\n", t);
+    //pretty_print(body_ori, std::cout, "body ori");
+}
+#endif
+
+
 
 
 template class OptInterpreter<double>;

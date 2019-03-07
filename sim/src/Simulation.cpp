@@ -100,7 +100,7 @@ _tau(12) {
   // Initial (Mini Cheetah stand)
   //x0.bodyPosition[2] = -0.185;
   // Cheetah 3
-  x0.bodyPosition[2] = -0.035;
+  x0.bodyPosition[2] = -0.105;
   x0.q[0] = -0.03;
   x0.q[1] = -0.79;
   x0.q[2] = 1.715;
@@ -721,6 +721,7 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
         for(int i(0); i<x_len; ++i){
             for(int j(0); j<y_len; ++j){
                 height_map(i,j) = height_map_2d[i][j];
+                //printf("height (%d, %d) : %f\n", i, j, height_map(i,j) );
             }
         }
         addCollisionMesh(mu, resti, grid, left_corner, height_map, addGraphics, transparent !=0.);

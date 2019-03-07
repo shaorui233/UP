@@ -196,25 +196,28 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     if(!b_set_height_target_) { printf("No Height Command\n"); exit(0); }
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-
+    Mat3<T> Rot ;
     if(_sp->_opt_play){
         OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
                 _sp->curr_time_, _sp->_body_target, vel_des, acc_des);
+        OptInterpreter<T>::getOptInterpreter()->updateBodyOriTarget(
+                _sp->curr_time_, _sp->_target_ori_command);
+        Rot = rpyToRotMat(_sp->_target_ori_command);
+
     }else{
         _sp->_body_target[2] = _body_height_cmd;
+        Vec3<T> curr_rpy;
+        for(size_t i(0); i<3; ++i){
+            curr_rpy[i] = smooth_change(_prev_ori_command[i], _sp->_target_ori_command[i], 
+                    end_time_, Ctrl::state_machine_time_);
+        }
+        Rot = rpyToRotMat(curr_rpy);
     }
     Vec3<T> des_pos = _sp->_body_target;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    Vec3<T> curr_rpy;
-    for(size_t i(0); i<3; ++i){
-        curr_rpy[i] = smooth_change(_prev_ori_command[i], _sp->_target_ori_command[i], 
-                end_time_, Ctrl::state_machine_time_);
-    }
-    //des_quat = rpyToQuat(curr_rpy);
-    Mat3<T> Rot = rpyToRotMat(curr_rpy);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     des_quat[0] = eigen_quat.w();
     des_quat[1] = eigen_quat.x();
@@ -325,30 +328,19 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
 
         _target_loc1[1] += _dir_command[1];
         _target_loc2[1] += _dir_command[1];
-
+        _sp->_body_target = _sp->_YawRot * body_target;
+        _target_loc1 = (_sp->_YawRot*_target_loc1);// + _sp->_body_target);
+        _target_loc2 = (_sp->_YawRot*_target_loc2);// + _sp->_body_target);
     }
 
     _target_loc1 += _landing_offset;
     _target_loc2 += _landing_offset;
 
-    // body rotation
-    body_target = _sp->_YawRot*body_target;
-    //_sp->_body_target = body_target + _sp->_local_frame_global_pos;
-    _sp->_body_target = body_target;
-    // Target Roation
-    _target_loc1 = (_sp->_YawRot*_target_loc1);// + _sp->_body_target);
-    _target_loc2 = (_sp->_YawRot*_target_loc2);// + _sp->_body_target);
-
-   //_target_loc1 = (_sp->_YawRot*_target_loc1 + _sp->_local_frame_global_pos);
-    //_target_loc2 = (_sp->_YawRot*_target_loc2 + _sp->_local_frame_global_pos);
-
-
     _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
     _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
-    //pretty_print(_sp->_YawRot, std::cout, "Ya"); 
-    //pretty_print(_target_loc1, std::cout, "target loc 1");
-    //pretty_print(_target_loc2, std::cout, "target loc 2");
+    pretty_print(_target_loc1, std::cout, "target loc 1");
+    pretty_print(_target_loc2, std::cout, "target loc 2");
 }
 
 template<typename T>
@@ -378,7 +370,7 @@ void TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des
         middle_pt[0][i] = middle_pos[i];
     }
     // TEST
-    fin[5] = -0.05;
+    //fin[5] = -0.05;
     fin[8] = 5.;
     spline.SetParam(init, fin, middle_pt, end_time_);
 

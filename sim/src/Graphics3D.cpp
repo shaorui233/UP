@@ -473,8 +473,8 @@ void Graphics3D::_MeshObstacleDrawing(){
   glTranslatef(_drawList.getHeightMapLeftCorner()[0],
                _drawList.getHeightMapLeftCorner()[1], _drawList.getHeightMapLeftCorner()[2]);
 
-  double height_min = _drawList.getHeightMapMax()*0.6;
-  double height_max = _drawList.getHeightMapMin()*0.9;
+  double height_min = _drawList.getHeightMapMax();
+  double height_max = _drawList.getHeightMapMin();
   double height_gap = height_max - height_min;
   double scaled_height(0.);
 

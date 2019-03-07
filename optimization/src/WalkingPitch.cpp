@@ -1,47 +1,45 @@
-#include <WalkingOrientation.hpp>
+#include <WalkingPitch.hpp>
 #include <stdio.h>
 #include <utilities/save_file.hpp>
 #include <Utilities/Utilities_print.h>
 #include <cppTypes.h>
 #include <nlopt.hpp>
-#include <height_map/SeparateTerrain.hpp>
-#include <height_map/FlatGround.hpp>
-#include <height_map/RandomTerrain.hpp>
 #include <time.h>
 #include <eigen3/Eigen/Dense>
+#include <height_map/HeightMap.hpp>
 #include <Math/orientation_tools.h>
 
-double ** middle_pt_pos = new double*[WalkingOrientation::nMiddle_pt];
-double ** middle_pt_ori = new double*[WalkingOrientation::nMiddle_pt];
+double ** mid_pt_pos_pitch = new double*[WalkingPitch::nMiddle_pt];
+double ** mid_pt_ori_pitch = new double*[WalkingPitch::nMiddle_pt];
 
-WalkingOrientation::WalkingOrientation(){ 
+WalkingPitch::WalkingPitch(){ 
     _intermittent_step_size = 50000;
     _hmap = NULL;
-    for(int i(0); i<nMiddle_pt; ++i) middle_pt_pos[i] = new double[3];
-    for(int i(0); i<nMiddle_pt; ++i) middle_pt_ori[i] = new double[2];
+    for(int i(0); i<nMiddle_pt; ++i) mid_pt_pos_pitch[i] = new double[3];
+    for(int i(0); i<nMiddle_pt; ++i) mid_pt_ori_pitch[i] = new double[WalkingPitch::dimOri];
 }
 
-WalkingOrientation::~WalkingOrientation(){
+WalkingPitch::~WalkingPitch(){
     for(int i(0); i<nMiddle_pt; ++i){
-        delete [] middle_pt_pos[i];
-        delete [] middle_pt_ori[i];
+        delete [] mid_pt_pos_pitch[i];
+        delete [] mid_pt_ori_pitch[i];
     }
-    delete [] middle_pt_pos;
-    delete [] middle_pt_ori;
+    delete [] mid_pt_pos_pitch;
+    delete [] mid_pt_ori_pitch;
 }
-void WalkingOrientation::ComputeLegLength(
+void WalkingPitch::ComputeLegLength(
         BS_Basic<double, 3, 3, nMiddle_pt, 2, 2> & pos_trj,
-        BS_Basic<double, 2, 3, nMiddle_pt, 2, 2> & ori_trj,
+        BS_Basic<double, WalkingPitch::dimOri, 3, nMiddle_pt, 2, 2> & ori_trj,
         const std::vector<double> & x, 
         std::vector<double> & leg_length_list, 
         std::vector<double> & leg_loc_cost_list, 
-        WalkingOrientation* tester){
+        const WalkingPitch* tester){
 
     double swing_time = tester->_onestep_duration;
     HeightMap* hmap = tester->_hmap;
 
     double body_pos[3]; body_pos[0] = 0.; body_pos[1] = 0.; body_pos[2] = 0.;
-    double body_ori[2]; body_ori[0] = 0.; body_ori[1] = 0.; 
+    double body_ori[WalkingPitch::dimOri]; body_ori[0] = 0.; 
     double p0[3], p1[3], p2[3], p3[3]; //Fr, Fl, Hr, Hl
     double dx, dy, dz;
 
@@ -90,7 +88,7 @@ void WalkingOrientation::ComputeLegLength(
             p3[2] = hmap->getHeight(p3[0], p3[1]);
        }
         Mat3<double> rot;
-        tester->_getRotationMatrix(body_ori[0], body_ori[1], rot);
+        tester->_getRotationMatrix(body_ori[0], rot);
         Vec3<double> fr_body_to_leg_global = rot * tester->_fr_body_to_leg_local;
         Vec3<double> fl_body_to_leg_global = rot * tester->_fl_body_to_leg_local;
         Vec3<double> hr_body_to_leg_global = rot * tester->_hr_body_to_leg_local;
@@ -126,19 +124,19 @@ void WalkingOrientation::ComputeLegLength(
     }
 }
  
-void WalkingOrientation::buildSpline(
+void WalkingPitch::buildSpline(
         const std::vector<double> & x, 
         BS_Basic<double, 3, 3, nMiddle_pt, 2, 2> & pos_spline,
-        BS_Basic<double, 2, 3, nMiddle_pt, 2, 2> & ori_spline){
+        BS_Basic<double, WalkingPitch::dimOri, 3, nMiddle_pt, 2, 2> & ori_spline){
 
     double init[9];
     double fin[9];
 
-    int num_mid_pt = WalkingOrientation::_nStep-2;
+    int num_mid_pt = WalkingPitch::_nStep-2;
     int degree = 1;
 
     // Position
-    int idx_offset = 4*WalkingOrientation::_nStep;
+    int idx_offset = 4*WalkingPitch::_nStep;
     init[0] = x[0 + idx_offset]; // starting loc
     init[1] = x[1 + idx_offset]; 
     init[2] = x[2 + idx_offset]; 
@@ -167,156 +165,124 @@ void WalkingOrientation::buildSpline(
     // middle point allocation
     for(int i(0); i<num_mid_pt; ++i){
         for(int j(0); j<degree; ++j){
-            middle_pt_pos[degree*i+j][0] = x[idx_offset + 3*(i+1)];
-            middle_pt_pos[degree*i+j][1] = x[idx_offset + 3*(i+1)+1];
-            middle_pt_pos[degree*i+j][2] = x[idx_offset + 3*(i+1)+2];
+            mid_pt_pos_pitch[degree*i+j][0] = x[idx_offset + 3*(i+1)];
+            mid_pt_pos_pitch[degree*i+j][1] = x[idx_offset + 3*(i+1)+1];
+            mid_pt_pos_pitch[degree*i+j][2] = x[idx_offset + 3*(i+1)+2];
         }
     }
-    pos_spline.SetParam(init, fin, middle_pt_pos, _tot_time);
+    pos_spline.SetParam(init, fin, mid_pt_pos_pitch, _tot_time);
 
-    // Orientation
-    double init_ori[6];
-    double fin_ori[6];
-    idx_offset = 4*WalkingOrientation::_nStep + 3*WalkingOrientation::_nStep;
+    // Pitch
+    double init_ori[3];
+    double fin_ori[3];
+    idx_offset = 4*WalkingPitch::_nStep + 3*WalkingPitch::_nStep;
     init_ori[0] = x[0 + idx_offset]; // starting loc
-    init_ori[1] = x[1 + idx_offset]; 
-
-    init_ori[2] = 0.; //velocity
-    init_ori[3] = 0.; 
-
-    init_ori[4] = 0.; //acceleration 
-    init_ori[5] = 0.; 
+    init_ori[1] = 0.; //velocity
+    init_ori[2] = 0.; //acceleration 
 
 
-    fin_ori[0] = x[0 + idx_offset + 2*(num_mid_pt+1)]; // end loc
-    fin_ori[1] = x[1 + idx_offset + 2*(num_mid_pt+1)];
-
+    fin_ori[0] = x[0 + idx_offset + 1*(num_mid_pt+1)]; // end loc
+    fin_ori[1] = 0.;
     fin_ori[2] = 0.;
-    fin_ori[3] = 0.;
-
-    fin_ori[4] = 0.;
-    fin_ori[5] = 0.;
 
     // middle point allocation
     for(int i(0); i<num_mid_pt; ++i){
         for(int j(0); j<degree; ++j){
-            middle_pt_ori[degree*i+j][0] = x[idx_offset + 2*(i+1)];
-            middle_pt_ori[degree*i+j][1] = x[idx_offset + 2*(i+1)+1];
+            mid_pt_ori_pitch[degree*i+j][0] = x[idx_offset + (i+1)];
         }
     }
-    ori_spline.SetParam(init_ori, fin_ori, middle_pt_ori, _tot_time);
+    ori_spline.SetParam(init_ori, fin_ori, mid_pt_ori_pitch, _tot_time);
 }
 
-// TODO
-void WalkingOrientation::KinematicsConstraint(unsigned m, double* result, unsigned n, 
+void WalkingPitch::KinematicsConstraint(unsigned m, double* result, unsigned n, 
         const double *x, double *grad, void* data){
 
     (void)m;
     (void)grad;
 
-    WalkingOrientation* tester = (WalkingOrientation*) data;
-    double d = tester->_half_body_length;
-    double w = tester->_half_body_width;
-    double swing_time = tester->_onestep_duration;
-    HeightMap* hmap = tester->_hmap;
-    BS_Basic<double, 3, 3, WalkingOrientation::nMiddle_pt, 2, 2> body_traj;
-    BS_Basic<double, 2, 3, WalkingOrientation::nMiddle_pt, 2, 2> body_ori_traj;
+    WalkingPitch* tester = (WalkingPitch*) data;
+    BS_Basic<double, 3, 3, WalkingPitch::nMiddle_pt, 2, 2> body_traj;
+    BS_Basic<double, WalkingPitch::dimOri, 3, WalkingPitch::nMiddle_pt, 2, 2> body_ori_traj;
 
+    std::vector<double> leg_length_list(4*(_nStep-1));
+    std::vector<double> leg_loc_cost_list(4*(_nStep-1));
 
     std::vector<double> x_vec(n);
-    for(unsigned int i(0); i<n; ++i){ x_vec[i] = x[i]; }
-    tester->buildSpline(x_vec, body_traj, body_ori_traj);
-    double body_pos[3]; body_pos[0] = 0.; body_pos[1] = 0.; body_pos[2] = 0.;
-    double p0[3], p1[3], p2[3], p3[3]; //Fr, Fl, Hr, Hl
-    double dx, dy, dz;
-    double leg_length;
+    for(unsigned int i(0);i<n; ++i) x_vec[i] = x[i];
+
+    tester->ComputeLegLength(body_traj, body_ori_traj, x_vec,
+            leg_length_list, leg_loc_cost_list, tester);
 
     double min = tester->_min_leg_length;
     double max = tester->_max_leg_length;
 
+    double leg_length(0.);
     for(int i(1); i<tester->_nStep; ++i){
-        double time = i *swing_time;
-        body_traj.getCurvePoint(time, body_pos);
-
-        if(i%2 == 1){
-            p0[0] = x[4*i];
-            p0[1] = x[4*i + 1];
-            p0[2] = hmap->getHeight(p0[0], p0[1]);
-
-            p1[0] = x[4*(i-1)];
-            p1[1] = x[4*(i-1) + 1];
-            p1[2] = hmap->getHeight(p1[0], p1[1]);
-
-            p2[0] = x[4*(i-1) + 2];
-            p2[1] = x[4*(i-1) + 3];
-            p2[2] = hmap->getHeight(p2[0], p2[1]);
-
-            p3[0] = x[4*(i) + 2];
-            p3[1] = x[4*(i) + 3];
-            p3[2] = hmap->getHeight(p3[0], p3[1]);
-
-        }else {
-            p0[0] = x[4*(i-1)];
-            p0[1] = x[4*(i-1) + 1];
-            p0[2] = hmap->getHeight(p0[0], p0[1]);
-
-
-            p1[0] = x[4*(i)];
-            p1[1] = x[4*(i) + 1];
-            p1[2] = hmap->getHeight(p1[0], p1[1]);
-
-
-            p2[0] = x[4*(i) + 2];
-            p2[1] = x[4*(i) + 3];
-            p2[2] = hmap->getHeight(p2[0], p2[1]);
-
-
-            p3[0] = x[4*(i-1) + 2];
-            p3[1] = x[4*(i-1) + 3];
-            p3[2] = hmap->getHeight(p3[0], p3[1]);
-        }
-
         // FR
-        dx = (body_pos[0] + d - p0[0]);
-        dy = (body_pos[1] - w - p0[1]);
-        dz = (body_pos[2] - p0[2]);
-        leg_length = sqrt(dx*dx + dy*dy + dz*dz);
-
+        leg_length = leg_length_list[4*(i-1)];
         result[8*(i-1)] = min - leg_length;
         result[8*(i-1) + 1] = leg_length - max;
 
         // FL
-        dx = (body_pos[0] + d - p1[0]);
-        dy = (body_pos[1] + w - p1[1]);
-        dz = (body_pos[2] - p1[2]);
-        leg_length = sqrt(dx*dx + dy*dy + dz*dz);
-
+        leg_length = leg_length_list[4*(i-1) + 1];
         result[8*(i-1) + 2] = min - leg_length;
         result[8*(i-1) + 3] = leg_length - max;
 
         // HR
-        dx = (body_pos[0] - d - p2[0]);
-        dy = (body_pos[1] - w - p2[1]);
-        dz = (body_pos[2] - p2[2]);
-        leg_length = sqrt(dx*dx + dy*dy + dz*dz);
-
+        leg_length = leg_length_list[4*(i-1) + 2];
         result[8*(i-1) + 4] = min - leg_length;
         result[8*(i-1) + 5] = leg_length - max;
 
         // HL
-        dx = (body_pos[0] - d - p3[0]);
-        dy = (body_pos[1] + w - p3[1]);
-        dz = (body_pos[2] - p3[2]);
-        leg_length = sqrt(dx*dx + dy*dy + dz*dz);
-
+        leg_length = leg_length_list[4*(i-1) + 3];
         result[8*(i-1) + 6] = min - leg_length;
         result[8*(i-1) + 7] = leg_length - max;
     }
 }
 
-void WalkingOrientation::SaveOptimizationResult(
+void WalkingPitch::LandingMarginConstraint(unsigned m, double* result, unsigned n, 
+        const double *x, double *grad, void* data){
+    (void)m;
+    (void)grad;
+    (void)n;
+
+    WalkingPitch* tester = (WalkingPitch*) data;
+    HeightMap* hmap = tester->_hmap;
+    double x_loc, y_loc, x_check, y_check;
+    double landing_height;
+    double height_var_sum(0.);
+
+    double res(0.001);
+    double check_region = tester->_landing_loc_region;
+    int num_check = floor(check_region/res);
+    for(int i(0); i<2*tester->_nStep; ++i){
+        x_loc = x[2*i];
+        y_loc = x[2*i+1];
+
+        height_var_sum = 0.;
+        landing_height = hmap->getHeight(x_loc, y_loc);
+
+        for(int x_inc(0); x_inc<num_check; ++x_inc){
+            for(int y_inc(0); y_inc<num_check; ++y_inc){
+                x_check = x_loc + res*x_inc - check_region/2.;
+                y_check = y_loc + res*y_inc - check_region/2.;
+                height_var_sum += fabs(hmap->getHeight(x_check, y_check) - landing_height);
+            }
+        }
+        height_var_sum /=num_check;
+        height_var_sum /=num_check;
+        result[i] = height_var_sum - tester->_landing_loc_height_var;
+
+        //printf("num check:%d\n", num_check);
+        //printf("x, y loc: %f, %f\n", x_loc, y_loc);
+        //printf("landing height: %f, var sum: %f\n", landing_height, height_var_sum);
+        //printf("result: %f\n", result[i]);
+    }
+}
+
+void WalkingPitch::SaveOptimizationResult(
         const std::string& folder, const int & iter, 
-        const double & opt_cost, const std::vector<double> & x, const WalkingOrientation* tester){
+        const double & opt_cost, const std::vector<double> & x, const WalkingPitch* tester){
 
     std::string file_name = std::to_string(iter) + "_opt_result";
     saveValue(opt_cost, folder+"/"+file_name, true);
@@ -324,8 +290,8 @@ void WalkingOrientation::SaveOptimizationResult(
     saveVector(x, folder+"/"+file_name, true);
 
     // time, body trajectory, foot stepping save
-    BS_Basic<double, 3, 3, WalkingOrientation::nMiddle_pt, 2, 2> body_traj;
-    BS_Basic<double, 2, 3, WalkingOrientation::nMiddle_pt, 2, 2> ori_traj;
+    BS_Basic<double, 3, 3, WalkingPitch::nMiddle_pt, 2, 2> body_traj;
+    BS_Basic<double, WalkingPitch::dimOri, 3, WalkingPitch::nMiddle_pt, 2, 2> ori_traj;
     tester->buildSpline(x, body_traj, ori_traj);
 
     double dt(0.005);
@@ -334,9 +300,9 @@ void WalkingOrientation::SaveOptimizationResult(
     double vel[3];
     double acc[3];
 
-    double ori[2];
-    double ang_vel[2];
-    double ang_acc[2];
+    double ori[WalkingPitch::dimOri];
+    double ang_vel[WalkingPitch::dimOri];
+    double ang_acc[WalkingPitch::dimOri];
     while(curr_time < (_tot_time+dt) ){
         body_traj.getCurvePoint(curr_time, pos);
         body_traj.getCurveDerPoint(curr_time, 1, vel);
@@ -351,10 +317,9 @@ void WalkingOrientation::SaveOptimizationResult(
         ori_traj.getCurveDerPoint(curr_time, 1, ang_vel);
         ori_traj.getCurveDerPoint(curr_time, 2, ang_acc);
 
-        saveVector(ori, folder+"/"+std::to_string(iter)+"_body_ori", 2, true);
-        saveVector(ang_vel, folder+"/"+std::to_string(iter)+"_body_ang_vel", 2, true);
-        saveVector(ang_acc, folder+"/"+std::to_string(iter)+"_body_ang_acc", 2, true);
-
+        saveVector(ori, folder+"/"+std::to_string(iter)+"_body_ori", WalkingPitch::dimOri, true);
+        saveVector(ang_vel, folder+"/"+std::to_string(iter)+"_body_ang_vel", WalkingPitch::dimOri, true);
+        saveVector(ang_acc, folder+"/"+std::to_string(iter)+"_body_ang_acc", WalkingPitch::dimOri, true);
 
         saveValue(curr_time, folder+"/"+std::to_string(iter)+"_time", true);
 
@@ -366,19 +331,29 @@ void WalkingOrientation::SaveOptimizationResult(
 
     buildFootStepLocation(x, FootLoc, tester->_hmap);
 
-    for(int i(0); i < (WalkingOrientation::_nStep -1); ++i){
+    for(int i(0); i < (WalkingPitch::_nStep -1); ++i){
         saveVector(FootLoc[i], folder+"/"+std::to_string(iter)+"_foot_loc", true);
     }
+    
+    std::vector<double> leg_length_list(4*(WalkingPitch::_nStep-1) );
+    std::vector<double> leg_loc_cost_list(4*(WalkingPitch::_nStep -1) );
+
+    ComputeLegLength(body_traj,ori_traj, x, 
+            leg_length_list, leg_loc_cost_list, tester);
+
+    saveVector(leg_length_list, folder+"/"+std::to_string(iter)+"_leg_length", true);
+    saveVector(leg_loc_cost_list, folder+"/"+std::to_string(iter)+"_leg_loc_cost", true);
+
 }
 
-void WalkingOrientation::buildFootStepLocation(const std::vector<double> & x, 
+void WalkingPitch::buildFootStepLocation(const std::vector<double> & x, 
         std::vector<std::vector<double>> & foot_loc_list, const HeightMap* hmap){
 
     std::vector<double> foot_loc(12); // num leg x (x, y, z)
-    foot_loc_list.resize(WalkingOrientation::_nStep -1);
+    foot_loc_list.resize(WalkingPitch::_nStep -1);
 
     int fr_idx, fl_idx, hr_idx, hl_idx;
-    for(unsigned int i(0); i<(WalkingOrientation::_nStep -1); ++i){
+    for(unsigned int i(0); i<(WalkingPitch::_nStep -1); ++i){
         if(i%2 == 0) {
             fr_idx = 4*i + 4;
             fl_idx = 4*i;
@@ -411,14 +386,14 @@ void WalkingOrientation::buildFootStepLocation(const std::vector<double> & x,
     }
 }
 
-void WalkingOrientation::InitialFinalConstraint(
+void WalkingPitch::InitialFinalConstraint(
         unsigned m, double * result, unsigned n, const double *x, 
         double * grad, void*data){
 
     (void)m;
     (void)n;
     (void)grad;
-    WalkingOrientation* test = (WalkingOrientation*) data;
+    WalkingPitch* test = (WalkingPitch*) data;
 
     int idx_offset_body = 4*test->_nStep;
     for(int i(0); i<2; ++i){
@@ -436,15 +411,13 @@ void WalkingOrientation::InitialFinalConstraint(
         result[i+12] = x[i+idx_offset_body]- test->_ini_body_pos[i];
         result[i+15] = x[i+idx_offset_body + 3*(test->_nStep-1)] - test->_fin_body_pos[i];
     }
-    // Body Orientation Initial & Final (pitch & yaw)
+    // Body Pitch Initial & Final (pitch & yaw)
     int idx_offset_ori = 4*test->_nStep + 3*test->_nStep;
-    for(int i(0); i<2; ++i){
-        result[i+18] = x[i+idx_offset_ori]- test->_ini_body_ori[i];
-        result[i+20] = x[i+idx_offset_ori + 2*(test->_nStep-1)] - test->_fin_body_ori[i];
-     }
+    result[18] = x[idx_offset_ori]- test->_ini_body_ori;
+    result[19] = x[idx_offset_ori + (test->_nStep-1)] - test->_fin_body_ori;
 }
 
-void WalkingOrientation::_SetInitialGuess(std::vector<double> & x){
+void WalkingPitch::_SetInitialGuess(std::vector<double> & x){
     // Foot initial and Final
     for(int i(0); i<2; ++i){
         x[i] = _ini_front_foot_loc[i];
@@ -455,7 +428,6 @@ void WalkingOrientation::_SetInitialGuess(std::vector<double> & x){
         x[i+4*(_nStep-1)+2] = _fin_hr_loc[i];
     }
 
-    // TODO
     double inc_foot = (_fin_fr_loc[0] - _ini_front_foot_loc[0])/(_nStep-2);
     for(int i(1); i<_nStep-2; ++i){
         x[4*i] = x[4*(i-1)] + inc_foot;
@@ -465,22 +437,30 @@ void WalkingOrientation::_SetInitialGuess(std::vector<double> & x){
         x[4*i+3] = x[4*(i-1)+1];
     }
 
+    // Body Pos Initial and Final
     for(int i(0); i<3; ++i){
         x[i+idx_offset] = _ini_body_pos[i];
         x[i+idx_offset + 3*(_nStep-1)] = _fin_body_pos[i];
     }
 
-    // TODO
     double delta_progress = (_fin_body_pos[0]-_ini_body_pos[0])/(_nStep-1);
 
-    for(int i(0); i<_nStep; ++i){
+    for(int i(1); i<_nStep-1; ++i){
         x[3*i + idx_offset] = _ini_body_pos[0] + delta_progress*i;
         x[3*i + idx_offset + 1] = _ini_body_pos[1];
-        x[3*i + idx_offset + 2] = _ini_body_pos[2];
+        x[3*i + idx_offset + 2] = _ini_body_pos[2] + 
+            _hmap->getHeight(_ini_body_pos[0] + delta_progress*i, _ini_body_pos[1]);
     }
+
+    // Orientation set by zero
+    x[idx_offset + 3*_nStep] = _ini_body_ori;
+    for(int i(1); i<_nStep-1; ++i){
+        x[idx_offset + 3*_nStep + i] = 0.;
+    }
+    x[idx_offset + 3*_nStep + _nStep - 1] = _fin_body_ori;
 }
 
-void WalkingOrientation::nice_print_result(const std::vector<double> & x){
+void WalkingPitch::nice_print_result(const std::vector<double> & x){
     for(int i(0);i<_nStep; ++i){
         printf("%d th step: (%f, %f), (%f, %f)\n", i,
                 x[4*i], x[4*i+1], x[4*i+2], x[4*i+3]);
@@ -495,27 +475,26 @@ void WalkingOrientation::nice_print_result(const std::vector<double> & x){
 
     idx_offset = 4*_nStep + 3*_nStep;
     for(int i(0); i<_nStep; ++i){
-        printf("%d th body ori: (%f, %f)\n", i,
-                x[2*i + idx_offset], x[2*i + idx_offset +1]);
+        printf("%d th body ori (pitch): %f\n", i,
+                x[i + idx_offset]);
+    }
+}
+void WalkingPitch::ProgressBodyConstraint(unsigned m, double* result, unsigned n, 
+                const double *x, double *grad, void* data){
+
+    (void) m; (void)n; (void)grad; (void)data;
+    for(int i(0); i<_nStep-1; ++i){
+        result[i] = x[idx_offset + 3*i] - x[idx_offset + 3*(i+1)];
     }
 }
 
 
-void WalkingOrientation::_getRotationMatrix(const double & pitch, 
-        const double & yaw, Mat3<double> & rot){
 
-    Mat3<double> Ry, Rz;
-
-    double sy = std::sin(pitch);
+void WalkingPitch::_getRotationMatrix(const double & pitch, Mat3<double> & rot) const{
     double cy = std::cos(pitch);
-    double sz = std::sin(yaw);
-    double cz = std::cos(yaw);
-    Ry << cy, 0, sy,
-       0, 1, 0,
-       -sy, 0, cy;
-    Rz << cz, -sz, 0,
-       sz, cz, 0,
-       0, 0, 1;
+    double sy = std::sin(pitch);
 
-    rot = Rz * Ry;
+    rot << cy, 0, sy,
+        0, 1, 0,
+        -sy, 0, cy;
 }

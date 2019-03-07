@@ -1,15 +1,15 @@
-#ifndef WALKING_ORIENTATION
-#define WALKING_ORIENTATION
+#ifndef WALKING_PITCH
+#define WALKING_PITCH
 
 #include <Utilities/BSplineBasic.h>
 #include <height_map/HeightMap.hpp>
 #include <vector>
 #include <cppTypes.h>
 
-class WalkingOrientation{
+class WalkingPitch{
     public:
-        WalkingOrientation();
-        ~WalkingOrientation();
+        WalkingPitch();
+        ~WalkingPitch();
 
         virtual bool SolveOptimization() = 0;
         HeightMap* _hmap;
@@ -19,8 +19,8 @@ class WalkingOrientation{
         // 3 x 46 (138) body trajectory ctrl points
         // 2 x 46 (138) body orientation (pitch & yaw) trajectory ctrl points
         //constexpr static int _nStep = 46;
-        constexpr static int _nStep = 21; // Must be odd number
-        constexpr static int dimOri= 2; 
+        constexpr static int _nStep = 23; // Must be odd number
+        constexpr static int dimOri= 1; 
         constexpr static double _onestep_duration = 0.2;
         constexpr static double _half_body_length = 0.25;
         constexpr static double _half_body_width = 0.17;
@@ -28,6 +28,7 @@ class WalkingOrientation{
         constexpr static double _tot_time = (_nStep - 1)*_onestep_duration;
         constexpr static int nMiddle_pt = (_nStep - 2); // _nStep - initial - final
         constexpr static int idx_offset = 4*_nStep;
+        constexpr static int num_opt_var = 4*_nStep + 3*_nStep + _nStep;
 
         double _ini_front_foot_loc[2];
         double _ini_hind_foot_loc[2];
@@ -40,13 +41,16 @@ class WalkingOrientation{
         double _ini_body_pos[3];
         double _fin_body_pos[3];
 
-        double _ini_body_ori[2];
-        double _fin_body_ori[2];
+        double _ini_body_ori;
+        double _fin_body_ori;
 
         double _min_leg_length;
         double _max_leg_length;
 
         double _des_leg_length;
+
+        double _landing_loc_region;
+        double _landing_loc_height_var;
 
         Vec3<double> _fr_body_to_leg_local;
         Vec3<double> _fl_body_to_leg_local;
@@ -57,7 +61,7 @@ class WalkingOrientation{
         int _count;
         int _intermittent_step_size;
     
-        void _getRotationMatrix(const double & pitch, const double & yaw, Mat3<double> & rot);
+        void _getRotationMatrix(const double & pitch, Mat3<double> & rot) const;
 
         // Utility functions
         void _SetInitialGuess(std::vector<double> & x);
@@ -68,19 +72,19 @@ class WalkingOrientation{
 
         static void SaveOptimizationResult(const std::string& folder, 
                 const int & iter, const double & opt_cost, 
-                const std::vector<double> & x_best, const WalkingOrientation* tester);
+                const std::vector<double> & x_best, const WalkingPitch* tester);
 
         static void buildSpline(const std::vector<double> & x, 
                 BS_Basic<double, 3, 3, nMiddle_pt, 2, 2> & pos_spline,
-                BS_Basic<double, 2, 3, nMiddle_pt, 2, 2> & ori_spline);
+                BS_Basic<double, dimOri, 3, nMiddle_pt, 2, 2> & ori_spline);
 
         static void ComputeLegLength(
                 BS_Basic<double, 3, 3, nMiddle_pt, 2, 2> & pos_trj,
-                BS_Basic<double, 2, 3, nMiddle_pt, 2, 2> & ori_trj,
+                BS_Basic<double, dimOri, 3, nMiddle_pt, 2, 2> & ori_trj,
                 const std::vector<double> & x, 
                 std::vector<double> & leg_length_list, 
                 std::vector<double> & leg_loc_cost_list, 
-                WalkingOrientation* tester);
+                const WalkingPitch* tester);
         // Cost Computation
         //static double LegLengthCost()
         // Constraint
@@ -90,6 +94,12 @@ class WalkingOrientation{
 
         static void KinematicsConstraint(unsigned m, double* result, unsigned n, 
                 const double *x, double *grad, void* data);
-};
+        static void LandingMarginConstraint(unsigned m, double* result, unsigned n, 
+                const double *x, double *grad, void* data);
+
+        static void ProgressBodyConstraint(unsigned m, double* result, unsigned n, 
+                const double *x, double *grad, void* data);
+
+ };
 
 #endif

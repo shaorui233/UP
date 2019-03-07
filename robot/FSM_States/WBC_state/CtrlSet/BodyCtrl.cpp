@@ -140,17 +140,14 @@ void BodyCtrl<T>::_task_setup(){
     
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    //Vec3<T> des_pos = ini_body_pos_;
-    //Vec3<T> des_pos = Ctrl::robot_sys_->_state.bodyPosition;
-    //_sp->_body_target[0] = 
-        //Ctrl::robot_sys_->_state.bodyPosition[0] + _sp->_dir_command[0]*cheetah::servo_rate;
-    //_sp->_body_target[1] = 
-    //Ctrl::robot_sys_->_state.bodyPosition[1] + _sp->_dir_command[1]*cheetah::servo_rate;
 
     if(_sp->_opt_play){
         OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
                 _sp->curr_time_, _sp->_body_target, vel_des, acc_des);
-    }else{
+        //pretty_print(_sp->_body_target, std::cout, "body target");
+        OptInterpreter<T>::getOptInterpreter()->updateBodyOriTarget(
+                _sp->curr_time_, _sp->_target_ori_command);
+     }else{
         _sp->_body_target[2] = body_height_cmd;
     }
 
@@ -162,8 +159,6 @@ void BodyCtrl<T>::_task_setup(){
     // TEST
     //for(size_t i(0); i<3; ++i) _sp->_target_ori_command[i] += 0.001*_sp->_ori_command[i];
 
-    //des_quat = rpyToQuat(curr_rpy);
-    //if(_sp->_target_ori_command[2] > M_PI){ _sp->_target_ori_command[2] -= (2.*M_PI); }
     Mat3<T> Rot = rpyToRotMat(_sp->_target_ori_command);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     des_quat[0] = eigen_quat.w();

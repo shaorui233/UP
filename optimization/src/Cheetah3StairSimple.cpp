@@ -1,4 +1,4 @@
-#include <Cheetah3StairTop.hpp>
+#include <Cheetah3StairSimple.hpp>
 #include <stdio.h>
 #include <utilities/save_file.hpp>
 #include <Utilities/Utilities_print.h>
@@ -7,13 +7,10 @@
 #include <height_map/FlatGround.hpp>
 #include <ParamHandler.hpp>
 #include <height_map/StairTerrain.hpp>
-
-// TODO
-//#include <height_map/TerrainFile.hpp>
 #include <time.h>
 
 
-Cheetah3StairTop::Cheetah3StairTop():WalkingOrientation()
+Cheetah3StairSimple::Cheetah3StairSimple():WalkingPitch()
 {
 
     _ParameterSetting();
@@ -42,7 +39,7 @@ Cheetah3StairTop::Cheetah3StairTop():WalkingOrientation()
     _ini_hind_foot_loc[1] = _hr_body_to_leg_local[1];
 
     Mat3<double> rot;
-    _getRotationMatrix(_fin_body_ori[0], _fin_body_ori[1], rot);
+    _getRotationMatrix(_fin_body_ori, rot);
     
     Vec3<double> fr_body_to_leg_global = rot * _fr_body_to_leg_local;
     Vec3<double> fl_body_to_leg_global = rot * _fl_body_to_leg_local;
@@ -56,85 +53,27 @@ Cheetah3StairTop::Cheetah3StairTop():WalkingOrientation()
         _fin_hr_loc[i] = _fin_body_pos[i] + hr_body_to_leg_global[i];
     }
     //pretty_print(rot,std::cout, "rotation");
-    //printf("rotation : %f, %f\n", _fin_body_ori[0], _fin_body_ori[1]);
+    //printf("rotation : %f\n", _fin_body_ori);
     //pretty_print(_hl_body_to_leg_local, std::cout, "hl local");
     //pretty_print(hl_body_to_leg_global, std::cout, "hl global");
     //pretty_print(_fin_hl_loc, "fin hl loc", 2);
 }
 
-Cheetah3StairTop::~Cheetah3StairTop(){}
+Cheetah3StairSimple::~Cheetah3StairSimple(){}
 
-double Cheetah3StairTop::ObjectiveFn(
+double Cheetah3StairSimple::ObjectiveFn(
         const std::vector<double> &x, 
         std::vector<double> & grad,
         void *d_) {
 
     (void)grad; 
 
-    Cheetah3StairTop* tester = (Cheetah3StairTop*)d_;
-    double cost_leg(0.);
-    double cost_foot_loc(0.);
-    BS_Basic<double, 3, 3, WalkingOrientation::nMiddle_pt, 2, 2> body_traj;
-    BS_Basic<double, 2, 3, WalkingOrientation::nMiddle_pt, 2, 2> body_ori_traj;
-    tester->buildSpline(x, body_traj, body_ori_traj);
-
-    double des = tester->_des_leg_length; 
-    //double swing_time = tester->_onestep_duration;
+    Cheetah3StairSimple* tester = (Cheetah3StairSimple*)d_;
     HeightMap* hmap = tester->_hmap;
-
-    //double body_pos[3]; body_pos[0] = 0.; body_pos[1] = 0.; body_pos[2] = 0.;
-    //double body_ori[2]; body_ori[0] = 0.; body_ori[1] = 0.; 
-    //double p0[3], p1[3], p2[3], p3[3]; //Fr, Fl, Hr, Hl
-    //double dx, dy, dz;
-    double leg_length;
-
-    double curr_time(0.);
-    int num_sample(500);
-    double delta_t = _tot_time/(num_sample + 1.);
-    double body_acc[3]; body_acc[0] = 0.; body_acc[1] = 0.; body_acc[2] = 0.;
-    double body_ang_acc[2]; body_ang_acc[0] = 0.; body_ang_acc[1] = 0.; 
-    double cost_der(0.);
-    for(int i(0); i<num_sample; ++i){
-        curr_time = i*delta_t;
-        body_traj.getCurveDerPoint(curr_time, 2, body_acc);
-        body_ori_traj.getCurveDerPoint(curr_time, 2, body_ang_acc);
-        cost_der += 
-            (body_acc[0]*body_acc[0] + body_acc[1]*body_acc[1] + body_acc[2]*body_acc[2])/num_sample;
-        cost_der += 
-            (body_ang_acc[0]*body_ang_acc[0] + body_ang_acc[1]*body_ang_acc[1])/num_sample;
+    double cost_sum(0.);
+    for(size_t i(0); i< x.size(); ++i){
+        cost_sum += (x[i] - tester->_x_initial[i])* (x[i] - tester->_x_initial[i]);
     }
-
-    std::vector<double> leg_length_list(4*(_nStep-1));
-    std::vector<double> leg_loc_cost_list(4*(_nStep-1));
-    tester->ComputeLegLength(body_traj, body_ori_traj, x, 
-            leg_length_list, leg_loc_cost_list, tester);
-
-    for(int i(1); i<tester->_nStep; ++i){
-        // FR
-        leg_length = leg_length_list[4*(i-1)];
-        cost_leg += ( (leg_length - des) * (leg_length -des) );
-        cost_foot_loc += leg_loc_cost_list[4*(i-1)];
-
-        // FL
-        leg_length = leg_length_list[4*(i-1) + 1];
-        cost_leg += ( (leg_length - des) * (leg_length -des) );
-        cost_foot_loc += leg_loc_cost_list[4*(i-1) + 1];
-
-        // HR
-        leg_length = leg_length_list[4*(i-1) + 2];
-        cost_leg += (leg_length - des) * (leg_length -des);
-        cost_foot_loc += leg_loc_cost_list[4*(i-1) + 2];
-
-        /* HL */
-        leg_length = leg_length_list[4*(i-1) + 3];
-        cost_leg += (leg_length - des) * (leg_length -des);
-        cost_foot_loc += leg_loc_cost_list[4*(i-1) + 3];
-    }
-
-    double cost_sum = (cost_leg*50.+cost_der + cost_foot_loc*200.);
-    //double cost_sum = (cost_leg*200.+cost_der/10.);
-    //double cost_sum = (0.3*cost_leg + cost_foot_loc);
-    //double cost_sum = (cost_leg);
 
     tester->_count++;
     if(tester->_count == 1){  // In the first loop, save height map
@@ -156,29 +95,112 @@ double Cheetah3StairTop::ObjectiveFn(
                 cost_sum, 
                 x, tester);
         // Print Result
-        printf("%dth iter, curr cost:(%f, %f, %f), sum: %f \n", 
-                tester->_count, cost_leg, cost_foot_loc, cost_der, cost_sum);
+        printf("%dth iter, curr cost: %f \n", tester->_count, cost_sum);
         nice_print_result(x);
         printf("\n");
     }
     return cost_sum;
 }
 
-bool Cheetah3StairTop::SolveOptimization(){
+double Cheetah3StairSimple::ObjectiveFn_LandingMargin(
+        const std::vector<double> &x, 
+        std::vector<double> & grad,
+        void *d_) {
+
+    (void)grad; 
+
+    WalkingPitch* tester = (WalkingPitch*) d_;
+    HeightMap* hmap = tester->_hmap;
+    double cost_sum(0.);
+
+    double x_loc, y_loc, x_check, y_check;
+    double landing_height;
+    double height_var_sum(0.);
+
+    double res(0.002);
+    double check_region = tester->_landing_loc_region;
+    int num_check = floor(check_region/res);
+    for(int i(0); i<2*tester->_nStep; ++i){
+        x_loc = x[2*i];
+        y_loc = x[2*i+1];
+
+        height_var_sum = 0.;
+        landing_height = hmap->getHeight(x_loc, y_loc);
+
+        for(int x_inc(0); x_inc<num_check; ++x_inc){
+            for(int y_inc(0); y_inc<num_check; ++y_inc){
+                x_check = x_loc + res*x_inc - check_region/2.;
+                y_check = y_loc + res*y_inc - check_region/2.;
+                height_var_sum += fabs(hmap->getHeight(x_check, y_check) - landing_height);
+            }
+        }
+        height_var_sum /=num_check;
+        height_var_sum /=num_check;
+
+        cost_sum += height_var_sum;
+        //printf("num check:%d\n", num_check);
+        //printf("x, y loc: %f, %f\n", x_loc, y_loc);
+        //printf("landing height: %f, var sum: %f\n", landing_height, height_var_sum);
+        //printf("result: %f\n", result[i]);
+    }
+
+    tester->_count++;
+    if(tester->_count == 1){  // In the first loop, save height map
+        char folder_name[80];
+        time_t  now = time(0);
+        struct tm  tstruct;
+        tstruct = *localtime(&now);
+        strftime(folder_name, sizeof(folder_name), "%Y-%m-%d-%H_%M_%S", &tstruct);
+        tester->_folder_name = folder_name;
+        create_folder(tester->_folder_name);
+        //hmap->SaveHeightMap(tester->_folder_name);
+        // TEST
+        hmap->SaveHeightMap("2019-03-05-00_00_03");
+    }
+
+    if( (  (tester->_count)%(tester->_intermittent_step_size) ) == 0){
+        // Save a current one
+        SaveOptimizationResult(tester->_folder_name, tester->_count, 
+                cost_sum, 
+                x, tester);
+        // Print Result
+        printf("%dth iter, curr cost: %f \n", tester->_count, cost_sum);
+        nice_print_result(x);
+        printf("\n");
+    }
+    return cost_sum;
+}
+
+
+void Cheetah3StairSimple::_SetInitialPitch(std::vector<double> & x){
+    std::vector< std::vector<double> > FootLoc;
+    buildFootStepLocation(x, FootLoc, _hmap);
+   double forward_x, forward_z;
+   double hind_x, hind_z;
+
+    for(int i(1); i<_nStep-1; ++i){
+        forward_x = (FootLoc[i][0] + FootLoc[i][3])/2.;
+        forward_z = (FootLoc[i][2] + FootLoc[i][5])/2.;
+
+        hind_x = (FootLoc[i][6] + FootLoc[i][9])/2.;
+        hind_z = (FootLoc[i][8] + FootLoc[i][11])/2.;
+       
+        //x[idx_offset + 3*_nStep + i] = 
+          //-std::atan((x[3*i + idx_offset + 2] - x[3*(i-1) + idx_offset+2])/delta_progress);
+        x[idx_offset + 3*_nStep + i] = -std::atan((forward_z-hind_z)/(forward_x - hind_x));
+    }
+}
+
+bool Cheetah3StairSimple::SolveOptimization(){
     // Reset Problem
     _intermittent_step_size = 500;
     _count = 0;
     if(_hmap) delete _hmap;
-    //_hmap = new FlatGround(); 
     _hmap = new StairTerrain(_num_stair, _x_start, _y_start, _width, _height, _depth); 
     // End of Reset 
-    int num_opt_var = 4*_nStep + 3*_nStep + 2*_nStep;
     nlopt::opt* test = new nlopt::opt(nlopt::LN_COBYLA, num_opt_var);
-    //nlopt::opt* test = new nlopt::opt(nlopt::LN_AUGLAG, num_opt_var);
-    //nlopt::opt* test = new nlopt::opt(nlopt::GN_ISRES, num_opt_var);
-    //nlopt::opt* test = new nlopt::opt(nlopt::LN_AUGLAG, num_opt_var);
 
-    test->set_min_objective(Cheetah3StairTop::ObjectiveFn, this);
+    test->set_min_objective(Cheetah3StairSimple::ObjectiveFn, this);
 
     std::vector<double> lb(num_opt_var);
     std::vector<double> ub(num_opt_var);
@@ -210,24 +232,36 @@ bool Cheetah3StairTop::SolveOptimization(){
     idx_offset = 4*_nStep + 3*_nStep;
     for(int i(0); i<_nStep; ++i){
         // lower
-        lb[idx_offset + 2*i] = -1.0; // pitch
-        lb[idx_offset + 2*i + 1] = -M_PI; // yaw
-
-        ub[idx_offset + 2*i] = 1.0; // pitch
-        ub[idx_offset + 2*i + 1] = M_PI; // yaw
+        lb[idx_offset + i] = -M_PI; // yaw
+        ub[idx_offset + i] = M_PI; // yaw
     }
     test->set_lower_bounds(lb);
     test->set_upper_bounds(ub);
 
-    int num_kin_inequality = 8 * (_nStep - 1);
-    std::vector<double> tol_ieq_kin(num_kin_inequality);
-    for(int i(0); i<num_kin_inequality; ++i){ tol_ieq_kin[i] = 1e-8; }
-    test->add_inequality_mconstraint(WalkingOrientation::KinematicsConstraint, this, tol_ieq_kin);
+    // Leg length limit
+    //int num_kin_inequality = 8 * (_nStep - 1);
+    //std::vector<double> tol_ieq_kin(num_kin_inequality);
+    //for(int i(0); i<num_kin_inequality; ++i){ tol_ieq_kin[i] = 1e-8; }
+    //test->add_inequality_mconstraint(WalkingPitch::KinematicsConstraint, this, tol_ieq_kin);
 
-    int num_ini_final = 2*6 + 3*2 + 2*2;
+    // Landing location margin
+    int num_landing_margin_inequality = 2 * (_nStep);
+    std::vector<double> tol_ieq_land(num_landing_margin_inequality);
+    for(int i(0); i<num_landing_margin_inequality; ++i){ tol_ieq_land[i] = 1e-8; }
+    test->add_inequality_mconstraint(WalkingPitch::LandingMarginConstraint, this, tol_ieq_land);
+
+    // Body Progress
+    int body_progress = _nStep-1;
+    std::vector<double> tol_ieq_progress(body_progress);
+    for(int i(0); i<body_progress; ++i){ tol_ieq_progress[i] = 1e-8; }
+    //test->add_inequality_mconstraint(WalkingPitch::ProgressBodyConstraint, this, tol_ieq_progress);
+
+
+    // Initial and Final constraints
+    int num_ini_final = 2*6 + 3*2 + 2*WalkingPitch::dimOri;
     std::vector<double> tol_eq(num_ini_final);
     for(int i(0); i<num_ini_final; ++i){ tol_eq[i] = 1e-8; }
-    test->add_equality_mconstraint(WalkingOrientation::InitialFinalConstraint, this, tol_eq);
+    test->add_equality_mconstraint(WalkingPitch::InitialFinalConstraint, this, tol_eq);
 
 
     test->set_xtol_rel(1e-9);
@@ -237,6 +271,8 @@ bool Cheetah3StairTop::SolveOptimization(){
 
     std::vector<double> x(num_opt_var);
     _SetInitialGuess(x);
+    _SetInitialPitch(x);
+    _x_initial = x;
     double opt_f;
 
     pretty_print(x, "initial guess");
@@ -257,24 +293,22 @@ bool Cheetah3StairTop::SolveOptimization(){
 
 
 
-void Cheetah3StairTop::_ParameterSetting(){
-    ParamHandler handler(THIS_COM"optimization/config/optimization_setup.yaml");
+void Cheetah3StairSimple::_ParameterSetting(){
+    ParamHandler handler(THIS_COM"optimization/config/optimization_pitch_setup.yaml");
     std::vector<double> vec_tmp;
     handler.getVector<double>("robot_initial_posture", vec_tmp);
     _ini_body_pos[0] = vec_tmp[0];
     _ini_body_pos[1] = vec_tmp[1];
     _ini_body_pos[2] = vec_tmp[2];
 
-    _ini_body_ori[0] = vec_tmp[3];
-    _ini_body_ori[1] = vec_tmp[4];
+    _ini_body_ori = vec_tmp[3];
 
     handler.getVector<double>("robot_final_posture", vec_tmp);
     _fin_body_pos[0] = vec_tmp[0];
     _fin_body_pos[1] = vec_tmp[1];
     _fin_body_pos[2] = vec_tmp[2];
 
-    _fin_body_ori[0] = vec_tmp[3];
-    _fin_body_ori[1] = vec_tmp[4];
+    _fin_body_ori = vec_tmp[3];
 
 
     handler.getValue<double>("min_leg_length", _min_leg_length);
@@ -292,4 +326,7 @@ void Cheetah3StairTop::_ParameterSetting(){
     handler.getValue<double>("stair_terrain", "width", _width);
     handler.getValue<double>("stair_terrain", "depth", _depth);
     handler.getValue<double>("stair_terrain", "height", _height);
+
+    handler.getValue<double>("landing_loc_region", _landing_loc_region);
+    handler.getValue<double>("landing_height_var", _landing_loc_height_var);
 }

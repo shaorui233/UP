@@ -151,23 +151,25 @@ void TwoContactTransCtrl<T>::_task_setup(){
     if(_sp->_opt_play){
         OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
                 _sp->curr_time_, _sp->_body_target, vel_des, acc_des);
-    }else{
+
+        OptInterpreter<T>::getOptInterpreter()->updateBodyOriTarget(
+                _sp->curr_time_, _sp->_target_ori_command);
+     }else{
         _sp->_body_target[2] = _body_height_cmd;
     }
+        //pretty_print(_sp->_body_target, std::cout, "body target");
+        //pretty_print(_sp->Q_, std::cout, "Q");
     Vec3<T> des_pos = _sp->_body_target;
     body_pos_task_->UpdateTask(&(des_pos), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    //des_quat = rpyToQuat(_sp->_target_ori_command);
     Mat3<T> Rot = rpyToRotMat(_sp->_target_ori_command);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     des_quat[0] = eigen_quat.w();
     des_quat[1] = eigen_quat.x();
     des_quat[2] = eigen_quat.y();
     des_quat[3] = eigen_quat.z();
-
-
 
     DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();

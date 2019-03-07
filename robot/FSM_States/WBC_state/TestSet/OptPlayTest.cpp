@@ -124,7 +124,8 @@ int OptPlayTest<T>::_NextPhase(const int & phase){
     // Stay when it finishes
     if(_sp->_num_step > _max_num_step){ 
         next_phase = OptPlayPhase::stance_wait; 
-        _sp->_opt_play = false;
+        //_sp->_opt_play = false;
+        _sp->_opt_play = true;
     }
     
     //printf("next phase: %i\n", next_phase);

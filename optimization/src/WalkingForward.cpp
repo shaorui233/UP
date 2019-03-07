@@ -71,6 +71,7 @@ void WalkingForward::buildSpline(
     spline.SetParam(init, fin, middle_pt, _tot_time);
 }
 
+// TODO
 void WalkingForward::KinematicsConstraint(unsigned m, double* result, unsigned n, 
         const double *x, double *grad, void* data){
 

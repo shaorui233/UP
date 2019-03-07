@@ -1,12 +1,12 @@
-#ifndef CHEETAH3_STAIR_CLIMBING
-#define CHEETAH3_STAIR_CLIMBING
+#ifndef CHEETAH3_STAIR_FORWARD_CLIMBING
+#define CHEETAH3_STAIR_FORWARD_CLIMBING
 
-#include <WalkingOrientation.hpp>
+#include <WalkingPitch.hpp>
 
-class Cheetah3StairTop: public WalkingOrientation{
+class Cheetah3StairForward: public WalkingPitch{
     public:
-        Cheetah3StairTop();
-        virtual ~Cheetah3StairTop();
+        Cheetah3StairForward();
+        virtual ~Cheetah3StairForward();
 
         virtual bool SolveOptimization();
         static double ObjectiveFn(const std::vector<double> & x,
