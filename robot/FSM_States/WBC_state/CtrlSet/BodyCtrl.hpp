@@ -2,6 +2,7 @@
 #define BODY_CTRL
 
 #include <WBC_state/Controller.hpp>
+#include <ParamHandler/ParamHandler.hpp>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBLC;
@@ -26,6 +27,7 @@ class BodyCtrl: public Controller<T>{
         void SetStanceTime(const T & t){ end_time_ = t; }
 
     protected:
+        bool _b_joystick_ctrl_on;
         DVec<T> Kp_, Kd_;
         DVec<T> des_jpos_; 
         DVec<T> des_jvel_; 
@@ -57,7 +59,7 @@ class BodyCtrl: public Controller<T>{
         void _compute_torque_wblc(DVec<T> & gamma);
 
         T ctrl_start_time_;
-        
+        ParamHandler* _param_handler;
         Cheetah_StateProvider<T>* _sp;
 };
 

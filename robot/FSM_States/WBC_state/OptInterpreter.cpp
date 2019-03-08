@@ -3,6 +3,7 @@
 #include <fstream>
 #include <Utilities/Utilities_print.h>
 #include <utilities/save_file.hpp>
+#include "Cheetah_StateProvider.hpp"
 
 template<typename T>
 OptInterpreter<T>* OptInterpreter<T>::getOptInterpreter(){
@@ -88,6 +89,7 @@ void OptInterpreter<T>::SetParameter(const std::string & setup_file){
             upcoming_step_pos[i+3] = full_foot_pos[idx_offset_2 + i] - _start_loc[i];
         }
         _foot_step_list.push_back(upcoming_step_pos);
+        Cheetah_StateProvider<T>::getStateProvider()->_foot_step_list.push_back(upcoming_step_pos);
         full_foot_pos.clear();
 
         if(idx_offset_1>0){

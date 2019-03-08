@@ -23,7 +23,7 @@ acc_file = sprintf('%d_body_acc',iter);
 ori_file = sprintf('%d_body_ori',iter);
 time_file = sprintf('%d_time',iter);
 foot_file = sprintf('%d_foot_loc',iter);
-z = fn_read_file(data_path, 'HeightMap',101);
+z = fn_read_file(data_path, 'HeightMap',301);
 
 body_pos = fn_read_file(data_path, pos_file,3);
 body_vel = fn_read_file(data_path, vel_file,3);
@@ -37,7 +37,7 @@ fig = fn_open_figures(5);
 
 %% Draw Figure
 figure(fig(1))
-[x, y] = meshgrid(0:0.03:3.0, -2.2:0.03:0.8);
+[x, y] = meshgrid(0:0.01:3.0, -2.2:0.01:0.8);
 surf(x, y, z)
 mesh(x, y, z);
 hold on

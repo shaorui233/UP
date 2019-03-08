@@ -1,25 +1,25 @@
-#ifndef WALKING_PITCH
-#define WALKING_PITCH
+#ifndef WALKING_FOOT_LOCATION
+#define WALKING_FOOT_LOCATION
 
 #include <Utilities/BSplineBasic.h>
 #include <height_map/HeightMap.hpp>
 #include <vector>
 #include <cppTypes.h>
 
-class WalkingPitch{
+class WalkingFootLoc{
     public:
-        WalkingPitch();
-        ~WalkingPitch();
+        WalkingFootLoc();
+        ~WalkingFootLoc();
 
         virtual bool SolveOptimization() = 0;
         HeightMap* _hmap;
 
         // Num optimization variable:
-        // 4 x 46 (184) step location
-        // 3 x 46 (138) body trajectory ctrl points
-        // 2 x 46 (138) body orientation (pitch & yaw) trajectory ctrl points
-        //constexpr static int _nStep = 46;
-        constexpr static int _nStep = 13; // Must be odd number
+        // 4 x nStep () step location
+        // 3 x nStep () body trajectory ctrl points
+        // ori Dim x 46 () body orientation (pitch & yaw) trajectory ctrl points
+        constexpr static int _nStep = 13;
+        //constexpr static int _nStep = 21; // Must be odd number
         constexpr static int dimOri= 1; 
         constexpr static double _onestep_duration = 0.2;
         constexpr static double _half_body_length = 0.25;
@@ -28,7 +28,8 @@ class WalkingPitch{
         constexpr static double _tot_time = (_nStep - 1)*_onestep_duration;
         constexpr static int nMiddle_pt = (_nStep - 2); // _nStep - initial - final
         constexpr static int idx_offset = 4*_nStep;
-        constexpr static int num_opt_var = 4*_nStep + 3*_nStep + _nStep;
+        constexpr static int num_opt_var = 4*_nStep;
+        constexpr static int num_full_var = 4*_nStep + 3*_nStep + _nStep;
 
         double _ini_front_foot_loc[2];
         double _ini_hind_foot_loc[2];
@@ -72,34 +73,21 @@ class WalkingPitch{
 
         static void SaveOptimizationResult(const std::string& folder, 
                 const int & iter, const double & opt_cost, 
-                const std::vector<double> & x_best, const WalkingPitch* tester);
+                const std::vector<double> & x_best, const WalkingFootLoc* tester);
 
         static void buildSpline(const std::vector<double> & x, 
                 BS_Basic<double, 3, 3, nMiddle_pt, 2, 2> & pos_spline,
                 BS_Basic<double, dimOri, 3, nMiddle_pt, 2, 2> & ori_spline);
 
-        static void ComputeLegLength(
-                BS_Basic<double, 3, 3, nMiddle_pt, 2, 2> & pos_trj,
-                BS_Basic<double, dimOri, 3, nMiddle_pt, 2, 2> & ori_trj,
-                const std::vector<double> & x, 
-                std::vector<double> & leg_length_list, 
-                std::vector<double> & leg_loc_cost_list, 
-                const WalkingPitch* tester);
-        // Cost Computation
+       // Cost Computation
         //static double LegLengthCost()
         // Constraint
         static void InitialFinalConstraint(
                 unsigned m, double * result, unsigned n, const double *x, 
                 double * grad, void*data);
 
-        static void KinematicsConstraint(unsigned m, double* result, unsigned n, 
-                const double *x, double *grad, void* data);
         static void LandingMarginConstraint(unsigned m, double* result, unsigned n, 
                 const double *x, double *grad, void* data);
-
-        static void ProgressBodyConstraint(unsigned m, double* result, unsigned n, 
-                const double *x, double *grad, void* data);
-
- };
+};
 
 #endif

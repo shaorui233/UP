@@ -19,4 +19,14 @@ class Cheetah_Data{
         T ori_command[3];
 };
 
+template <typename T>
+class Cheetah_Extra_Data{
+    public:
+        int num_step;
+        T loc_x[100]; //Large enough number
+        T loc_y[100];
+        T loc_z[100];
+};
+
+
 #endif

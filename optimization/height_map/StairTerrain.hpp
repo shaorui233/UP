@@ -1,5 +1,5 @@
-#ifndef BOX_TERRAIN
-#define BOX_TERRAIN
+#ifndef STAIR_TERRAIN
+#define STAIR_TERRAIN
 
 #include <height_map/HeightMap.hpp>
 

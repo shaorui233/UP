@@ -11,6 +11,8 @@ public:
   ~Cheetah_StateProvider(){}
 
   void UpdateYawTargetRot(const T & yaw);
+  void UpdateExtraData(Cheetah_Extra_Data<T> * ext_data);
+  vectorAligned< DVec<T> > _foot_step_list;
 
   DVec<T> Q_;
   DVec<T> Qdot_;

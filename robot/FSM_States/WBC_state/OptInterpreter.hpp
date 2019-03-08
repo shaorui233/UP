@@ -6,9 +6,11 @@
 #include "include/WalkingForward.hpp"
 #include "include/WalkingOrientation.hpp"
 #include "include/WalkingPitch.hpp"
+#include "include/WalkingFootLoc.hpp"
 
 //#define OptCase WalkingOrientation
-#define OptCase WalkingPitch
+//#define OptCase WalkingPitch
+#define OptCase WalkingFootLoc
 #define OriSplineDim 1
 
 template <typename T>

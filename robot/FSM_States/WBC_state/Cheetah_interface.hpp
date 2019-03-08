@@ -15,7 +15,8 @@ class Cheetah_interface{
         Cheetah_interface(FloatingBaseModel<T>* robot);
         ~Cheetah_interface();
 
-        void GetCommand(const Cheetah_Data<T>* data, LegControllerCommand<T> * command);
+        void GetCommand(const Cheetah_Data<T>* data, LegControllerCommand<T> * command, 
+                Cheetah_Extra_Data<T> * ext_data);
 
     private:
         FloatingBaseModel<T> * _robot;

@@ -14,6 +14,7 @@
 
 template <typename T>
 BodyCtrl<T>::BodyCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
+    _b_joystick_ctrl_on(false),
     Kp_(cheetah::num_act_joint),
     Kd_(cheetah::num_act_joint),
     des_jpos_(cheetah::num_act_joint),
@@ -73,6 +74,7 @@ BodyCtrl<T>::~BodyCtrl(){
     delete wblc_;
     delete wblc_data_;
     delete kin_wbc_;
+    delete _param_handler;
 
     typename std::vector<Task<T>*>::iterator iter = Ctrl::task_list_.begin();
     while(iter < Ctrl::task_list_.end()){
@@ -147,7 +149,7 @@ void BodyCtrl<T>::_task_setup(){
         //pretty_print(_sp->_body_target, std::cout, "body target");
         OptInterpreter<T>::getOptInterpreter()->updateBodyOriTarget(
                 _sp->curr_time_, _sp->_target_ori_command);
-     }else{
+    }else{
         _sp->_body_target[2] = body_height_cmd;
     }
 
@@ -156,8 +158,11 @@ void BodyCtrl<T>::_task_setup(){
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    // TEST
-    //for(size_t i(0); i<3; ++i) _sp->_target_ori_command[i] += 0.001*_sp->_ori_command[i];
+
+    if(_b_joystick_ctrl_on){
+        for(size_t i(0); i<3; ++i) 
+            _sp->_target_ori_command[i] += 0.001*_sp->_ori_command[i];
+    }
 
     Mat3<T> Rot = rpyToRotMat(_sp->_target_ori_command);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
@@ -207,25 +212,25 @@ template <typename T>
 void BodyCtrl<T>::CtrlInitialization(const std::string & category_name){
     jpos_ini_ = Ctrl::robot_sys_->_state.q;
     ini_body_pos_ = Ctrl::robot_sys_->_state.bodyPosition;
-
-    (void)category_name;
+    
+    _param_handler->getBoolean(category_name, "joystick_ctrl_on", _b_joystick_ctrl_on);
 }
 
 template <typename T>
 void BodyCtrl<T>::SetTestParameter(const std::string & test_file){
-    ParamHandler handler(test_file);
-    if(handler.getValue<T>("body_height", target_body_height_)){
+    _param_handler = new ParamHandler(test_file);
+    if(_param_handler->getValue<T>("body_height", target_body_height_)){
         b_set_height_target_ = true;
     }
-    handler.getValue<T>("stance_time", end_time_);
+    _param_handler->getValue<T>("stance_time", end_time_);
 
     std::vector<T> tmp_vec;
     // Feedback Gain
-    handler.getVector<T>("Kp", tmp_vec);
+    _param_handler->getVector<T>("Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kp_[i] = tmp_vec[i];
     }
-    handler.getVector<T>("Kd", tmp_vec);
+    _param_handler->getVector<T>("Kd", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }

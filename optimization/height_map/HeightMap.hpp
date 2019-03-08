@@ -36,11 +36,11 @@ class HeightMap{
 
         constexpr static double x_offset = 0.;
         constexpr static double y_offset = -2.2;
-        constexpr static size_t y_grid = 100; //3.0m / 0.03 m  = 100 (grid)
-        constexpr static size_t x_grid = 100; //3.0m / 0.03 m  = 100 (grid)
+        constexpr static size_t y_grid = 300; //3.0m / 0.03 m  = 100 (grid)
+        constexpr static size_t x_grid = 300; //3.0m / 0.03 m  = 100 (grid)
 
-        constexpr static double dx = 0.03;
-        constexpr static double dy = 0.03;
+        constexpr static double dx = 0.01;
+        constexpr static double dy = 0.01;
 
 
         void SaveHeightMap(const std::string & folder_name) const {

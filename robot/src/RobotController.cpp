@@ -25,6 +25,7 @@ void RobotController::initialize() {
   _wbc_state = new Cheetah_interface<float>(&_model);
   _data = new Cheetah_Data<float>();
 
+  _extra_data = new Cheetah_Extra_Data<float>();
 }
 
 
@@ -32,6 +33,7 @@ void RobotController::step() {
   setupStep();
   _stateEstimator->run();
   //testDebugVisualization();
+  StepLocationVisualization();
 
   // for now, we will always enable the legs:
   _legController->setEnabled(true);
@@ -63,7 +65,7 @@ void RobotController::step() {
   _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
 
-  _wbc_state->GetCommand(_data, _legController->commands);
+  _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
   // === End of WBC state command computation  =========== //
 
   // run the controller:
@@ -87,6 +89,26 @@ void RobotController::step() {
   }
 
   finalizeStep();
+}
+
+void RobotController::StepLocationVisualization(){
+  // Cones
+  //visualizationData->num_cones = 20*2;
+  visualizationData->num_cones = 2;
+  int num_step = _extra_data->num_step;
+  for (size_t j = 0 ; j < visualizationData->num_cones  ; j++)
+  {
+    ConeVisualization cone;
+    cone.radius = 0.03;
+    cone.direction << 0, 0 , 0.05;
+    //cone.direction += .2f * j *Vec3<float>(sinf(.4f * j * t + j * .2f), cosf(.4f * j * t + j * .2f), 0);
+    cone.point_position <<  
+        _extra_data->loc_x[2*num_step + j], 
+        _extra_data->loc_y[2*num_step + j], 
+        (_extra_data->loc_z[2*num_step + j] - 0.5);  // Ground is -0.5
+    cone.color << .6 , .2 ,  .4, .6;
+    visualizationData->cones[j] = cone;
+  }
 }
 
 void RobotController::testDebugVisualization() {

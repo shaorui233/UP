@@ -51,6 +51,7 @@ private:
   void setupStep();
   void finalizeStep();
   void testDebugVisualization();
+  void StepLocationVisualization();
   Quadruped<float> _quadruped;
   LegController<float>* _legController = nullptr;
   StateEstimate<float> _stateEstimate;
@@ -60,6 +61,7 @@ private:
   // For WBC stat
   Cheetah_interface<float>* _wbc_state;
   Cheetah_Data<float>* _data;
+  Cheetah_Extra_Data<float>* _extra_data;
   FloatingBaseModel<float> _model;
   u64 _iterations = 0;
 };

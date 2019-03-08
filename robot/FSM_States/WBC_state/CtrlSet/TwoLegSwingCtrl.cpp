@@ -291,7 +291,6 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     _target_loc1 = _default_target_foot_loc_1;
     _target_loc2 = _default_target_foot_loc_2;
 
-    Vec3<T> body_target; body_target.setZero();
 
     if(_sp->_opt_play){
         for(int i(0); i<3; ++i){
@@ -301,18 +300,18 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
             OptInterpreter<T>::getOptInterpreter()->_foot_step_list[_sp->_num_step][i+3];
         }
     }else{
+        Vec3<T> body_target; body_target.setZero();
         //_target_loc1 += _sp->_local_frame_global_pos;
         //_target_loc2 += _sp->_local_frame_global_pos;
-        //_sp->_body_target = _sp->_local_frame_global_pos;
-
+        _sp->_body_target = _sp->_local_frame_global_pos;
 
         _prev_ori_command = _sp->_target_ori_command;
         for(size_t i(0); i<3; ++i) 
             _sp->_target_ori_command[i] += 0.1*_sp->_ori_command[i];
 
         _sp->UpdateYawTargetRot(_sp->_target_ori_command[2]);
-        _dir_command[0] = 0.12 * _sp->_dir_command[0];
-        _dir_command[1] = 0.05 * _sp->_dir_command[1];
+        _dir_command[0] = 0.10 * _sp->_dir_command[0];
+        _dir_command[1] = 0.03 * _sp->_dir_command[1];
 
         _ini_body_target = _sp->_body_target;
         body_target[0] += 0.4 *_dir_command[0];
@@ -328,19 +327,19 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
 
         _target_loc1[1] += _dir_command[1];
         _target_loc2[1] += _dir_command[1];
-        _sp->_body_target = _sp->_YawRot * body_target;
-        _target_loc1 = (_sp->_YawRot*_target_loc1);// + _sp->_body_target);
-        _target_loc2 = (_sp->_YawRot*_target_loc2);// + _sp->_body_target);
+        _sp->_body_target += _sp->_YawRot * body_target;
+        _target_loc1 = (_sp->_YawRot*_target_loc1 + _sp->_body_target);
+        _target_loc2 = (_sp->_YawRot*_target_loc2 + _sp->_body_target);
     }
 
     _target_loc1 += _landing_offset;
     _target_loc2 += _landing_offset;
-
+    
     _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
     _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
-    pretty_print(_target_loc1, std::cout, "target loc 1");
-    pretty_print(_target_loc2, std::cout, "target loc 2");
+    //pretty_print(_target_loc1, std::cout, "target loc 1");
+    //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
 
 template<typename T>

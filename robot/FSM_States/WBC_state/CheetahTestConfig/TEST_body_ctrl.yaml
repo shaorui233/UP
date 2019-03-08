@@ -6,6 +6,7 @@
     #max_rf_z: 50
     #min_rf_z: 3
 
+# Cheetah 3
 body_height: 0.4
 CTRL_move_to_target_height:
     max_rf_z: 250
@@ -17,8 +18,8 @@ CTRL_move_to_target_height:
 body_lifting_time: 1.0
 stance_time: 10000.
 
-CTRL_fix_stance:
-
+CTRL_stance:
+    joystick_ctrl_on: true
 
 Kp: [ 100, 100, 100, 
       100, 100, 100, 

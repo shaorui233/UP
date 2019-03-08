@@ -34,7 +34,7 @@ Cheetah_interface<T>::~Cheetah_interface(){
 
 template <typename T>
 void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data, 
-        LegControllerCommand<T> * command){
+        LegControllerCommand<T> * command, Cheetah_Extra_Data<T> * ext_data){
     for(size_t i(0); i < cheetah::num_act_joint; ++i){
         _state.q[i] = data->jpos[i];
         _state.qd[i] = data->jvel[i];
@@ -83,9 +83,6 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->setState(_state);
     _robot->forwardKinematics();
 
-    //pretty_print(_state.bodyPosition, std::cout, "body position");
-    //printf("yaw command: %f\n", data->yaw_command);
-
     // Update Mass, Gravity, Coriolis
     _robot->contactJacobians();
     _robot->massMatrix();
@@ -101,6 +98,7 @@ void Cheetah_interface<T>::GetCommand(const Cheetah_Data<T>* data,
         _SafeCommand(data, command);
     }
 
+    _sp->UpdateExtraData(ext_data);
     ++count_;
     // When there is sensed time
     _sp->curr_time_ += cheetah::servo_rate;

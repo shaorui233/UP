@@ -40,6 +40,22 @@ void Cheetah_StateProvider<T>::UpdateYawTargetRot(const T & yaw){
     _YawRot(2, 0) = 0.;       _YawRot(2, 1) = 0.;        _YawRot(2, 2) = 1.;
 }
 
+template<typename T>
+void Cheetah_StateProvider<T>::UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
+    //printf("foot_step list size: %lu\n", _foot_step_list.size());
+    for(size_t i(0); i<_foot_step_list.size(); ++i){
+        ext_data->loc_x[2*i] = _foot_step_list[i][0]; 
+        ext_data->loc_x[2*i + 1] = _foot_step_list[i][3]; 
+
+        ext_data->loc_y[2*i] = _foot_step_list[i][1]; 
+        ext_data->loc_y[2*i + 1] = _foot_step_list[i][4]; 
+        
+        ext_data->loc_z[2*i] = _foot_step_list[i][2]; 
+        ext_data->loc_z[2*i + 1] = _foot_step_list[i][5]; 
+     }
+    ext_data->num_step = _num_step;
+}
+
 template class Cheetah_StateProvider<double> ;
 template class Cheetah_StateProvider<float> ;
 
