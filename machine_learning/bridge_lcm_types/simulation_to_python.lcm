@@ -1,0 +1,4 @@
+struct simulation_to_python {
+    double config[18];
+    double config_vel[18];
+}

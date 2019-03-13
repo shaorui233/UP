@@ -67,6 +67,7 @@ public:
    * Initialize a floating base model with default gravity
    */
   FloatingBaseModel() : _gravity(0,0,-9.81) {}
+  ~FloatingBaseModel(){}
 
   /*!
    * Add floating base.  Must be the first body added, and there can only be one
