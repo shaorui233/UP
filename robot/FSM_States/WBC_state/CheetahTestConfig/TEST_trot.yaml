@@ -1,6 +1,10 @@
 # Initialization
 
 ## Mini Cheetah
+#swing_time: 0.14
+#transition_time: 0.02
+#stance_time: 0.02
+
 #body_height: .25 
 #CTRL_move_to_target_height:
     #max_rf_z: 50
@@ -25,6 +29,10 @@
     #min_rf_z: 3
 
 ## Cheetah 3
+swing_time: 0.2
+transition_time: 0.02
+stance_time: 0.01
+
 body_height: .4
 CTRL_move_to_target_height:
     max_rf_z: 280
@@ -52,11 +60,6 @@ CTRL_two_leg_trans:
 # Timing Parameters (sec)
 initial_stance_time: 2.0
 body_lifting_time: 1.0
-
-## Experiment
-swing_time: 0.14
-transition_time: 0.02
-stance_time: 0.02
 
 
 Kp: [ 100, 100, 100, 

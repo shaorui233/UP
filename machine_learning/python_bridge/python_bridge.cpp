@@ -20,7 +20,7 @@ class Handler
         }
 };
 
-int step(double in)
+int step(double* in_jpos, double* in_jvel)
 {
     printf("Python Bridge\n");
     lcm::LCM lcm_subscribe;
@@ -38,8 +38,8 @@ int step(double in)
     input.reset_call = false;
     
     for(size_t i(0); i<cheetah::num_act_joint; ++i){
-        input.jpos_cmd[i] = in;
-        input.jvel_cmd[i] = 0.;
+        input.jpos_cmd[i] = in_jpos[i];
+        input.jvel_cmd[i] = in_jvel[i];
     }
 
     lcm_publish.publish("python_to_simulation", &input);
