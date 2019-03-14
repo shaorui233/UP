@@ -14,9 +14,9 @@
  * Initialize the dynamics simulator by allocating memory for ABA matrices
  */
 template<typename T>
-DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model, bool useSpringDamper) :_model(model),
-                                                                                            _useSpringDamper(
-                                                                                                    useSpringDamper) {
+DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model, bool useSpringDamper) :
+    _model(model),
+    _useSpringDamper(useSpringDamper) {
 
   if (_useSpringDamper) {
     _contact_constr = new ContactSpringDamper<T>(&_model);

@@ -49,5 +49,5 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
 add_executable(sim ${sources} ${tst_hdr_moc})
-target_link_libraries(sim biomimetics pthread lcm rt inih dynacore_param_handler Qt5::Widgets
-    Qt5::Core Qt5::Gui Qt5::Gamepad ${QT_LIBRARIES} ${OPENGL_LIBRARIES} glut)
+target_link_libraries(sim biomimetics pthread lcm rt inih dynacore_param_handler 
+    Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Gamepad ${QT_LIBRARIES} ${OPENGL_LIBRARIES} glut)

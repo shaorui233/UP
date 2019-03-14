@@ -5,6 +5,7 @@
 #include <cpp/python_to_simulation.hpp>
 #include <unistd.h>
 #include <Utilities/Timer.h>
+#include <Dynamics/Quadruped.h>
 
 class Handler 
 {
@@ -35,10 +36,15 @@ int step(double in)
 
     lcm_subscribe.subscribe("simulation_to_python", &Handler::handleMessage, &handlerObject);
     input.reset_call = false;
-    input.jpos_cmd[0] = in;
+    
+    for(size_t i(0); i<cheetah::num_act_joint; ++i){
+        input.jpos_cmd[i] = in;
+        input.jvel_cmd[i] = 0.;
+    }
+
     lcm_publish.publish("python_to_simulation", &input);
     lcm_subscribe.handle();
-    
+
     printf("%f ms\n", time.getMs());
     return 0;
 }

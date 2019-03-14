@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string>
+#include <unistd.h>
 
 #include "Cheetah_StateProvider.hpp"
 #include <ParamHandler.hpp>

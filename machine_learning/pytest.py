@@ -10,4 +10,5 @@ import pycheetah as cheetah
 def step_sim(input):
     cheetah.step(input)
 
-step_sim(3.)
+for i in range(10000):
+    step_sim(0.3)
