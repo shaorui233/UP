@@ -14,6 +14,23 @@ cmake ..
 make -j4
 ```
 
+To run the simulator:
+1. Open the control board
+```
+./sim/sim
+```
+2. In the another command window, run the robot control code
+```
+./robot/robot ${robot_name} ${target_system}
+```
+Example)
+```
+./robot/robot 3 s
+```
+3: Cheetah 3, m: Mini Cheetah
+s: simulation, r: robot
+
+
 This build process builds the common library, robot code, and simulator. If you just change robot code, you can simply run `make -j4` again. If you change LCM types, you'll need to run `cmake ..; make -j4`. This automatically runs `make_types.sh`.
 
 To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`.
