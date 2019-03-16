@@ -4,7 +4,8 @@
 #include "Dynamics/MiniCheetah.h"
 #include "Controllers/ContactEstimator.h"
 
-//#include <WBC_States/BodyPostureCtrl/BodyPostureCtrl.hpp>
+#include <Utilities/Utilities_print.h>
+#include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
 //#include <WBC_States/OptimizationPlay/OptimizationPlay.hpp>
 //#include <WBC_States/PlannedTrot/PlannedTrot.hpp>
@@ -27,8 +28,8 @@ void RobotController::initialize() {
 
   // For WBC state
   _model = _quadruped.buildModel();
-  //_wbc_state = new BodyPostureCtrl<float>(&_model, robotType);
-  _wbc_state = new JPosCtrlTest<float>(&_model, robotType);
+  _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
+  //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptimizationPlay<float>(&_model, robotType);
   //_wbc_state = new PlannedTrot<float>(&_model, robotType);
 
@@ -67,11 +68,12 @@ void RobotController::step() {
   
   // Orientation
   _data->ori_command[0] = driverCommand->rightTriggerAnalog;
-  _data->ori_command[0] = -driverCommand->leftTriggerAnalog;
+  _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
 
   _data->ori_command[1] = driverCommand->rightStickAnalog[1];
   _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
+  //pretty_print(_data->ori_command, "ori command", 3);
 
   _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
   // === End of WBC state command computation  =========== //

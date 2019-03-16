@@ -53,8 +53,15 @@ void BodyCtrlTest<T>::_SettingParameter(){
         = Test<T>::_state_list.begin();
 
     while(iter < Test<T>::_state_list.end()){
-        (*iter)->SetTestParameter(
-                CheetahConfigPath"TEST_body_ctrl.yaml");
+        if(TEST::_robot_type == RobotType::CHEETAH_3){
+            (*iter)->SetTestParameter(
+                    CheetahConfigPath"TEST_body_ctrl_cheetah3.yaml");
+        }else if(TEST::_robot_type == RobotType::MINI_CHEETAH){
+            (*iter)->SetTestParameter(
+                    CheetahConfigPath"TEST_body_ctrl_mini_cheetah.yaml");
+        }else{
+            printf("[Body Ctrl Test] Invalid robot type\n");
+        }
         ++iter;
     }
 }
