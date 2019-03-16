@@ -1,6 +1,6 @@
 #include <RRT_LocYaw.hpp>
 #include <Node.hpp>
-#include <save_file.hpp>
+#include <Utilities/save_file.h>
 #include <StairTopCheck.hpp>
 
 RRT_LocYaw::RRT_LocYaw(const Node* ini, const Node* fin):RRT(ini, fin){
@@ -100,7 +100,7 @@ void LocYaw::print(const std::string & node_name) const{
             node_name.c_str(), _x, _y, _theta, _type);
 }
 
-void LocYaw::saveNode(const std::string & file_name) const {
+void LocYaw::saveNode(const std::string & folder_name, const std::string & file_name) const {
     DVec<double> info(4 + 3); info.setZero();
     info[0] = _x;
     info[1] = _y;
@@ -112,7 +112,7 @@ void LocYaw::saveNode(const std::string & file_name) const {
         info[5] = ((ForwardYaw*)_u)->_ydot;
         info[6] = ((ForwardYaw*)_u)->_delta_theta;
     }
-    saveVector(info, file_name);
+    saveVector(info, folder_name, file_name);
 }
 
 // *****************  Input **************************** //

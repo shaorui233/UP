@@ -1,6 +1,6 @@
 #include <BodyAccMin.hpp>
 #include <stdio.h>
-#include <utilities/save_file.hpp>
+#include <Utilities/save_file.h>
 #include <Utilities/Utilities_print.h>
 #include <cppTypes.h>
 #include <nlopt.hpp>
@@ -164,7 +164,8 @@ double BodyAccMin::ObjectiveFn(
         struct tm  tstruct;
         tstruct = *localtime(&now);
         strftime(folder_name, sizeof(folder_name), "%Y-%m-%d-%H_%M_%S", &tstruct);
-        tester->_folder_name = folder_name;
+        tester->_folder_name = 
+            THIS_COM + "algorithms/optimization/optimization_data/" + folder_name;
         create_folder(tester->_folder_name);
         hmap->SaveHeightMap(tester->_folder_name);
     }

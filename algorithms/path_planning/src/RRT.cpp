@@ -1,7 +1,6 @@
 #include <RRT.hpp>
 #include <Node.hpp>
-#include <save_file.hpp>
-
+#include <Utilities/save_file.h>
 
 RRT::RRT(const Node* ini, const Node* fin){
     Node* ini_tmp = ini->_MakeAndCopyNode();
@@ -10,6 +9,9 @@ RRT::RRT(const Node* ini, const Node* fin){
 
     _fin = fin->_MakeAndCopyNode();
     _fin->_type = NodeType::goal;
+
+    _save_folder_name = "algorithms/path_planning/planning_data/";
+    create_folder(_save_folder_name);
 }
 
 RRT::~RRT(){
@@ -60,10 +62,10 @@ void RRT::_save_path(){
     printf("[RRT] Save Path\n");
     Node* x_node = _FindNearestNeighbor(_fin);
 
-    x_node->saveNode("final_path");
+    x_node->saveNode(_save_folder_name, "final_path");
     while(x_node->_type != NodeType::root){
         x_node = x_node->_parent;
-        x_node->saveNode("final_path");
+        x_node->saveNode(_save_folder_name, "final_path");
     }
 }
 void RRT::_save_result(){
@@ -82,10 +84,10 @@ void RRT::_save_result(){
     Node* node;
     for(size_t i(0); i<end_node_list.size(); ++i){
         node = end_node_list[i];
-        node->saveNode("planning_result");
+        node->saveNode(_save_folder_name, "planning_result");
         while(node->_type != NodeType::root){
             node = node->_parent;
-            node->saveNode("planning_result");
+            node->saveNode(_save_folder_name, "planning_result");
         }
     }
 

@@ -1,4 +1,4 @@
-add_subdirectory(optimization)
+#add_subdirectory(optimization)
 add_subdirectory(path_planning)
 
 # Machine Learning Package

@@ -1,6 +1,7 @@
 #ifndef RRT_H
 #define RRT_H
 
+#include <string>
 #include <vector>
 #include <cppTypes.h>
 class Node;
@@ -20,6 +21,7 @@ class RRT{
 
         bool FindPath();
     protected:
+        std::string _save_folder_name;
         int _ExtendTree(Node* node);
         Node* _FindNearestNeighbor(const Node* node);
 

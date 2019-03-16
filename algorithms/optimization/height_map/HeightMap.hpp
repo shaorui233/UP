@@ -1,7 +1,7 @@
 #ifndef HEIGHT_MAP_H
 #define HEIGHT_MAP_H
 
-#include <utilities/save_file.hpp>
+#include <Utilities/save_file.h>
 
 class box_info{
     public:
@@ -51,7 +51,7 @@ class HeightMap{
                     one_x_line[k] = getHeight(dx*i + x_offset, dy*k + y_offset);
                     //printf("%lu %lu grid, (%lu, %lu), %f,%f\n", x_grid, y_grid, i, k, dx*i, dy*k);
                 }
-                saveVector(one_x_line, folder_name+"/HeightMap", y_grid+1, true);
+                saveVector(one_x_line, folder_name, "HeightMap", y_grid+1);
             }
         }
 };

@@ -14,10 +14,7 @@ set(CMAKE_C_FLAGS "-O3  -g -std=gnu99 -march=native -I.")
 include_directories(".")
 include_directories("include/" )                 # common includes
 include_directories("../../third-party/ParamHandler")
-include_directories("../../third-party/nlopt/")
 include_directories("../../common/include/")
-include_directories("../optimization/utilities/")
-include_directories(${CMAKE_BINARY_DIR}/third-party/nlopt/src/api)
 include_directories(${CMAKE_BINARY_DIR})
 
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
@@ -26,4 +23,4 @@ file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp fi
 add_library(path_planning SHARED ${sources})       # produce a library used by sim/robot
 
 add_executable(path_planning_test test_main.cpp)
-target_link_libraries(path_planning_test path_planning opt_utilities)
+target_link_libraries(path_planning_test path_planning biomimetics)

@@ -11,11 +11,11 @@ color_list = { [ 0.5    0.5   0.5], ...
                [0.6350    0.0780    0.1840]};
            
 %% 
-fn_path = '/home/dhkim/Repository/Cheetah-Software/path_planning/matlab/functions';
+fn_path = '/home/dhkim/Repository/Cheetah-Software/algorithms/path_planning/matlab/functions';
 
 addpath(fn_path)
 
-data_path = '/home/dhkim/Repository/Cheetah-Software/path_planning/planning_data';
+data_path = '/home/dhkim/Repository/Cheetah-Software/algorithms/path_planning/planning_data';
 iter = 0;
 result_path = fn_read_file(data_path, 'final_path',7);
 planning_result = fn_read_file(data_path, 'planning_result',7);

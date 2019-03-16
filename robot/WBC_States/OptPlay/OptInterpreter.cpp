@@ -2,7 +2,6 @@
 #include <ParamHandler/ParamHandler.hpp>
 #include <fstream>
 #include <Utilities/Utilities_print.h>
-#include <utilities/save_file.hpp>
 
 template<typename T>
 OptInterpreter<T>* OptInterpreter<T>::getOptInterpreter(){
@@ -52,8 +51,10 @@ void OptInterpreter<T>::SetParameter(const std::string & setup_file){
     std::string str_tmp;
     handler.getString("OPT_walking_forward", "folder_name", str_tmp);
 
-    std::string opt_result_file = THIS_COM"optimization/optimization_data/"+str_tmp+"/1_opt_result.txt";
-    std::string foot_loc_file = THIS_COM"optimization/optimization_data/"+str_tmp+"/1_foot_loc.txt";
+    std::string opt_result_file = 
+        THIS_COM"algorithms/optimization/optimization_data/"+str_tmp+"/1_opt_result.txt";
+    std::string foot_loc_file = 
+        THIS_COM"algorithms/optimization/optimization_data/"+str_tmp+"/1_foot_loc.txt";
 
     std::ifstream f_opt_result(opt_result_file);
     std::ifstream f_foot_loc(foot_loc_file);

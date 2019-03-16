@@ -25,6 +25,6 @@ target_link_libraries(run_optimization optimization)
 
 target_link_libraries(optimization biomimetics pthread)
 target_link_libraries(optimization dynacore_param_handler)
-target_link_libraries(optimization nlopt height_map opt_utilities)
+target_link_libraries(optimization nlopt height_map)
+
 add_subdirectory(height_map)
-add_subdirectory(utilities)

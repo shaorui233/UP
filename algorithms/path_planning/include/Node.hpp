@@ -25,7 +25,7 @@ class Node{
         virtual double Dist(const Node*) const = 0;
         virtual bool CloseEnough(const Node* ) const = 0;
         virtual void print(const std::string & node_name) const = 0;
-        virtual void saveNode(const std::string & file_name) const = 0;
+        virtual void saveNode(const std::string & folder_name, const std::string & file_name) const = 0;
 
         int _type;
         Node* _parent;

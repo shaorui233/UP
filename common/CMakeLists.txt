@@ -41,6 +41,7 @@ include_directories("../third-party/inih")       # inih includes
 include_directories("../third-party/osqp/include")       # osqp includes
 include_directories("../third-party/ParamHandler")
 include_directories("../third-party/nlopt/")
+include_directories(${CMAKE_BINARY_DIR})
 include_directories(${CMAKE_BINARY_DIR}/third-party/nlopt/src/api)
 
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files

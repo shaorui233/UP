@@ -39,7 +39,7 @@ class LocYaw: public Node{
         virtual double Dist(const Node*) const ;
         virtual bool CloseEnough(const Node* node) const;
         virtual void print(const std::string & node_name) const;
-        virtual void saveNode(const std::string & file_name) const;
+        virtual void saveNode(const std::string & folder_name, const std::string & file_name) const;
 
         double _x, _y, _theta;
 
