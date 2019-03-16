@@ -1,10 +1,10 @@
 #ifndef WHOLE_BODY_LOCOMOTION_CONTROL_H
 #define WHOLE_BODY_LOCOMOTION_CONTROL_H
 
-#include <WBC.hpp>
+#include <WBC/WBC.hpp>
+#include <WBC/ContactSpec.hpp>
 #include <Utilities/Utilities_print.h>
 #include <Goldfarb_Optimizer/QuadProg++.hh>
-#include <ContactSpec.hpp>
 
 template<typename T>
 class WBLC_ExtraData{

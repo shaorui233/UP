@@ -4,6 +4,10 @@
 #include "Dynamics/MiniCheetah.h"
 #include "Controllers/ContactEstimator.h"
 
+//#include <WBC_States/BodyPostureCtrl/BodyPostureCtrl.hpp>
+#include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
+//#include <WBC_States/OptimizationPlay/OptimizationPlay.hpp>
+//#include <WBC_States/PlannedTrot/PlannedTrot.hpp>
 
 
 void RobotController::initialize() {
@@ -15,16 +19,20 @@ void RobotController::initialize() {
   }
 
   _legController = new LegController<float>(_quadruped);
-  _stateEstimator = new StateEstimatorContainer<float>(cheaterState, kvhImuData, vectorNavData,
+  _stateEstimator = new StateEstimatorContainer<float>(
+          cheaterState, kvhImuData, vectorNavData,
           _legController->datas, &_stateEstimate, controlParameters);
   initializeStateEstimator(false);
 
 
   // For WBC state
   _model = _quadruped.buildModel();
-  _wbc_state = new Cheetah_interface<float>(&_model);
-  _data = new Cheetah_Data<float>();
+  //_wbc_state = new BodyPostureCtrl<float>(&_model, robotType);
+  _wbc_state = new JPosCtrlTest<float>(&_model, robotType);
+  //_wbc_state = new OptimizationPlay<float>(&_model, robotType);
+  //_wbc_state = new PlannedTrot<float>(&_model, robotType);
 
+  _data = new Cheetah_Data<float>();
   _extra_data = new Cheetah_Extra_Data<float>();
 }
 
@@ -59,7 +67,7 @@ void RobotController::step() {
   
   // Orientation
   _data->ori_command[0] = driverCommand->rightTriggerAnalog;
-  _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
+  _data->ori_command[0] = -driverCommand->leftTriggerAnalog;
 
   _data->ori_command[1] = driverCommand->rightStickAnalog[1];
   _data->ori_command[2] = driverCommand->rightStickAnalog[0];
@@ -69,7 +77,6 @@ void RobotController::step() {
   // === End of WBC state command computation  =========== //
 
   // run the controller:
-  //Vec3<float> pDes(0,0,driverCommand->leftStickAnalog[1]);
   Mat3<float> kpMat; kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
   0, controlParameters->stand_kp_cartesian[1], 0,
   0, 0, controlParameters->stand_kp_cartesian[2];
@@ -94,18 +101,18 @@ void RobotController::step() {
 void RobotController::StepLocationVisualization(){
   // Cones
   //visualizationData->num_cones = 20*2;
-  visualizationData->num_cones = 2;
   int num_step = _extra_data->num_step;
-  for (size_t j = 0 ; j < visualizationData->num_cones  ; j++)
+  visualizationData->num_cones = num_step;
+  for (int j(0) ; j < num_step  ; j++)
   {
     ConeVisualization cone;
     cone.radius = 0.03;
     cone.direction << 0, 0 , 0.05;
     //cone.direction += .2f * j *Vec3<float>(sinf(.4f * j * t + j * .2f), cosf(.4f * j * t + j * .2f), 0);
     cone.point_position <<  
-        _extra_data->loc_x[2*num_step + j], 
-        _extra_data->loc_y[2*num_step + j], 
-        (_extra_data->loc_z[2*num_step + j] - 0.5);  // Ground is -0.5
+        _extra_data->loc_x[j], 
+        _extra_data->loc_y[j], 
+        (_extra_data->loc_z[j] - 0.5);  // Ground is -0.5
     cone.color << .6 , .2 ,  .4, .6;
     visualizationData->cones[j] = cone;
   }

@@ -8,8 +8,6 @@
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/GamepadCommand.h"
 #include "SimUtilities/VisualizationData.h"
-
-#include <WBC_state/Cheetah_interface.hpp>
 #include <Controllers/StateEstimatorContainer.h>
 // gamepadCommand
 // robotType
@@ -24,6 +22,8 @@
 // spiCommand
 //
 
+#include <WBC_States/Cheetah_DynaCtrl_Definition.h>
+template <typename T> class Test;
 
 class RobotController {
 public:
@@ -58,8 +58,8 @@ private:
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
 
-  // For WBC stat
-  Cheetah_interface<float>* _wbc_state;
+  // For WBC state (test)
+  Test<float>* _wbc_state;
   Cheetah_Data<float>* _data;
   Cheetah_Extra_Data<float>* _extra_data;
   FloatingBaseModel<float> _model;
