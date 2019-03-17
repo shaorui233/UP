@@ -23,13 +23,13 @@ template <typename T>
 class Cheetah_Extra_Data{
     public:
         int num_step;
-        T loc_x[20]; //Large enough number
-        T loc_y[20];
-        T loc_z[20];
+        T loc_x[100]; //Large enough number
+        T loc_y[100];
+        T loc_z[100];
 
-        T ori_roll[20];
-        T ori_pitch[20];
-        T ori_yaw[20];
+        T ori_roll[100];
+        T ori_pitch[100];
+        T ori_yaw[100];
 
         int num_path_pt;
         T path_x[100];

@@ -139,15 +139,19 @@ void FullContactCtrl<T>::_task_setup(){
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
 
+    T run_time = _sp->_curr_time;
+    if(_sp->_num_step<0){
+        run_time = 0.;
+    }
     OptInterpreter<T>::getOptInterpreter()->updateBodyTarget(
-            _sp->_curr_time, pos_des, vel_des, acc_des);
+            run_time, pos_des, vel_des, acc_des);
     _body_pos_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
 
     // Set Desired Orientation
     Vec3<T> rpy_des;
     OptInterpreter<T>::getOptInterpreter()->updateBodyOriTarget(
-            _sp->_curr_time, rpy_des);
+            run_time, rpy_des);
 
     Quat<T> des_quat; des_quat.setZero();
 
@@ -162,6 +166,9 @@ void FullContactCtrl<T>::_task_setup(){
     DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();
     _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
+    //printf("run time: %f\n", run_time);
+    //pretty_print(pos_des, std::cout, "pos");
+    //pretty_print(rpy_des, std::cout, "rpy");
     _kin_wbc->FindConfiguration(_sp->_Q,
             Ctrl::_task_list, Ctrl::_contact_list, 
             _des_jpos, _des_jvel, _des_jacc);

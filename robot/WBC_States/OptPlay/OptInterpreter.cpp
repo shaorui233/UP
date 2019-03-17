@@ -52,10 +52,11 @@ void OptInterpreter<T>::SetParameter(const std::string & setup_file){
     handler.getString("OPT_walking_forward", "folder_name", str_tmp);
 
     std::string opt_result_file = 
-        THIS_COM"algorithms/optimization/optimization_data/"+str_tmp+"/1_opt_result.txt";
+        THIS_COM"algorithms/optimization/"+str_tmp+"/1_opt_result.txt";
     std::string foot_loc_file = 
-        THIS_COM"algorithms/optimization/optimization_data/"+str_tmp+"/1_foot_loc.txt";
+        THIS_COM"algorithms/optimization/"+str_tmp+"/1_foot_loc.txt";
 
+    //std::cout<<opt_result_file<<std::endl;
     std::ifstream f_opt_result(opt_result_file);
     std::ifstream f_foot_loc(foot_loc_file);
     std::string line;
@@ -88,6 +89,7 @@ void OptInterpreter<T>::SetParameter(const std::string & setup_file){
         for(int i(0); i<3; ++i){
             upcoming_step_pos[i+3] = full_foot_pos[idx_offset_2 + i] - _start_loc[i];
         }
+        //pretty_print(upcoming_step_pos, std::cout, "upcomming step");
         _foot_step_list.push_back(upcoming_step_pos);
         full_foot_pos.clear();
 
@@ -153,6 +155,8 @@ void OptInterpreter<T>::buildSpline(const std::vector<double> & x){
             middle_pt[degree*i+j][2] = x[idx_offset + 3*(i+1)+2];
         }
     }
+    //pretty_print(init, "ini", 9);
+    //pretty_print(fin, "fin", 9);
     _body_traj.SetParam(init, fin, middle_pt, OptCase::_tot_time);
     
     for(int i(0); i<OptCase::nMiddle_pt; ++i){
@@ -173,7 +177,7 @@ void OptInterpreter<T>::updateBodyOriTarget(const T & t, Vec3<T> & body_ori){
     body_ori[0] = 0. ; // Zero Roll
 
     //printf("time: %f\n", t);
-    pretty_print(body_ori, std::cout, "body ori pitch & yaw");
+    //pretty_print(body_ori, std::cout, "body ori pitch & yaw");
     //pretty_print(body_vel, std::cout, "body vel");
     //pretty_print(body_acc, std::cout, "body acc");
 }

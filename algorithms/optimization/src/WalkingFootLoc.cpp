@@ -1,6 +1,6 @@
 #include <WalkingFootLoc.hpp>
 #include <stdio.h>
-#include <utilities/save_file.hpp>
+#include <Utilities/save_file.h>
 #include <Utilities/Utilities_print.h>
 #include <cppTypes.h>
 #include <nlopt.hpp>
@@ -144,9 +144,9 @@ void WalkingFootLoc::SaveOptimizationResult(
         const WalkingFootLoc* tester){
 
     std::string file_name = std::to_string(iter) + "_opt_result";
-    saveValue(opt_cost, folder+"/"+file_name, true);
+    saveValue(opt_cost, folder, file_name);
     // Raw optimization data save
-    saveVector(x, folder+"/"+file_name, true);
+    saveVector(x, folder, file_name);
 
     // time, body trajectory, foot stepping save
     BS_Basic<double, 3, 3, WalkingFootLoc::nMiddle_pt, 2, 2> body_traj;
@@ -167,20 +167,20 @@ void WalkingFootLoc::SaveOptimizationResult(
         body_traj.getCurveDerPoint(curr_time, 1, vel);
         body_traj.getCurveDerPoint(curr_time, 2, acc);
 
-        saveVector(pos, folder+"/"+std::to_string(iter)+"_body_pos", 3, true);
-        saveVector(vel, folder+"/"+std::to_string(iter)+"_body_vel", 3, true);
-        saveVector(acc, folder+"/"+std::to_string(iter)+"_body_acc", 3, true);
+        saveVector(pos, folder, std::to_string(iter)+"_body_pos", 3);
+        saveVector(vel, folder, std::to_string(iter)+"_body_vel", 3);
+        saveVector(acc, folder, std::to_string(iter)+"_body_acc", 3);
 
 
         ori_traj.getCurvePoint(curr_time, ori);
         ori_traj.getCurveDerPoint(curr_time, 1, ang_vel);
         ori_traj.getCurveDerPoint(curr_time, 2, ang_acc);
 
-        saveVector(ori, folder+"/"+std::to_string(iter)+"_body_ori", WalkingFootLoc::dimOri, true);
-        saveVector(ang_vel, folder+"/"+std::to_string(iter)+"_body_ang_vel", WalkingFootLoc::dimOri, true);
-        saveVector(ang_acc, folder+"/"+std::to_string(iter)+"_body_ang_acc", WalkingFootLoc::dimOri, true);
+        saveVector(ori, folder, std::to_string(iter)+"_body_ori", WalkingFootLoc::dimOri);
+        saveVector(ang_vel, folder, std::to_string(iter)+"_body_ang_vel", WalkingFootLoc::dimOri);
+        saveVector(ang_acc, folder, std::to_string(iter)+"_body_ang_acc", WalkingFootLoc::dimOri);
 
-        saveValue(curr_time, folder+"/"+std::to_string(iter)+"_time", true);
+        saveValue(curr_time, folder, std::to_string(iter)+"_time");
 
         curr_time += dt;
     }
@@ -191,7 +191,7 @@ void WalkingFootLoc::SaveOptimizationResult(
     buildFootStepLocation(x, FootLoc, tester->_hmap);
 
     for(int i(0); i < (WalkingFootLoc::_nStep -1); ++i){
-        saveVector(FootLoc[i], folder+"/"+std::to_string(iter)+"_foot_loc", true);
+        saveVector(FootLoc[i], folder, std::to_string(iter)+"_foot_loc");
     }
 }
 

@@ -3,13 +3,8 @@
 
 #include <cppTypes.h>
 
-#include "WalkingForward.hpp"
-#include "WalkingOrientation.hpp"
-#include "WalkingPitch.hpp"
 #include "WalkingFootLoc.hpp"
 
-//#define OptCase WalkingOrientation
-//#define OptCase WalkingPitch
 #define OptCase WalkingFootLoc
 #define OriSplineDim 1
 

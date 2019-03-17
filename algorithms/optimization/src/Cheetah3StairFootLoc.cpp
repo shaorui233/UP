@@ -1,6 +1,6 @@
 #include <Cheetah3StairFootLoc.hpp>
 #include <stdio.h>
-#include <utilities/save_file.hpp>
+#include <Utilities/save_file.h>
 #include <Utilities/Utilities_print.h>
 #include <cppTypes.h>
 #include <nlopt.hpp>
@@ -51,6 +51,7 @@ Cheetah3StairFootLoc::Cheetah3StairFootLoc():WalkingFootLoc()
         _fin_hl_loc[i] = _fin_body_pos[i] + hl_body_to_leg_global[i];
         _fin_hr_loc[i] = _fin_body_pos[i] + hr_body_to_leg_global[i];
     }
+    create_folder("algorithms/optimization/optimization_data");
     //pretty_print(rot,std::cout, "rotation");
     //printf("rotation : %f\n", _fin_body_ori);
     //pretty_print(_hl_body_to_leg_local, std::cout, "hl local");
@@ -81,11 +82,16 @@ double Cheetah3StairFootLoc::ObjectiveFn(
         struct tm  tstruct;
         tstruct = *localtime(&now);
         strftime(folder_name, sizeof(folder_name), "%Y-%m-%d-%H_%M_%S", &tstruct);
-        tester->_folder_name = folder_name;
+
+        tester->_folder_name = "algorithms/optimization/optimization_data/";
+        tester->_folder_name.append(folder_name);
+        tester->_folder_name.append("/");
+        //std::cout<<tester->_folder_name<<std::endl;
+
         create_folder(tester->_folder_name);
-        //hmap->SaveHeightMap(tester->_folder_name);
+        hmap->SaveHeightMap(tester->_folder_name);
         // TEST
-        hmap->SaveHeightMap("2019-03-05-00_00_03");
+        //hmap->SaveHeightMap("2019-03-05-00_00_03");
     }
 
     if( (  (tester->_count)%(tester->_intermittent_step_size) ) == 0){
@@ -105,76 +111,6 @@ double Cheetah3StairFootLoc::ObjectiveFn(
 void Cheetah3StairFootLoc::_update_full_variable(const std::vector<double> & x){
     for(size_t i(0);i<x.size(); ++i) _full_x[i] = x[i];
 }
-double Cheetah3StairFootLoc::ObjectiveFn_LandingMargin(
-        const std::vector<double> &x, 
-        std::vector<double> & grad,
-        void *d_) {
-
-    (void)grad; 
-
-    Cheetah3StairFootLoc* tester = (Cheetah3StairFootLoc*) d_;
-    HeightMap* hmap = tester->_hmap;
-    double cost_sum(0.);
-
-    double x_loc, y_loc, x_check, y_check;
-    double landing_height;
-    double height_var_sum(0.);
-
-    double res(0.002);
-    double check_region = tester->_landing_loc_region;
-    int num_check = floor(check_region/res);
-    for(int i(0); i<2*tester->_nStep; ++i){
-        x_loc = x[2*i];
-        y_loc = x[2*i+1];
-
-        height_var_sum = 0.;
-        landing_height = hmap->getHeight(x_loc, y_loc);
-
-        for(int x_inc(0); x_inc<num_check; ++x_inc){
-            for(int y_inc(0); y_inc<num_check; ++y_inc){
-                x_check = x_loc + res*x_inc - check_region/2.;
-                y_check = y_loc + res*y_inc - check_region/2.;
-                height_var_sum += fabs(hmap->getHeight(x_check, y_check) - landing_height);
-            }
-        }
-        height_var_sum /=num_check;
-        height_var_sum /=num_check;
-
-        cost_sum += height_var_sum;
-        //printf("num check:%d\n", num_check);
-        //printf("x, y loc: %f, %f\n", x_loc, y_loc);
-        //printf("landing height: %f, var sum: %f\n", landing_height, height_var_sum);
-        //printf("result: %f\n", result[i]);
-    }
-
-    tester->_count++;
-    if(tester->_count == 1){  // In the first loop, save height map
-        char folder_name[80];
-        time_t  now = time(0);
-        struct tm  tstruct;
-        tstruct = *localtime(&now);
-        strftime(folder_name, sizeof(folder_name), "%Y-%m-%d-%H_%M_%S", &tstruct);
-        tester->_folder_name = folder_name;
-        create_folder(tester->_folder_name);
-        //hmap->SaveHeightMap(tester->_folder_name);
-        // TEST
-        hmap->SaveHeightMap("2019-03-05-00_00_03");
-    }
-
-    if( (  (tester->_count)%(tester->_intermittent_step_size) ) == 0){
-        // Save a current one
-        tester->_update_full_variable(x);
-        SaveOptimizationResult(tester->_folder_name, tester->_count, 
-                cost_sum, 
-                tester->_full_x, tester);
-        // Print Result
-        printf("%dth iter, curr cost: %f \n", tester->_count, cost_sum);
-        nice_print_result(tester->_full_x);
-        printf("\n");
-    }
-    return cost_sum;
-}
-
 
 void Cheetah3StairFootLoc::_SetInitialPitch(std::vector<double> & x){
     std::vector< std::vector<double> > FootLoc;
@@ -221,7 +157,6 @@ bool Cheetah3StairFootLoc::SolveOptimization(){
     nlopt::opt* test = new nlopt::opt(nlopt::LN_COBYLA, num_opt_var);
 
     test->set_min_objective(Cheetah3StairFootLoc::ObjectiveFn, this);
-    //test->set_min_objective(Cheetah3StairFootLoc::ObjectiveFn_LandingMargin, this);
 
     std::vector<double> lb(num_opt_var);
     std::vector<double> ub(num_opt_var);
@@ -277,9 +212,9 @@ bool Cheetah3StairFootLoc::SolveOptimization(){
     nlopt::result opt_result = test->optimize(x, opt_f);
     printf("result, cost: %d, %f\n", opt_result, opt_f);
     _update_full_variable(x);
-    //SaveOptimizationResult(_folder_name, 1, opt_f, x, this);
+    SaveOptimizationResult(_folder_name, 1, opt_f, x, this);
     // TEST
-    SaveOptimizationResult("2019-03-05-00_00_03", 1, opt_f, _full_x, this);
+    //SaveOptimizationResult("2019-03-05-00_00_03", 1, opt_f, _full_x, this);
     nice_print_result(_full_x);
     printf("\n");
 
@@ -291,7 +226,7 @@ bool Cheetah3StairFootLoc::SolveOptimization(){
 
 
 void Cheetah3StairFootLoc::_ParameterSetting(){
-    ParamHandler handler(THIS_COM"optimization/config/optimization_pitch_setup.yaml");
+    ParamHandler handler(THIS_COM"algorithms/optimization/config/optimization_pitch_setup.yaml");
     std::vector<double> vec_tmp;
     handler.getVector<double>("robot_initial_posture", vec_tmp);
     _ini_body_pos[0] = vec_tmp[0];

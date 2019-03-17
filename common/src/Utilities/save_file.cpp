@@ -16,13 +16,17 @@ void cleaning_file(
 }
 void create_folder(const std::string & folder_name){
     std::string full_path = THIS_COM + folder_name;
-    const int dir_err = mkdir(full_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 
-    if (-1 == dir_err)
+    if (mkdir(full_path.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) == -1)
     {
-        std::cout<<full_path<<std::endl;
-        printf("Error creating directory!\n");
-        exit(1);
+        if( errno == EEXIST ) {
+            // alredy exists
+            //printf("%s is already exist\n", full_path.c_str());
+        } else {
+            // something else
+            std::cout << "cannot create session name folder error:" << strerror(errno) << std::endl;
+            exit(0);
+        }
     }
 }
 

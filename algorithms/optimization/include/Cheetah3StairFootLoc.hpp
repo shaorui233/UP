@@ -12,10 +12,6 @@ class Cheetah3StairFootLoc: public WalkingFootLoc{
         static double ObjectiveFn(const std::vector<double> & x,
                 std::vector<double> & grad, void *d_);
 
-        static double ObjectiveFn_LandingMargin(const std::vector<double> & x,
-                std::vector<double> & grad, void *d_);
-
-
         void _update_full_variable(const std::vector<double> & x);
 
         static void StickToInitialConstraint(

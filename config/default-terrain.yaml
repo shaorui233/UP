@@ -6,7 +6,7 @@ ground-plane:
     graphicsSize: [20,20] # how large the plane appears
     checkers: [40,40]     # how many checkers are on the plane
 
-#mesh-1:
+mesh-1:
     type: "mesh"
     mu: 0.7
     restitution: 0
@@ -27,7 +27,7 @@ ground-plane:
     #heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_01/manual_heightmap.txt"
     #heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_02/manual_heightmap.txt"
     #heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_03/heightmap.txt"
-    heightmap_file_name: "../optimization/optimization_data/2019-03-05-00_00_03/HeightMap.txt"
+    heightmap_file_name: "../algorithms/optimization/saved_optimization_data/2019-03-05-00_00_03_2/HeightMap.txt"
 
 #box-1:
     #type: "box"

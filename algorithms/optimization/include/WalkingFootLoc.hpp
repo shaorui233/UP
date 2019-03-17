@@ -18,8 +18,8 @@ class WalkingFootLoc{
         // 4 x nStep () step location
         // 3 x nStep () body trajectory ctrl points
         // ori Dim x 46 () body orientation (pitch & yaw) trajectory ctrl points
-        constexpr static int _nStep = 13;
-        //constexpr static int _nStep = 21; // Must be odd number
+        //constexpr static int _nStep = 13;
+        constexpr static int _nStep = 21; // Must be odd number
         constexpr static int dimOri= 1; 
         constexpr static double _onestep_duration = 0.2;
         constexpr static double _half_body_length = 0.25;

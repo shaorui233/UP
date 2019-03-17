@@ -7,7 +7,7 @@
 #include <Utilities/Utilities_print.h>
 #include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
-//#include <WBC_States/OptimizationPlay/OptimizationPlay.hpp>
+#include <WBC_States/OptPlay/OptPlayTest.hpp>
 //#include <WBC_States/PlannedTrot/PlannedTrot.hpp>
 
 
@@ -28,9 +28,9 @@ void RobotController::initialize() {
 
   // For WBC state
   _model = _quadruped.buildModel();
-  _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
+  //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
-  //_wbc_state = new OptimizationPlay<float>(&_model, robotType);
+  _wbc_state = new OptPlayTest<float>(&_model, robotType);
   //_wbc_state = new PlannedTrot<float>(&_model, robotType);
 
   _data = new Cheetah_Data<float>();
