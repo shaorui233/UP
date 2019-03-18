@@ -8,7 +8,7 @@
 #include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
 #include <WBC_States/OptPlay/OptPlayTest.hpp>
-//#include <WBC_States/PlannedTrot/PlannedTrot.hpp>
+#include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
 
 
 void RobotController::initialize() {
@@ -30,8 +30,8 @@ void RobotController::initialize() {
   _model = _quadruped.buildModel();
   //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
-  _wbc_state = new OptPlayTest<float>(&_model, robotType);
-  //_wbc_state = new PlannedTrot<float>(&_model, robotType);
+  //_wbc_state = new OptPlayTest<float>(&_model, robotType);
+  _wbc_state = new PlannedTrotTest<float>(&_model, robotType);
 
   _data = new Cheetah_Data<float>();
   _extra_data = new Cheetah_Extra_Data<float>();
@@ -43,6 +43,8 @@ void RobotController::step() {
   _stateEstimator->run();
   //testDebugVisualization();
   StepLocationVisualization();
+  BodyPathVisualization();
+  BodyPathArrowVisualization();
 
   // for now, we will always enable the legs:
   _legController->setEnabled(true);
@@ -118,6 +120,50 @@ void RobotController::StepLocationVisualization(){
     cone.color << .6 , .2 ,  .4, .6;
     visualizationData->cones[j] = cone;
   }
+}
+void RobotController::BodyPathVisualization(){
+  // Test Path visualization
+  PathVisualization path;
+  path.num_points = _extra_data->num_path_pt;
+  for (size_t j = 0 ; j < path.num_points ; j++)
+  {
+    path.position[j] << 
+        _extra_data->path_x[j],
+        _extra_data->path_y[j],
+        _extra_data->path_z[j]-0.5; //Ground is -0.5
+  }
+  //pretty_print(_extra_data->path_x, "path x", path.num_points);
+  //pretty_print(_extra_data->path_y, "path y", path.num_points);
+  path.color << 0.6 ,  0.2, 0.05 ,  1;
+
+  visualizationData->num_paths = 1;
+  visualizationData->paths[0] = path;
+}
+
+void RobotController::BodyPathArrowVisualization(){
+    visualizationData->num_arrows = _extra_data->num_middle_pt;
+
+    double ar_len(0.07);
+    double yaw;
+    for(int i(0); i<_extra_data->num_middle_pt; ++i){
+        visualizationData->arrows[i].base_position << 
+            _extra_data->mid_x[i], _extra_data->mid_y[i], _extra_data->mid_z[i] -0.5 ;
+        //visualizationData->arrows[i].direction << 
+            //_extra_data->mid_ori_roll[i], 
+            //_extra_data->mid_ori_pitch[i], 
+            //_extra_data->mid_ori_yaw[i];
+
+        yaw = _extra_data->mid_ori_yaw[i];
+
+        visualizationData->arrows[i].direction << ar_len*cos(yaw), ar_len*(sin(yaw)), 0.;
+
+        visualizationData->arrows[i].head_width = 0.02;
+        visualizationData->arrows[i].head_length = 0.03;
+        visualizationData->arrows[i].shaft_width = 0.01;
+
+        visualizationData->arrows[i].color << 
+            0.8, 0.3, 0.1, 1;
+    }
 }
 
 void RobotController::testDebugVisualization() {

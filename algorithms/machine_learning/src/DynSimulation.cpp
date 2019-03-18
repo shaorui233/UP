@@ -18,7 +18,6 @@ void DynSimulation::LCM_Loop(){
 
         // Step
         step(handler->_jpos_cmd, handler->_jvel_cmd, full_config, full_vel);
-
         _updateOutput(full_config, full_vel, _output);
         lcm_publish.publish("simulation_to_python", &_output);
     }
@@ -64,7 +63,7 @@ DynSimulation::DynSimulation(SimGraphics3D *window):
     x0.qd = zero12;
 
     // Mini Cheetah Initial Posture
-    x0.bodyPosition[2] = 0.315;
+    x0.bodyPosition[2] = 0.3;
     x0.q[0] = -0.03;
     x0.q[1] = -0.79;
     x0.q[2] = 1.715;
@@ -161,9 +160,25 @@ void DynSimulation::step(
     }
     _tau_update();
     _simulator->step(_dt, _tau, 500., 10.);
+    _updateOutputConfig(nx_full_config, nx_full_vel);
     _updateGraphics();
 }
+void DynSimulation::_updateOutputConfig(DVec<double> & config, DVec<double> & config_vel){
+    Vec3<double> body_ori_so3;
+    body_ori_so3 = ori::quatToso3(_simulator->getState().bodyOrientation);
+    for(size_t i(0); i<3; ++i){
+        config_vel[i] = _simulator->getState().bodyVelocity[i];
+        config_vel[i + 3] = _simulator->getState().bodyVelocity[i+3];
 
+        config[i] = body_ori_so3[i];
+        config[i+3] = _simulator->getState().bodyPosition[i];
+    }
+
+    for(size_t i(0);i<cheetah::num_act_joint; ++i){
+        config[i+6] = _simulator->getState().q[i];
+        config_vel[i+6] = _simulator->getState().qd[i];
+    }
+}
 void DynSimulation::_updateGraphics() {
     _window->_drawList.updateRobotFromModel(*_simulator, _robotID, true);
     _window->_drawList.updateAdditionalInfo(*_simulator);

@@ -12,8 +12,8 @@ set(CMAKE_C_FLAGS "-O3  -g  -march=native -std=gnu99 -I.")
 
 set(CMAKE_COLOR_MAKEFILE   ON)
 message("LCM machine learning")
-execute_process(COMMAND ../machine_learning/scripts/lcm_generation.sh)
-execute_process(COMMAND ../machine_learning/scripts/swig_wrap_generation.sh)
+execute_process(COMMAND ../algorithms/machine_learning/scripts/lcm_generation.sh)
+execute_process(COMMAND ../algorithms/machine_learning/scripts/swig_wrap_generation.sh)
 
 include_directories("./include")
 include_directories("./bridge_lcm_types")

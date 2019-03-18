@@ -27,14 +27,19 @@ class Cheetah_Extra_Data{
         T loc_y[100];
         T loc_z[100];
 
-        T ori_roll[100];
-        T ori_pitch[100];
-        T ori_yaw[100];
-
         int num_path_pt;
         T path_x[100];
         T path_y[100];
         T path_z[100];
+
+        int num_middle_pt;
+        T mid_ori_roll[20];
+        T mid_ori_pitch[20];
+        T mid_ori_yaw[20];
+
+        T mid_x[20];
+        T mid_y[20];
+        T mid_z[20];
 };
 
 

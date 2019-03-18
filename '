@@ -1,0 +1,22 @@
+#ifndef PLANNER_H
+#define PLANNER_H
+
+template <typename T>
+class Path{
+    public:
+        Path();
+        ~Path();
+
+        vecto
+};
+template <typename T>
+class Planner{
+    public:
+        Planner();
+        virtual Planner();
+
+        void UpdateUserInput(T* dir, T* ori);
+
+        void getBodyPosture(DVec<T>  & body_pos, DVec<T>  & body_ori );
+};
+#endif

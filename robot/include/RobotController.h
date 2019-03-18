@@ -52,6 +52,9 @@ private:
   void finalizeStep();
   void testDebugVisualization();
   void StepLocationVisualization();
+  void BodyPathVisualization();
+  void BodyPathArrowVisualization();
+
   Quadruped<float> _quadruped;
   LegController<float>* _legController = nullptr;
   StateEstimate<float> _stateEstimate;

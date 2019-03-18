@@ -84,6 +84,7 @@ class DynSimulation{
 
         DVec<double> _tau;
         DVec<double> _torque_cmd;
+        void _updateOutputConfig(DVec<double> & config, DVec<double> & config_vel);
         void _updateGraphics();
         void _SetupParam();
         void _tau_update();

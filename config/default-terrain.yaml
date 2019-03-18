@@ -6,7 +6,7 @@ ground-plane:
     graphicsSize: [20,20] # how large the plane appears
     checkers: [40,40]     # how many checkers are on the plane
 
-mesh-1:
+#mesh-1:
     type: "mesh"
     mu: 0.7
     restitution: 0

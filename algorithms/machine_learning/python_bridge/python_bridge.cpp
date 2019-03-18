@@ -7,6 +7,8 @@
 #include <Utilities/Timer.h>
 #include <Dynamics/Quadruped.h>
 
+simulation_to_python output;
+
 class Handler 
 {
     public:
@@ -16,11 +18,12 @@ class Handler
                 const std::string& chan, 
                 const simulation_to_python * msg)
         {
+            output = *msg;
             printf("Received message on channel \"%s\":\n", chan.c_str());
         }
 };
 
-int step(double* in_jpos, double* in_jvel)
+int step(double* in_jpos, double* in_jvel, double* out_config, double* out_config_vel)
 {
     printf("Python Bridge\n");
     lcm::LCM lcm_subscribe;
@@ -45,6 +48,10 @@ int step(double* in_jpos, double* in_jvel)
     lcm_publish.publish("python_to_simulation", &input);
     lcm_subscribe.handle();
 
+    for(size_t i(0); i<cheetah::dim_config; ++i){
+        out_config[i] = output.config[i];
+        out_config_vel[i] = output.config_vel[i];
+    }
     printf("%f ms\n", time.getMs());
     return 0;
 }

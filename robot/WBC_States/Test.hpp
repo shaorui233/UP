@@ -23,6 +23,7 @@ class Test{
         int getPhase(){ return _phase;}
         
     protected:
+        virtual void _UpdateTestOneStep(){}
         virtual void _TestInitialization() = 0;
         virtual int _NextPhase(const int & phase) = 0;
         virtual void _UpdateExtraData(Cheetah_Extra_Data<T> * ext_data) = 0;

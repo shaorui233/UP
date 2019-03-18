@@ -194,6 +194,20 @@ namespace ori {
     return q;
   }
 
+  /*!
+   * Convert a quaternion to so3.
+   */
+  template <typename T>
+  Vec3<typename T::Scalar> quatToso3(const Eigen::MatrixBase<T>& q) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 4, "Must have 4x1 quat");
+    Vec3<typename T::Scalar> so3;
+    typename T::Scalar theta = 2. * std::acos(q[0]);
+    so3[0] = theta * q[1]/std::sin(theta/2.);
+    so3[1] = theta * q[2]/std::sin(theta/2.);
+    so3[2] = theta * q[3]/std::sin(theta/2.);
+    return so3;
+  }
+
 
   template<typename T>
   Vec3<typename T::Scalar> rotationMatrixToRPY(const Eigen::MatrixBase<T>& R) {

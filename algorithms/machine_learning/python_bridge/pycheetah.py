@@ -125,8 +125,8 @@ def doubleArray_frompointer(t):
 doubleArray_frompointer = _pycheetah.doubleArray_frompointer
 
 
-def step(in_jpos, in_jvel):
-    return _pycheetah.step(in_jpos, in_jvel)
+def step(in_jpos, in_jvel, out_config, out_config_vel):
+    return _pycheetah.step(in_jpos, in_jvel, out_config, out_config_vel)
 step = _pycheetah.step
 # This file is compatible with both classic and new-style classes.
 

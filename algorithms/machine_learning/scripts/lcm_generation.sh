@@ -6,7 +6,7 @@ NC='\033[0m' # No Color
 
 echo -e "${GREEN} Starting Machine Learning LCM type generation...${NC}"
 
-cd ../machine_learning/bridge_lcm_types
+cd ../algorithms/machine_learning/bridge_lcm_types
 # Clean
 rm */*.hpp
 

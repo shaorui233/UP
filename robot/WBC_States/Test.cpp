@@ -80,6 +80,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _SafetyCheck();
     if(_b_running){
         if(!_Initialization(data, command)){
+            _UpdateTestOneStep();
             ComputeCommand(command);
         }
     }else{
