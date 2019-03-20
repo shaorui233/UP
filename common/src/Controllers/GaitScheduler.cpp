@@ -344,8 +344,8 @@ void GaitScheduler<T>::printGaitInfo() {
 	if (printIter == printNum) {
 		std::cout << "Gait Type: " << gaitData.gaitName << "\n";
 		std::cout << "---------------------------------------------------------\n";
-		std::cout << "Enabled: " << gaitData.gaitEnabled(0) << " " << gaitData.gaitEnabled(1) << " " << gaitData.gaitEnabled(2) << " " << gaitData.gaitEnabled(3) << "\n";
-		std::cout << "Period Time: " << gaitData.periodTime(0) << "s " << gaitData.periodTime(1) << "s " << gaitData.periodTime(2) << "s " << gaitData.periodTime(3) << "s\n";
+		std::cout << "Enabled: " << gaitData.gaitEnabled(0) << " | " << gaitData.gaitEnabled(1) << " | " << gaitData.gaitEnabled(2) << " | " << gaitData.gaitEnabled(3) << "\n";
+		std::cout << "Period Time: " << gaitData.periodTime(0) << "s | " << gaitData.periodTime(1) << "s | " << gaitData.periodTime(2) << "s | " << gaitData.periodTime(3) << "s\n";
 		std::cout << "---------------------------------------------------------\n";
 		std::cout << "Contact State: " << gaitData.contactStateScheduled(0) << " | " << gaitData.contactStateScheduled(1) << " | " << gaitData.contactStateScheduled(2) << " | " << gaitData.contactStateScheduled(3) << "\n";
 		std::cout << "Phase Variable: " << gaitData.phaseVariable(0) << " | " << gaitData.phaseVariable(1) << " | " << gaitData.phaseVariable(2) << " | " << gaitData.phaseVariable(3) << "\n";
