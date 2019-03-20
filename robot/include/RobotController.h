@@ -9,6 +9,7 @@
 #include "SimUtilities/GamepadCommand.h"
 #include "SimUtilities/VisualizationData.h"
 #include <Controllers/StateEstimatorContainer.h>
+#include "Controllers/GaitScheduler.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -61,6 +62,9 @@ private:
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
 
+  // Gait Scheduler controls the nominal contact schedule for the feet
+  GaitScheduler<double>* _gaitScheduler;
+  
   // For WBC state (test)
   Test<float>* _wbc_state;
   Cheetah_Data<float>* _data;

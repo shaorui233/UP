@@ -25,6 +25,9 @@ void RobotController::initialize() {
           _legController->datas, &_stateEstimate, controlParameters);
   initializeStateEstimator(false);
 
+  // Initialize a new GaitScheduler object
+  _gaitScheduler = new GaitScheduler<double>();
+  _gaitScheduler->initialize();
 
   // For WBC state
   _model = _quadruped.buildModel();
@@ -50,6 +53,8 @@ void RobotController::step() {
   _legController->setEnabled(true);
   _legController->setMaxTorqueCheetah3(208.5);
  
+  // Find the current gait schedule
+  _gaitScheduler->step();
 
   // ======= WBC state command computation  =============== //
   for(size_t i(0); i<4; ++i){
