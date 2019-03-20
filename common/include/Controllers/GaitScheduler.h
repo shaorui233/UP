@@ -45,22 +45,26 @@ struct GaitData {
 	// Next GaitType to transition into
 	GaitType _nextGait; 
 
+	// Gait name string
 	std::string gaitName;
+
+	// Gait descriptors
+	T periodTimeNominal;		// overall period time to scale
+	T initialPhase;				// initial phase to offset
+	T switchingPhaseNominal;	// nominal phase to switch contacts
 
 	// Enable flag for each foot 
 	Eigen::Vector4i gaitEnabled;	// enable gaint controlled legs
 
-	// Gait descriptors
-	Vec4<T> periodTime;			// overall gait period time
-	Vec4<T> switchingPhase;		// phase to switch to swing
-
 	// Time based descriptors
+	Vec4<T> periodTime;			// overall foot scaled gait period time
 	Vec4<T> timeStance;				// total stance time
 	Vec4<T> timeSwing;				// total swing time
 	Vec4<T> timeStanceRemaining;	// stance time remaining
 	Vec4<T> timeSwingRemaining;		// swing time remaining
 
 	// Phase based descriptors
+	Vec4<T> switchingPhase;		// phase to switch to swing
 	Vec4<T> phaseVariable;	// overall gait phase for each foot
 	Vec4<T> phaseOffset;	// nominal gait phase offsets
 	Vec4<T> phaseScale;		// phase scale relative to variable
@@ -98,6 +102,11 @@ private:
 	// Phase change at each step
 	T dphase;  
 
+	// Choose how often to print info, every N iterations
+	int printNum = 4;	// N*(0.001s) in simulation time
+
+	// Track the number of iterations since last info print
+	int printIter = 0;
 };
 
 #endif
