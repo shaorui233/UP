@@ -10,6 +10,8 @@
 #include <WBC/WBLC/KinWBC.hpp>
 #include <WBC/WBLC/WBLC.hpp>
 #include <ParamHandler/ParamHandler.hpp>
+#include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
+
 namespace trot{
 
 template <typename T>
@@ -139,15 +141,24 @@ void FullContactCtrl<T>::_task_setup(){
     Vec3<T> pos_des; pos_des.setZero();
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
+    Vec3<T> rpy_des; rpy_des.setZero(); 
+    DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
 
-    pos_des[2] = target_body_height_;
+    for(size_t i(0); i<3; ++i){
+        pos_des[i] = _trot_test->_body_pos[i];
+        vel_des[i] = _trot_test->_body_vel[i];
+        acc_des[i] = _trot_test->_body_acc[i];
+
+        rpy_des[i] = _trot_test->_body_ori_rpy[i];
+        // TODO : Frame must coincide. Currently, it's not
+        ang_vel_des[i] = _trot_test->_body_ang_vel[i];
+    }
 
     _body_pos_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
 
-    Vec3<T> rpy_des; rpy_des.setZero(); 
     Mat3<T> Rot = rpyToRotMat(rpy_des);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     des_quat[0] = eigen_quat.w();
@@ -156,7 +167,6 @@ void FullContactCtrl<T>::_task_setup(){
     des_quat[3] = eigen_quat.z();
 
 
-    DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();
     _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
@@ -185,7 +195,7 @@ void FullContactCtrl<T>::LastVisit(){}
 
 template <typename T>
 bool FullContactCtrl<T>::EndOfPhase(){
-    if(Ctrl::_state_machine_time > _end_time){
+    if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::servo_rate)){
         return true;
     }
     return false;

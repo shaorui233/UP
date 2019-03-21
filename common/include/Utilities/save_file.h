@@ -37,6 +37,14 @@ void saveVector(const DVec<T> & _vec,
 }
 
 template<typename T>
+void saveVector(const Vec3<T> & _vec, 
+        const std::string & folder_name, 
+        const std::string & file_name){
+    saveVector((DVec<T>)_vec, folder_name, file_name);
+}
+
+
+template<typename T>
 void saveVector(const std::vector<T> & _vec, 
         const std::string & folder_name, 
         const std::string & file_name){

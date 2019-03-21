@@ -49,10 +49,13 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->forwardKinematics();
 
     Vec3<T> ave_foot;
+    Vec3<T> ave_foot_vel;
     ave_foot.setZero();
+    ave_foot_vel.setZero();
 
     for(size_t i(0); i<_sp->_num_contact; ++i){
         ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
+        ave_foot_vel += (1./_sp->_num_contact) * _robot->_vGC[_sp->_contact_pt[i]];
     }
     _sp->_dir_command[0] = data->dir_command[0];
     _sp->_dir_command[1] = data->dir_command[1];
@@ -63,9 +66,15 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _state.bodyPosition = -ave_foot;
     _state.bodyPosition += _sp->_local_frame_global_pos;
    
+    _state.bodyVelocity.tail(3) = -ave_foot_vel;
+
     _sp->_Q[3] = _state.bodyPosition[0];
     _sp->_Q[4] = _state.bodyPosition[1];
     _sp->_Q[5] = _state.bodyPosition[2];
+ 
+    for(size_t i(0); i<6; ++i){
+        _sp->_Qdot[i] = _state.bodyVelocity[i];
+    }
   
     // Update with new body position
     _robot->setState(_state);
@@ -76,7 +85,6 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->massMatrix();
     _robot->gravityForce();
     _robot->coriolisForce();
-
     _SafetyCheck();
     if(_b_running){
         if(!_Initialization(data, command)){

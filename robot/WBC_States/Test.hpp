@@ -5,14 +5,15 @@
 #include "Cheetah_DynaCtrl_Definition.h"
 #include "StateProvider.hpp"
 
-#define TEST Test<T>
-
 template <typename T>
 class Test{
     public:
         Test(FloatingBaseModel<T>* robot, const RobotType & robot_type);
         virtual ~Test();
 
+
+        //TEST
+        constexpr static T servo_rate = 0.001;
         void GetCommand(
                 const Cheetah_Data<T>* data, 
                 LegControllerCommand<T> * command,

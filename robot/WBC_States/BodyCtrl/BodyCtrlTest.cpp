@@ -10,14 +10,14 @@ BodyCtrlTest<T>::BodyCtrlTest(FloatingBaseModel<T>* robot, const RobotType & typ
     Test<T>(robot, type){
 
     //_phase = BodyCtrlPhase::BDCTRL_body_ctrl;
-    TEST::_phase = BodyCtrlPhase::BDCTRL_body_up_ctrl;
-    TEST::_state_list.clear();
+    Test<T>::_phase = BodyCtrlPhase::BDCTRL_body_up_ctrl;
+    Test<T>::_state_list.clear();
 
     body_up_ctrl_ = new FullContactTransCtrl<T>(robot);
     body_ctrl_ = new BodyPostureCtrl<T>(robot);
     
-    TEST::_state_list.push_back(body_up_ctrl_);
-    TEST::_state_list.push_back(body_ctrl_);
+    Test<T>::_state_list.push_back(body_up_ctrl_);
+    Test<T>::_state_list.push_back(body_ctrl_);
 
     _SettingParameter();
     printf("[Body Position Control Test] Constructed\n");
@@ -25,8 +25,8 @@ BodyCtrlTest<T>::BodyCtrlTest(FloatingBaseModel<T>* robot, const RobotType & typ
 
 template <typename T>
 BodyCtrlTest<T>::~BodyCtrlTest(){
-  for(size_t i(0); i<TEST::_state_list.size(); ++i){
-    delete TEST::_state_list[i];
+  for(size_t i(0); i<Test<T>::_state_list.size(); ++i){
+    delete Test<T>::_state_list[i];
   }
 }
 
@@ -53,10 +53,10 @@ void BodyCtrlTest<T>::_SettingParameter(){
         = Test<T>::_state_list.begin();
 
     while(iter < Test<T>::_state_list.end()){
-        if(TEST::_robot_type == RobotType::CHEETAH_3){
+        if(Test<T>::_robot_type == RobotType::CHEETAH_3){
             (*iter)->SetTestParameter(
                     CheetahConfigPath"TEST_body_ctrl_cheetah3.yaml");
-        }else if(TEST::_robot_type == RobotType::MINI_CHEETAH){
+        }else if(Test<T>::_robot_type == RobotType::MINI_CHEETAH){
             (*iter)->SetTestParameter(
                     CheetahConfigPath"TEST_body_ctrl_mini_cheetah.yaml");
         }else{
