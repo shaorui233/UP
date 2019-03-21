@@ -144,7 +144,6 @@ void GaitScheduler<T>::step() {
 		//std::cout << gaitData.contactStateScheduled(foot) << ", " << gaitData.gaitName << " | ";
 	}
 	//std::cout << std::endl;
-	printGaitInfo();
 }
 
 
@@ -333,7 +332,7 @@ void GaitScheduler<T>::createGait() {
 
 
 /*
- * Creates the gait structure from the important defining parameters of each gait
+ * Prints relevant information about the gait and current gait state
  */
 template <typename T>
 void GaitScheduler<T>::printGaitInfo() {
@@ -342,6 +341,7 @@ void GaitScheduler<T>::printGaitInfo() {
 
 	// Print at requested frequency
 	if (printIter == printNum) {
+		std::cout << "[GAIT SCHEDULER] Printing Gait Info...\n";
 		std::cout << "Gait Type: " << gaitData.gaitName << "\n";
 		std::cout << "---------------------------------------------------------\n";
 		std::cout << "Enabled: " << gaitData.gaitEnabled(0) << " | " << gaitData.gaitEnabled(1) << " | " << gaitData.gaitEnabled(2) << " | " << gaitData.gaitEnabled(3) << "\n";

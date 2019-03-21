@@ -2,7 +2,7 @@
 #include "RobotController.h"
 #include "Dynamics/Cheetah3.h"
 #include "Dynamics/MiniCheetah.h"
-#include "Controllers/ContactEstimator.h"
+//#include "Controllers/ContactEstimator.h"
 
 #include <Utilities/Utilities_print.h>
 #include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
@@ -26,8 +26,12 @@ void RobotController::initialize() {
   initializeStateEstimator(false);
 
   // Initialize a new GaitScheduler object
-  _gaitScheduler = new GaitScheduler<double>();
+  _gaitScheduler = new GaitScheduler<float>(_quadruped);
   _gaitScheduler->initialize();
+
+  // Initialize a new ContactEstimator object
+  //_contactEstimator = new ContactEstimator<double>();
+  //_contactEstimator->initialize();
 
   // For WBC state
   _model = _quadruped.buildModel();
@@ -55,9 +59,11 @@ void RobotController::step() {
  
   // Find the current gait schedule
   _gaitScheduler->step();
+  _gaitScheduler->printGaitInfo();
 
   // ======= WBC state command computation  =============== //
-  for(size_t i(0); i<4; ++i){
+  // Commenting out WBC for now to test Locomotion control
+  /*for(size_t i(0); i<4; ++i){
       _data->body_ori[i] = cheaterState->orientation[i];
   }
   for(int i(0);i<3; ++i){
@@ -102,10 +108,64 @@ void RobotController::step() {
     _legController->commands[leg].kpJoint = kpMat;
     _legController->commands[leg].kdJoint = kdMat;
 
-  }
-
+  }*/
+  LocomotionControlStep();
   finalizeStep();
 }
+
+
+
+void RobotController::LocomotionControlStep() {
+
+  // Contact state logic
+
+
+  // Run the balancing controllers
+
+
+  // Calculate appropriate control actions for each leg to be sent out
+  for (int leg = 0; leg < 4; leg++) {
+
+    if (_gaitScheduler->gaitData.contactStateScheduled(leg)) {
+      //std::cout << "[CONTROL] Leg " << leg << " is in stance" << std::endl;
+
+      // Leg is in contact
+
+      // Impedence control for the stance leg
+      //_legController->commands[leg].pDes = ;
+      //_legController->commands[leg].vDes = ;
+      //_legController->commands[leg].kpCartesian = ;
+      //_legController->commands[leg].kdCartesian = ;
+
+      // Stance leg Ground Reaction Force command
+      _legController->commands[leg].forceFeedForward << 0.0, 0.0, -220.36;
+
+    } else if (!_gaitScheduler->gaitData.contactStateScheduled(leg)) {
+      //std::cout << "[CONTROL] Leg " << leg << " is in swing" << std::endl;
+      // Leg is not in contact
+
+      // Desired step position
+
+      // Feedforward torques for swing leg tracking
+
+      // Configuration dependent mass matrix P gain scaling
+
+    } else {
+      std::cout << "[CONTROL ERROR] Undefined scheduled contact state\n" << std::endl;
+    }
+
+    // Singularity barrier calculation
+  }
+
+}
+
+
+
+
+
+
+
+
 
 void RobotController::StepLocationVisualization(){
   // Cones

@@ -10,6 +10,7 @@
 #include "SimUtilities/VisualizationData.h"
 #include <Controllers/StateEstimatorContainer.h>
 #include "Controllers/GaitScheduler.h"
+#include "Controllers/ContactEstimator.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -32,6 +33,10 @@ public:
   RobotController() = default;
   void initialize();
   void step();
+
+  // Handles the logic for locomotion controlled by the Gait Scheduler
+  void LocomotionControlStep();
+
   void initializeStateEstimator(bool cheaterMode = false);
   ~RobotController();
 
@@ -63,8 +68,11 @@ private:
   bool _cheaterModeEnabled = false;
 
   // Gait Scheduler controls the nominal contact schedule for the feet
-  GaitScheduler<double>* _gaitScheduler;
-  
+  GaitScheduler<float>* _gaitScheduler;
+
+  // Contact Estimator to calculate estimated forces and contacts
+  //ContactEstimator<double>* _contactEstimator;
+
   // For WBC state (test)
   Test<float>* _wbc_state;
   Cheetah_Data<float>* _data;

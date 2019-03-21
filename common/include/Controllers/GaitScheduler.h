@@ -3,6 +3,7 @@
 
 #include <cppTypes.h>
 #include <iostream>
+#include "Dynamics/Quadruped.h"
 
 
 /*
@@ -86,6 +87,9 @@ struct GaitData {
 template <typename T>
 class GaitScheduler {
 public:
+	// Initialize with a Quadruped model
+	GaitScheduler(Quadruped<T>& quad) : _quadruped(quad)  { }
+
 	// Initial
 	void initialize();
 	void step();
@@ -96,6 +100,9 @@ public:
 	GaitData<T> gaitData;
 
 private:
+	// The quadruped model
+  	Quadruped<T>& _quadruped;
+
 	// Control loop timestep change
 	T dt = 0.001;
 
