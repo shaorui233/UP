@@ -42,6 +42,8 @@ void GaitData<T>::zero() {
 	// Scheduled contact states
 	contactStateScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
 	contactStatePrev = Eigen::Vector4i::Zero();			// previous contact state of the foot
+	touchdownScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
+	liftoffScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
 
 	// Position of the feet in the world frame at takeoff time
 	posFootTakeoffWorld = Mat34<T>::Zero();

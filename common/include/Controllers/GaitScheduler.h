@@ -75,6 +75,8 @@ struct GaitData {
 	// Scheduled contact states
 	Eigen::Vector4i contactStateScheduled;	// contact state of the foot
 	Eigen::Vector4i contactStatePrev;		// previous contact state of the foot
+	Eigen::Vector4i touchdownScheduled;		// scheduled touchdown event flag
+	Eigen::Vector4i liftoffScheduled;		// scheduled touchdown event flag
 
 	// Position of the feet in the world frame at takeoff time
 	Mat34<T> posFootTakeoffWorld;
