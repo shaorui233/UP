@@ -46,7 +46,8 @@ void GaitData<T>::zero() {
 	liftoffScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
 
 	// Position of the feet in the world frame at takeoff time
-	posFootTakeoffWorld = Mat34<T>::Zero();
+	posFootLiftoffWorld = Mat34<T>::Zero();
+	posFootTouchdownWorld = Mat34<T>::Zero();
 }
 
 template struct GaitData<double>;
@@ -113,6 +114,19 @@ void GaitScheduler<T>::step() {
 				// Foot is in stance, no swing time remaining
 				gaitData.timeSwingRemaining(foot) = 0.0;
 
+				// First contact signifies scheduled touchdown
+				if (gaitData.contactStatePrev(foot) == 0) {
+					// Set the touchdown flag to 1
+					gaitData.touchdownScheduled(foot) = 1;
+
+					// Remember the location of the feet at touchdown
+					//posFootTouchdownWorld = ;
+
+				} else {
+					// Set the touchdown flag to 0
+					gaitData.touchdownScheduled(foot) = 0;
+				}
+
 			} else {
 				// Foot is not scheduled to be in contact
 				gaitData.contactStateScheduled(foot) = 0;
@@ -128,6 +142,19 @@ void GaitScheduler<T>::step() {
 
 				// Calculate the remaining time in swing
 				gaitData.timeSwingRemaining(foot) = gaitData.periodTime(foot) * (1 - gaitData.phaseVariable(foot));
+
+				// First contact signifies scheduled touchdown
+				if (gaitData.contactStatePrev(foot) == 1) {
+					// Set the liftoff flag to 1
+					gaitData.liftoffScheduled(foot) = 1;
+
+					// Remember the location of the feet at touchdown
+					//posFootLiftoffWorld = ;
+
+				} else {
+					// Set the liftoff flag to 0
+					gaitData.liftoffScheduled(foot) = 0;					
+				}
 			}
 
 		} else {

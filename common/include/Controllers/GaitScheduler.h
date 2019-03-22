@@ -79,7 +79,8 @@ struct GaitData {
 	Eigen::Vector4i liftoffScheduled;		// scheduled touchdown event flag
 
 	// Position of the feet in the world frame at takeoff time
-	Mat34<T> posFootTakeoffWorld;
+	Mat34<T> posFootLiftoffWorld;
+	Mat34<T> posFootTouchdownWorld;
 };
 
 
