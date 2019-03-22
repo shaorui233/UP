@@ -114,14 +114,19 @@ void RobotController::step() {
 }
 
 
-
+/*
+ * Gait independent formulation for choosing appropriate GRF and step locations
+ * as well as converting them to leg controller understandable values.
+ */
 void RobotController::LocomotionControlStep() {
 
   // Contact state logic
 
 
-  // Run the balancing controllers
-
+  // Run the balancing controllers to get GRF and next step locations
+  Vec3<float> balanceForces;
+  balanceForces << 0.0, 0.0, -110.36;
+  balanceForces = _stateEstimate.rBody*balanceForces;
 
   // Calculate appropriate control actions for each leg to be sent out
   for (int leg = 0; leg < 4; leg++) {
@@ -131,20 +136,15 @@ void RobotController::LocomotionControlStep() {
 
       // Leg is in contact
 
-      // Impedence control for the stance leg
-      //_legController->commands[leg].pDes = ;
-      //_legController->commands[leg].vDes = ;
-      //_legController->commands[leg].kpCartesian = ;
-      //_legController->commands[leg].kdCartesian = ;
+      // Impedance control for the stance leg
+      //stanceLegImpedanceControl(leg);
 
-      // Stance leg Ground Reaction Force command
-      _legController->commands[leg].forceFeedForward << 0.0, 0.0, -220.36;
+      // Stance leg Ground Reaction Force command 
+      _legController->commands[leg].forceFeedForward = balanceForces;
 
     } else if (!_gaitScheduler->gaitData.contactStateScheduled(leg)) {
       //std::cout << "[CONTROL] Leg " << leg << " is in swing" << std::endl;
       // Leg is not in contact
-
-      // Desired step position
 
       // Feedforward torques for swing leg tracking
 
@@ -159,7 +159,25 @@ void RobotController::LocomotionControlStep() {
 
 }
 
+void RobotController::stanceLegImpedanceControl(int leg) {
+  //_legController->commands[leg].pDes = _stateEstimate.rBody.transpose()*(pFeetWorldTouchdown - _stateEstimate.position) - _quadruped.getHipLocation(int leg);
+  _legController->commands[leg].pDes = _stateEstimate.rBody.transpose()*( - _stateEstimate.position) - _quadruped.getHipLocation(leg);
+  _legController->commands[leg].vDes = -_stateEstimate.vBody;
 
+  // Create the cartesian P gain matrix
+  Mat3<float> kpMat; 
+  kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
+    0, controlParameters->stand_kp_cartesian[1], 0,
+    0, 0, controlParameters->stand_kp_cartesian[2];
+  _legController->commands[leg].kpCartesian = kpMat;
+
+  // Create the cartesian D gain matrix
+  Mat3<float> kdMat; 
+  kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
+    0, controlParameters->stand_kd_cartesian[1], 0,
+    0, 0, controlParameters->stand_kd_cartesian[2];
+  _legController->commands[leg].kdCartesian = kdMat;
+}
 
 
 

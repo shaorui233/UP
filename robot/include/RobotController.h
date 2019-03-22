@@ -37,6 +37,9 @@ public:
   // Handles the logic for locomotion controlled by the Gait Scheduler
   void LocomotionControlStep();
 
+  // Impedance control for the stance legs
+  void stanceLegImpedanceControl(int leg);
+
   void initializeStateEstimator(bool cheaterMode = false);
   ~RobotController();
 
