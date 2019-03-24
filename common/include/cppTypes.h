@@ -81,6 +81,10 @@ using Mat28 = Eigen::Matrix<T, 28, 28>;
 template<typename T>
 using Mat34 = Eigen::Matrix<T, 3, 4>;
 
+// 3x4 Matrix
+template<typename T>
+using Mat23 = Eigen::Matrix<T, 2, 3>;
+
 // 4x4 Matrix
 template<typename T>
 using Mat4 = typename Eigen::Matrix<T, 4, 4>;
