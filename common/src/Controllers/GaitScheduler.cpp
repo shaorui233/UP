@@ -42,12 +42,12 @@ void GaitData<T>::zero() {
 	// Scheduled contact states
 	contactStateScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
 	contactStatePrev = Eigen::Vector4i::Zero();			// previous contact state of the foot
-	touchdownScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
-	liftoffScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
+	touchdownScheduled = Eigen::Vector4i::Zero();		// scheduled touchdown flag
+	liftoffScheduled = Eigen::Vector4i::Zero();			// scheduled liftoff flag
 
-	// Position of the feet in the world frame at takeoff time
-	posFootLiftoffWorld = Mat34<T>::Zero();
-	posFootTouchdownWorld = Mat34<T>::Zero();
+	// Position of the feet in the world frame at events
+	posFootTouchdownWorld = Mat34<T>::Zero();	// 
+	posFootLiftoffWorld = Mat34<T>::Zero();		//
 }
 
 template struct GaitData<double>;
@@ -66,8 +66,8 @@ void GaitScheduler<T>::initialize() {
 	// Start the gait in a trot since we use this the most
 	gaitData._currentGait = GaitType::STAND;
 
-	// Next gait is also trot since we arent transitioning
-	gaitData._nextGait = GaitType::STAND;
+	// Zero all gait data
+	gaitData.zero();
 
 	// Create the gait from the nominal initial
 	createGait();
