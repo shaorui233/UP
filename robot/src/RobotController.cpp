@@ -29,6 +29,8 @@ void RobotController::initialize() {
   _gaitScheduler = new GaitScheduler<float>(_quadruped);
   _gaitScheduler->initialize();
 
+  _gamepadControl = new GamepadControl<float>(driverCommand);
+
   // Initialize a new ContactEstimator object
   //_contactEstimator = new ContactEstimator<double>();
   //_contactEstimator->initialize();
@@ -59,7 +61,7 @@ void RobotController::step() {
 
   // Find the current gait schedule
   _gaitScheduler->step();
-  _gaitScheduler->printGaitInfo();
+  //_gaitScheduler->printGaitInfo();
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
@@ -109,6 +111,9 @@ void RobotController::step() {
     _legController->commands[leg].kdJoint = kdMat;
 
   }*/
+
+  _gamepadControl->printRawInfo();
+
   LocomotionControlStep();
 
   // Sets the leg controller commands for the robot appropriate commands
@@ -127,7 +132,7 @@ void RobotController::LocomotionControlStep() {
   // Run the balancing controllers to get GRF and next step locations
   runControls();
 
-  std::cout << groundReactionForces << std::endl;
+  //std::cout << groundReactionForces << std::endl;
 
   // Calculate appropriate control actions for each leg to be sent out
   for (int leg = 0; leg < 4; leg++) {
