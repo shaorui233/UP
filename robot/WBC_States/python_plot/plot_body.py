@@ -21,21 +21,23 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     ## read files
     data_body = \
             np.genfromtxt(file_path+'body_pos.txt', delimiter=None, dtype=(float))
-    data_body_ori_rpy = \
+    body_ori_rpy = \
             np.genfromtxt(file_path+'body_ori_rpy.txt', delimiter=None, dtype=(float))
-    data_body_vel = \
+    body_vel = \
             np.genfromtxt(file_path+'body_vel.txt', delimiter=None, dtype=(float))
+    body_acc = \
+            np.genfromtxt(file_path+'body_acc.txt', delimiter=None, dtype=(float))
     data_config = \
             np.genfromtxt(file_path+'config.txt', delimiter=None, dtype=(float))
     data_qdot = \
             np.genfromtxt(file_path+'qdot.txt', delimiter=None, dtype=(float))
 
     data_x = np.genfromtxt(file_path+'time.txt', delimiter='\n', dtype=(float))
-   
+
     ## Check
     check_t = np.genfromtxt(file_path+'check_time.txt', delimiter='\n', dtype=(float))
     check_v = np.genfromtxt(file_path+'check_vel.txt', delimiter=None, dtype=(float))
-    lin_info = np.genfromtxt(file_path+'body_lin_info.txt', delimiter=None, dtype=(float))
+    # lin_info = np.genfromtxt(file_path+'body_lin_info.txt', delimiter=None, dtype=(float))
 
     st_idx = 0
     end_idx = len(data_x)
@@ -51,7 +53,7 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
                 pass
     axes = plt.gca()
 
-    ## plot command/jpos
+    ## plot position
     fig = plt.figure(figure_number)
     plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))
     fig.canvas.set_window_title('body pos')
@@ -73,12 +75,13 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     elif plot_configuration == PLOT_VERTICALLY:
         row_index +=1
 
+    ## plot velocity
     fig = plt.figure(figure_number)
     plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))    
     fig.canvas.set_window_title('body vel')
     for i in range(1,4,1):
         ax1 = plt.subplot(3, 1, i)
-        plt.plot(data_x, data_body_vel[st_idx:end_idx,i-1], "b-")
+        plt.plot(data_x, body_vel[st_idx:end_idx,i-1], "b-")
         plt.plot(data_x, data_qdot[st_idx:end_idx,i+2], "r-")
         plt.grid(True)
         for j in phseChange:
@@ -93,6 +96,46 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     elif plot_configuration == PLOT_VERTICALLY:
         row_index +=1
  
+    ## plot acceleration
+    fig = plt.figure(figure_number)
+    plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))    
+    fig.canvas.set_window_title('body acc')
+    for i in range(1,4,1):
+        ax1 = plt.subplot(3, 1, i)
+        plt.plot(data_x, body_acc[st_idx:end_idx,i-1], "b-")
+        plt.grid(True)
+        for j in phseChange:
+            # phase line
+            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
+            # phase number
+            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
+    ## increment figure number and index
+    figure_number += 1
+    if plot_configuration == PLOT_HORIZONTALLY:
+        col_index += 1
+    elif plot_configuration == PLOT_VERTICALLY:
+        row_index +=1
+
+    fig = plt.figure(figure_number)
+    plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))    
+    fig.canvas.set_window_title('body ori')
+    for i in range(3):
+        ax1 = plt.subplot(3, 1, i+1)
+        plt.plot(data_x, body_ori_rpy[st_idx:end_idx,i], "b-")
+        plt.grid(True)
+        for j in phseChange:
+            # phase line
+            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
+            # phase number
+            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
+    ## increment figure number and index
+    figure_number += 1
+    if plot_configuration == PLOT_HORIZONTALLY:
+        col_index += 1
+    elif plot_configuration == PLOT_VERTICALLY:
+        row_index +=1
+ 
+
     ## Check
     fig = plt.figure(figure_number)
     plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))    
@@ -113,27 +156,7 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
         col_index += 1
     elif plot_configuration == PLOT_VERTICALLY:
         row_index +=1
- 
-    fig = plt.figure(figure_number)
-    plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))    
-    fig.canvas.set_window_title('lin info')
-    for i in range(9):
-        ax1 = plt.subplot(9, 1, i+1)
-        plt.plot(data_x, lin_info[st_idx:end_idx, i], "b-")
-        # plt.plot(data_x, check_t[st_idx:end_idx], "b-")
-        plt.grid(True)
-        for j in phseChange:
-            # phase line
-            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
-            # phase number
-            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
-    ## increment figure number and index
-    figure_number += 1
-    if plot_configuration == PLOT_HORIZONTALLY:
-        col_index += 1
-    elif plot_configuration == PLOT_VERTICALLY:
-        row_index +=1
-    
+     
 if __name__ == "__main__":
     create_figures()
     plt.show()

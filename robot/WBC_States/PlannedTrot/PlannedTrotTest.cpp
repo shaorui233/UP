@@ -95,6 +95,7 @@ int PlannedTrotTest<T>::_NextPhase(const int & phase){
     }
     //printf("next phase: %i\n", next_phase);
 
+    // Which path segment we are going to use in this swing
     if(next_phase == PlannedTrotPhase::flhr_swing_start_trans|| 
             next_phase == PlannedTrotPhase::frhl_swing_start_trans){
         _planner->updateStepIdx(_sp->_curr_time);
@@ -112,7 +113,9 @@ int PlannedTrotTest<T>::_NextPhase(const int & phase){
     if(next_phase == PlannedTrotPhase::flhr_swing_start_trans){
         _planner->getNextFootLocation(stance_foot::FRHL,
                 _front_foot_loc, _hind_foot_loc);
-        
+       
+        //pretty_print(_front_foot_loc, std::cout, "front foot");
+        //pretty_print(_hind_foot_loc, std::cout, "hind foot");
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
         landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FR];
         landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
@@ -129,6 +132,8 @@ int PlannedTrotTest<T>::_NextPhase(const int & phase){
         _planner->getNextFootLocation(stance_foot::FLHR,
                 _front_foot_loc, _hind_foot_loc);
 
+        //pretty_print(_front_foot_loc, std::cout, "front foot");
+        //pretty_print(_hind_foot_loc, std::cout, "hind foot");
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
         landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FL];
         landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HR];
@@ -177,17 +182,21 @@ void PlannedTrotTest<T>::_UpdateTestOneStep(){
             _body_pos, _body_vel, _body_acc, 
             _body_ori_rpy, _body_ang_vel);
 
-    saveValue(_sp->_curr_time, _folder_name, "time");
-    saveVector(_body_pos, _folder_name, "body_pos");
-    saveVector(_body_vel, _folder_name, "body_vel");
-    saveVector(_body_acc, _folder_name, "body_acc");
-    saveVector(_body_ori_rpy, _folder_name, "body_ori_rpy");
-    saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
-    
-    saveVector(_sp->_Q, _folder_name, "config");
-    saveVector(_sp->_Qdot, _folder_name, "qdot");
+    static int count(0);
+    if(count % 10 == 0){
+        saveValue(_sp->_curr_time, _folder_name, "time");
+        saveVector(_body_pos, _folder_name, "body_pos");
+        saveVector(_body_vel, _folder_name, "body_vel");
+        saveVector(_body_acc, _folder_name, "body_acc");
+        saveVector(_body_ori_rpy, _folder_name, "body_ori_rpy");
+        saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
 
-    saveValue(Test<T>::_phase, _folder_name, "phase");
+        saveVector(_sp->_Q, _folder_name, "config");
+        saveVector(_sp->_Qdot, _folder_name, "qdot");
+
+        saveValue(Test<T>::_phase, _folder_name, "phase");
+    }
+    ++count;
 }
 
 template <typename T>

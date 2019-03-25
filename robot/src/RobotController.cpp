@@ -54,7 +54,7 @@ void RobotController::step() {
   _legController->setMaxTorqueCheetah3(208.5);
  
   // Find the current gait schedule
-  _gaitScheduler->step();
+  //_gaitScheduler->step();
 
   // ======= WBC state command computation  =============== //
   for(size_t i(0); i<4; ++i){
@@ -62,7 +62,9 @@ void RobotController::step() {
   }
   for(int i(0);i<3; ++i){
       _data->ang_vel[i] = cheaterState->omegaBody[i];
+      _data->global_body_pos[i] = cheaterState->position[i];
   }
+  _data->global_body_pos[2] += 0.5;// because ground is -0.5
 
   for(int leg(0); leg<4; ++leg){
       for(int jidx(0); jidx<3; ++jidx){

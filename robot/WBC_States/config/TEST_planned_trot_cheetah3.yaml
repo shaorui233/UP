@@ -32,8 +32,11 @@ CTRL_two_leg_trans:
 # Timing Parameters (sec)
 body_lifting_time: 0.5
 
-step_size_min: [-0.1, -0.05]
-step_size_max: [0.1, 0.05]
+step_size_min: [-0.05, -0.03]
+step_size_max: [0.05, 0.03]
+
+step_size_ori_min: [-0.02, -0.02, -0.1]
+step_size_ori_max: [0.02, 0.02, 0.1]
 
 body_half_depth: 0.25
 body_half_width: 0.17
