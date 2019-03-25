@@ -14,7 +14,7 @@ struct GamepadCommand {
   }
 
   bool leftBumper, rightBumper, leftTriggerButton, rightTriggerButton,
-  back, start, a, b, x, y, leftStickButton, rightStickButton, logitechButton;
+       back, start, a, b, x, y, leftStickButton, rightStickButton, logitechButton;
 
   Vec2<float> leftStickAnalog, rightStickAnalog;
   float leftTriggerAnalog, rightTriggerAnalog;
@@ -52,24 +52,25 @@ struct GamepadCommand {
 
   std::string toString() {
     std::string result =
-                    "leftBumper: " + boolToString(leftBumper) + "\n" +
-                    "rightBumper: " + boolToString(rightBumper) + "\n" +
-                    "leftTriggerButton: " + boolToString(leftTriggerButton) + "\n" +
-                    "rightTriggerButton: " + boolToString(rightTriggerButton) + "\n" +
-                    "back: " + boolToString(back) + "\n" +
-                    "start: " + boolToString(start) + "\n" +
-                    "a: " + boolToString(a) + "\n" +
-                    "b: " + boolToString(b) + "\n" +
-                    "x: " + boolToString(x) + "\n" +
-                    "y: " + boolToString(y) + "\n" +
-                    "leftStickButton: " + boolToString(leftStickButton) + "\n" +
-                    "rightStickButton: " + boolToString(rightStickButton) + "\n" +
-                    "leftTriggerAnalog: " + std::to_string(leftTriggerAnalog) + "\n" +
-                    "rightTriggerAnalog: " + std::to_string(rightTriggerAnalog) + "\n" +
-                    "leftStickAnalog: " + eigenToString(leftStickAnalog) + "\n" +
-                    "rightStickAnalog: " + eigenToString(rightStickAnalog) + "\n";
+      "Result:\nleftBumper: " + boolToString(leftBumper) + "\n" +
+      "rightBumper: " + boolToString(rightBumper) + "\n" +
+      "leftTriggerButton: " + boolToString(leftTriggerButton) + "\n" +
+      "rightTriggerButton: " + boolToString(rightTriggerButton) + "\n" +
+      "back: " + boolToString(back) + "\n" +
+      "start: " + boolToString(start) + "\n" +
+      "a: " + boolToString(a) + "\n" +
+      "b: " + boolToString(b) + "\n" +
+      "x: " + boolToString(x) + "\n" +
+      "y: " + boolToString(y) + "\n" +
+      "leftStickButton: " + boolToString(leftStickButton) + "\n" +
+      "rightStickButton: " + boolToString(rightStickButton) + "\n" +
+      "leftTriggerAnalog: " + std::to_string(leftTriggerAnalog) + "\n" +
+      "rightTriggerAnalog: " + std::to_string(rightTriggerAnalog) + "\n" +
+      "leftStickAnalog: " + eigenToString(leftStickAnalog) + "\n" +
+      "rightStickAnalog: " + eigenToString(rightStickAnalog) + "\n";
     return result;
   }
+
 };
 
 #endif //PROJECT_DRIVERCOMMAND_H
