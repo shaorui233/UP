@@ -7,11 +7,11 @@
 #include "Controllers/LegController.h"
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/GamepadCommand.h"
-#include "SimUtilities/GamepadControl.h"
 #include "SimUtilities/VisualizationData.h"
 #include <Controllers/StateEstimatorContainer.h>
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/ContactEstimator.h"
+#include "Controllers/DesiredStateCommand.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -88,7 +88,7 @@ private:
   StateEstimate<float> _stateEstimate;
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
-  GamepadControl<float>* _gamepadControl;
+  DesiredStateCommand<float>* _desiredStateCommand;
 
   // Ground reaction forces for the stance feet to be calculated by the controllers
   Mat34<float> groundReactionForces;

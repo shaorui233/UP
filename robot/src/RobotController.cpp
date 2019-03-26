@@ -29,7 +29,7 @@ void RobotController::initialize() {
   _gaitScheduler = new GaitScheduler<float>(_quadruped);
   _gaitScheduler->initialize();
 
-  _gamepadControl = new GamepadControl<float>(driverCommand);
+  _desiredStateCommand = new DesiredStateCommand<float>(driverCommand);
 
   // Initialize a new ContactEstimator object
   //_contactEstimator = new ContactEstimator<double>();
@@ -58,10 +58,6 @@ void RobotController::step() {
   // for now, we will always enable the legs:
   _legController->setEnabled(true);
   _legController->setMaxTorqueCheetah3(208.5);
-
-  // Find the current gait schedule
-  _gaitScheduler->step();
-  //_gaitScheduler->printGaitInfo();
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
@@ -112,14 +108,28 @@ void RobotController::step() {
 
   }*/
 
-  _gamepadControl->printRawInfo();
+  // Find the current gait schedule
+  _gaitScheduler->step();
 
+  // Find the desired state trajectory
+  _desiredStateCommand->convertToStateCommands();
+
+  // This function should eventually be moved to whatever the Locomotion FSM state ends up being
   LocomotionControlStep();
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
+
+
+  //_gaitScheduler->printGaitInfo();
+  //_gamepadControl->printRawInfo();
+  _desiredStateCommand->printStateCommandInfo();
 }
 
+
+
+//---------------------------------------------------------------------------------------------
+// This section is just testing for now (should be in FSM_State_Locomotion or something similar)
 
 /*
  * Calculate the commands for the leg controllers for each of the feet.
@@ -127,7 +137,7 @@ void RobotController::step() {
 void RobotController::LocomotionControlStep() {
 
   // Contact state logic
-  // 
+  //
 
   // Run the balancing controllers to get GRF and next step locations
   runControls();
@@ -203,7 +213,7 @@ void RobotController::runControls() {
   } else if (CONTROLLER_OPTION == 3) {
     // cMPC
     runConvexModelPredictiveController();
-    
+
     // Swing foot landing positions are calculated with heuristics
     footstepHeuristicPlacement();
 
@@ -222,7 +232,7 @@ void RobotController::runControls() {
 /*
  * Calls the interface for the controller
  */
-void RobotController::runBalanceController() { 
+void RobotController::runBalanceController() {
   // TODO
 }
 
@@ -230,7 +240,7 @@ void RobotController::runBalanceController() {
 /*
  * Calls the interface for the controller
  */
-void RobotController::runWholeBodyController() { 
+void RobotController::runWholeBodyController() {
   // TODO
 }
 
@@ -238,7 +248,7 @@ void RobotController::runWholeBodyController() {
 /*
  * Calls the interface for the controller
  */
-void RobotController::runConvexModelPredictiveController() { 
+void RobotController::runConvexModelPredictiveController() {
   // TODO
 }
 
@@ -246,13 +256,13 @@ void RobotController::runConvexModelPredictiveController() {
 /*
  * Calls the interface for the controller
  */
-void RobotController::runRegularizedPredictiveController() { 
+void RobotController::runRegularizedPredictiveController() {
   // TODO
 }
 
 
 /*
- * 
+ *
  */
 void RobotController::footstepHeuristicPlacement() {
 
@@ -260,6 +270,10 @@ void RobotController::footstepHeuristicPlacement() {
   Mat23<float> projectionMatrix;
   projectionMatrix << 1, 0, 0,
                    0, 1, 0;
+
+  Vec3<float> velDes = _desiredStateCommand->data.stateDes.block<3,1>(6,0);
+  Vec3<float> angVelDes = _desiredStateCommand->data.stateDes.block<3,1>(9,0);
+  Mat3<float> rBody = _stateEstimate.rBody;
 
   // Find each of the footstep locations for the swing feet
   for (int leg = 0; leg < 4; leg++) {
@@ -271,12 +285,17 @@ void RobotController::footstepHeuristicPlacement() {
       Vec3<float> yaw_rate;
       yaw_rate << 0, 0, _stateEstimate.omegaWorld(3);
 
-      // Footstep heuristic composed of several parts
-      footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*
-                                 (_stateEstimate.position + 
-                                  _stateEstimate.rBody*_quadruped.getHipLocation(leg) +
-                                  _gaitScheduler->gaitData.timeStance(leg)/2*_stateEstimate.vBody +
-                                  _gaitScheduler->gaitData.timeStance(leg)/2*(yaw_rate.cross(_stateEstimate.rBody*_quadruped.getHipLocation(leg))));
+      Vec3<float> posHip = _quadruped.getHipLocation(leg);
+
+      float timeStance = _gaitScheduler->gaitData.timeStance(leg);
+
+      // Footstep heuristic composed of several parts in the world frame
+      footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*      // Ground projection
+                                 (_stateEstimate.position +                             //
+                                  rBody * posHip +                                      // Foot under hips
+                                  timeStance / 2 * velDes +                             // Raibert Heuristic
+                                  timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
+                                  (_stateEstimate.vBody - velDes));   
     }
   }
 
@@ -284,7 +303,7 @@ void RobotController::footstepHeuristicPlacement() {
 
 
 /*
- * Find desired foot placement and velocity in the hip frame for the stance legs 
+ * Find desired foot placement and velocity in the hip frame for the stance legs
  * and their respective cartesian gains.
  */
 void RobotController::stanceLegImpedanceControl(int leg) {
@@ -311,7 +330,7 @@ void RobotController::stanceLegImpedanceControl(int leg) {
 }
 
 
-
+// ----------------------------------------------------------------------------------------------
 
 
 
