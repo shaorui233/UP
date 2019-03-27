@@ -64,7 +64,7 @@ void RobotController::step() {
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
-  /*for(size_t i(0); i<4; ++i){
+  for(size_t i(0); i<4; ++i){
       _data->body_ori[i] = cheaterState->orientation[i];
   }
   for(int i(0);i<3; ++i){
@@ -120,7 +120,7 @@ void RobotController::step() {
   _desiredStateCommand->convertToStateCommands();
 
   // This function should eventually be moved to whatever the Locomotion FSM state ends up being
-  LocomotionControlStep();
+  //LocomotionControlStep();
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
