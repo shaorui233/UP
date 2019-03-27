@@ -10,6 +10,8 @@
 #include "SimUtilities/VisualizationData.h"
 #include <Controllers/StateEstimatorContainer.h>
 #include "Controllers/GaitScheduler.h"
+#include "Controllers/ContactEstimator.h"
+#include "Controllers/DesiredStateCommand.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -32,6 +34,31 @@ public:
   RobotController() = default;
   void initialize();
   void step();
+
+  // Handles the logic for locomotion controlled by the Gait Scheduler
+  void LocomotionControlStep();
+
+  // Calculates the GRF for stance legs and next footstep location for the swing legs
+  void runControls();
+
+  // Calls the interface to the controller
+  void runBalanceController();
+
+  // Calls the interface to the controller
+  void runWholeBodyController();
+
+  // Calls the interface to the controller
+  void runConvexModelPredictiveController();
+
+  // Calls the interface to the controller
+  void runRegularizedPredictiveController();
+
+  // Heuristic based swing foot placement
+  void footstepHeuristicPlacement();
+
+  // Impedance control for the stance legs
+  void stanceLegImpedanceControl(int leg);
+
   void initializeStateEstimator(bool cheaterMode = false);
   ~RobotController();
 
@@ -61,10 +88,20 @@ private:
   StateEstimate<float> _stateEstimate;
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
+  DesiredStateCommand<float>* _desiredStateCommand;
+
+  // Ground reaction forces for the stance feet to be calculated by the controllers
+  Mat34<float> groundReactionForces;
+
+  // Next footstep location for the swing feet
+  Mat34<float> footstepLocations;
 
   // Gait Scheduler controls the nominal contact schedule for the feet
-  GaitScheduler<double>* _gaitScheduler;
-  
+  GaitScheduler<float>* _gaitScheduler;
+
+  // Contact Estimator to calculate estimated forces and contacts
+  //ContactEstimator<double>* _contactEstimator;
+
   // For WBC state (test)
   Test<float>* _wbc_state;
   Cheetah_Data<float>* _data;
