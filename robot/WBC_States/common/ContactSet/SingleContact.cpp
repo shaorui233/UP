@@ -15,7 +15,7 @@ SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     Contact::Jc_ = DMat<T>(Contact::dim_contact_, cheetah::dim_config);
     Contact::Uf_ = DMat<T>::Zero(dim_U_, Contact::dim_contact_);
 
-    T mu (0.5);
+    T mu (0.4);
 
 
     Contact::Uf_(0, 2) = 1.;

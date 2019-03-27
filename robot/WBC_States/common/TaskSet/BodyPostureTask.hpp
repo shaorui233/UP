@@ -1,16 +1,16 @@
-#ifndef LINK_POS_TASK
-#define LINK_POS_TASK
+#ifndef KINEMATICS_BODY_POSTURE_TASK
+#define KINEMATICS_BODY_POSTURE_TASK
 
-// (X, Y, Z)
+// (Rx, Ry, Rz, X, Y, Z)
 #include <WBC/Task.hpp>
 
 template <typename T> class FloatingBaseModel;
 
-template<typename T>
-class LinkPosTask: public Task<T>{
+template <typename T>
+class BodyPostureTask: public Task<T>{
 public:
-  LinkPosTask(const FloatingBaseModel<T>*, int link_idx, bool virtual_depend = true);
-  virtual ~LinkPosTask();
+  BodyPostureTask(const FloatingBaseModel<T>*);
+  virtual ~BodyPostureTask();
 
   DVec<T> _Kp, _Kd;
 
@@ -25,9 +25,7 @@ protected:
   virtual bool _UpdateTaskJDotQdot();
   virtual bool _AdditionalUpdate(){ return true; }
 
-  const FloatingBaseModel<T>* robot_sys_;
-  int link_idx_;
-  bool virtual_depend_;
+  const FloatingBaseModel<T>* _robot_sys;
 };
 
 #endif

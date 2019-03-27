@@ -9,6 +9,7 @@
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
 #include <WBC_States/OptPlay/OptPlayTest.hpp>
 #include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
+#include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 
 
 void RobotController::initialize() {
@@ -34,7 +35,8 @@ void RobotController::initialize() {
   //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptPlayTest<float>(&_model, robotType);
-  _wbc_state = new PlannedTrotTest<float>(&_model, robotType);
+  //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
+  _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
 
   _data = new Cheetah_Data<float>();
   _extra_data = new Cheetah_Extra_Data<float>();

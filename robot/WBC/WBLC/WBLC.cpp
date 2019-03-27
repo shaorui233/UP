@@ -2,7 +2,7 @@
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
 
-    template<typename T> 
+template<typename T> 
 WBLC<T>::WBLC(size_t num_qdot, const std::vector<ContactSpec<T>*> & contact_list)
     :WBC<T>(num_qdot){
 
@@ -58,8 +58,7 @@ void WBLC<T>::UpdateSetting(const DMat<T> & A,
 }
 
 template<typename T>
-void WBLC<T>::MakeWBLC_Torque(
-        const DVec<T> & des_jacc_cmd,
+void WBLC<T>::MakeTorque(
         DVec<T> & cmd,
         void* extra_input){
 
@@ -68,7 +67,7 @@ void WBLC<T>::MakeWBLC_Torque(
 
     for(size_t i(0); i<WB::num_act_joint_; ++i){
         //(void)des_jacc_cmd[i];
-        qddot_[i + 6] = des_jacc_cmd[i];
+        qddot_[i + 6] = data_->_des_jacc_cmd[i];
     }
 
     // Contact Jacobian & Uf & Fr_ieq
@@ -273,18 +272,6 @@ void WBLC<T>::_OptimizationPreparation(
     //name[0] = 'c';
     //print_vector(name, ci0);
     //std::cout<<ci0<<std::endl;
-}
-
-
-template<typename T>
-void WBLC<T>::MakeTorque(const std::vector<Task<T>*> & task_list,
-        const std::vector<ContactSpec<T>*> & contact_list,
-        DVec<T> & cmd,
-        void* extra_input){
-    (void)task_list;
-    (void)contact_list;
-    (void)cmd;
-    (void)extra_input;
 }
 
 template<typename T>

@@ -122,13 +122,12 @@ template <typename T>
 void FullContactCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     // WBLC
     wblc_->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
-    DVec<T> _des_jacc_cmd = _des_jacc 
+    DVec<T> des_jacc_cmd = _des_jacc 
         + _Kp.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
         + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
-    wblc_->MakeWBLC_Torque(
-            _des_jacc_cmd, 
-            gamma, wblc_data_);
+    wblc_data_->_des_jacc_cmd = des_jacc_cmd;
+    wblc_->MakeTorque(gamma, wblc_data_);
 }
 
 template <typename T>
@@ -195,7 +194,7 @@ void FullContactCtrl<T>::LastVisit(){}
 
 template <typename T>
 bool FullContactCtrl<T>::EndOfPhase(){
-    if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::servo_rate)){
+    if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt)){
         return true;
     }
     return false;

@@ -66,14 +66,11 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
 
 template <typename T>
 bool BodyOriTask<T>::_UpdateTaskJacobian(){
-    //TK::Jt_ = robot_sys_->_J[0].block(0,0, 3, cheetah::dim_config);
-    //TK::Jt_.block(0, 0, 3, 3) = robot_sys_->_Xa[5].template block<3,3> (0, 0);
     return true;
 }
 
 template <typename T>
 bool BodyOriTask<T>::_UpdateTaskJDotQdot(){
-    //TK::JtDotQdot_ = robot_sys_->_Jdqd[0].head(3);
     return true;
 }
 

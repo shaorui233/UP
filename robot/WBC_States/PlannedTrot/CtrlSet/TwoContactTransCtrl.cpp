@@ -130,11 +130,8 @@ void TwoContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + Kp_.cwiseProduct(des_jpos_ - Ctrl::_robot_sys->_state.q)
         + Kd_.cwiseProduct(des_jvel_ - Ctrl::_robot_sys->_state.qd);
 
-    // TEST
-    //des_jacc_cmd.setZero();
-    wblc_->MakeWBLC_Torque(
-            des_jacc_cmd, 
-            gamma, wblc_data_);
+    wblc_data_->_des_jacc_cmd = des_jacc_cmd;
+    wblc_->MakeTorque(gamma, wblc_data_);
 
    //pretty_print(wblc_data_->Fr_, std::cout, "reaction force");
 }
@@ -257,7 +254,7 @@ void TwoContactTransCtrl<T>::LastVisit(){
 
 template <typename T>
 bool TwoContactTransCtrl<T>::EndOfPhase(){
-    if(Ctrl::_state_machine_time > (end_time_-2.*Test<T>::servo_rate)){
+    if(Ctrl::_state_machine_time > (end_time_-2.*Test<T>::dt)){
         return true;
     }
     return false;

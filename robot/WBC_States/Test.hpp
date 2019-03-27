@@ -13,7 +13,7 @@ class Test{
 
 
         //TEST
-        constexpr static T servo_rate = 0.001;
+        constexpr static T dt = 0.001;
         void GetCommand(
                 const Cheetah_Data<T>* data, 
                 LegControllerCommand<T> * command,

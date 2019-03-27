@@ -34,8 +34,7 @@ class WBC{
                 const DVec<T> & grav,
                 void* extra_setting = NULL) = 0;
 
-        virtual void MakeTorque(const std::vector<Task<T>*> & task_list,
-                const std::vector<ContactSpec<T>*> & contact_list,
+        virtual void MakeTorque(
                 DVec<T> & cmd,
                 void* extra_input = NULL) =0;
 

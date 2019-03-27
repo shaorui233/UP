@@ -13,6 +13,9 @@ LinkPosTask<T>::LinkPosTask(const FloatingBaseModel<T>* robot, int link_idx, boo
 {
     TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
     TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
+
+    _Kp = DVec<T>::Constant(TK::dim_task_, 100.);
+    _Kd = DVec<T>::Constant(TK::dim_task_, 5.);
 }
 
 template <typename T>
@@ -33,6 +36,14 @@ bool LinkPosTask<T>::_UpdateCommand(void* pos_des,
         TK::vel_des_[i] = vel_des[i];
         TK::acc_des_[i] = acc_des[i];
     }
+    
+    // Op acceleration command
+    for(size_t i(0); i<TK::dim_task_; ++i){
+        TK::op_cmd_[i] = _Kp[i] * TK::pos_err_[i]
+            + _Kd[i] * (TK::vel_des_[i] - robot_sys_->_vGC[link_idx_][i])
+            + TK::acc_des_[i];
+    }
+
     //printf("[Link Pos Task]\n");
     //pretty_print(acc_des, std::cout, "acc_des");
     //pretty_print(TK::pos_err_, std::cout, "pos_err_");

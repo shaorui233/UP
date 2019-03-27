@@ -123,9 +123,8 @@ void FullContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + _Kp.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
         + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
-    _wblc->MakeWBLC_Torque(
-            des_jacc_cmd, 
-            gamma, _wblc_data);
+    _wblc_data->_des_jacc_cmd = des_jacc_cmd;
+    _wblc->MakeTorque( gamma, _wblc_data);
     //pretty_print(_wblc_data->Fr_, std::cout, "fr full contact");
 }
 
