@@ -45,8 +45,10 @@ class Path{
         BS_Basic<T, 3, 3, nMiddle, 2, 2> _ori_spline;
 
         size_t _end_idx;
+        int _path_idx;
 
         T _step_size[2];
+        T _step_size_ori[3];
 
         T _fin_lin[9]; // Pos, vel, acc
         T _fin_ori[9]; // Pos, vel, acc
@@ -62,11 +64,18 @@ class Path{
         std::vector<T> _step_size_min;
         std::vector<T> _step_size_max;
 
+        std::vector<T> _step_size_ori_min;
+        std::vector<T> _step_size_ori_max;
+
+        Vec3<T> _path_start_loc;
+
         T _step_time;
         T _tot_time;
 
         inline const Path & operator = (const Path& p){
-            printf("in\n");
+            this->_end_idx = p._end_idx;
+            this->_path_idx = p._path_idx;
+
             this->_step_size[0] = p._step_size[0];
             this->_step_size[1] = p._step_size[1];
             for(size_t i(0); i<9; ++i){

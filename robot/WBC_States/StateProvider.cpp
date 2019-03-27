@@ -26,6 +26,12 @@ StateProvider<T>::StateProvider():
     _ori_command[0] = 0.;
     _ori_command[1] = 0.;
     _ori_command[2] = 0.;
+
+    _global_body_pos.setZero();
+    _global_fr_loc.setZero();
+    _global_fl_loc.setZero();
+    _global_hr_loc.setZero();
+    _global_hl_loc.setZero();
 }
 
 template class StateProvider<double> ;

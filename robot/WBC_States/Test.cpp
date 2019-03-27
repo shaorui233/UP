@@ -53,6 +53,13 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     ave_foot.setZero();
     ave_foot_vel.setZero();
 
+    // Simulation) Update global location
+    for(size_t i(0); i<3; ++i) _sp->_global_body_pos[i] = data->global_body_pos[i];
+    _sp->_global_fr_loc = _robot->_pGC[linkID::FR] + _sp->_global_body_pos;
+    _sp->_global_fl_loc = _robot->_pGC[linkID::FL] + _sp->_global_body_pos;
+    _sp->_global_hr_loc = _robot->_pGC[linkID::HR] + _sp->_global_body_pos;
+    _sp->_global_hl_loc = _robot->_pGC[linkID::HL] + _sp->_global_body_pos;
+
     for(size_t i(0); i<_sp->_num_contact; ++i){
         ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
         ave_foot_vel += (1./_sp->_num_contact) * _robot->_vGC[_sp->_contact_pt[i]];

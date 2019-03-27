@@ -4,7 +4,7 @@
 #include <Utilities/save_file.h>
 
 template <typename T>
-Path<T>::Path(){
+Path<T>::Path(): _path_idx(0){
     _b_used = false;
     _end_idx = 0;
     _step_size_min.clear(); _step_size_min.resize(2, 0.);
@@ -26,6 +26,8 @@ Path<T>::Path(){
         _fin_ori[i] = 0.;
         _fin_lin[i] = 0.;
     }
+
+    _path_start_loc.setZero();
 }
 
 template<typename T>
@@ -47,12 +49,12 @@ void Path<T>::getSwingFootLoc(const size_t & idx, Vec3<T> & front_foot, Vec3<T> 
 template <typename T>
 int Path<T>::checkIdx(const int & step_idx){
 
+    // If the step idx is equal or larger than end of path
     if(step_idx >= (int)_end_idx){
-        if(step_idx >= (nMiddle + 1)){
+        if(step_idx >= (nMiddle + 1)){ // If there is no more path
             return path_flag::end_path;
         }
-        // TEST
-        //return path_flag::swap_call;
+        return path_flag::swap_call;
     }
     return path_flag::step;
 }
@@ -73,6 +75,10 @@ void Path<T>::initialization(T* ini_lin, T* ini_ori, int stance_foot){
     
     _step_size[0] = 0.;
     _step_size[1] = 0.;
+    
+    _step_size_ori[0] = 0.;
+    _step_size_ori[1] = 0.;
+    _step_size_ori[2] = 0.;
     
     _end_idx = nMiddle+1;
 
@@ -140,22 +146,27 @@ void Path<T>::updatePath(T* dir, T* ori, T* ini_lin, T* ini_ori, int ini_stance_
     // (Currently it only take yaw rotation command)
     // Currently robot can walk on flat terrain
     _end_idx = nMiddle + 1;
-    _fin_ori[2] += (-0.001*ori[2]);
+    
+    // Orientation
+    _step_size_ori[2] += (-0.0005*ori[2]);
+    for(size_t i(0); i<3; ++i){
+        _step_size_ori[i] = _bound(_step_size_ori[i], _step_size_ori_min[i], _step_size_ori_max[i]);
+        mid_ori[0][i] = ini_ori[i] + _step_size_ori[i];
+    }
 
-    T step_size_roll = (_fin_ori[0] - ini_ori[0])/(nMiddle + 1.);
-    T step_size_pitch = (_fin_ori[1] - ini_ori[1])/(nMiddle + 1.);
-    T step_size_yaw = (_fin_ori[2] - ini_ori[2])/(nMiddle + 1.);
-
-    for(size_t i(0); i< nMiddle; ++i){
-        mid_ori[i][0] = ini_ori[0] + step_size_roll * i;
-        mid_ori[i][1] = ini_ori[1] + step_size_pitch * i;
-        mid_ori[i][2] = ini_ori[2] + step_size_yaw * i;
+    for(size_t i(1); i< nMiddle; ++i){
+        for(size_t j(0); j<3; ++j){
+            mid_ori[i][j] = _step_size_ori[j] + mid_ori[i-1][j];
+        }
+    }
+    for(size_t i(0); i<3; ++i){
+        _fin_ori[i] = _step_size_ori[i] + mid_ori[nMiddle-1][i];
     }
     _ori_spline.SetParam(ini_ori, _fin_ori, mid_ori, _tot_time);
  
+    // Linear
     _step_size[0] += (0.0005*dir[0]);
-    _step_size[1] += (-0.0002*dir[1]);
-
+    _step_size[1] += (-0.001*dir[1]);
     
     for(size_t i(0); i<2; ++i)
         _step_size[i] = _bound(_step_size[i], _step_size_min[i], _step_size_max[i]);
@@ -177,6 +188,8 @@ void Path<T>::updatePath(T* dir, T* ori, T* ini_lin, T* ini_ori, int ini_stance_
     _fin_lin[2] = ini_lin[2];
 
     _lin_spline.SetParam(ini_lin, _fin_lin, mid_lin, _tot_time);
+    
+    // Foot Location
     _updateStepLocation(ini_stance_foot);
 }
 
@@ -265,6 +278,9 @@ void Path<T>::setParameters(ParamHandler* handle){
     // Limit
     handle->getVector<T>("step_size_min", _step_size_min);
     handle->getVector<T>("step_size_max", _step_size_max);
+    handle->getVector<T>("step_size_ori_min", _step_size_ori_min);
+    handle->getVector<T>("step_size_ori_max", _step_size_ori_max);
+
 
     // Body size
     T half_depth, half_width;
@@ -298,7 +314,8 @@ T Path<T>::_bound(const T & value, const T & min, const T & max){
 template<typename T>
 void Path<T>::printPathInfo(){
 
-    printf("end idx, step size: %lu, (%f, %f)\n", 
+    printf("path idx, end idx, step size: %d, %lu, (%f, %f)\n",
+            _path_idx, 
             _end_idx, _step_size[0], _step_size[1]);
     printf("step time, total time: %f, %f\n", _step_time, _tot_time);
 
@@ -321,6 +338,7 @@ void Path<T>::printPathInfo(){
                 _hind_footloc_list[i][0],
                 _hind_footloc_list[i][1],
                 _hind_footloc_list[i][2]);
+        printf("\n");
      }
 }
 template class Path<double>;

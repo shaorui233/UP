@@ -17,6 +17,8 @@ class Cheetah_Data{
         bool foot_contact[4];
         T dir_command[2];
         T ori_command[3];
+
+        T global_body_pos[3];
 };
 
 template <typename T>

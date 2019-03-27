@@ -4,6 +4,7 @@
 #include <cppTypes.h>
 #include "Path.hpp"
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
+#include <WBC_States/StateProvider.hpp>
 
 template <typename T>
 class Planner{
@@ -31,9 +32,12 @@ class Planner{
         int _path_flag;
         T _curr_path_st_time;
         T _body_height;
-        T _min_trot_initiating_step_size = 0.04;
+        T _min_trot_initiating_step_size = 0.01;
         int _step_idx; // -1: before start, -2: end of motion
         int _first_stance_foot;
+
+        Vec3<T> _curr_global_frame_loc;
+        StateProvider<T>* _sp;
 };
 
 #endif
