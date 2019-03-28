@@ -89,11 +89,11 @@ void WBDCVM_FullContactCtrl<T>::_compute_torque_wbdc(DVec<T> & gamma){
     _trot_test->_vm_qdot += _wbdc_data->_qddot * _trot_test->dt;
     _trot_test->_vm_q.head(cheetah::dim_config) += _trot_test->_vm_qdot * _trot_test->dt;
 
-    //_des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
-    //_des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
+    _des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
+    _des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
 
-    _des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
-    _des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
+    //_des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
+    //_des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
 }
 
 template <typename T>
@@ -158,9 +158,19 @@ void WBDCVM_FullContactCtrl<T>::CtrlInitialization(const std::string & category_
 template <typename T>
 void WBDCVM_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     _param_handler = new ParamHandler(test_file);
+    std::vector<T> tmp_vec;
     if(_param_handler->getValue<T>("body_height", _target_body_height)){
     }
     _param_handler->getValue<T>("stance_time", _end_time);
+
+    _param_handler->getVector<T>("body_posture_Kp", tmp_vec);
+    for(size_t i(0); i<tmp_vec.size(); ++i){ 
+        ((BodyPostureTask<T>*)_body_posture_task)->_Kp[i] = tmp_vec[i]; 
+    }
+    _param_handler->getVector<T>("body_posture_Kd", tmp_vec);
+    for(size_t i(0); i<tmp_vec.size(); ++i){ 
+        ((BodyPostureTask<T>*)_body_posture_task)->_Kd[i] = tmp_vec[i]; 
+    }
 }
 
 

@@ -152,6 +152,7 @@ void WBDC<T>::MakeTorque(
     }
     //std::cout << "f: " << f << std::endl;
     //std::cout << "x: " << z << std::endl;
+    //pretty_print(_xa_ddot, std::cout, "xa ddot");
     //std::cout << "cmd: "<<cmd<<std::endl;
     //pretty_print(_Sf, std::cout, "Sf");
     //pretty_print(qddot_pre, std::cout, "qddot_pre");

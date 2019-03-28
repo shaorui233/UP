@@ -48,6 +48,9 @@ bool LinkPosTask<T>::_UpdateCommand(void* pos_des,
     //pretty_print(acc_des, std::cout, "acc_des");
     //pretty_print(TK::pos_err_, std::cout, "pos_err_");
     //pretty_print(*pos_cmd, std::cout, "pos cmd");
+    //pretty_print(TK::op_cmd_, std::cout, "op cmd");
+    // TEST
+    //TK::op_cmd_.setZero();
     //pretty_print(TK::Jt_, std::cout, "Jt");
 
     return true;

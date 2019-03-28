@@ -1,4 +1,4 @@
-#include "BodyPostureCtrl.hpp"
+#include "WBLC_FullContactCtrl.hpp"
 
 #include <WBC_States/StateProvider.hpp>
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
@@ -10,10 +10,13 @@
 #include <WBC/WBLC/KinWBC.hpp>
 #include <WBC/WBLC/WBLC.hpp>
 #include <ParamHandler/ParamHandler.hpp>
-#include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
+#include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
+
 
 template <typename T>
-BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot, BodyCtrlTest<T> * test):Controller<T>(robot),
+WBLC_FullContactCtrl<T>::WBLC_FullContactCtrl(
+        WBLCTrotTest<T>* trot_test, const FloatingBaseModel<T>* robot):Controller<T>(robot),
+    _trot_test(trot_test),
     _Kp(cheetah::num_act_joint),
     _Kd(cheetah::num_act_joint),
     _des_jpos(cheetah::num_act_joint),
@@ -30,53 +33,48 @@ BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot, BodyCtrlT
     Ctrl::_task_list.push_back(_body_pos_task);
 
    
-    _fr_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::FR);
-    _fl_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::FL);
-    _hr_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::HR);
-    _hl_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::HL);
+    fr_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::FR);
+    fl_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::FL);
+    hr_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::HR);
+    hl_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::HL);
 
-    Ctrl::_contact_list.push_back(_fr_contact);
-    Ctrl::_contact_list.push_back(_fl_contact);
-    Ctrl::_contact_list.push_back(_hr_contact);
-    Ctrl::_contact_list.push_back(_hl_contact);
+    Ctrl::_contact_list.push_back(fr_contact_);
+    Ctrl::_contact_list.push_back(fl_contact_);
+    Ctrl::_contact_list.push_back(hr_contact_);
+    Ctrl::_contact_list.push_back(hl_contact_);
 
-    _kin_wbc = new KinWBC<T>(cheetah::dim_config);
-    _wblc = new WBLC<T>(cheetah::dim_config, Ctrl::_contact_list);
-    _wblc_data = new WBLC_ExtraData<T>();
+    kin_wbc_ = new KinWBC<T>(cheetah::dim_config);
+    wblc_ = new WBLC<T>(cheetah::dim_config, Ctrl::_contact_list);
+    wblc_data_ = new WBLC_ExtraData<T>();
  
     for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
         _dim_contact += Ctrl::_contact_list[i]->getDim();
     }
 
-    _wblc_data->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, 100.0);
-    _wblc_data->W_rf_ = DVec<T>::Constant(_dim_contact, 1.);
-    _wblc_data->W_xddot_ = DVec<T>::Constant(_dim_contact, 1000.0);
+    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, 100.0);
+    wblc_data_->W_rf_ = DVec<T>::Constant(_dim_contact, 1.);
+    wblc_data_->W_xddot_ = DVec<T>::Constant(_dim_contact, 1000.0);
 
     int idx_offset(0);
     for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
-        _wblc_data->W_rf_[idx_offset + Ctrl::_contact_list[i]->getFzIndex()]= 0.01;
+        wblc_data_->W_rf_[idx_offset + Ctrl::_contact_list[i]->getFzIndex()]= 0.01;
         idx_offset += Ctrl::_contact_list[i]->getDim();
     }
 
     // torque limit default setting
-    _wblc_data->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, -150.);
-    _wblc_data->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, 150.);
+    wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, -150.);
+    wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, 150.);
 
     _sp = StateProvider<T>::getStateProvider();
-    _target_ori_command.setZero();
 
-    _body_test = test;
-    for(size_t i(0);i<3; ++i){
-        _ori_cmd_filter.push_back(new digital_lp_filter<T>(2.*M_PI* 10., _body_test->dt));
-    }
     printf("[Body Control] Constructed\n");
 }
 
 template <typename T>
-BodyPostureCtrl<T>::~BodyPostureCtrl(){
-    delete _wblc;
-    delete _wblc_data;
-    delete _kin_wbc;
+WBLC_FullContactCtrl<T>::~WBLC_FullContactCtrl(){
+    delete wblc_;
+    delete wblc_data_;
+    delete kin_wbc_;
     delete _param_handler;
 
     typename std::vector<Task<T>*>::iterator iter = Ctrl::_task_list.begin();
@@ -95,7 +93,7 @@ BodyPostureCtrl<T>::~BodyPostureCtrl(){
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::OneStep(void* _cmd){
+void WBLC_FullContactCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
     Ctrl::_state_machine_time = _sp->_curr_time - _ctrl_start_time;
 
@@ -120,19 +118,19 @@ void BodyPostureCtrl<T>::OneStep(void* _cmd){
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
+void WBLC_FullContactCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     // WBLC
-    _wblc->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
+    wblc_->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
     DVec<T> des_jacc_cmd = _des_jacc 
         + _Kp.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
         + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
-    _wblc_data->_des_jacc_cmd = des_jacc_cmd;
-    _wblc->MakeTorque(gamma, _wblc_data);
+    wblc_data_->_des_jacc_cmd = des_jacc_cmd;
+    wblc_->MakeTorque(gamma, wblc_data_);
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::_task_setup(){
+void WBLC_FullContactCtrl<T>::_task_setup(){
     _des_jpos.setZero();
     _des_jvel.setZero();
     _des_jacc.setZero();
@@ -141,19 +139,25 @@ void BodyPostureCtrl<T>::_task_setup(){
     Vec3<T> pos_des; pos_des.setZero();
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    pos_des[2] = _target_body_height;
+    Vec3<T> rpy_des; rpy_des.setZero(); 
+    DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
+
+    for(size_t i(0); i<3; ++i){
+        pos_des[i] = _trot_test->_body_pos[i];
+        vel_des[i] = _trot_test->_body_vel[i];
+        acc_des[i] = _trot_test->_body_acc[i];
+
+        rpy_des[i] = _trot_test->_body_ori_rpy[i];
+        // TODO : Frame must coincide. Currently, it's not
+        ang_vel_des[i] = _trot_test->_body_ang_vel[i];
+    }
 
     _body_pos_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
 
-    for(size_t i(0); i<3; ++i) {
-        _ori_cmd_filter[i]->input(_sp->_ori_command[i]);
-        _target_ori_command[i] += _ori_cmd_filter[i]->output()*Test<T>::dt;
-    }
-
-    Mat3<T> Rot = rpyToRotMat(_target_ori_command);
+    Mat3<T> Rot = rpyToRotMat(rpy_des);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     des_quat[0] = eigen_quat.w();
     des_quat[1] = eigen_quat.x();
@@ -161,17 +165,16 @@ void BodyPostureCtrl<T>::_task_setup(){
     des_quat[3] = eigen_quat.z();
 
 
-    DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();
     _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
-    _kin_wbc->FindConfiguration(_sp->_Q,
+    kin_wbc_->FindConfiguration(_sp->_Q,
             Ctrl::_task_list, Ctrl::_contact_list, 
             _des_jpos, _des_jvel, _des_jacc);
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::_contact_setup(){
+void WBLC_FullContactCtrl<T>::_contact_setup(){
     typename std::vector<ContactSpec<T> *>::iterator iter = Ctrl::_contact_list.begin();
     while(iter < Ctrl::_contact_list.end()){
         (*iter)->UpdateContactSpec();
@@ -180,31 +183,32 @@ void BodyPostureCtrl<T>::_contact_setup(){
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::FirstVisit(){
+void WBLC_FullContactCtrl<T>::FirstVisit(){
     _ctrl_start_time = _sp->_curr_time;
+    ini_body_pos_ = Ctrl::_robot_sys->_state.bodyPosition;
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::LastVisit(){}
+void WBLC_FullContactCtrl<T>::LastVisit(){}
 
 template <typename T>
-bool BodyPostureCtrl<T>::EndOfPhase(){
-    if(Ctrl::_state_machine_time > _end_time){
+bool WBLC_FullContactCtrl<T>::EndOfPhase(){
+    if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt)){
         return true;
     }
     return false;
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::CtrlInitialization(const std::string & category_name){
+void WBLC_FullContactCtrl<T>::CtrlInitialization(const std::string & category_name){
     (void)category_name;
+    ini_body_pos_ = Ctrl::_robot_sys->_state.bodyPosition;
 }
 
 template <typename T>
-void BodyPostureCtrl<T>::SetTestParameter(const std::string & test_file){
+void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     _param_handler = new ParamHandler(test_file);
-    if(_param_handler->getValue<T>("body_height", _target_body_height)){
-        printf("[Body Posture Ctrl] Error. No Height Target\n");
+    if(_param_handler->getValue<T>("body_height", target_body_height_)){
     }
     _param_handler->getValue<T>("stance_time", _end_time);
 
@@ -220,6 +224,5 @@ void BodyPostureCtrl<T>::SetTestParameter(const std::string & test_file){
     }
 }
 
-template class BodyPostureCtrl<double>;
-template class BodyPostureCtrl<float>;
-
+template class WBLC_FullContactCtrl<double>;
+template class WBLC_FullContactCtrl<float>;

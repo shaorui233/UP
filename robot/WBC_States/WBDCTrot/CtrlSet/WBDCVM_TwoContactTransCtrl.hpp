@@ -48,7 +48,7 @@ class WBDCVM_TwoContactTransCtrl: public Controller<T>{
         DVec<T> _des_jvel;
 
         T _end_time;
-        T _body_height_cmd;
+        T _target_body_height;
         Vec3<T> _ini_body_pos;
         
         T _max_rf_z;

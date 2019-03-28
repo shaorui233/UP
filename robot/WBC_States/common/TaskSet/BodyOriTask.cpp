@@ -36,6 +36,8 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
     link_ori_inv /= link_ori.norm();
 
     //Quat<T> ori_err = ori::quatProduct(*ori_cmd, link_ori_inv);
+    
+    //implicit error definition
     Quat<T> ori_err = ori::quatProduct(link_ori_inv, *ori_cmd);
     if(ori_err[0] < 0.){
         ori_err *= (-1.);

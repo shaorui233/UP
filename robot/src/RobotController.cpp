@@ -10,6 +10,7 @@
 #include <WBC_States/OptPlay/OptPlayTest.hpp>
 #include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
+#include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 
 
 void RobotController::initialize() {
@@ -41,8 +42,9 @@ void RobotController::initialize() {
   //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptPlayTest<float>(&_model, robotType);
-  _wbc_state = new PlannedTrotTest<float>(&_model, robotType);
+  //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
   //_wbc_state = new WBDCTrotTest<float>(&_model, robotType);
+  _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
 
   _data = new Cheetah_Data<float>();
   _extra_data = new Cheetah_Extra_Data<float>();
@@ -60,9 +62,10 @@ void RobotController::step() {
   // for now, we will always enable the legs:
   _legController->setEnabled(true);
   _legController->setMaxTorqueCheetah3(208.5);
- 
+
+  // DH: Test
   // Find the current gait schedule
-  _gaitScheduler->step();
+  //_gaitScheduler->step();
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
@@ -128,9 +131,10 @@ void RobotController::step() {
   finalizeStep();
 
 
+  // DH: TEST
   //_gaitScheduler->printGaitInfo();
   //_gamepadControl->printRawInfo();
-  _desiredStateCommand->printStateCommandInfo();
+  //_desiredStateCommand->printStateCommandInfo();
 }
 
 

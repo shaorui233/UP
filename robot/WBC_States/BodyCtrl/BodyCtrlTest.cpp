@@ -4,6 +4,8 @@
 #include <WBC_States/common/CtrlSet/FullContactTransCtrl.hpp>
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 #include <ParamHandler/ParamHandler.hpp>
+#include <Math/orientation_tools.h>
+#include <Utilities/save_file.h>
 
 template <typename T>
 BodyCtrlTest<T>::BodyCtrlTest(FloatingBaseModel<T>* robot, const RobotType & type):
@@ -14,12 +16,16 @@ BodyCtrlTest<T>::BodyCtrlTest(FloatingBaseModel<T>* robot, const RobotType & typ
     Test<T>::_state_list.clear();
 
     body_up_ctrl_ = new FullContactTransCtrl<T>(robot);
-    body_ctrl_ = new BodyPostureCtrl<T>(robot);
+    body_ctrl_ = new BodyPostureCtrl<T>(robot, this);
     
     Test<T>::_state_list.push_back(body_up_ctrl_);
     Test<T>::_state_list.push_back(body_ctrl_);
+    
+    _sp = StateProvider<T>::getStateProvider();
 
     _SettingParameter();
+    _folder_name = "/robot/WBC_States/sim_data/";
+    create_folder(_folder_name);
     printf("[Body Position Control Test] Constructed\n");
 }
 
@@ -65,6 +71,26 @@ void BodyCtrlTest<T>::_SettingParameter(){
         ++iter;
     }
 }
+
+template <typename T>
+void BodyCtrlTest<T>::_UpdateTestOneStep(){
+    // Update Desired Position & Velocity & Acceleration
+
+    static int count(0);
+    if(count % 10 == 0){
+        Vec3<T> body_ori = ori::quatToRPY(Test<T>::_robot->_state.bodyOrientation);
+        saveValue(_sp->_curr_time, _folder_name, "time");
+        saveVector(((BodyPostureCtrl<T>*)body_ctrl_)->_target_ori_command, _folder_name, "cmd_body_ori_rpy");
+
+        saveVector(body_ori, _folder_name, "body_ori_rpy");
+        saveVector(_sp->_Q, _folder_name, "config");
+        saveVector(_sp->_Qdot, _folder_name, "qdot");
+        
+        saveValue(Test<T>::_phase, _folder_name, "phase");
+    }
+    ++count;
+}
+
 
 template<typename T>
 void BodyCtrlTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){

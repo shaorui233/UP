@@ -16,8 +16,8 @@ BodyPostureTask<T>::BodyPostureTask(const FloatingBaseModel<T>* robot):
 
 
     // TEST
-    _Kp = DVec<T>::Constant(TK::dim_task_, 100.);
-    _Kd = DVec<T>::Constant(TK::dim_task_, 5.);
+    _Kp = DVec<T>::Constant(TK::dim_task_, 300.);
+    _Kd = DVec<T>::Constant(TK::dim_task_, 30.);
 
     //_Kp = DVec<T>::Constant(TK::dim_task_, 0.);
     //_Kd = DVec<T>::Constant(TK::dim_task_, 0.);
@@ -69,7 +69,8 @@ bool BodyPostureTask<T>::_UpdateCommand(void* pos_des,
 
     // Op acceleration command
     for(size_t i(0); i<TK::dim_task_; ++i){
-        TK::op_cmd_[i] = _Kp[i] * TK::pos_err_[i]
+        TK::op_cmd_[i] = 
+            _Kp[i] * TK::pos_err_[i]
             + _Kd[i] * (TK::vel_des_[i] - _robot_sys->_state.bodyVelocity[i])
             + TK::acc_des_[i];
     }

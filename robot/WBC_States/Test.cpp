@@ -23,6 +23,7 @@ Test<T>::~Test(){}
 template <typename T>
 void Test<T>::GetCommand(const Cheetah_Data<T>* data, 
         LegControllerCommand<T> * command, Cheetah_Extra_Data<T> * ext_data){
+
     for(size_t i(0); i < cheetah::num_act_joint; ++i){
         _state.q[i] = data->jpos[i];
         _state.qd[i] = data->jvel[i];

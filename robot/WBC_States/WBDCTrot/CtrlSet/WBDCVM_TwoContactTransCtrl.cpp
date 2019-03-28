@@ -61,26 +61,6 @@ WBDCVM_TwoContactTransCtrl<T>::WBDCVM_TwoContactTransCtrl(
 }
 
 template <typename T>
-WBDCVM_TwoContactTransCtrl<T>::~WBDCVM_TwoContactTransCtrl(){
-    delete _wbdc;
-    delete _wbdc_data;
-
-    typename std::vector<Task<T>*>::iterator iter = Ctrl::_task_list.begin();
-    while(iter < Ctrl::_task_list.end()){
-        delete (*iter);
-        ++iter;
-    }
-    Ctrl::_task_list.clear();
-
-    typename std::vector<ContactSpec<T>*>::iterator iter2 = Ctrl::_contact_list.begin();
-    while(iter2 < Ctrl::_contact_list.end()){
-        delete (*iter2);
-        ++iter2;
-    }
-    Ctrl::_contact_list.clear();
-}
-
-template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::OneStep(void* _cmd){
     Ctrl::_PreProcessing_Command();
     Ctrl::_state_machine_time = _sp->_curr_time - _ctrl_start_time;
@@ -117,6 +97,9 @@ void WBDCVM_TwoContactTransCtrl<T>::_compute_torque_wbdc(DVec<T> & gamma){
     _des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
     _des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
 
+    //_des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
+    //_des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
+
    //pretty_print(_wbdc_data->Fr_, std::cout, "reaction force");
 }
 
@@ -137,6 +120,8 @@ void WBDCVM_TwoContactTransCtrl<T>::_task_setup(){
         vel_des[i + 3] = _trot_test->_body_vel[i];
         acc_des[i + 3] = _trot_test->_body_acc[i];
     }
+    pos_des[6] = _target_body_height;
+
     Mat3<T> Rot = rpyToRotMat(rpy_des);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     pos_des[0] = eigen_quat.w();
@@ -190,10 +175,11 @@ template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::_SetContact(const size_t & cp_idx, 
         const T & upper_lim, const T & rf_weight, const T & rf_weight_z, const T & foot_weight){
 
+    (void)foot_weight;
     ((SingleContact<T>*)Ctrl::_contact_list[cp_idx])->setMaxFz(upper_lim);
     for(size_t i(0); i<3; ++i){
         _wbdc_data->_W_rf[i + 3*cp_idx] = rf_weight;
-        _wbdc_data->_W_contact[i + 3*cp_idx] = foot_weight;
+        //_wbdc_data->_W_contact[i + 3*cp_idx] = foot_weight;
     }
     _wbdc_data->_W_rf[2 + 3*cp_idx] = rf_weight_z;
 }
@@ -219,19 +205,51 @@ bool WBDCVM_TwoContactTransCtrl<T>::EndOfPhase(){
 
 template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::CtrlInitialization(const std::string & category_name){
-    //ParamHandler handler(CheetahConfigPath + setting_file_name + ".yaml");
     ParamHandler handler(_test_file_name);
     handler.getValue<T>(category_name, "max_rf_z", _max_rf_z);
     handler.getValue<T>(category_name, "min_rf_z", _min_rf_z);
+    //printf("rf max/min: %f/%f\n", _max_rf_z, _min_rf_z);
 }
 
 template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file){
     _test_file_name = test_file;
     ParamHandler handler(_test_file_name);
-    handler.getValue<T>("body_height", _body_height_cmd);
+    handler.getValue<T>("body_height", _target_body_height);
     handler.getValue<T>("transition_time", _end_time);
+    //printf("target body height: %f\n", _target_body_height);
+
+    std::vector<T> tmp_vec;
+    handler.getVector<T>("body_posture_Kp", tmp_vec);
+    for(size_t i(0); i<tmp_vec.size(); ++i){ 
+        ((BodyPostureTask<T>*)_body_posture_task)->_Kp[i] = tmp_vec[i]; 
+    }
+    handler.getVector<T>("body_posture_Kd", tmp_vec);
+    for(size_t i(0); i<tmp_vec.size(); ++i){ 
+        ((BodyPostureTask<T>*)_body_posture_task)->_Kd[i] = tmp_vec[i]; 
+    }
 }
+
+template <typename T>
+WBDCVM_TwoContactTransCtrl<T>::~WBDCVM_TwoContactTransCtrl(){
+    delete _wbdc;
+    delete _wbdc_data;
+
+    typename std::vector<Task<T>*>::iterator iter = Ctrl::_task_list.begin();
+    while(iter < Ctrl::_task_list.end()){
+        delete (*iter);
+        ++iter;
+    }
+    Ctrl::_task_list.clear();
+
+    typename std::vector<ContactSpec<T>*>::iterator iter2 = Ctrl::_contact_list.begin();
+    while(iter2 < Ctrl::_contact_list.end()){
+        delete (*iter2);
+        ++iter2;
+    }
+    Ctrl::_contact_list.clear();
+}
+
 
 
 template class WBDCVM_TwoContactTransCtrl<double>;

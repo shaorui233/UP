@@ -63,6 +63,9 @@ WBDCTrotTest<T>::WBDCTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
     _sp = StateProvider<T>::getStateProvider();
     _SettingParameter();
 
+    _ang_vel_filter = new digital_lp_filter<T>(2.*M_PI*20, Test<T>::dt);
+    _x_vel_filter = new digital_lp_filter<T>(2.*M_PI*100, Test<T>::dt);
+    _y_vel_filter = new digital_lp_filter<T>(2.*M_PI*100, Test<T>::dt);
 
     _folder_name = "/robot/WBC_States/sim_data/";
     create_folder(_folder_name);
@@ -99,22 +102,43 @@ void WBDCTrotTest<T>::_TestInitialization(){
 template <typename T>
 int WBDCTrotTest<T>::_NextPhase(const int & phase){
     int next_phase = phase + 1;
+    if(phase == WBDCTrotPhase::lift_up){ // First loop
+        _vm_q = _sp->_Q;
+        _vm_qdot = _sp->_Qdot;
+    }
+    if (next_phase == WBDCTrotPhase::NUM_TROT_PHASE) {
+        next_phase = WBDCTrotPhase::full_contact_1;
+    }
     //printf("next phase: %i\n", next_phase);
 
    if(next_phase == WBDCTrotPhase::flhr_swing_start_trans){
-        _sp->_contact_pt[0] = linkID::FR;
-        _sp->_contact_pt[1] = linkID::HL;
-        _sp->_num_contact = 2;
-        
-        _sp->_local_frame_global_pos.setZero();
-    }
+       Vec3<T> landing_loc_ave = Vec3<T>::Zero();
+       landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FR];
+       landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
+       
+       //_body_pos = Test<T>::_state.bodyPosition;
+       //_body_pos -= landing_loc_ave;
+
+       _sp->_contact_pt[0] = linkID::FR;
+       _sp->_contact_pt[1] = linkID::HL;
+       _sp->_num_contact = 2;
+
+       _sp->_local_frame_global_pos.setZero();
+   }
 
     if(next_phase == WBDCTrotPhase::frhl_swing_start_trans){
-        _sp->_contact_pt[0] = linkID::FL;
-        _sp->_contact_pt[1] = linkID::HR;
-        _sp->_num_contact = 2;
+       Vec3<T> landing_loc_ave = Vec3<T>::Zero();
+       landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FR];
+       landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
+       
+       //_body_pos = Test<T>::_state.bodyPosition;
+       //_body_pos -= landing_loc_ave;
 
-        _sp->_local_frame_global_pos.setZero();
+       _sp->_contact_pt[0] = linkID::FL;
+       _sp->_contact_pt[1] = linkID::HR;
+       _sp->_num_contact = 2;
+
+       _sp->_local_frame_global_pos.setZero();
     }
     return next_phase;
 }
@@ -145,6 +169,56 @@ template <typename T>
 void WBDCTrotTest<T>::_UpdateTestOneStep(){
     // Update Desired Position & Velocity & Acceleration
 
+    if(Test<T>::_phase < 0){ // disabled
+        printf("robot is updated with virtual config\n");
+        for(size_t i(0); i < cheetah::num_act_joint; ++i){
+            Test<T>::_state.q[i] = _vm_q[i + 6];
+            Test<T>::_state.qd[i] = _vm_qdot[i + 6];
+        }
+        Test<T>::_robot->setState(Test<T>::_state);
+        Test<T>::_robot->forwardKinematics();
+
+        Vec3<T> ave_foot;
+        Vec3<T> ave_foot_vel;
+        ave_foot.setZero();
+        ave_foot_vel.setZero();
+
+        // Simulation) Update global location
+        for(size_t i(0); i<_sp->_num_contact; ++i){
+            ave_foot += (1./_sp->_num_contact) * Test<T>::_robot->_pGC[_sp->_contact_pt[i] ];
+            ave_foot_vel += (1./_sp->_num_contact) * Test<T>::_robot->_vGC[_sp->_contact_pt[i]];
+        }
+        Test<T>::_state.bodyPosition -= ave_foot;
+        Test<T>::_state.bodyVelocity.tail(3) -= ave_foot_vel;
+
+        // Update with new body position
+        Test<T>::_robot->setState(Test<T>::_state);
+        Test<T>::_robot->forwardKinematics();
+
+        // Update Mass, Gravity, Coriolis
+        Test<T>::_robot->contactJacobians();
+        Test<T>::_robot->massMatrix();
+        Test<T>::_robot->gravityForce();
+        Test<T>::_robot->coriolisForce();
+    }
+
+    //T scale(1.0);
+    if(Test<T>::_phase == WBDCTrotPhase::frhl_swing || 
+            Test<T>::_phase == WBDCTrotPhase::flhr_swing){
+        _body_ang_vel.setZero();
+    }else{
+        _body_ang_vel[2] = _sp->_ori_command[2];
+        _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
+
+        Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
+        Vec3<T> input_vel; input_vel.setZero();
+        input_vel[0] = _sp->_dir_command[0];
+        //_body_vel[1] = -scale*_sp->_dir_command[1];
+        _body_vel = Rot.transpose() * input_vel;
+        //_body_vel = Rot * _body_vel;
+    }
+    //_body_pos += _body_vel*Test<T>::dt;
+
     static int count(0);
     if(count % 10 == 0){
         saveValue(_sp->_curr_time, _folder_name, "time");
@@ -156,6 +230,10 @@ void WBDCTrotTest<T>::_UpdateTestOneStep(){
 
         saveVector(_sp->_Q, _folder_name, "config");
         saveVector(_sp->_Qdot, _folder_name, "qdot");
+
+        saveVector(_vm_q, _folder_name, "vm_q");
+        saveVector(_vm_qdot, _folder_name, "vm_qdot");
+
 
         saveValue(Test<T>::_phase, _folder_name, "phase");
     }

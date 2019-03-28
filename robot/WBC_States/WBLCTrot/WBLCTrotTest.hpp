@@ -1,13 +1,12 @@
-#ifndef WBDC_TROT_TEST_Cheetah
-#define WBDC_TROT_TEST_Cheetah
+#ifndef WBLC_TROT_TEST_Cheetah
+#define WBLC_TROT_TEST_Cheetah
 
 #include <WBC_States/Test.hpp>
 #include <Dynamics/Quadruped.h>
-#include <Utilities/filters.h>
 
 template <typename T> class StateProvider;
 
-namespace WBDCTrotPhase{
+namespace WBLCTrotPhase{
     constexpr int lift_up = 0;
     constexpr int full_contact_1 = 1;
     constexpr int frhl_swing_start_trans = 2;
@@ -22,10 +21,12 @@ namespace WBDCTrotPhase{
 
 
 template <typename T>
-class WBDCTrotTest: public Test<T>{
+class WBLCTrotTest: public Test<T>{
     public:
-        WBDCTrotTest(FloatingBaseModel<T>* , const RobotType& );
-        virtual ~WBDCTrotTest();
+        WBLCTrotTest(FloatingBaseModel<T>* , const RobotType& );
+        virtual ~WBLCTrotTest();
+
+        DVec<T> _jpos_des_pre;
 
         Vec3<T> _body_pos;
         Vec3<T> _body_vel;
@@ -38,17 +39,9 @@ class WBDCTrotTest: public Test<T>{
         Vec3<T> _front_foot_loc;
         Vec3<T> _hind_foot_loc;
 
-
-        // virtual model
-        DVec<T> _vm_q;
-        DVec<T> _vm_qdot;
-
         std::string _folder_name;
     protected:
-        filter<T> * _ang_vel_filter;
-        filter<T> * _x_vel_filter;
-        filter<T> * _y_vel_filter;
-
+        T _target_body_height;
         virtual void _UpdateTestOneStep();
         virtual void _TestInitialization();
         virtual int _NextPhase(const int & phase);

@@ -100,7 +100,7 @@ _tau(12) {
   // Initial (Mini Cheetah stand)
   //x0.bodyPosition[2] = -0.185;
   // Cheetah 3
-  x0.bodyPosition[2] = -0.105;
+  x0.bodyPosition[2] = -0.075;
   x0.q[0] = -0.03;
   x0.q[1] = -0.79;
   x0.q[2] = 1.715;

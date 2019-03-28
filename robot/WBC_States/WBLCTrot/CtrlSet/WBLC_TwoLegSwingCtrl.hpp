@@ -1,21 +1,22 @@
-#ifndef WBDC_VM_TWO_SWING_CHEETAH
-#define WBDC_VM_TWO_SWING_CHEETAH
+#ifndef WBLC_TWO_SWING_CHEETAH
+#define WBLC_TWO_SWING_CHEETAH
 
 #include <WBC_States/Controller.hpp>
 #include <Utilities/BSplineBasic.h>
 
 template <typename T> class ContactSpec;
-template <typename T> class WBDC;
-template <typename T> class WBDC_ExtraData;
+template <typename T> class WBLC;
+template <typename T> class WBLC_ExtraData;
+template <typename T> class KinWBC;
 template <typename T> class StateProvider;
-template <typename T> class WBDCTrotTest;
+template <typename T> class WBLCTrotTest;
 
 template <typename T>
-class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
+class WBLC_TwoLegSwingCtrl: public Controller<T>{
     public:
-        WBDCVM_TwoLegSwingCtrl(WBDCTrotTest<T> * test, 
+        WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, 
                 const FloatingBaseModel<T>* , size_t cp1, size_t cp2);
-        virtual ~WBDCVM_TwoLegSwingCtrl();
+        virtual ~WBLC_TwoLegSwingCtrl();
 
         virtual void OneStep(void* _cmd);
         virtual void FirstVisit();
@@ -24,7 +25,6 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
 
         virtual void CtrlInitialization(const std::string & setting_file_name);
         virtual void SetTestParameter(const std::string & test_file);
-
         void computeFootLoc(const Mat3<T> & Rot, const Vec3<T> & shoulder, 
                 const T& step_time, 
                 const Vec3<T> & body_pos, const Vec3<T> & body_vel, 
@@ -44,9 +44,7 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
         void _SetContact(const size_t & cp_idx, const T & upper_lim, 
                 const T & rf_weight, const T & rf_weight_z, const T & foot_weight);
 
-        void _updateContactAcc(const size_t & cp_idx, const DVec<T>& cmd);
-
-        WBDCTrotTest<T>* _trot_test;
+        WBLCTrotTest<T>* _trot_test;
         size_t _cp1, _cp2;
         Vec3<T> _default_target_foot_loc_1;
         Vec3<T> _default_target_foot_loc_2;
@@ -69,21 +67,28 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
         DVec<T> _foot_vel_des2;
         DVec<T> _foot_acc_des2;
 
-        Task<T>* _body_posture_task;
+        Task<T>* body_pos_task_;
+        Task<T>* body_ori_task_;
 
-        ContactSpec<T>* _fr_contact;
-        ContactSpec<T>* _fl_contact;
-        ContactSpec<T>* _hr_contact;
-        ContactSpec<T>* _hl_contact;
+        ContactSpec<T>* fr_contact_;
+        ContactSpec<T>* fl_contact_;
+        ContactSpec<T>* hr_contact_;
+        ContactSpec<T>* hl_contact_;
 
-        WBDC<T>* _wbdc;
-        WBDC_ExtraData<T>* _wbdc_data;
+        KinWBC<T>* kin_wbc_;
+        WBLC<T>* wblc_;
+        WBLC_ExtraData<T>* wblc_data_;
+        std::vector<ContactSpec<T>* > _kin_contact_list;
 
         DVec<T> base_pos_ini_;
         Vec3<T> ini_base_pos_;
 
-        DVec<T> _des_jpos;
-        DVec<T> _des_jvel;
+        DVec<T> Kp_;
+        DVec<T> Kd_;
+        
+        DVec<T> des_jpos_;
+        DVec<T> des_jvel_;
+        DVec<T> des_jacc_;
 
         T _end_time;
         T _target_body_height;
@@ -91,15 +96,17 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
         Vec3<T> _ini_body_pos;
         Vec3<T> _ini_body_target;
         
-        int _dim_contact;
-        T _ctrl_start_time;
+        T max_rf_z_;
+        T min_rf_z_;
+        int dim_contact_;
+        T ctrl_start_time_;
 
         void _task_setup();
         void _contact_setup();
-        void _compute_torque_wbdc(DVec<T> & gamma);
+        void _compute_torque_wblc(DVec<T> & gamma);
 
         StateProvider<T>* _sp;
-        
+        T _dir_command[2];
         std::string _test_file_name;
         BS_Basic<double, 3, 3, 1, 2, 2> _foot_traj_1;
         BS_Basic<double, 3, 3, 1, 2, 2> _foot_traj_2;
