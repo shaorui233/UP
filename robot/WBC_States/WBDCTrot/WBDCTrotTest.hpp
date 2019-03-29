@@ -3,7 +3,6 @@
 
 #include <WBC_States/Test.hpp>
 #include <Dynamics/Quadruped.h>
-#include <Utilities/filters.h>
 
 template <typename T> class StateProvider;
 
@@ -45,10 +44,6 @@ class WBDCTrotTest: public Test<T>{
 
         std::string _folder_name;
     protected:
-        filter<T> * _ang_vel_filter;
-        filter<T> * _x_vel_filter;
-        filter<T> * _y_vel_filter;
-
         virtual void _UpdateTestOneStep();
         virtual void _TestInitialization();
         virtual int _NextPhase(const int & phase);

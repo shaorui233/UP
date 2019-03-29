@@ -38,6 +38,8 @@ class Test{
         FBModelState<T> _state;
         int _count;
         int _waiting_count;
+        
+        LegControllerCommand<T> * _copy_cmd;
 
         T _roll_limit;
         T _pitch_limit;

@@ -6,8 +6,8 @@ transition_time: 0.02
 stance_time: 0.03
 
 body_height: .4
-body_posture_Kp: [500, 500, 500, 100, 100, 300]
-body_posture_Kd: [30, 30, 30, 30, 30, 10]
+body_posture_Kp: [300, 300, 300, 100, 100, 300]
+body_posture_Kd: [20, 20, 20, 20, 20, 20]
 
 CTRL_move_to_target_height:
     max_rf_z: 280
@@ -16,23 +16,23 @@ CTRL_move_to_target_height:
 CTRL_fix_stance:
 
 CTRL_frhl_swing:
-    default_target_foot_location_1: [0.25, -0.17, 0.0] # Front Right
-    default_target_foot_location_2: [-0.25, 0.17, 0.0] # Hind Left
+    default_target_foot_location_1: [0.25, -0.18, 0.0] # Front Right
+    default_target_foot_location_2: [-0.25, 0.18, 0.0] # Hind Left
     swing_height: 0.2
     landing_offset: [0, 0, 0]
-    foot_Kp: [200, 200, 200]
-    foot_Kd: [10, 10, 10]
+    foot_Kp: [300, 300, 300]
+    foot_Kd: [30, 30, 30]
     #foot_Kp: [0, 0, 0]
     #foot_Kd: [0, 0, 0]
 
 
 CTRL_flhr_swing:
-    default_target_foot_location_1: [0.25, 0.17, 0.0] # Front Left
-    default_target_foot_location_2: [-0.25, -0.17, 0.0] # Hind Right
+    default_target_foot_location_1: [0.25, 0.18, 0.0] # Front Left
+    default_target_foot_location_2: [-0.25, -0.18, 0.0] # Hind Right
     swing_height: 0.2
     landing_offset: [0, 0, 0]
-    foot_Kp: [200, 200, 200]
-    foot_Kd: [10, 10, 10]
+    foot_Kp: [300, 300, 300]
+    foot_Kd: [30, 30, 30]
     #foot_Kp: [0, 0, 0]
     #foot_Kd: [0, 0, 0]
 
@@ -43,15 +43,6 @@ CTRL_two_leg_trans:
 
 # Timing Parameters (sec)
 body_lifting_time: 0.5
-
-step_size_min: [-0.05, -0.03]
-step_size_max: [0.05, 0.03]
-
-step_size_ori_min: [-0.02, -0.02, -0.1]
-step_size_ori_max: [0.02, 0.02, 0.1]
-
-body_half_depth: 0.25
-body_half_width: 0.17
 
 Kp: [ 100, 100, 100, 
       100, 100, 100, 

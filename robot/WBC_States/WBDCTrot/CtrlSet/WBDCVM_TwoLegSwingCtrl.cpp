@@ -198,25 +198,33 @@ void WBDCVM_TwoLegSwingCtrl<T>::_task_setup(){
     _body_posture_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
     // set Foot trajectory
-    //_GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::_state_machine_time, 
-            //_foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
-    //_GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::_state_machine_time, 
-            //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
-
-    _GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_1,
+    _GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::_state_machine_time, 
             _foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
-    _GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_2, 
+    _GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::_state_machine_time, 
             _foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
+
+    //_GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_1,
+            //_foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
+    //_GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_2, 
+            //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
 
 
     // Capture Point
-    SVec<T> curr_body_vel = Ctrl::_robot_sys->_state.bodyVelocity;
+    Vec3<T> global_body_vel;
+    Vec3<T> local_body_vel;
+    for(size_t i(0);i<3; ++i){
+        local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
+    }
+    Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
+    Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
+    global_body_vel = Rot_curr.transpose()*local_body_vel;
+
     for(size_t i(0); i<2; ++i){
 
         _foot_pos_des1[i] += sqrt(_target_body_height/9.81) * 
-            (curr_body_vel[i+3] - _trot_test->_body_vel[i]);
+            (global_body_vel[i] - _trot_test->_body_vel[i]);
         _foot_pos_des2[i] += sqrt(_target_body_height/9.81) * 
-            (curr_body_vel[i+3] - _trot_test->_body_vel[i]);
+            (global_body_vel[i] - _trot_test->_body_vel[i]);
 
     }
 
@@ -295,11 +303,11 @@ void WBDCVM_TwoLegSwingCtrl<T>::FirstVisit(){
     _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
     _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
-    pretty_print(Rot, std::cout, "Rot");
-    pretty_print(_trot_test->_body_pos, std::cout, "commanded body_pos");
-    pretty_print(next_body_pos, std::cout, "nx body_pos");
+    //pretty_print(Rot, std::cout, "Rot");
+    //pretty_print(_trot_test->_body_pos, std::cout, "commanded body_pos");
+    //pretty_print(next_body_pos, std::cout, "nx body_pos");
     pretty_print(_trot_test->_body_vel, std::cout, "body vel");
-    pretty_print(_trot_test->_body_ang_vel, std::cout, "body ang vel");
+    //pretty_print(_trot_test->_body_ang_vel, std::cout, "body ang vel");
     pretty_print(_target_loc1, std::cout, "target loc 1");
     pretty_print(_target_loc2, std::cout, "target loc 2");
 }

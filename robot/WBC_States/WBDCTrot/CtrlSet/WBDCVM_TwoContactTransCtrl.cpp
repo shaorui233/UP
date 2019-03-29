@@ -43,6 +43,7 @@ WBDCVM_TwoContactTransCtrl<T>::WBDCVM_TwoContactTransCtrl(
     for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
         _dim_contact += Ctrl::_contact_list[i]->getDim();
     }
+
     _wbdc_data->_W_contact = DVec<T>::Constant(_dim_contact, Weight::foot_big);
     _wbdc_data->_W_task = DVec<T>::Constant(_body_posture_task->getDim(), Weight::qddot_relax);
     _wbdc_data->_W_rf = DVec<T>::Constant(_dim_contact, Weight::tan_small);
@@ -134,35 +135,35 @@ void WBDCVM_TwoContactTransCtrl<T>::_task_setup(){
 
 template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::_contact_setup(){
-    T alpha = 0.5 * (1-cos(M_PI * Ctrl::_state_machine_time/_end_time)); // 0 -> 1
-    T upper_lim, rf_weight, rf_weight_z, foot_weight;
+    //T alpha = 0.5 * (1-cos(M_PI * Ctrl::_state_machine_time/_end_time)); // 0 -> 1
+    //T upper_lim, rf_weight, rf_weight_z, foot_weight;
 
-    if(_transit_dir > 0){ // Decrease reaction force & Increase full acceleration
-        upper_lim = _max_rf_z + alpha*(_min_rf_z - _max_rf_z);
-        rf_weight   = (1.-alpha)*Weight::tan_small  + alpha*Weight::tan_big;
-        rf_weight_z = (1.-alpha)*Weight::nor_small + alpha*Weight::nor_big;
-        foot_weight = (1.-alpha)*Weight::foot_big   + alpha*Weight::foot_small;
-    } else {
-        upper_lim = _min_rf_z + alpha*(_max_rf_z - _min_rf_z);
-        rf_weight   = (1.-alpha)*Weight::tan_big  + alpha*Weight::tan_small;
-        rf_weight_z = (1.-alpha)*Weight::nor_big + alpha*Weight::nor_small;
-        foot_weight = (1.-alpha)*Weight::foot_small + alpha*Weight::foot_big;
-    }
+    //if(_transit_dir > 0){ // Decrease reaction force & Increase full acceleration
+        //upper_lim = _max_rf_z + alpha*(_min_rf_z - _max_rf_z);
+        //rf_weight   = (1.-alpha)*Weight::tan_small  + alpha*Weight::tan_big;
+        //rf_weight_z = (1.-alpha)*Weight::nor_small + alpha*Weight::nor_big;
+        //foot_weight = (1.-alpha)*Weight::foot_big   + alpha*Weight::foot_small;
+    //} else {
+        //upper_lim = _min_rf_z + alpha*(_max_rf_z - _min_rf_z);
+        //rf_weight   = (1.-alpha)*Weight::tan_big  + alpha*Weight::tan_small;
+        //rf_weight_z = (1.-alpha)*Weight::nor_big + alpha*Weight::nor_small;
+        //foot_weight = (1.-alpha)*Weight::foot_small + alpha*Weight::foot_big;
+    //}
 
-    if(_cp1 == linkID::FR || _cp2 == linkID::FR){
-        _SetContact(0, upper_lim, rf_weight, rf_weight_z, foot_weight);
-    }
-    if(_cp1 == linkID::FL || _cp2 == linkID::FL){
-        _SetContact(1, upper_lim, rf_weight, rf_weight_z, foot_weight);
-    }
+    //if(_cp1 == linkID::FR || _cp2 == linkID::FR){
+        //_SetContact(0, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    //}
+    //if(_cp1 == linkID::FL || _cp2 == linkID::FL){
+        //_SetContact(1, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    //}
 
-    if(_cp1 == linkID::HR || _cp2 == linkID::HR){
-        _SetContact(2, upper_lim, rf_weight, rf_weight_z, foot_weight);
-    }
+    //if(_cp1 == linkID::HR || _cp2 == linkID::HR){
+        //_SetContact(2, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    //}
 
-    if(_cp1 == linkID::HL || _cp2 == linkID::HL){
-        _SetContact(3, upper_lim, rf_weight, rf_weight_z, foot_weight);
-    }
+    //if(_cp1 == linkID::HL || _cp2 == linkID::HL){
+        //_SetContact(3, upper_lim, rf_weight, rf_weight_z, foot_weight);
+    //}
 
     typename std::vector<ContactSpec<T> *>::iterator iter = Ctrl::_contact_list.begin();
     while(iter < Ctrl::_contact_list.end()){

@@ -160,7 +160,7 @@ void WBLCTrotTest<T>::_SettingParameter(){
 
 template <typename T>
 void WBLCTrotTest<T>::_UpdateTestOneStep(){
-    T scale(4.5);
+    T scale(3.0);
     if(Test<T>::_phase == WBLCTrotPhase::frhl_swing || 
             Test<T>::_phase == WBLCTrotPhase::flhr_swing){
         _body_ang_vel.setZero();

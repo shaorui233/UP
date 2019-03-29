@@ -65,18 +65,14 @@ void WBDC<T>::MakeTorque(
         DVec<T> & cmd,
         void* extra_input){
 
-    _PrintDebug(1);    
     if(!WB::b_updatesetting_) { printf("[Wanning] WBDC setting is not done\n"); }
-
     if(extra_input) _data = static_cast<WBDC_ExtraData<T>* >(extra_input);
+    _SetCost();
 
-    _PrintDebug(2);    
     // Contact Setting 
     _ContactBuilding();
     // Set inequality constraints
     _SetInEqualityConstraint();
-
-    _PrintDebug(3);    
 
     // First Task Check
     Task<T>* task = _task_list[0];
@@ -88,7 +84,6 @@ void WBDC<T>::MakeTorque(
     task->getTaskJacobianDotQdot(JtDotQdot);
     task->getCommand(xddot);
 
-    _PrintDebug(4);    
     _Ja.block(0,0, _dim_rf, WB::num_qdot_) = _Jc;
     _Ja.block(_dim_rf,0, _dim_first_task, WB::num_qdot_) = Jt;
     _JaDotQdot.head(_dim_rf) = _JcDotQdot;
@@ -97,17 +92,10 @@ void WBDC<T>::MakeTorque(
     _xa_ddot.head(_dim_rf) = _data->_contact_pt_acc;
     _xa_ddot.tail(_dim_first_task) = xddot;
 
-    _PrintDebug(5);    
     WB::_WeightedInverse(_Ja, WB::Ainv_, JaBar);
-    _PrintDebug(5.1);    
     DMat<T> Npre = _eye - JaBar * _Ja;
 
-    _PrintDebug(6);    
-    //_CheckNullSpace(Npre);
-    
     // Optimization
-    _PrintDebug(7);    
-    _SetCost();
     // Set equality constraints
     _dyn_CE.block(0,0, _dim_eq_cstr, _dim_first_task + _dim_rf) = _Sf * WB::A_ * JaBar;
     _dyn_CE.block(0, _dim_first_task + _dim_rf, _dim_eq_cstr, _dim_rf) = -_Sf * _Jc.transpose();
@@ -130,6 +118,7 @@ void WBDC<T>::MakeTorque(
     // Stack The last Task
     DMat<T> JtBar, JtPre;
     for(size_t i(1); i<_task_list.size(); ++i){
+        printf("there is a second task\n");
         task = _task_list[i];
 
         if(!task->IsTaskSet()){ printf("%lu th task is not set!\n", i); exit(0); }
@@ -143,7 +132,6 @@ void WBDC<T>::MakeTorque(
         qddot_pre = qddot_pre + JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
         Npre = Npre * (_eye - JtBar * JtPre);
     }
-
     _GetSolution(qddot_pre, cmd);
 
     _data->_opt_result = DVec<T>(_dim_opt);

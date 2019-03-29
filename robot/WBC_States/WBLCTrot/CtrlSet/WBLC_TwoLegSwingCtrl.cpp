@@ -234,13 +234,23 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
             //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
 
     // Capture Point
-    SVec<T> curr_body_vel = Ctrl::_robot_sys->_state.bodyVelocity;
-    for(size_t i(0); i<2; ++i){
-        _foot_pos_des1[i] += 1.0*sqrt(_target_body_height/9.81) * 
-            (curr_body_vel[i+3] - _trot_test->_body_vel[i]);
-        _foot_pos_des2[i] += 1.0*sqrt(_target_body_height/9.81) * 
-            (curr_body_vel[i+3] - _trot_test->_body_vel[i]);
+    Vec3<T> global_body_vel;
+    Vec3<T> local_body_vel;
+    for(size_t i(0);i<3; ++i){
+        local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
     }
+    Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
+    Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
+    global_body_vel = Rot_curr.transpose()*local_body_vel;
+
+    for(size_t i(0); i<2; ++i){
+        _foot_pos_des1[i] += sqrt(_target_body_height/9.81) * 
+            (global_body_vel[i] - _trot_test->_body_vel[i]);
+        _foot_pos_des2[i] += sqrt(_target_body_height/9.81) * 
+            (global_body_vel[i] - _trot_test->_body_vel[i]);
+
+    }
+
 
 
     _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);

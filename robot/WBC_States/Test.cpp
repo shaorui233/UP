@@ -73,8 +73,11 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
 
     _state.bodyPosition = -ave_foot;
     _state.bodyPosition += _sp->_local_frame_global_pos;
-   
-    _state.bodyVelocity.tail(3) = -ave_foot_vel;
+ 
+    Quat<T> quat = _state.bodyOrientation;
+    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+  
+    _state.bodyVelocity.tail(3) = -Rot * ave_foot_vel;
 
     _sp->_Q[3] = _state.bodyPosition[0];
     _sp->_Q[4] = _state.bodyPosition[1];
@@ -94,6 +97,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->gravityForce();
     _robot->coriolisForce();
     _SafetyCheck();
+
     if(_b_running){
         if(!_Initialization(data, command)){
             _UpdateTestOneStep();
@@ -102,6 +106,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     }else{
         _SafeCommand(data, command);
     }
+    _copy_cmd = command;
     _UpdateExtraData(ext_data);
     ++_count;
     // When there is sensed time

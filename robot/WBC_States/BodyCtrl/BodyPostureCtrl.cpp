@@ -25,9 +25,9 @@ BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot, BodyCtrlT
 {
     _body_pos_task = new BodyPosTask<T>(Ctrl::_robot_sys);
     _body_ori_task = new BodyOriTask<T>(Ctrl::_robot_sys);
-
-    Ctrl::_task_list.push_back(_body_ori_task);
+    
     Ctrl::_task_list.push_back(_body_pos_task);
+    Ctrl::_task_list.push_back(_body_ori_task);
 
    
     _fr_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::FR);
@@ -129,6 +129,10 @@ void BodyPostureCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
 
     _wblc_data->_des_jacc_cmd = des_jacc_cmd;
     _wblc->MakeTorque(gamma, _wblc_data);
+
+    //pretty_print(Ctrl::_grav, std::cout, "grav");
+    //pretty_print(Ctrl::_coriolis, std::cout, "coriolis");
+    //pretty_print(Ctrl::_A, std::cout, "A");
 }
 
 template <typename T>

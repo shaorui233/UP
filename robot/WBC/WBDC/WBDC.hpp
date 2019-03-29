@@ -99,10 +99,6 @@ class WBDC: public WBC<T>{
         DVec<T> task_cmd_;
 
         DMat<T> _Sf; //floating base
-        void _PrintDebug(T i) {
-            (void)i;
-            //printf("[WBDC] %f \n", i);
-        }
 };
 
 #endif

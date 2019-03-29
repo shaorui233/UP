@@ -63,10 +63,6 @@ WBDCTrotTest<T>::WBDCTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
     _sp = StateProvider<T>::getStateProvider();
     _SettingParameter();
 
-    _ang_vel_filter = new digital_lp_filter<T>(2.*M_PI*20, Test<T>::dt);
-    _x_vel_filter = new digital_lp_filter<T>(2.*M_PI*100, Test<T>::dt);
-    _y_vel_filter = new digital_lp_filter<T>(2.*M_PI*100, Test<T>::dt);
-
     _folder_name = "/robot/WBC_States/sim_data/";
     create_folder(_folder_name);
     printf("[WBDC Trot Test] Constructed\n");
@@ -202,7 +198,7 @@ void WBDCTrotTest<T>::_UpdateTestOneStep(){
         Test<T>::_robot->coriolisForce();
     }
 
-    //T scale(1.0);
+    T scale(1.5);
     if(Test<T>::_phase == WBDCTrotPhase::frhl_swing || 
             Test<T>::_phase == WBDCTrotPhase::flhr_swing){
         _body_ang_vel.setZero();
@@ -212,20 +208,29 @@ void WBDCTrotTest<T>::_UpdateTestOneStep(){
 
         Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
         Vec3<T> input_vel; input_vel.setZero();
-        input_vel[0] = _sp->_dir_command[0];
-        //_body_vel[1] = -scale*_sp->_dir_command[1];
+        input_vel[0] = scale*_sp->_dir_command[0];
+        input_vel[1] = -0.5*scale*_sp->_dir_command[1];
         _body_vel = Rot.transpose() * input_vel;
-        //_body_vel = Rot * _body_vel;
     }
     //_body_pos += _body_vel*Test<T>::dt;
+
+}
+
+template <typename T>
+void WBDCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
+    (void)ext_data;
 
     static int count(0);
     if(count % 10 == 0){
         saveValue(_sp->_curr_time, _folder_name, "time");
         saveVector(_body_pos, _folder_name, "body_pos");
         saveVector(_body_vel, _folder_name, "body_vel");
+        //saveVector(Test<T>::_robot->_state.bodyVelocity, _folder_name, "full_body_vel");
         saveVector(_body_acc, _folder_name, "body_acc");
-        saveVector(_body_ori_rpy, _folder_name, "body_ori_rpy");
+        
+        Vec3<T> body_ori_rpy = ori::quatToRPY(Test<T>::_robot->_state.bodyOrientation);
+        saveVector(body_ori_rpy, _folder_name, "body_ori_rpy");
+        saveVector(_body_ori_rpy, _folder_name, "cmd_body_ori_rpy");
         saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
 
         saveVector(_sp->_Q, _folder_name, "config");
@@ -234,15 +239,42 @@ void WBDCTrotTest<T>::_UpdateTestOneStep(){
         saveVector(_vm_q, _folder_name, "vm_q");
         saveVector(_vm_qdot, _folder_name, "vm_qdot");
 
-
         saveValue(Test<T>::_phase, _folder_name, "phase");
-    }
-    ++count;
-}
 
-template <typename T>
-void WBDCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
-    (void)ext_data;
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)frhl_swing_ctrl_)->_foot_pos_des1, 
+                _folder_name, "cmd_fr_pos");
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)frhl_swing_ctrl_)->_foot_pos_des2, 
+                _folder_name, "cmd_hl_pos");
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)flhr_swing_ctrl_)->_foot_pos_des1, 
+                _folder_name, "cmd_fl_pos");
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)flhr_swing_ctrl_)->_foot_pos_des2, 
+                _folder_name, "cmd_hr_pos");
+
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)frhl_swing_ctrl_)->_foot_vel_des1, 
+                _folder_name, "cmd_fr_vel");
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)frhl_swing_ctrl_)->_foot_vel_des2, 
+                _folder_name, "cmd_hl_vel");
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)flhr_swing_ctrl_)->_foot_vel_des1, 
+                _folder_name, "cmd_fl_vel");
+        saveVector(((WBDCVM_TwoLegSwingCtrl<T>*)flhr_swing_ctrl_)->_foot_vel_des2, 
+                _folder_name, "cmd_hr_vel");
+
+        saveVector(Test<T>::_robot->_pGC[linkID::FR], _folder_name, "fr_pos");
+        saveVector(Test<T>::_robot->_pGC[linkID::FL], _folder_name, "fl_pos");
+        saveVector(Test<T>::_robot->_pGC[linkID::HR], _folder_name, "hr_pos");
+        saveVector(Test<T>::_robot->_pGC[linkID::HL], _folder_name, "hl_pos");
+
+        saveVector(Test<T>::_robot->_vGC[linkID::FR], _folder_name, "fr_vel");
+        saveVector(Test<T>::_robot->_vGC[linkID::FL], _folder_name, "fl_vel");
+        saveVector(Test<T>::_robot->_vGC[linkID::HR], _folder_name, "hr_vel");
+        saveVector(Test<T>::_robot->_vGC[linkID::HL], _folder_name, "hl_vel");
+
+        saveVector((Test<T>::_copy_cmd)[0].tauFeedForward, _folder_name, "fr_tau");
+        saveVector((Test<T>::_copy_cmd)[1].tauFeedForward, _folder_name, "fl_tau");
+        saveVector((Test<T>::_copy_cmd)[2].tauFeedForward, _folder_name, "hr_tau");
+        saveVector((Test<T>::_copy_cmd)[3].tauFeedForward, _folder_name, "hl_tau");
+     }
+    ++count;
 }
 
 template class WBDCTrotTest<double>;

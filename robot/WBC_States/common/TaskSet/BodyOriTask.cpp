@@ -11,7 +11,7 @@
 template <typename T>
 BodyOriTask<T>::BodyOriTask(const FloatingBaseModel<T>* robot):
     Task<T>(3),
-    robot_sys_(robot)
+    _robot_sys(robot)
 {
     TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
     TK::Jt_.block(0,0,3,3).setIdentity();
@@ -26,7 +26,7 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
         const DVec<T> & vel_des,
         const DVec<T> & acc_des){
     Quat<T>* ori_cmd = (Quat<T>*)pos_des;
-    Quat<T> link_ori = (robot_sys_->_state.bodyOrientation);
+    Quat<T> link_ori = (_robot_sys->_state.bodyOrientation);
 
     Quat<T> link_ori_inv;
     link_ori_inv[0]= link_ori[0];
@@ -68,6 +68,9 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
 
 template <typename T>
 bool BodyOriTask<T>::_UpdateTaskJacobian(){
+    //Quat<T> quat = _robot_sys->_state.bodyOrientation;
+    //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    //TK::Jt_.block(0,0, 3,3) = Rot.transpose();
     return true;
 }
 

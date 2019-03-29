@@ -21,6 +21,8 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     ## read files
     data_body = \
             np.genfromtxt(file_path+'body_pos.txt', delimiter=None, dtype=(float))
+    cmd_body_ori_rpy = \
+            np.genfromtxt(file_path+'cmd_body_ori_rpy.txt', delimiter=None, dtype=(float))
     body_ori_rpy = \
             np.genfromtxt(file_path+'body_ori_rpy.txt', delimiter=None, dtype=(float))
     body_vel = \
@@ -121,6 +123,7 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     fig.canvas.set_window_title('body ori')
     for i in range(3):
         ax1 = plt.subplot(3, 1, i+1)
+        plt.plot(data_x, cmd_body_ori_rpy[st_idx:end_idx,i], "r-")
         plt.plot(data_x, body_ori_rpy[st_idx:end_idx,i], "b-")
         plt.grid(True)
         for j in phseChange:

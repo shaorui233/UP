@@ -15,7 +15,7 @@ SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     Contact::Jc_ = DMat<T>(Contact::dim_contact_, cheetah::dim_config);
     Contact::Uf_ = DMat<T>::Zero(dim_U_, Contact::dim_contact_);
 
-    T mu (0.4);
+    T mu (0.5);
 
 
     Contact::Uf_(0, 2) = 1.;
@@ -36,11 +36,12 @@ SingleContact<T>::~SingleContact(){  }
 
 template <typename T>
 bool SingleContact<T>::_UpdateJc(){
-    Quat<T> quat = robot_sys_->_state.bodyOrientation;
-    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
     Contact::Jc_ = robot_sys_->_Jc[contact_pt_];
-    //Contact::Jc_.block(0, 3, 3, 3).setIdentity();
-    Contact::Jc_.block(0,3, 3,3) = Rot*Contact::Jc_.block(0,3,3,3);
+    
+    //Quat<T> quat = robot_sys_->_state.bodyOrientation;
+    //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    //Contact::Jc_.block(0,3, 3,3) = Rot*Contact::Jc_.block(0,3,3,3);
+    
     //Contact::Jc_.block(0,0, 3,3) = Rot.transpose()*Contact::Jc_.block(0,0,3,3);
     //pretty_print(Rot, std::cout, "body ori");
     //pretty_print(Contact::Jc_, std::cout, "Jc");

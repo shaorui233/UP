@@ -30,6 +30,14 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
                 const Vec3<T> & body_pos, const Vec3<T> & body_vel, 
                 const Vec3<T> & body_ang_vel, Vec3<T> & foot_loc);
 
+        Vec3<T> _foot_pos_des1;
+        DVec<T> _foot_vel_des1;
+        DVec<T> _foot_acc_des1;
+
+        Vec3<T> _foot_pos_des2;
+        DVec<T> _foot_vel_des2;
+        DVec<T> _foot_acc_des2;
+
 
     protected:
         T _step_time;
@@ -59,15 +67,8 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
 
         Vec3<T> _foot_pos_ini1;
         Vec3<T> _target_loc1;
-        Vec3<T> _foot_pos_des1;
-        DVec<T> _foot_vel_des1;
-        DVec<T> _foot_acc_des1;
-
         Vec3<T> _foot_pos_ini2;
         Vec3<T> _target_loc2;
-        Vec3<T> _foot_pos_des2;
-        DVec<T> _foot_vel_des2;
-        DVec<T> _foot_acc_des2;
 
         Task<T>* _body_posture_task;
 
