@@ -98,6 +98,7 @@ void PeriodicTaskManager::addTask(PeriodicTask *task) {
 void PeriodicTaskManager::printStatus() {
   printf("\n----------------------------TASKS----------------------------\n");
   printf("|%-20s|%-6s|%-6s|%-6s|%-6s|%-6s\n", "name", "rt", "rt-max", "T-des", "T-act", "T-max");
+  printf("-----------------------------------------------------------\n");
   for(auto& task : _tasks) {
     task->printStatus();
     task->clearMax();

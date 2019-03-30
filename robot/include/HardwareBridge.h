@@ -6,16 +6,22 @@
 #define TASK_PRIORITY 49
 
 #include <string>
+#include "Utilities/PeriodicTask.h"
 
 
 class HardwareBridge {
 public:
+  HardwareBridge() : statusTask(&taskManager, 0.5f) { }
   void prefaultStack();
   void setupScheduler();
   void addPeriodicTask(void* func, uint64_t periodNs);
   void initError(const char* reason, bool printErrno = false);
-
   void initCommon();
+
+protected:
+  PeriodicTaskManager taskManager;
+  PrintTaskStatus     statusTask;
+
 };
 
 class MiniCheetahHardwareBridge : public HardwareBridge {
@@ -27,6 +33,7 @@ public:
 
 private:
   // periodic task functions
+
 
 
 };

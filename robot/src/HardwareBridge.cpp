@@ -1,7 +1,9 @@
 #include <cstring>
+#include <thread>
 #include <sys/mman.h>
 #include <unistd.h>
 #include "HardwareBridge.h"
+#include "rt/rt_vectornav.h"
 
 /*!
  * If an error occurs during initialization, before motors are enabled, print error and exit.
@@ -57,9 +59,13 @@ void HardwareBridge::setupScheduler() {
 void MiniCheetahHardwareBridge::run() {
   initCommon();
   initHardware();
+
+  statusTask.start();
+  for(;;) std::this_thread::yield();
 }
 
 void MiniCheetahHardwareBridge::initHardware() {
+  init_vectornav();
   // init spi
   // init sbus
   // init lidarlite

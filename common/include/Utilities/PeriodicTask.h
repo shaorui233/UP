@@ -87,4 +87,23 @@ private:
 };
 
 
+class PrintTaskStatus : public PeriodicTask {
+public:
+  PrintTaskStatus(PeriodicTaskManager* tm, float period) : PeriodicTask(tm, period, "print-tasks"), _tm(tm) { }
+  void run() override {
+    _tm->printStatus();
+  }
+
+  void init() override {
+
+  }
+
+  void cleanup() override {
+
+  }
+private:
+  PeriodicTaskManager* _tm;
+};
+
+
 #endif //PROJECT_PERIODICTASK_H

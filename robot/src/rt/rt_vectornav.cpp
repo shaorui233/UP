@@ -4,6 +4,10 @@
 #include <string>
 
 #include "rt/rt_vectornav.h"
+#include <lcm/lcm-cpp.hpp>
+#include <stdexcept>
+#include "vectornav_lcmt.hpp"
+#include "Utilities/utilities.h"
 
 #define K_MINI_CHEETAH_VECTOR_NAV_SERIAL "/dev/ttyS0"
 
@@ -21,8 +25,20 @@ typedef struct
 
 vn_sensor vn;
 
+static lcm::LCM* vectornav_lcm;
+vectornav_lcmt vectornav_lcm_data;
+
 void init_vectornav()
 {
+
+  printf("[Simulation] Setup LCM...\n");
+  vectornav_lcm = new lcm::LCM(getLcmUrl(255));
+  if(!vectornav_lcm->good()) {
+    printf("[ERROR] Failed to set up LCM\n");
+    throw std::runtime_error("lcm bad");
+  }
+
+
     VnError error;
     VpeBasicControlRegister vpeReg;
     ImuFilteringConfigurationRegister filtReg;
@@ -177,6 +193,16 @@ void vectornav_handler(void* userData, VnUartPacket *packet, size_t running_inde
     omega = VnUartPacket_extractVec3f(packet);
     a     = VnUartPacket_extractVec3f(packet);
 
+    for(int i = 0; i < 4; i++) {
+      vectornav_lcm_data.q[i] = quat.c[i];
+    }
+
+    for(int i = 0; i < 3; i++) {
+      vectornav_lcm_data.w[i] = omega.c[i];
+      vectornav_lcm_data.a[i] = a.c[i];
+    }
+
+    vectornav_lcm->publish("hw-vectornav", &vectornav_lcm_data);
 #ifdef PRINT_VECTORNAV_DEBUG
     char strConversions[50];
     str_vec4f(strConversions, quat);
@@ -195,6 +221,6 @@ int processErrorReceived(const std::string & errorMessage, VnError errorCode)
 {
     char errorCodeStr[100];
     strFromVnError(errorCodeStr, errorCode);
-    printf("%s\nERROR: %s\n", errorMessage.c_str(), errorCodeStr);
+    printf("%s\nVECTORNAV ERROR: %s\n", errorMessage.c_str(), errorCodeStr);
     return -1;
 }
