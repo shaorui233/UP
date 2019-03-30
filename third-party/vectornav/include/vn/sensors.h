@@ -50,7 +50,7 @@ typedef struct
 	GpsGroup gpsField;				/**< Group 4 (GPS) */
 	AttitudeGroup attitudeField;	/**< Group 5 (Attitude) */
 	InsGroup insField;				/**< Group 6 (INS) */
-
+  GpsGroup gps2Field;				/**< Group 7 (GPS2) */
 } BinaryOutputRegister;
 
 /** \brief Initializes a BinaryOutputRegister structure.
@@ -73,7 +73,8 @@ void BinaryOutputRegister_initialize(
 	ImuGroup imuField,
 	GpsGroup gpsField,
 	AttitudeGroup attitudeField,
-	InsGroup insField);
+	InsGroup insField,
+  GpsGroup gps2Field);
 
 /** \brief Structure representing the Quaternion, Magnetic, Acceleration and Angular Rates register. */
 typedef struct

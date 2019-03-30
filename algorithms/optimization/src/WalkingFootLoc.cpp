@@ -40,10 +40,10 @@ void WalkingFootLoc::buildSpline(
     int degree = 1;
 
     // Position
-    int idx_offset = 4*WalkingFootLoc::_nStep;
-    init[0] = x[0 + idx_offset]; // starting loc
-    init[1] = x[1 + idx_offset]; 
-    init[2] = x[2 + idx_offset]; 
+    int idx_offset_ = 4*WalkingFootLoc::_nStep;
+    init[0] = x[0 + idx_offset_]; // starting loc
+    init[1] = x[1 + idx_offset_];
+    init[2] = x[2 + idx_offset_];
 
     init[3] = 0.; //velocity
     init[4] = 0.; 
@@ -54,9 +54,9 @@ void WalkingFootLoc::buildSpline(
     init[8] = 0.; //acceleration 
 
 
-    fin[0] = x[0 + idx_offset + 3*(num_mid_pt+1)]; // end loc
-    fin[1] = x[1 + idx_offset + 3*(num_mid_pt+1)];
-    fin[2] = x[2 + idx_offset + 3*(num_mid_pt+1)];
+    fin[0] = x[0 + idx_offset_ + 3*(num_mid_pt+1)]; // end loc
+    fin[1] = x[1 + idx_offset_ + 3*(num_mid_pt+1)];
+    fin[2] = x[2 + idx_offset_ + 3*(num_mid_pt+1)];
 
     fin[3] = 0.;
     fin[4] = 0.;
@@ -69,9 +69,9 @@ void WalkingFootLoc::buildSpline(
     // middle point allocation
     for(int i(0); i<num_mid_pt; ++i){
         for(int j(0); j<degree; ++j){
-            mid_pt_pos_foot_loc[degree*i+j][0] = x[idx_offset + 3*(i+1)];
-            mid_pt_pos_foot_loc[degree*i+j][1] = x[idx_offset + 3*(i+1)+1];
-            mid_pt_pos_foot_loc[degree*i+j][2] = x[idx_offset + 3*(i+1)+2];
+            mid_pt_pos_foot_loc[degree*i+j][0] = x[idx_offset_ + 3*(i+1)];
+            mid_pt_pos_foot_loc[degree*i+j][1] = x[idx_offset_ + 3*(i+1)+1];
+            mid_pt_pos_foot_loc[degree*i+j][2] = x[idx_offset_ + 3*(i+1)+2];
         }
     }
     pos_spline.SetParam(init, fin, mid_pt_pos_foot_loc, _tot_time);
@@ -79,20 +79,20 @@ void WalkingFootLoc::buildSpline(
     // FootLoc
     double init_ori[3];
     double fin_ori[3];
-    idx_offset = 4*WalkingFootLoc::_nStep + 3*WalkingFootLoc::_nStep;
-    init_ori[0] = x[0 + idx_offset]; // starting loc
+    idx_offset_ = 4*WalkingFootLoc::_nStep + 3*WalkingFootLoc::_nStep;
+    init_ori[0] = x[0 + idx_offset_]; // starting loc
     init_ori[1] = 0.; //velocity
     init_ori[2] = 0.; //acceleration 
 
 
-    fin_ori[0] = x[0 + idx_offset + 1*(num_mid_pt+1)]; // end loc
+    fin_ori[0] = x[0 + idx_offset_ + 1*(num_mid_pt+1)]; // end loc
     fin_ori[1] = 0.;
     fin_ori[2] = 0.;
 
     // middle point allocation
     for(int i(0); i<num_mid_pt; ++i){
         for(int j(0); j<degree; ++j){
-            mid_pt_ori_foot_loc[degree*i+j][0] = x[idx_offset + (i+1)];
+            mid_pt_ori_foot_loc[degree*i+j][0] = x[idx_offset_ + (i+1)];
         }
     }
     ori_spline.SetParam(init_ori, fin_ori, mid_pt_ori_foot_loc, _tot_time);
@@ -316,17 +316,17 @@ void WalkingFootLoc::nice_print_result(const std::vector<double> & x){
                 x[4*i], x[4*i+1], x[4*i+2], x[4*i+3]);
     }
 
-    int idx_offset = 4*_nStep;
+    int idx_offset_ = 4*_nStep;
     for(int i(0); i<_nStep; ++i){
         printf("%d th body: (%f, %f, %f)\n", i,
-                x[3*i + idx_offset], x[3*i + idx_offset +1],
-                x[3*i + idx_offset +2]);
+                x[3*i + idx_offset_], x[3*i + idx_offset_ +1],
+                x[3*i + idx_offset_ +2]);
     }
 
-    idx_offset = 4*_nStep + 3*_nStep;
+    idx_offset_ = 4*_nStep + 3*_nStep;
     for(int i(0); i<_nStep; ++i){
         printf("%d th body ori (pitch): %f\n", i,
-                x[i + idx_offset]);
+                x[i + idx_offset_]);
     }
 }
 void WalkingFootLoc::_getRotationMatrix(const double & pitch, Mat3<double> & rot) const{

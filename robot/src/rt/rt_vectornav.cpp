@@ -3,7 +3,7 @@
 #include <pthread.h>
 #include <string>
 
-#include <rt/rt_vectornav.h>
+#include "rt/rt_vectornav.h"
 
 #define K_MINI_CHEETAH_VECTOR_NAV_SERIAL "/dev/ttyS0"
 
@@ -128,7 +128,8 @@ void init_vectornav()
             IMUGROUP_NONE,
             GPSGROUP_NONE,
             ATTITUDEGROUP_NONE,
-            INSGROUP_NONE);
+            INSGROUP_NONE,
+            GPSGROUP_NONE);
 
     if ((error = VnSensor_writeBinaryOutput1(&(vn.vs), &(vn.bor), true)) != E_NONE)
     {
@@ -165,7 +166,8 @@ void vectornav_handler(void* userData, VnUartPacket *packet, size_t running_inde
                 IMUGROUP_NONE,
                 GPSGROUP_NONE,
                 ATTITUDEGROUP_NONE,
-                INSGROUP_NONE))
+                INSGROUP_NONE,
+                GPSGROUP_NONE))
     {
         printf("[vectornav_handler] got a packet with the wrong type of data.\n");
         return;

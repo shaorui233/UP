@@ -7,6 +7,7 @@
 #include "vn/bool.h"
 #include "vn/enum.h"
 #include "vn/error.h"
+#include "vn/types.h"
 #include "vn/error_detection.h"
 #include "vn/math/matrix.h"
 #include "vn/math/vector.h"
@@ -158,6 +159,7 @@ size_t VnUartPacket_computeNumOfBytesForBinaryGroupPayload(BinaryGroupType group
  * \param[in] gpsGroup The GPS Group configuration.
  * \param[in] attitudeGroup The Attitude Group configuration.
  * \param[in] insGroup The INS Group configuration.
+ * \param[in] gps2Group The GPS2 Group configuration.
  * \return <c>true</c> if the packet matches the expected group
  *     configuration; otherwise <c>false</c>.
  */
@@ -168,7 +170,8 @@ bool VnUartPacket_isCompatible(
 	ImuGroup imuGroup,
 	GpsGroup gpsGroup,
 	AttitudeGroup attitudeGroup,
-	InsGroup insGroup);
+	InsGroup insGroup,
+  GpsGroup gps2Group);
 
 /** \defgroup uartPacketBinaryExtractors UART Binary Data Extractors
  * \brief This group of methods are useful for extracting data from binary
@@ -254,6 +257,27 @@ vec4f VnUartPacket_extractVec4f(VnUartPacket *packet);
 * \return The extracted value. */
 mat3f VnUartPacket_extractMat3f(VnUartPacket *packet);
 
+/** \brief Extracts a GpsDop data type from a binary packet and advances
+*   the next extraction point appropriately.
+*
+* \param[in] packet The packet to extract the value from.
+* \return The extracted value. */
+GpsDop VnUartPacket_extractGpsDop(VnUartPacket *packet);
+
+
+/** \brief Extracts a TimeUtc data type from a binary packet and advances
+*   the next extraction point appropriately.
+*
+* \param[in] packet The packet to extract the value from.
+* \return The extracted value. */
+TimeUtc VnUartPacket_extractTimeUtc(VnUartPacket *packet);
+
+/** \brief Extracts a TimeInfo data type from a binary packet and advances
+*   the next extraction point appropriately.
+*
+* \param[in] packet The packet to extract the value from.
+* \return The extracted value. */
+TimeInfo VnUartPacket_extractTimeInfo(VnUartPacket *packet);
 /** \} */
 
 /** \brief Determines the type of ASCII asynchronous message this packet is.
@@ -1636,7 +1660,8 @@ VnError VnUartPacket_genWriteBinaryOutput1(
 	uint16_t imuField,
 	uint16_t gpsField,
 	uint16_t attitudeField,
-	uint16_t insField);
+  uint16_t insField,
+  uint16_t gps2Field);
 
 /** \brief Generates a command to write to the Binary Output 2 register.
 *
@@ -1666,7 +1691,8 @@ VnError VnUartPacket_genWriteBinaryOutput2(
 	uint16_t imuField,
 	uint16_t gpsField,
 	uint16_t attitudeField,
-	uint16_t insField);
+  uint16_t insField,
+  uint16_t gps2Field);
 
 /** \brief Generates a command to write to the Binary Output 3 register.
 *
@@ -1696,7 +1722,8 @@ VnError VnUartPacket_genWriteBinaryOutput3(
 	uint16_t imuField,
 	uint16_t gpsField,
 	uint16_t attitudeField,
-	uint16_t insField);
+  uint16_t insField,
+  uint16_t gps2Field);
 
 #ifdef EXTRA
 
@@ -1728,7 +1755,8 @@ VnError VnUartPacket_genWriteBinaryOutput4(
 	uint16_t imuField,
 	uint16_t gpsField,
 	uint16_t attitudeField,
-	uint16_t insField);
+  uint16_t insField,
+  uint16_t gps2Field);
 
 /** \brief Generates a command to write to the Binary Output 5 register.
  *
@@ -1758,7 +1786,8 @@ VnError VnUartPacket_genWriteBinaryOutput5(
 	uint16_t imuField,
 	uint16_t gpsField,
 	uint16_t attitudeField,
-	uint16_t insField);
+	uint16_t insField,
+  uint16_t gps2Field);
 
 #endif
 
@@ -2343,6 +2372,7 @@ void VnUartPacket_parseErrorRaw(uint8_t *packet, uint8_t *error);
  * \param[out] gpsField The set fields of Output Group 4 (GPS) if present.
  * \param[out] attitudeField The set fields of Output Group 5 (Attitude) if present.
  * \param[out] insField The set fields of Output Group 6 (INS) if present.
+ * \param[out] gps2Field The set fields of Output Group 7 (GPS2) if present.
  */
 void VnUartPacket_parseBinaryOutput(
 	VnUartPacket *packet,
@@ -2354,7 +2384,8 @@ void VnUartPacket_parseBinaryOutput(
 	uint16_t* imuField,
 	uint16_t* gpsField,
 	uint16_t* attitudeField,
-	uint16_t* insField);
+	uint16_t* insField,
+  uint16_t* gps2Field);
 
 /** \brief Parses a response from reading any of the Binary Output registers.
 *
@@ -2368,6 +2399,7 @@ void VnUartPacket_parseBinaryOutput(
 * \param[out] gpsField The set fields of Output Group 4 (GPS) if present.
 * \param[out] attitudeField The set fields of Output Group 5 (Attitude) if present.
 * \param[out] insField The set fields of Output Group 6 (INS) if present.
+* \param[out] gps2Field The set fields of Output Group 7 (GPS2) if present.
 */
 void VnUartPacket_parseBinaryOutputRaw(
 	uint8_t *packet,
@@ -2379,7 +2411,8 @@ void VnUartPacket_parseBinaryOutputRaw(
 	uint16_t* imuField,
 	uint16_t* gpsField,
 	uint16_t* attitudeField,
-	uint16_t* insField);
+	uint16_t* insField,
+  uint16_t* gps2Field);
 
 /** \brief Parses a response from reading the User Tag register.
  *

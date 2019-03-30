@@ -9,6 +9,7 @@
 #include "vn/math/matrix.h"
 #include "vn/math/vector.h"
 #include "vn/util/export.h"
+#include "vn/types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -236,6 +237,30 @@ vec3d VnUtil_extractVec3d(const char* pos);
 * \param[in] pos The current position to extract the value from.
 * \return The extracted value. */
 mat3f VnUtil_extractMat3f(const char* pos);
+
+/** \brief Extracts a <c>GpsDop</c> with appropriate byte reordering from the binary
+*      array received from a VectorNav sensor either from the UART binary or
+*      SPI packet.
+*
+* \param[in] pos The current position to extract the value from.
+* \return The extracted value. */
+GpsDop VnUtil_extractGpsDop(const char* pos);
+
+/** \brief Extracts a <c>TimeUtc</c> with appropriate byte reordering from the binary
+*      array received from a VectorNav sensor either from the UART binary or
+*      SPI packet.
+*
+* \param[in] pos The current position to extract the value from.
+* \return The extracted value. */
+TimeUtc VnUtil_extractTimeUtc(const char* pos);
+
+/** \brief Extracts a <c>TimeInfo</c> with appropriate byte reordering from the binary
+*      array received from a VectorNav sensor either from the UART binary or
+*      SPI packet.
+*
+* \param[in] pos The current position to extract the value from.
+* \return The extracted value. */
+TimeInfo VnUtil_extractTimeInfo(const char* pos);
 
 /*#endif*/
 

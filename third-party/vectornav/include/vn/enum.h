@@ -17,7 +17,8 @@ typedef enum
 	BINARYGROUPTYPE_IMU = 0x04,			/**< IMU group. */
 	BINARYGROUPTYPE_GPS = 0x08,			/**< GPS group. */
 	BINARYGROUPTYPE_ATTITUDE = 0x10,	/**< Attitude group. */
-	BINARYGROUPTYPE_INS = 0x20			/**< INS group. */
+	BINARYGROUPTYPE_INS = 0x20,			/**< INS group. */
+	BINARYGROUPTYPE_GPS2 = 0x40			/**< GPS2 group. */
 } BinaryGroupType;
 
 /** \brief Async modes for the Binary Output registers. */
@@ -61,7 +62,9 @@ typedef enum
 	TIMEGROUP_TIMESYNCIN			= 0x0010,	/**< TimeSyncIn. */
 	TIMEGROUP_TIMEGPSPPS			= 0x0020,	/**< TimeGpsPps. */
 	TIMEGROUP_TIMEUTC				= 0x0040,	/**< TimeUTC. */
-	TIMEGROUP_SYNCINCNT				= 0x0080	/**< SyncInCnt. */
+	TIMEGROUP_SYNCINCNT				= 0x0080,	/**< SyncInCnt. */
+	TIMEGROUP_SYNCOUTCNT				= 0x0100,	/**< SyncOutCnt. */
+	TIMEGROUP_TIMESTATUS				= 0x0200	/**< TimeStatus. */
 } TimeGroup;
 
 /** \brief Flags for the binary group 3 'IMU' in the binary output registers. */
@@ -101,7 +104,10 @@ typedef enum
 	GPSGROUP_VELECEF				= 0x0100,	/**< VelEcef. */
 	GPSGROUP_POSU					= 0x0200,	/**< PosU. */
 	GPSGROUP_VELU					= 0x0400,	/**< VelU. */
-	GPSGROUP_TIMEU					= 0x0800	/**< TimeU. */
+	GPSGROUP_TIMEU					= 0x0800,	/**< TimeU. */
+  GPSGROUP_TIMEINFO       = 0x1000,	/**< TimeInfo. */
+  GPSGROUP_DOP            = 0x2000	/**< DOP. */
+
 	#ifdef EXTRA
 	,
 	GPSGROUP_SVSTAT					= 0x1000	/**< SvStat. */

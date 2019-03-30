@@ -4,6 +4,9 @@
 #include "cppTypes.h"
 #include <string>
 #include <iostream>
+#include <stdio.h>
+#include <stdarg.h>
+
 /*
  * print out 
  * */
@@ -124,6 +127,17 @@ void pretty_print(const T * _vec, const char* title, size_t size){
     printf("\n");
 }
 
+enum class PrintColor {
+    Default,
+    Red,
+    Green,
+    Yellow,
+    Blue,
+    Magenta,
+    Cyan
+};
+
+void printf_color(PrintColor color, const char *fmt, ...);
 
 
 #endif

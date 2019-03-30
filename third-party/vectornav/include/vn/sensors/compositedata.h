@@ -72,6 +72,7 @@ typedef struct
 	uint8_t numSats;					/**< NumSats data. */
 	uint64_t timeGps;					/**< TimeGps data. */
 	uint64_t timeGpsPps;				/**< TimeGpsPps data. */
+	TimeUtc timeUtc;					/**< TimeUtc data. */
 	uint64_t gpsTow;					/**< GpsTow data. */
 	vec3f attitudeUncertainty;			/**< Attitude uncertainty data. */
 	vec3f positionUncertaintyGpsNed;	/**< GPS position uncertainty NED data. */
@@ -84,11 +85,27 @@ typedef struct
 	uint16_t insStatus;					/**< InsStatus data. */
 	uint64_t timeSyncIn;				/**< TimeSyncIn data. */
 	uint32_t syncInCnt;					/**< SyncInCnt data. */
-	uint16_t sensSat;					/**< SensSat data. */
+  uint32_t syncOutCnt;					/**< SyncInCnt data. */
+  uint16_t sensSat;					/**< SensSat data. */
 	#ifdef EXTRA
 	vec3f yprRates;						/**< YprRates data. */
 	#endif
-
+  vec3d positionGps2Lla;				/**< GPS2 latitude, longitude, altitude data. */
+  vec3d positionGps2Ecef;				/**< GPS2 earth-centered, earth-fixed data. */
+  vec3f velocityGps2Ned;				/**< GPS2 velocity NED data. */
+  vec3f velocityGps2Ecef;				/**< GPS2 velocity ECEF data. */
+  uint16_t weekGps2;						/**< GPS2 Week data. */
+  uint8_t fixGps2;						/**< GPS2 fix data. */
+  uint8_t numSatsGps2;					/**< GPS2 NumSats data. */
+  uint64_t timeGps2;					/**< GPS2 TimeGps data. */
+  uint64_t timeGps2Pps;				/**< GPS2 TimeGpsPps data. */
+  uint64_t gps2Tow;					/**< GPS2 GpsTow data. */
+  float velocityUncertaintyGps2;		/**< GPS2velocity uncertainty data. */
+  vec3f positionUncertaintyGps2Ned;	/**< GPS2 position uncertainty NED data. */
+  vec3f positionUncertaintyGps2Ecef;	/**< GPS2 position uncertainty ECEF data. */
+  uint32_t timeUncertaintyGps2;			/**< GPS2 Time uncertainty data. */
+  TimeInfo timeInfo;
+  GpsDop dop;
 } VnCompositeData;
 #ifdef _WIN32
 #pragma warning(pop)
@@ -209,6 +226,17 @@ void VnCompositeData_processBinaryPacketInsGroup(
 	VnCompositeData* compositeData,
 	VnUartPacket* packet,
 	InsGroup groupFlags);
+
+/** \brief
+*
+* \param[in]
+* \param[out]
+* \return
+*/
+void VnCompositeData_processBinaryPacketGps2Group(
+  VnCompositeData* compositeData,
+  VnUartPacket* packet,
+  GpsGroup groupFlags);
 
 #ifdef __cplusplus
 }
