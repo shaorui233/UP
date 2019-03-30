@@ -8,14 +8,19 @@ set(CMAKE_CXX_FLAGS "-O3 -g -march=native -ggdb -Wall -Wall \
 -Wredundant-decls -Wshadow -Wsign-promo -Werror")
 set(CMAKE_C_FLAGS "-O3  -g  -march=native -std=gnu99 -I.")
 
+set(CMAKE_CXX_FLAGS "-Wno-redeclaration")
 include_directories("include/")
 include_directories("./")
 include_directories("../common/include/")
 include_directories("../third-party")
 include_directories("../third-party/include")
 include_directories("../third-party/ParamHandler")
+
+include_directories("../lcm-types/cpp")
+include_directories("/usr/local/include/lcm/")   # lcm includes
+
 include_directories(${CMAKE_BINARY_DIR})
-file(GLOB sources "src/*.cpp" "src/rt/*.c" )
+file(GLOB sources "src/*.cpp" "src/rt/*.c"  "src/rt/*.cpp" )
 
 add_executable(robot ${sources})
 target_link_libraries(robot biomimetics pthread lcm rt inih 
