@@ -6,7 +6,7 @@ project(libbiomimetics)
 set(CMAKE_CXX_FLAGS "-O3 -g -march=native -ffast-math -ggdb -Wall -Wall \
 -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
--Wredundant-decls -Wshadow -Wsign-promo -Werror")
+-Wredundant-decls -Wshadow -Wsign-promo -Werror -Wno-format-nonliteral")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -I /usr/include/")
 set(CMAKE_C_FLAGS "-O3  -g -std=gnu99 -march=native -I.")

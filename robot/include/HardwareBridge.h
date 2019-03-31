@@ -7,6 +7,7 @@
 
 #include <string>
 #include "Utilities/PeriodicTask.h"
+#include "RobotController.h"
 
 
 class HardwareBridge {
@@ -17,22 +18,31 @@ public:
   void addPeriodicTask(void* func, uint64_t periodNs);
   void initError(const char* reason, bool printErrno = false);
   void initCommon();
+  ~HardwareBridge() {
+    delete _robotController;
+  }
 
 protected:
   PeriodicTaskManager taskManager;
   PrintTaskStatus     statusTask;
+  bool _firstRun = true;
+  RobotController* _robotController = nullptr;
+  RobotControlParameters _robotParams;
+  u64 _iterations = 0;
 
 };
 
 class MiniCheetahHardwareBridge : public HardwareBridge {
 public:
+  MiniCheetahHardwareBridge();
   void initHardware();
   void run();
   void abort(const std::string& reason);
   void abort(const char* reason);
 
-private:
-  // periodic task functions
+
+
+
 
 
 
