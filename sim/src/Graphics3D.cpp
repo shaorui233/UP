@@ -322,8 +322,8 @@ void Graphics3D::renderDrawlist() {
   glEnableVertexAttribArray(0);
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
-  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
 
+  for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
     if (_drawList._instanceColor[id].useSolidColor) {
 
     } else {
@@ -357,7 +357,6 @@ void Graphics3D::renderDrawlist() {
   glEnableVertexAttribArray(1);
   glEnableVertexAttribArray(2);
   for (size_t id = 0; id < _drawList.getNumObjectsToDraw(); id++) {
-
     if (_drawList._instanceColor[id].useSolidColor) {
       _solidColorProgram->setUniformValue(_matrixUniformSolidColor,
                                           _cameraMatrix * _drawList.getModelKinematicTransform(id) *

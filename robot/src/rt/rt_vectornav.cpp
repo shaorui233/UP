@@ -6,6 +6,7 @@
 #include "rt/rt_vectornav.h"
 #include <lcm/lcm-cpp.hpp>
 #include <stdexcept>
+#include <SimUtilities/IMUTypes.h>
 #include "vectornav_lcmt.hpp"
 #include "Utilities/utilities.h"
 
@@ -28,9 +29,10 @@ vn_sensor vn;
 static lcm::LCM* vectornav_lcm;
 vectornav_lcmt vectornav_lcm_data;
 
-void init_vectornav()
+static VectorNavData* g_vn_data = nullptr;
+void init_vectornav(VectorNavData* vn_data)
 {
-
+  g_vn_data = vn_data;
   printf("[Simulation] Setup LCM...\n");
   vectornav_lcm = new lcm::LCM(getLcmUrl(255));
   if(!vectornav_lcm->good()) {
@@ -195,14 +197,18 @@ void vectornav_handler(void* userData, VnUartPacket *packet, size_t running_inde
 
     for(int i = 0; i < 4; i++) {
       vectornav_lcm_data.q[i] = quat.c[i];
+      g_vn_data->quat[i] = quat.c[i];
     }
 
     for(int i = 0; i < 3; i++) {
       vectornav_lcm_data.w[i] = omega.c[i];
       vectornav_lcm_data.a[i] = a.c[i];
+      g_vn_data->gyro[i] = omega.c[i];
+      g_vn_data->accelerometer[i] = a.c[i];
     }
 
     vectornav_lcm->publish("hw-vectornav", &vectornav_lcm_data);
+
 #ifdef PRINT_VECTORNAV_DEBUG
     char strConversions[50];
     str_vec4f(strConversions, quat);

@@ -6,6 +6,7 @@
 #include "Simulation.h"
 #include "Graphics3D.h"
 #include "ControlParameters/SimulatorParameters.h"
+#include "RobotInterface.h"
 
 #define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
 
@@ -64,6 +65,7 @@ private:
   bool _started = false;
   Ui::SimControlPanel *ui;
   Simulation *_simulation = nullptr;
+  RobotInterface* _robotInterface;
   Graphics3D *_graphicsWindow = nullptr;
   SimulatorControlParameters _parameters;
   bool _simulationMode = false;

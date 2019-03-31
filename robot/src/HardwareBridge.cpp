@@ -24,8 +24,24 @@ void HardwareBridge::initError(const char *reason, bool printErrno) {
  * All initialization code that is common between Cheetah 3 and Mini Cheetah
  */
 void HardwareBridge::initCommon() {
+  printf("[HardwareBridge] Init stack\n");
   prefaultStack();
+  printf("[HardwareBridge] Init scheduler\n");
   setupScheduler();
+  if(!_interfaceLCM.good()) {
+    initError("_interfaceLCM failed to initialize\n", false);
+  }
+
+  printf("[HardwareBridge] Subscribe LCM\n");
+  _interfaceLCM.subscribe("interface", &HardwareBridge::handleGamepadLCM, this);
+
+  printf("[HardwareBridge] Start interface LCM handler\n");
+  _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);
+}
+
+void HardwareBridge::handleInterfaceLCM() {
+  while(!_interfaceLcmQuit)
+    _interfaceLCM.handle();
 }
 
 /*!
@@ -55,6 +71,11 @@ void HardwareBridge::setupScheduler() {
   }
 }
 
+void HardwareBridge::handleGamepadLCM(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+                                      const gamepad_lcmt *msg) {
+  _gamepadCommand.set(msg);
+}
+
 MiniCheetahHardwareBridge::MiniCheetahHardwareBridge()
 {
 
@@ -66,20 +87,21 @@ void MiniCheetahHardwareBridge::run() {
 
   _robotController = new RobotController;
 
-//  _robotController->driverCommand = &_sharedMemory().simToRobot.gamepadCommand;
+  _robotController->driverCommand = &_gamepadCommand;
 //  _robotController->spiData       = &_sharedMemory().simToRobot.spiData;
-//  _robotController->tiBoardData   = _sharedMemory().simToRobot.tiBoardData;
-//  _robotController->robotType     = _robot;
-//  _robotController->kvhImuData    = &_sharedMemory().simToRobot.kvh;
-//  _robotController->vectorNavData = &_sharedMemory().simToRobot.vectorNav;
-//  _robotController->cheaterState  = &_sharedMemory().simToRobot.cheaterState;
+
+  _robotController->robotType     = RobotType::MINI_CHEETAH;
+  _robotController->vectorNavData = &_vectorNavData;
+
 //  _robotController->spiCommand    = &_sharedMemory().robotToSim.spiCommand;
-//  _robotController->tiBoardCommand = _sharedMemory().robotToSim.tiBoardCommand;
+
 //  _robotController->controlParameters = &_robotParams;
 //  _robotController->visualizationData = &_sharedMemory().robotToSim.visualizationData;
 
   _robotController->initialize();
   _firstRun = false;
+
+  // init control thread
 
   statusTask.start();
 
@@ -89,14 +111,14 @@ void MiniCheetahHardwareBridge::run() {
 }
 
 void MiniCheetahHardwareBridge::initHardware() {
-  init_vectornav();
+  printf("[MiniCheetahHardware] Init vectornav\n");
+  init_vectornav(&_vectorNavData);
   // init spi
   // init sbus
   // init lidarlite
-  // init LCM
-  // init LCM read thread
-  // init LCM logging thread
-  // init control thread
+
+  // init LCM hardware logging thread
+
 
   //
 }

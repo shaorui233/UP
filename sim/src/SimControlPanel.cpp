@@ -35,6 +35,7 @@ SimControlPanel::SimControlPanel(QWidget *parent) :
 
 SimControlPanel::~SimControlPanel() {
   delete _simulation;
+  delete _robotInterface;
   delete _graphicsWindow;
   delete ui;
 }
@@ -73,12 +74,12 @@ void SimControlPanel::on_startButton_clicked() {
 
   _simulationMode = ui->simulatorButton->isChecked();
 
-  if(_simulationMode) {
-    printf("[SimControlPanel] Initialize Graphics...\n");
-    _graphicsWindow = new Graphics3D();
-    _graphicsWindow->show();
-    _graphicsWindow->resize(1280, 720);
+  printf("[SimControlPanel] Initialize Graphics...\n");
+  _graphicsWindow = new Graphics3D();
+  _graphicsWindow->show();
+  _graphicsWindow->resize(1280, 720);
 
+  if(_simulationMode) {
     printf("[SimControlPanel] Initialize simulator...\n");
     _simulation = new Simulation(robotType, _graphicsWindow, _parameters);
     loadSimulationParameters(_simulation->getSimParams());
@@ -86,43 +87,30 @@ void SimControlPanel::on_startButton_clicked() {
 
     printf("[SimControlParameter] Load terrain...\n");
     _simulation->loadTerrainFile(_terrainFileName);
-
-//    // hack
-//    _simulation->addCollisionPlane(.8, 0, -0.5);
-//    // Box 1
-//    Vec3<double> pos;
-//    Mat3<double> ori;
-//    Vec3<double> ori_zyx; ori_zyx.setZero();
-//
-//    pos[0] = 0.0; pos[1] = 0.0; pos[2] = -0.415;
-//
-//    ori_zyx[0] = 0.3;
-//    ori_zyx[1] = 0.4;
-//    EulerZYX_2_SO3(ori_zyx, ori);
-//    _simulation->addCollisionBox(0.8, 0., 1.5, 0.7, 0.05, pos, ori);
-//
-//    // Box 2
-//    pos[0] = 0.3; pos[1] = 0.05;  pos[2] = -0.30;
-//    ori_zyx[0] = 0.4; ori_zyx[1] = 0.;  ori_zyx[2] = 0.4;
-//    EulerZYX_2_SO3(ori_zyx, ori);
-//    _simulation->addCollisionBox(0.8, 0., 0.7, 0.7, 0.05, pos, ori);
-
-
     _simThread = std::thread([this](){_simulation->runAtSpeed();});
 
     _graphicsWindow->setAnimating(true);
   } else {
-    assert(false); // don't support robot mode yet
+    printf("[SimControlPanel] Init Robot Interface...\n");
+    _robotInterface = new RobotInterface(robotType, _graphicsWindow);
+    loadRobotParameters(_robotInterface->getParams());
+    _robotInterface->startInterface();
+    usleep(1000000);
+    _graphicsWindow->setAnimating(true);
   }
 
   _started = true;
   updateUiEnable();
 }
 
+
+
 void SimControlPanel::on_stopButton_clicked() {
   if(_simulation) {
     _simulation->stop();
     _simThread.join();
+  } else {
+    _robotInterface->stopInterface();
   }
 
   if(_graphicsWindow) {
@@ -130,11 +118,14 @@ void SimControlPanel::on_stopButton_clicked() {
     _graphicsWindow->hide();
   }
 
+  printf("calling destructors\n");
   delete _simulation;
   delete _graphicsWindow;
+  delete _robotInterface;
 
   _simulation = nullptr;
   _graphicsWindow = nullptr;
+  _robotInterface = nullptr;
 
   _started = false;
   updateUiEnable();

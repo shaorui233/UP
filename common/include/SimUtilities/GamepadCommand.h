@@ -7,6 +7,7 @@
 
 #include "cppTypes.h"
 #include "Utilities/utilities.h"
+#include "gamepad_lcmt.hpp"
 
 struct GamepadCommand {
   GamepadCommand() {
@@ -37,6 +38,23 @@ struct GamepadCommand {
     rightTriggerAnalog = 0;
     leftStickAnalog = Vec2<float>::Zero();
     rightStickAnalog = Vec2<float>::Zero();
+  }
+
+  void set(const gamepad_lcmt* lcmt) {
+    leftBumper = lcmt->leftBumper;
+    rightBumper = lcmt->rightBumper;
+    leftTriggerButton = lcmt->leftTriggerButton;
+    rightTriggerButton = lcmt->rightTriggerButton;
+    back = lcmt->back;
+    start = lcmt->start;
+    a = lcmt->a;
+    x = lcmt->x;
+    b = lcmt->b;
+    y = lcmt->y;
+    leftStickButton = lcmt->leftStickButton;
+    rightStickButton = lcmt->rightStickButton;
+    leftTriggerAnalog = lcmt->leftTriggerAnalog;
+    rightTriggerAnalog = lcmt->rightTriggerAnalog;
   }
 
   /*!
