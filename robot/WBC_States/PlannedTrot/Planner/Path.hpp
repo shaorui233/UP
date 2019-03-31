@@ -35,8 +35,8 @@ class Path{
         constexpr static int nMiddle = 5;
 
         // Stance foot list
-        vectorAligned<Vec3<T> > _front_footloc_list; // For trot (front)
-        vectorAligned<Vec3<T> > _hind_footloc_list; // For trot (hind)
+        std::vector<Vec3<T> > _front_footloc_list; // For trot (front)
+        std::vector<Vec3<T> > _hind_footloc_list; // For trot (hind)
         std::vector<int> _stance_foot_list; // For trot (front, hind)
 
         T** mid_ori; 

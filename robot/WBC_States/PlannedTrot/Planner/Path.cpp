@@ -62,11 +62,11 @@ int Path<T>::checkIdx(const int & step_idx){
 template <typename T>
 Path<T>::~Path(){
     for(size_t i(0); i<nMiddle; ++i){
-        delete mid_ori[i];
-        delete mid_lin[i];
+        delete[] mid_ori[i];
+        delete[] mid_lin[i];
     }
-    delete mid_ori;
-    delete mid_lin;
+    delete[] mid_ori;
+    delete[] mid_lin;
 }
 
 template<typename T>
