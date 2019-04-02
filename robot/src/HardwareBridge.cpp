@@ -34,6 +34,7 @@ void HardwareBridge::initCommon() {
 
   printf("[HardwareBridge] Subscribe LCM\n");
   _interfaceLCM.subscribe("interface", &HardwareBridge::handleGamepadLCM, this);
+  _interfaceLCM.subscribe("interface-request", &HardwareBridge::handleControlParameter, this);
 
   printf("[HardwareBridge] Start interface LCM handler\n");
   _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);
@@ -76,6 +77,85 @@ void HardwareBridge::handleGamepadLCM(const lcm::ReceiveBuffer *rbuf, const std:
   _gamepadCommand.set(msg);
 }
 
+void HardwareBridge::handleControlParameter(const lcm::ReceiveBuffer* rbuf,
+                                            const std::string& chan,
+                                            const control_parameter_request_lcmt* msg) {
+  if (msg->requestNumber <= _parameter_response_lcmt.requestNumber) {
+    // nothing to do!
+    printf(
+        "[HardwareBridge] Warning: the interface has run a ControlParameter iteration, but there is no new request!\n");
+    //return;
+  }
+
+  // sanity check
+  s64 nRequests = msg->requestNumber - _parameter_response_lcmt.requestNumber;
+  if(nRequests != 1) {
+    printf("[ERROR] Hardware bridge: we've missed %ld requests\n", nRequests - 1);
+  }
+
+  switch (msg->requestKind) {
+    case (s8)ControlParameterRequestKind::SET_PARAM_BY_NAME: {
+      std::string name((char*)msg->name);
+      ControlParameter &param = _robotParams.collection.lookup(name);
+
+      // type check
+      if ((s8)param._kind != msg->parameterKind) {
+        throw std::runtime_error("type mismatch for parameter " + name + ", robot thinks it is "
+                                 + controlParameterValueKindToString(param._kind) +
+                                 " but received a command to set it to " +
+                                 controlParameterValueKindToString((ControlParameterValueKind)msg->parameterKind));
+      }
+
+      // do the actual set
+      ControlParameterValue v;
+      memcpy(&v, msg->value, sizeof(v));
+      param.set(v, (ControlParameterValueKind)msg->parameterKind);
+
+      // respond:
+      _parameter_response_lcmt.requestNumber = msg->requestNumber; // acknowledge that the set has happened
+      _parameter_response_lcmt.parameterKind = msg->parameterKind; // just for debugging print statements
+      memcpy(_parameter_response_lcmt.value, msg->value, 64);
+      //_parameter_response_lcmt.value = _parameter_request_lcmt.value;                 // just for debugging print statements
+      strcpy((char*)_parameter_response_lcmt.name, name.c_str());            // just for debugging print statements
+      _parameter_response_lcmt.requestKind = msg->requestKind;
+
+
+      printf("[Robot Control Parameter] set %s to %s\n", name.c_str(),
+          controlParameterValueToString(v, (ControlParameterValueKind)msg->parameterKind).c_str());
+
+    }
+      break;
+
+
+    case (s8)ControlParameterRequestKind::GET_PARAM_BY_NAME: {
+      printf("[ERROR] Robot doesn't support get param currently\n");
+    }
+//      std::string name(request.name);
+//      ControlParameter &param = _robotParams.collection.lookup(name);
+//
+//      // type check
+//      if (param._kind != request.parameterKind) {
+//        throw std::runtime_error("type mismatch for parameter " + name + ", robot thinks it is "
+//                                 + controlParameterValueKindToString(param._kind) +
+//                                 " but received a command to set it to " +
+//                                 controlParameterValueKindToString(request.parameterKind));
+//      }
+//
+//      // respond
+//      response.value = param.get(request.parameterKind);
+//      response.requestNumber = request.requestNumber;   // acknowledge
+//      response.parameterKind = request.parameterKind;   // just for debugging print statements
+//      strcpy(response.name, name.c_str());              // just for debugging print statements
+//      response.requestKind = request.requestKind;       // just for debugging print statements
+//
+//
+//      printf("%s\n", response.toString().c_str());
+//    }
+      break;
+  }
+  _interfaceLCM.publish("interface-response", &_parameter_response_lcmt);
+}
+
 MiniCheetahHardwareBridge::MiniCheetahHardwareBridge()
 {
 
@@ -107,12 +187,15 @@ void MiniCheetahHardwareBridge::run() {
 
   for(;;) {
     usleep(1000000);
+    printf("joy %f\n", _robotController->driverCommand->leftStickAnalog[0]);
   }
 }
 
 void MiniCheetahHardwareBridge::initHardware() {
   printf("[MiniCheetahHardware] Init vectornav\n");
-  init_vectornav(&_vectorNavData);
+//  if(!init_vectornav(&_vectorNavData)) {
+//    initError("failed to initialize vectornav!\n", false);
+//  }
   // init spi
   // init sbus
   // init lidarlite

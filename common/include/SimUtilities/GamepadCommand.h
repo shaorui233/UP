@@ -55,6 +55,31 @@ struct GamepadCommand {
     rightStickButton = lcmt->rightStickButton;
     leftTriggerAnalog = lcmt->leftTriggerAnalog;
     rightTriggerAnalog = lcmt->rightTriggerAnalog;
+    for(int i = 0; i < 2; i++) {
+      leftStickAnalog[i] = lcmt->leftStickAnalog[i];
+      rightStickAnalog[i] = lcmt->rightStickAnalog[i];
+    }
+  }
+
+  void get(gamepad_lcmt* lcmt) {
+    lcmt->leftBumper = leftBumper;
+    lcmt->rightBumper = rightBumper;
+    lcmt->leftTriggerButton = leftTriggerButton;
+    lcmt->rightTriggerButton = rightTriggerButton;
+    lcmt->back = back;
+    lcmt->start = start;
+    lcmt->a = a;
+    lcmt->x = x;
+    lcmt->b = b;
+    lcmt->y = y;
+    lcmt->leftStickButton = leftStickButton;
+    lcmt->rightStickButton = rightStickButton;
+    lcmt->leftTriggerAnalog = leftTriggerAnalog;
+    lcmt->rightTriggerAnalog = rightTriggerAnalog;
+    for(int i = 0; i < 2; i++) {
+      lcmt->leftStickAnalog[i] = leftStickAnalog[i];
+      lcmt->rightStickAnalog[i] = rightStickAnalog[i];
+    }
   }
 
   /*!

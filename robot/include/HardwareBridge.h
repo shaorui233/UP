@@ -10,6 +10,8 @@
 #include "Utilities/PeriodicTask.h"
 #include "RobotController.h"
 #include "gamepad_lcmt.hpp"
+#include "control_parameter_respones_lcmt.hpp"
+#include "control_parameter_request_lcmt.hpp"
 
 
 class HardwareBridge {
@@ -28,11 +30,15 @@ public:
                         const gamepad_lcmt* msg);
 
   void handleInterfaceLCM();
+  void handleControlParameter(const lcm::ReceiveBuffer* rbuf,
+                              const std::string& chan,
+                              const control_parameter_request_lcmt* msg);
 protected:
   PeriodicTaskManager taskManager;
   PrintTaskStatus     statusTask;
   GamepadCommand      _gamepadCommand;
   lcm::LCM            _interfaceLCM;
+  control_parameter_respones_lcmt _parameter_response_lcmt;
 
 
   bool _firstRun = true;

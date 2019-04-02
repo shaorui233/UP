@@ -17,6 +17,6 @@ extern "C" {
 
 
 
-void init_vectornav(VectorNavData* vd_data);
+bool init_vectornav(VectorNavData* vd_data);
 
 #endif

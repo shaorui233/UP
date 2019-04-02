@@ -30,7 +30,7 @@ static lcm::LCM* vectornav_lcm;
 vectornav_lcmt vectornav_lcm_data;
 
 static VectorNavData* g_vn_data = nullptr;
-void init_vectornav(VectorNavData* vn_data)
+bool init_vectornav(VectorNavData* vn_data)
 {
   g_vn_data = vn_data;
   printf("[Simulation] Setup LCM...\n");
@@ -61,7 +61,7 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_connect failed.\n");
         processErrorReceived("Error connecting to sensor.", error);
-        return;
+        return false;
     }
 
     // read the sensor's model number
@@ -69,7 +69,7 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_readModelNumber failed.\n");
         processErrorReceived("Error reading model number.", error);
-        return;
+        return false;
     }
     printf("Model Number: %s\n", modelNumber);
 
@@ -78,7 +78,7 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_readAsyncDataOutputFrequency failed.\n");
         processErrorReceived("Error reading async data output frequency.", error);
-        return;
+        return false;
     }
 
     // non-zero frequency causes the IMU to output ascii packets at the set frequency, as well as binary
@@ -86,13 +86,13 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_wrtieAsyncDataOutputFrequency failed.\n");
         processErrorReceived("Error writing async data output frequency.", error);
-        return;
+        return false;
     }
     if ((error = VnSensor_readAsyncDataOutputFrequency(&(vn.vs), &newHz)) != E_NONE)
     {
         printf("[rt_vectornav] VnSensor_readAsyncDataOutputFrequency failed.\n");
         processErrorReceived("Error reading async data output frequency.", error);
-        return;
+        return false;
     }
     printf("[rt_vectornav] Changed frequency from %d to %d Hz.\n",oldHz,newHz);
 
@@ -101,7 +101,7 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_ReadVpeBasicControl failed.\n");
         processErrorReceived("Error reading VPE basic control.", error);
-        return;
+        return false;
     }
     strFromHeadingMode(strConversions, (VnHeadingMode)vpeReg.headingMode);
     printf("[rt_vectornav] Sensor was in mode: %s\n", strConversions);
@@ -110,13 +110,13 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_writeVpeBasicControl failed.\n");
         processErrorReceived("Error writing VPE basic control.", error);
-        return;
+        return false;
     }
     if ((error = VnSensor_readVpeBasicControl(&(vn.vs), &vpeReg)) != E_NONE)
     {
         processErrorReceived("Error reading VPE basic control.", error);
         printf("[rt_vectornav] VnSensor_ReadVpeBasicControl failed.\n");
-        return;
+        return false;
     }
     strFromHeadingMode(strConversions, (VnHeadingMode)vpeReg.headingMode);
     printf("[rt_vectornav] Sensor now id mode: %s\n", strConversions);
@@ -153,12 +153,13 @@ void init_vectornav(VectorNavData* vn_data)
     {
         printf("[rt_vectornav] VnSensor_writeBinaryOutput1 failed.\n");
         processErrorReceived("Error writing binary output 1.", error);
-        return;
+        return false;
     }
 
     // setup handler
     VnSensor_registerAsyncPacketReceivedHandler(&(vn.vs),vectornav_handler,NULL);
     printf("[rt_vectornav] IMU is set up!\n");
+    return true;
 }
 
 int got_first_vectornav_message = 0;

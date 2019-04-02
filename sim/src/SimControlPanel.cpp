@@ -95,7 +95,6 @@ void SimControlPanel::on_startButton_clicked() {
     _robotInterface = new RobotInterface(robotType, _graphicsWindow);
     loadRobotParameters(_robotInterface->getParams());
     _robotInterface->startInterface();
-    usleep(1000000);
     _graphicsWindow->setAnimating(true);
   }
 
@@ -265,7 +264,7 @@ void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
     return;
   }
 
-  auto& parameter = _simulation->getRobotParams().collection.lookup(cellName);
+  auto& parameter = (_simulationMode ? _simulation->getRobotParams() : _robotInterface->getParams()).collection.lookup(cellName);
   ControlParameterValueKind kind = parameter._kind;
   ControlParameterValue oldValue = parameter.get(kind);
 
@@ -296,7 +295,7 @@ void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
       ui->robotTable->item(row, 1)->setText(QString(parameter.toString().c_str()));
       _ignoreTableCallbacks = false;
     } else {
-      assert(false);
+      _robotInterface->sendControlParameter(cellName, parameter.get(parameter._kind), parameter._kind);
     }
   }
 
@@ -329,7 +328,7 @@ void SimControlPanel::on_loadRobotButton_clicked() {
     _simulation->getRobotParams().collection.clearAllSet();
     _simulation->getRobotParams().initializeFromYamlFile(fileName.toStdString());
     if(!_simulation->getRobotParams().collection.checkIfAllSet()) {
-      printf("new settings file %s doesn't contain the following simulator parameters:\n%s\n",
+      printf("new settings file %s doesn't contain the following robot parameters:\n%s\n",
              fileName.toStdString().c_str(), _simulation->getRobotParams().generateUnitializedList().c_str());
       throw std::runtime_error("bad new settings file");
     }
@@ -342,7 +341,21 @@ void SimControlPanel::on_loadRobotButton_clicked() {
     }
     _simulation->getSimParams().unlockMutex();
   } else {
-    assert(false);
+    _robotInterface->getParams().lockMutex();
+    _robotInterface->getParams().collection.clearAllSet();
+    _robotInterface->getParams().initializeFromYamlFile(fileName.toStdString());
+    if(!_robotInterface->getParams().collection.checkIfAllSet()) {
+      printf("new settings file %s doesn't contain the following robot parameters:\n%s\n",
+             fileName.toStdString().c_str(), _robotInterface->getParams().generateUnitializedList().c_str());
+      throw std::runtime_error("bad new settings file");
+    }
+    loadRobotParameters(_robotInterface->getParams());
+
+    for(auto& kv : _robotInterface->getParams().collection._map) {
+      _robotInterface->sendControlParameter(kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
+    }
+
+    _robotInterface->getParams().unlockMutex();
   }
 }
 

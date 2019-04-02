@@ -5,8 +5,17 @@
 #include <ControlParameters/RobotParameters.h>
 #include <lcm-cpp.hpp>
 #include <thread>
+#include <mutex>
+#include <condition_variable>
 #include <Utilities/PeriodicTask.h>
 #include "Graphics3D.h"
+#include "gamepad_lcmt.hpp"
+#include "control_parameter_respones_lcmt.hpp"
+#include "control_parameter_request_lcmt.hpp"
+
+#define ROBOT_INTERFACE_UPDATE_PERIOD (1.f/60.f)
+#define INTERFACE_LCM_NAME "interface"
+#define TIMES_TO_RESEND_CONTROL_PARAM 5
 
 class RobotInterface : PeriodicTask {
 public:
@@ -15,6 +24,11 @@ public:
   void startInterface();
   void stopInterface();
   void lcmHandler();
+  void sendControlParameter(const std::string& name,
+      ControlParameterValue value, ControlParameterValueKind kind);
+  void handleControlParameter(const lcm::ReceiveBuffer* rbuf,
+                              const std::string& chan,
+                              const control_parameter_respones_lcmt* msg);
 
   void init() { }
   void run();
@@ -22,7 +36,9 @@ public:
 
 private:
   PeriodicTaskManager _taskManager;
-  void updateGraphics();
+  gamepad_lcmt _gamepad_lcmt;
+  control_parameter_request_lcmt _parameter_request_lcmt;
+  bool _pendingControlParameterSend = false;
   lcm::LCM _lcm;
   uint64_t _robotID;
   std::thread _lcmThread;
@@ -31,6 +47,11 @@ private:
   Graphics3D* _gfx;
   RobotType _robotType;
   bool _running = false;
+
+  std::mutex _lcmMutex;
+  std::condition_variable _lcmCV;
+  bool _waitingForLcmResponse = false;
+  bool _lcmResponseBad = true;
 };
 
 
