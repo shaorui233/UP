@@ -3,6 +3,7 @@
 
 #include <WBC_States/Test.hpp>
 #include <Dynamics/Quadruped.h>
+#include <Utilities/filters.h>
 
 template <typename T> class StateProvider;
 
@@ -41,6 +42,8 @@ class WBLCTrotTest: public Test<T>{
 
         std::string _folder_name;
     protected:
+        std::vector<filter<T>*> _filtered_input_vel;
+        Vec3<T> _input_vel;
         T _target_body_height;
         virtual void _UpdateTestOneStep();
         virtual void _TestInitialization();

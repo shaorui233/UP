@@ -1,1 +1,1 @@
-lcmtypes/simulator_lcmt.class lcmtypes/spi_command_t.class lcmtypes/spi_data_t.class lcmtypes/spi_torque_t.class
+lcmtypes/gamepad_lcmt.class lcmtypes/simulator_lcmt.class lcmtypes/spi_command_t.class lcmtypes/spi_data_t.class lcmtypes/spi_torque_t.class lcmtypes/vectornav_lcmt.class

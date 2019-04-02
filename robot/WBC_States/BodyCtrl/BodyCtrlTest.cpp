@@ -76,6 +76,7 @@ template <typename T>
 void BodyCtrlTest<T>::_UpdateTestOneStep(){
     // Update Desired Position & Velocity & Acceleration
 
+    
     static int count(0);
     if(count % 10 == 0){
         Vec3<T> body_ori = ori::quatToRPY(Test<T>::_robot->_state.bodyOrientation);
@@ -85,9 +86,14 @@ void BodyCtrlTest<T>::_UpdateTestOneStep(){
         saveVector(body_ori, _folder_name, "body_ori_rpy");
         saveVector(_sp->_Q, _folder_name, "config");
         saveVector(_sp->_Qdot, _folder_name, "qdot");
-        
+       
         saveValue(Test<T>::_phase, _folder_name, "phase");
     }
+    DVec<T> idx_jpos(cheetah::num_act_joint + 2);
+    idx_jpos[0] = count;
+    idx_jpos[1] = _sp->_curr_time*1000.;
+    idx_jpos.tail(cheetah::num_act_joint) = _sp->_Q.segment(6, cheetah::num_act_joint);
+    saveVector(idx_jpos, _folder_name, "joint_pos");
     ++count;
 }
 

@@ -52,6 +52,12 @@ WBLCTrotTest<T>::WBLCTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
     _sp = StateProvider<T>::getStateProvider();
     _SettingParameter();
 
+    // (x, y)
+    _filtered_input_vel.push_back(new digital_lp_filter<T>(2.*M_PI*15. , Test<T>::dt));
+    _filtered_input_vel.push_back(new digital_lp_filter<T>(2.*M_PI*15. , Test<T>::dt));
+
+    _input_vel.setZero();
+        
     _folder_name = "/robot/WBC_States/sim_data/";
     create_folder(_folder_name);
     printf("[Trot Test] Constructed\n");
@@ -164,17 +170,20 @@ void WBLCTrotTest<T>::_UpdateTestOneStep(){
     if(Test<T>::_phase == WBLCTrotPhase::frhl_swing || 
             Test<T>::_phase == WBLCTrotPhase::flhr_swing){
         _body_ang_vel.setZero();
-    }else{
+        _filtered_input_vel[0]->input(_input_vel[0]);
+        _filtered_input_vel[1]->input(_input_vel[1]);
+     }else{
         _body_ang_vel[2] = _sp->_ori_command[2];
         _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
 
-        Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
         
-        Vec3<T> input_vel; input_vel.setZero();
-        input_vel[0] = scale*_sp->_dir_command[0];
-        input_vel[1] = -0.5*scale*_sp->_dir_command[1];
-
-        _body_vel = Rot.transpose() * input_vel;
+        _filtered_input_vel[0]->input(scale*_sp->_dir_command[0]);
+        _filtered_input_vel[1]->input(-0.5*scale*_sp->_dir_command[1]);
+        _input_vel[0] = _filtered_input_vel[0]->output();
+        _input_vel[1] = _filtered_input_vel[1]->output();
+        
+        Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
+        _body_vel = Rot.transpose() * _input_vel;
     }
     _body_pos += _body_vel*Test<T>::dt;
     //_body_pos = Test<T>::_robot->_state.bodyPosition;
