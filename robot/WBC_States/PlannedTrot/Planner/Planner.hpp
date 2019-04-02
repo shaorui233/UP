@@ -2,64 +2,42 @@
 #define PLANNER_H
 
 #include <cppTypes.h>
-#include <Utilities/BSplineBasic.h>
+#include "Path.hpp"
+#include <WBC_States/Cheetah_DynaCtrl_Definition.h>
+#include <WBC_States/StateProvider.hpp>
 
-template <typename T>
-class Path{
-    public:
-        Path();
-        ~Path();
-
-        constexpr static int nMiddle = 5;
-
-        void append(size_t insert_idx);
-        vectorAligned<Vec6<T> > _step_loc_list; // For trot (front, hind)
-        BS_Basic<T, 3, 3, nMiddle, 2, 2> _pos_spline;
-        BS_Basic<T, 3, 3, nMiddle, 2, 2> _ori_spline;
-
-        size_t _curr_step_idx;
-
-        size_t _end_idx;
-};
 template <typename T>
 class Planner{
     public:
-        Planner();
+        Planner(int first_stance_foot);
         ~Planner();
 
         void UpdateUserInput(T* dir, T* ori);
-        void getBodyPosture(const T & time, DVec<T>  & body_pos, DVec<T>  & body_ori );
+        void updateStepIdx(const T& curr_time);
+        void getBodyConfig(const T & time, 
+                Vec3<T>  & body_pos, Vec3<T>  & body_vel, Vec3<T> & body_acc, 
+                Vec3<T>  & body_ori, Vec3<T>  & body_ang_vel );
+
+        void getNextFootLocation(int swing_foot, 
+                Vec3<T> & front_foot, Vec3<T> & hind_foot);
+
         void SetParameter(const std::string & config_file);
+        void updateExtraData(Cheetah_Extra_Data<T>* ext_data);
 
-        bool stop();
+        bool stop(const T & curr_time);
 
-        T _step_size[2];
-        std::vector<T> _step_size_min;
-        std::vector<T> _step_size_max;
-        
-        T _step_time;
-        T _tot_time;
-        
-        T _ini_pos[9]; // Pos, vel, acc
-        T _ini_ori[9]; // Pos, vel, acc
-
-        T _fin_pos[9]; // Pos, vel, acc
-        T _fin_ori[9]; // Pos, vel, acc
-
-        DVec<T> _body_pos;
-        DVec<T> _body_ori;
-
-        constexpr static int nMiddle = 5;
-        BS_Basic<T, 3, 3, nMiddle, 2, 2> _pos_spline;
-        BS_Basic<T, 3, 3, nMiddle, 2, 2> _ori_spline;
-
-        bool _update_call;
         Path<T> _engaged_path;
         Path<T> _replanned_path;
-        
 
-        BS_Basic<T, 3, 3, nMiddle, 2, 2> _user_guide_body_path;
-        T _bound(const T & value, const T & min, const T & max);
+        int _path_flag;
+        T _curr_path_st_time;
+        T _body_height;
+        T _min_trot_initiating_step_size = 0.01;
+        int _step_idx; // -1: before start, -2: end of motion
+        int _first_stance_foot;
 
+        Vec3<T> _curr_global_frame_loc;
+        StateProvider<T>* _sp;
 };
+
 #endif

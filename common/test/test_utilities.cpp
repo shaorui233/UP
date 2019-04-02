@@ -13,6 +13,7 @@
 
 #include <string>
 #include <unordered_map>
+#include "include/Utilities/Utilities_print.h"
 
 
 TEST(Utilities, strintToVec3) {
@@ -65,4 +66,15 @@ TEST(Utilities, mapContains) {
 
 TEST(Utilities, mapToRange) {
   EXPECT_TRUE(fpEqual(2.0, mapToRange(0.4, 0.2, 1.2, 0.0, 10.0), .00001));
+}
+
+TEST(Utilities, colorPrint) {
+  printf_color(PrintColor::Default, "default\n");
+  printf_color(PrintColor::Red, "red\n");
+  printf_color(PrintColor::Green, "green\n");
+  printf_color(PrintColor::Blue, "blue\n");
+  printf_color(PrintColor::Yellow, "yellow\n");
+  printf_color(PrintColor::Magenta, "magenta\n");
+  printf_color(PrintColor::Cyan, "cyan\n");
+  printf_color(PrintColor::Default, "default!\n");
 }

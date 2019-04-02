@@ -5,14 +5,15 @@
 #include "Cheetah_DynaCtrl_Definition.h"
 #include "StateProvider.hpp"
 
-#define TEST Test<T>
-
 template <typename T>
 class Test{
     public:
         Test(FloatingBaseModel<T>* robot, const RobotType & robot_type);
         virtual ~Test();
 
+
+        //TEST
+        constexpr static T dt = 0.001;
         void GetCommand(
                 const Cheetah_Data<T>* data, 
                 LegControllerCommand<T> * command,
@@ -37,6 +38,8 @@ class Test{
         FBModelState<T> _state;
         int _count;
         int _waiting_count;
+        
+        LegControllerCommand<T> * _copy_cmd;
 
         T _roll_limit;
         T _pitch_limit;

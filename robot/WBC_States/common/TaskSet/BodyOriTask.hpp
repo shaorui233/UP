@@ -24,7 +24,7 @@ protected:
 
   int link_idx_;
   bool virtual_depend_; 
-  const FloatingBaseModel<T>* robot_sys_;
+  const FloatingBaseModel<T>* _robot_sys;
 };
 
 #endif

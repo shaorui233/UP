@@ -23,6 +23,7 @@ Test<T>::~Test(){}
 template <typename T>
 void Test<T>::GetCommand(const Cheetah_Data<T>* data, 
         LegControllerCommand<T> * command, Cheetah_Extra_Data<T> * ext_data){
+
     for(size_t i(0); i < cheetah::num_act_joint; ++i){
         _state.q[i] = data->jpos[i];
         _state.qd[i] = data->jvel[i];
@@ -49,10 +50,20 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->forwardKinematics();
 
     Vec3<T> ave_foot;
+    Vec3<T> ave_foot_vel;
     ave_foot.setZero();
+    ave_foot_vel.setZero();
+
+    // Simulation) Update global location
+    for(size_t i(0); i<3; ++i) _sp->_global_body_pos[i] = data->global_body_pos[i];
+    _sp->_global_fr_loc = _robot->_pGC[linkID::FR] + _sp->_global_body_pos;
+    _sp->_global_fl_loc = _robot->_pGC[linkID::FL] + _sp->_global_body_pos;
+    _sp->_global_hr_loc = _robot->_pGC[linkID::HR] + _sp->_global_body_pos;
+    _sp->_global_hl_loc = _robot->_pGC[linkID::HL] + _sp->_global_body_pos;
 
     for(size_t i(0); i<_sp->_num_contact; ++i){
         ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
+        ave_foot_vel += (1./_sp->_num_contact) * _robot->_vGC[_sp->_contact_pt[i]];
     }
     _sp->_dir_command[0] = data->dir_command[0];
     _sp->_dir_command[1] = data->dir_command[1];
@@ -62,10 +73,19 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
 
     _state.bodyPosition = -ave_foot;
     _state.bodyPosition += _sp->_local_frame_global_pos;
-   
+ 
+    Quat<T> quat = _state.bodyOrientation;
+    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+  
+    _state.bodyVelocity.tail(3) = -Rot * ave_foot_vel;
+
     _sp->_Q[3] = _state.bodyPosition[0];
     _sp->_Q[4] = _state.bodyPosition[1];
     _sp->_Q[5] = _state.bodyPosition[2];
+ 
+    for(size_t i(0); i<6; ++i){
+        _sp->_Qdot[i] = _state.bodyVelocity[i];
+    }
   
     // Update with new body position
     _robot->setState(_state);
@@ -76,8 +96,8 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->massMatrix();
     _robot->gravityForce();
     _robot->coriolisForce();
-
     _SafetyCheck();
+
     if(_b_running){
         if(!_Initialization(data, command)){
             _UpdateTestOneStep();
@@ -86,6 +106,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     }else{
         _SafeCommand(data, command);
     }
+    _copy_cmd = command;
     _UpdateExtraData(ext_data);
     ++_count;
     // When there is sensed time

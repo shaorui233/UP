@@ -35,8 +35,8 @@ class TwoContactTransCtrl: public Controller<T>{
         size_t _cp1, _cp2;
         int _transit_dir; // 1: swing start, -1: swing end
  
-        Task<T>* body_pos_task_;
-        Task<T>* body_ori_task_;
+        Task<T>* _body_pos_task;
+        Task<T>* _body_ori_task;
 
         ContactSpec<T>* fr_contact_;
         ContactSpec<T>* fl_contact_;

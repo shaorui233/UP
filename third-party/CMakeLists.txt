@@ -3,4 +3,5 @@ add_subdirectory(ParamHandler)
 add_subdirectory(inih)
 add_subdirectory(osqp)
 add_subdirectory(nlopt)
+add_subdirectory(vectornav)
 

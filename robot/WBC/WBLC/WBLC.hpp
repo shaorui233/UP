@@ -22,6 +22,8 @@ class WBLC_ExtraData{
         DVec<T> tau_min_;
         DVec<T> tau_max_;
 
+        DVec<T> _des_jacc_cmd;
+
         WBLC_ExtraData(){}
         ~WBLC_ExtraData(){}
 };
@@ -38,16 +40,9 @@ class WBLC: public WBC<T>{
                 const DVec<T> & grav,
                 void* extra_setting = NULL);
 
-        void MakeWBLC_Torque(const DVec<T> & des_jacc_cmd,
+        virtual void MakeTorque( 
                 DVec<T> & cmd,
                 void* extra_input = NULL); 
-        
-        virtual void MakeTorque(
-                const std::vector<Task<T>*> & task_list,
-                const std::vector<ContactSpec<T>*> & contact_list,
-                DVec<T> & cmd,
-                void* extra_input = NULL);
-
 
     private:
         std::vector<ContactSpec<T> *> _contact_list;

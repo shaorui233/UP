@@ -30,9 +30,22 @@ class PlannedTrotTest: public Test<T>{
         DVec<T> _jpos_des_pre;
         Planner<T>* _planner;
 
+        Vec3<T> _body_pos;
+        Vec3<T> _body_vel;
+        Vec3<T> _body_acc;
+
+        Vec3<T> _body_ori_rpy;
+        // This does not have any frame meaning. just derivation of rpy
+        Vec3<T> _body_ang_vel; 
+
+        Vec3<T> _front_foot_loc;
+        Vec3<T> _hind_foot_loc;
+
+        std::string _folder_name;
     protected:
         T _step_time;
         T _tot_time;
+
         virtual void _UpdateTestOneStep();
         virtual void _TestInitialization();
         virtual int _NextPhase(const int & phase);

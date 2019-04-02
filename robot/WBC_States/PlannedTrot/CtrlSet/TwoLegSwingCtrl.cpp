@@ -180,9 +180,8 @@ void TwoLegSwingCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + Kp_.cwiseProduct(des_jpos_ - Ctrl::_robot_sys->_state.q)
         + Kd_.cwiseProduct(des_jvel_ - Ctrl::_robot_sys->_state.qd);
 
-    wblc_->MakeWBLC_Torque(
-            des_jacc_cmd, 
-            gamma, wblc_data_);
+    wblc_data_->_des_jacc_cmd = des_jacc_cmd;
+    wblc_->MakeTorque(gamma, wblc_data_);
 
     //pretty_print(wblc_data_->Fr_, std::cout, "Fr");
 }
@@ -197,12 +196,23 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     Vec3<T> pos_des; pos_des.setZero();
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
-    pos_des[2] = _body_height_cmd;
+    Vec3<T> rpy_des; rpy_des.setZero();
+    DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
+    
+    for(size_t i(0); i<3; ++i){
+        pos_des[i] = _trot_test->_body_pos[i];
+        vel_des[i] = _trot_test->_body_vel[i];
+        acc_des[i] = _trot_test->_body_acc[i];
+
+        rpy_des[i] = _trot_test->_body_ori_rpy[i];
+        // TODO : Frame must coincide. Currently, it's not
+        ang_vel_des[i] = _trot_test->_body_ang_vel[i];
+    }
+
     body_pos_task_->UpdateTask(&(pos_des), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    Vec3<T> rpy_des; rpy_des.setZero();
     Mat3<T> Rot = rpyToRotMat(rpy_des);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     des_quat[0] = eigen_quat.w();
@@ -210,7 +220,6 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     des_quat[2] = eigen_quat.y();
     des_quat[3] = eigen_quat.z();
 
-    DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
     body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
@@ -273,8 +282,8 @@ void TwoLegSwingCtrl<T>::FirstVisit(){
     _foot_pos_ini1 = Ctrl::_robot_sys->_pGC[_cp1]; 
     _foot_pos_ini2 = Ctrl::_robot_sys->_pGC[_cp2]; 
 
-    _target_loc1 = _default_target_foot_loc_1;
-    _target_loc2 = _default_target_foot_loc_2;
+    _target_loc1 = _trot_test->_front_foot_loc;
+    _target_loc2 = _trot_test->_hind_foot_loc;
 
     _target_loc1 += _landing_offset;
     _target_loc2 += _landing_offset;
@@ -350,7 +359,7 @@ void TwoLegSwingCtrl<T>::LastVisit(){
 
 template <typename T>
 bool TwoLegSwingCtrl<T>::EndOfPhase(){
-    if(Ctrl::_state_machine_time > end_time_){
+    if(Ctrl::_state_machine_time > (end_time_-2.*Test<T>::dt)){
         return true;
     }
     return false;
@@ -360,7 +369,6 @@ template <typename T>
 void TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
     ParamHandler handler(_test_file_name);
     std::vector<T> tmp_vec;
-    
     handler.getVector<T>(category_name, "default_target_foot_location_1", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _default_target_foot_loc_1[i] = tmp_vec[i];
@@ -369,6 +377,7 @@ void TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _default_target_foot_loc_2[i] = tmp_vec[i];
     }
+    //pretty_print(tmp_vec, "default target foot");
     handler.getValue<T>(category_name, "swing_height", _swing_height);
 
     handler.getVector<T>(category_name, "landing_offset", tmp_vec);

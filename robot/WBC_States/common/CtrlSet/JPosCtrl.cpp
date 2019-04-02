@@ -91,7 +91,8 @@ void JPosCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
     //pretty_print(des_jacc_cmd, std::cout, "des jacc");
-    _wblc->MakeWBLC_Torque(des_jacc_cmd, gamma, _wblc_data);
+    _wblc_data->_des_jacc_cmd = des_jacc_cmd;
+    _wblc->MakeTorque(gamma, _wblc_data);
 }
 
 template <typename T>

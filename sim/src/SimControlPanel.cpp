@@ -35,6 +35,7 @@ SimControlPanel::SimControlPanel(QWidget *parent) :
 
 SimControlPanel::~SimControlPanel() {
   delete _simulation;
+  delete _robotInterface;
   delete _graphicsWindow;
   delete ui;
 }
@@ -73,12 +74,12 @@ void SimControlPanel::on_startButton_clicked() {
 
   _simulationMode = ui->simulatorButton->isChecked();
 
-  if(_simulationMode) {
-    printf("[SimControlPanel] Initialize Graphics...\n");
-    _graphicsWindow = new Graphics3D();
-    _graphicsWindow->show();
-    _graphicsWindow->resize(1280, 720);
+  printf("[SimControlPanel] Initialize Graphics...\n");
+  _graphicsWindow = new Graphics3D();
+  _graphicsWindow->show();
+  _graphicsWindow->resize(1280, 720);
 
+  if(_simulationMode) {
     printf("[SimControlPanel] Initialize simulator...\n");
     _simulation = new Simulation(robotType, _graphicsWindow, _parameters);
     loadSimulationParameters(_simulation->getSimParams());
@@ -86,43 +87,29 @@ void SimControlPanel::on_startButton_clicked() {
 
     printf("[SimControlParameter] Load terrain...\n");
     _simulation->loadTerrainFile(_terrainFileName);
-
-//    // hack
-//    _simulation->addCollisionPlane(.8, 0, -0.5);
-//    // Box 1
-//    Vec3<double> pos;
-//    Mat3<double> ori;
-//    Vec3<double> ori_zyx; ori_zyx.setZero();
-//
-//    pos[0] = 0.0; pos[1] = 0.0; pos[2] = -0.415;
-//
-//    ori_zyx[0] = 0.3;
-//    ori_zyx[1] = 0.4;
-//    EulerZYX_2_SO3(ori_zyx, ori);
-//    _simulation->addCollisionBox(0.8, 0., 1.5, 0.7, 0.05, pos, ori);
-//
-//    // Box 2
-//    pos[0] = 0.3; pos[1] = 0.05;  pos[2] = -0.30;
-//    ori_zyx[0] = 0.4; ori_zyx[1] = 0.;  ori_zyx[2] = 0.4;
-//    EulerZYX_2_SO3(ori_zyx, ori);
-//    _simulation->addCollisionBox(0.8, 0., 0.7, 0.7, 0.05, pos, ori);
-
-
     _simThread = std::thread([this](){_simulation->runAtSpeed();});
 
     _graphicsWindow->setAnimating(true);
   } else {
-    assert(false); // don't support robot mode yet
+    printf("[SimControlPanel] Init Robot Interface...\n");
+    _robotInterface = new RobotInterface(robotType, _graphicsWindow);
+    loadRobotParameters(_robotInterface->getParams());
+    _robotInterface->startInterface();
+    _graphicsWindow->setAnimating(true);
   }
 
   _started = true;
   updateUiEnable();
 }
 
+
+
 void SimControlPanel::on_stopButton_clicked() {
   if(_simulation) {
     _simulation->stop();
     _simThread.join();
+  } else {
+    _robotInterface->stopInterface();
   }
 
   if(_graphicsWindow) {
@@ -130,11 +117,14 @@ void SimControlPanel::on_stopButton_clicked() {
     _graphicsWindow->hide();
   }
 
+  printf("calling destructors\n");
   delete _simulation;
   delete _graphicsWindow;
+  delete _robotInterface;
 
   _simulation = nullptr;
   _graphicsWindow = nullptr;
+  _robotInterface = nullptr;
 
   _started = false;
   updateUiEnable();
@@ -274,7 +264,7 @@ void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
     return;
   }
 
-  auto& parameter = _simulation->getRobotParams().collection.lookup(cellName);
+  auto& parameter = (_simulationMode ? _simulation->getRobotParams() : _robotInterface->getParams()).collection.lookup(cellName);
   ControlParameterValueKind kind = parameter._kind;
   ControlParameterValue oldValue = parameter.get(kind);
 
@@ -305,7 +295,7 @@ void SimControlPanel::on_robotTable_cellChanged(int row, int column) {
       ui->robotTable->item(row, 1)->setText(QString(parameter.toString().c_str()));
       _ignoreTableCallbacks = false;
     } else {
-      assert(false);
+      _robotInterface->sendControlParameter(cellName, parameter.get(parameter._kind), parameter._kind);
     }
   }
 
@@ -338,7 +328,7 @@ void SimControlPanel::on_loadRobotButton_clicked() {
     _simulation->getRobotParams().collection.clearAllSet();
     _simulation->getRobotParams().initializeFromYamlFile(fileName.toStdString());
     if(!_simulation->getRobotParams().collection.checkIfAllSet()) {
-      printf("new settings file %s doesn't contain the following simulator parameters:\n%s\n",
+      printf("new settings file %s doesn't contain the following robot parameters:\n%s\n",
              fileName.toStdString().c_str(), _simulation->getRobotParams().generateUnitializedList().c_str());
       throw std::runtime_error("bad new settings file");
     }
@@ -351,7 +341,21 @@ void SimControlPanel::on_loadRobotButton_clicked() {
     }
     _simulation->getSimParams().unlockMutex();
   } else {
-    assert(false);
+    _robotInterface->getParams().lockMutex();
+    _robotInterface->getParams().collection.clearAllSet();
+    _robotInterface->getParams().initializeFromYamlFile(fileName.toStdString());
+    if(!_robotInterface->getParams().collection.checkIfAllSet()) {
+      printf("new settings file %s doesn't contain the following robot parameters:\n%s\n",
+             fileName.toStdString().c_str(), _robotInterface->getParams().generateUnitializedList().c_str());
+      throw std::runtime_error("bad new settings file");
+    }
+    loadRobotParameters(_robotInterface->getParams());
+
+    for(auto& kv : _robotInterface->getParams().collection._map) {
+      _robotInterface->sendControlParameter(kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
+    }
+
+    _robotInterface->getParams().unlockMutex();
   }
 }
 

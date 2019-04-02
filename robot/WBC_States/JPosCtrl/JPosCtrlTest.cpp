@@ -6,16 +6,16 @@
 template <typename T>
 JPosCtrlTest<T>::JPosCtrlTest(FloatingBaseModel<T>* robot, const RobotType& robot_type):
     Test<T>(robot, robot_type){
-    TEST::_phase = JPosCtrlPhase::JPCTRL_move_to_target;
-    TEST::_state_list.clear();
+    Test<T>::_phase = JPosCtrlPhase::JPCTRL_move_to_target;
+    Test<T>::_state_list.clear();
 
     _ini_jpos_ctrl = new JPosCtrl<T>(robot);
     _jpos_stay = new JPosCtrl<T>(robot);
     _jpos_swing = new JPosCtrl<T>(robot);
     
-    TEST::_state_list.push_back(_ini_jpos_ctrl);
-    TEST::_state_list.push_back(_jpos_stay);
-    TEST::_state_list.push_back(_jpos_swing);
+    Test<T>::_state_list.push_back(_ini_jpos_ctrl);
+    Test<T>::_state_list.push_back(_jpos_stay);
+    Test<T>::_state_list.push_back(_jpos_swing);
 
     _SettingParameter();
 
@@ -24,8 +24,8 @@ JPosCtrlTest<T>::JPosCtrlTest(FloatingBaseModel<T>* robot, const RobotType& robo
 
 template <typename T>
 JPosCtrlTest<T>::~JPosCtrlTest(){
-  for(size_t i(0); i < TEST::_state_list.size(); ++i){
-    delete TEST::_state_list[i];
+  for(size_t i(0); i < Test<T>::_state_list.size(); ++i){
+    delete Test<T>::_state_list[i];
   }
 }
 
@@ -49,8 +49,8 @@ int JPosCtrlTest<T>::_NextPhase(const int & phase){
 
 template <typename T>
 void JPosCtrlTest<T>::_SettingParameter(){
-  typename std::vector< Controller<T> *>::iterator iter = TEST::_state_list.begin();
-  while(iter < TEST::_state_list.end()){
+  typename std::vector< Controller<T> *>::iterator iter = Test<T>::_state_list.begin();
+  while(iter < Test<T>::_state_list.end()){
 
       (*iter)->SetTestParameter(
               CheetahConfigPath"TEST_jpos_ctrl.yaml");

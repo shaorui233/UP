@@ -22,13 +22,13 @@ TEST(Goldfarb_Optimizer, Goldfarb_opt_test) {
     g0[0] = 1.;
     g0[1] = 1.;
 
-    GMatr<double> CE(2, 1);
+    GMatr<double> CE(0., 2, 1);
     CE[0][0] = 1.;
     CE[1][0] = 1.;
     GVect<double> ce0(1);
     ce0[0] = -1.0;
 
-    GMatr<double> CI(2, 4);
+    GMatr<double> CI(0., 2, 4);
     CI[0][0] = 1.;
     CI[1][1] = 1.;
     CI[0][2] = -1.;

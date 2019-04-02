@@ -8,7 +8,7 @@
 template <typename T>
 class Task{
     public:
-        Task(int dim):
+        Task(size_t dim):
             b_set_task_(false), dim_task_(dim), op_cmd_(dim),
             pos_err_(dim), vel_des_(dim), acc_des_(dim) {}
 
@@ -30,7 +30,7 @@ class Task{
         }
 
         bool IsTaskSet(){ return b_set_task_; }
-        int getDim(){ return dim_task_; }
+        size_t getDim(){ return dim_task_; }
         void UnsetTask(){ b_set_task_ = false; }
 
         const DVec<T> & getPosError(){ return pos_err_;  }
@@ -49,7 +49,7 @@ class Task{
         virtual bool _AdditionalUpdate() = 0;
 
         bool b_set_task_;
-        int dim_task_;
+        size_t dim_task_;
 
         DVec<T> op_cmd_;
         DVec<T> JtDotQdot_;

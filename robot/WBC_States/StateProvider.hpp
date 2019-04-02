@@ -22,6 +22,13 @@ class StateProvider{
         T _ori_command[3];
 
         int _num_step;
+
+        Vec3<T> _global_body_pos;
+
+        Vec3<T> _global_fr_loc;
+        Vec3<T> _global_fl_loc;
+        Vec3<T> _global_hr_loc;
+        Vec3<T> _global_hl_loc;
     private:
         StateProvider();
 };

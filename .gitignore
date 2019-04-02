@@ -12,6 +12,7 @@ lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
 optimization_data
+sim_data
 planning_data
 machine_learning/python_bridge/pycheetah.cpp
 machine_learning/python_bridge/pycheetah.py

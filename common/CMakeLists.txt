@@ -6,7 +6,7 @@ project(libbiomimetics)
 set(CMAKE_CXX_FLAGS "-O3 -g -march=native -ffast-math -ggdb -Wall -Wall \
 -Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
--Wredundant-decls -Wshadow -Wsign-promo -Werror")
+-Wredundant-decls -Wshadow -Wsign-promo -Werror -Wno-format-nonliteral")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -I /usr/include/")
 set(CMAKE_C_FLAGS "-O3  -g -std=gnu99 -march=native -I.")
@@ -54,6 +54,7 @@ target_link_libraries(biomimetics inih dynacore_param_handler)
 
 # Test
 add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler)
+target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread)
 target_link_libraries(test-common Goldfarb_Optimizer nlopt)
+target_link_libraries(test-common WBC_state)
 add_test(NAME example_test COMMAND test-common)

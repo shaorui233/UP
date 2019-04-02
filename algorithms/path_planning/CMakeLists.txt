@@ -23,4 +23,4 @@ file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp fi
 add_library(path_planning SHARED ${sources})       # produce a library used by sim/robot
 
 add_executable(path_planning_test test_main.cpp)
-target_link_libraries(path_planning_test path_planning biomimetics)
+target_link_libraries(path_planning_test path_planning biomimetics pthread)

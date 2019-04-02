@@ -12,6 +12,8 @@ public:
   LinkPosTask(const FloatingBaseModel<T>*, int link_idx, bool virtual_depend = true);
   virtual ~LinkPosTask();
 
+  DVec<T> _Kp, _Kd;
+
 protected:
   // Update op_cmd_
   virtual bool _UpdateCommand(void* pos_des,

@@ -5,7 +5,7 @@ SET(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-O3 -g -march=native -ggdb -Wall -Wall \
--Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 \
+-Wextra -Wcast-align  -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
 -Wredundant-decls -Wshadow -Wsign-promo -Werror")
 set(CMAKE_C_FLAGS "-O3  -g  -march=native -std=gnu99 -I.")

@@ -10,9 +10,10 @@
 #include <WBC/WBLC/KinWBC.hpp>
 #include <WBC/WBLC/WBLC.hpp>
 #include <ParamHandler/ParamHandler.hpp>
+#include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
 
 template <typename T>
-BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
+BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot, BodyCtrlTest<T> * test):Controller<T>(robot),
     _Kp(cheetah::num_act_joint),
     _Kd(cheetah::num_act_joint),
     _des_jpos(cheetah::num_act_joint),
@@ -24,9 +25,9 @@ BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot):Controlle
 {
     _body_pos_task = new BodyPosTask<T>(Ctrl::_robot_sys);
     _body_ori_task = new BodyOriTask<T>(Ctrl::_robot_sys);
-
-    Ctrl::_task_list.push_back(_body_ori_task);
+    
     Ctrl::_task_list.push_back(_body_pos_task);
+    Ctrl::_task_list.push_back(_body_ori_task);
 
    
     _fr_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::FR);
@@ -64,6 +65,10 @@ BodyPostureCtrl<T>::BodyPostureCtrl(const FloatingBaseModel<T>* robot):Controlle
     _sp = StateProvider<T>::getStateProvider();
     _target_ori_command.setZero();
 
+    _body_test = test;
+    for(size_t i(0);i<3; ++i){
+        _ori_cmd_filter.push_back(new digital_lp_filter<T>(2.*M_PI* 10., _body_test->dt));
+    }
     printf("[Body Control] Constructed\n");
 }
 
@@ -118,13 +123,16 @@ template <typename T>
 void BodyPostureCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
     // WBLC
     _wblc->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
-    DVec<T> _des_jacccmd = _des_jacc 
+    DVec<T> des_jacc_cmd = _des_jacc 
         + _Kp.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
         + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
-    _wblc->MakeWBLC_Torque(
-            _des_jacccmd, 
-            gamma, _wblc_data);
+    _wblc_data->_des_jacc_cmd = des_jacc_cmd;
+    _wblc->MakeTorque(gamma, _wblc_data);
+
+    //pretty_print(Ctrl::_grav, std::cout, "grav");
+    //pretty_print(Ctrl::_coriolis, std::cout, "coriolis");
+    //pretty_print(Ctrl::_A, std::cout, "A");
 }
 
 template <typename T>
@@ -144,8 +152,10 @@ void BodyPostureCtrl<T>::_task_setup(){
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
 
-    for(size_t i(0); i<3; ++i) 
-        _target_ori_command[i] += 0.001*_sp->_ori_command[i];
+    for(size_t i(0); i<3; ++i) {
+        _ori_cmd_filter[i]->input(_sp->_ori_command[i]);
+        _target_ori_command[i] += _ori_cmd_filter[i]->output()*Test<T>::dt;
+    }
 
     Mat3<T> Rot = rpyToRotMat(_target_ori_command);
     Eigen::Quaternion<T> eigen_quat(Rot.transpose());

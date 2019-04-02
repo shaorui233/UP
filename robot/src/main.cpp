@@ -9,6 +9,7 @@
 #include <iostream>
 #include <main.h>
 #include <cassert>
+#include <HardwareBridge.h>
 
 #include "SimulationBridge.h"
 
@@ -64,8 +65,17 @@ int main(int argc, char** argv) {
       assert(false);
     }
   } else {
-    printf("[ERROR] Quadruped driver doesn't exist yet.\n");
-    assert(false);
+    if(gMasterConfig._robot == RobotType::MINI_CHEETAH) {
+      MiniCheetahHardwareBridge hw;
+      hw.run();
+      printf("[Quadruped] SimDriver run() has finished!\n");
+    } else if (gMasterConfig._robot == RobotType::CHEETAH_3) {
+      printf("[ERROR] can't do cheetah 3 hardware\n");
+      assert(false);
+    } else {
+      printf("[ERROR] unknown robot\n");
+      assert(false);
+    }
   }
 
   return 0;

@@ -27,6 +27,8 @@ class Handler {
         void handleMessage(const lcm::ReceiveBuffer* rbuf,
                 const std::string& chan, 
                 const python_to_simulation* msg) {
+            (void)rbuf;
+            (void)chan;
             //if(msg->reset_call){
                 //printf("resect call\n");
                 //pretty_print(msg->state, "state", cheetah::dim_config * 2);

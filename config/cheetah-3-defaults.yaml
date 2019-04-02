@@ -5,8 +5,8 @@ controller_dt     : 0.001
 myValue           : 12
 stand_kd_cartesian: [10,10,10]
 stand_kp_cartesian: [500,500,500]
-#stand_kd_cartesian: [8,8,8]
-#stand_kp_cartesian: [300,300,300]
+#stand_kd_cartesian: [0,0,0]
+#stand_kp_cartesian: [0,0,0]
 testValue         : 456
 cheater_mode      : 0
 foot_height_sensor_noise      : 0

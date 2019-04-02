@@ -31,10 +31,16 @@ bool BodyPosTask<T>::_UpdateCommand(void* pos_des,
         TK::vel_des_[i] = vel_des[i];
         TK::acc_des_[i] = acc_des[i];
     }
-    //printf("[Body Pos Task]\n");
-    //dynacore::pretty_print(acc_des, std::cout, "acc_des");
-    //dynacore::pretty_print(pos_err_, std::cout, "pos_err_");
-    //dynacore::pretty_print(*pos_cmd, std::cout, "pos cmd");
+    //Quat<T> quat = _robot_sys->_state.bodyOrientation;
+    //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    //TK::pos_err_ = Rot * TK::pos_err_;
+    //TK::vel_des_ = Rot * TK::vel_des_;
+    //TK::acc_des_ = Rot * TK::acc_des_;
+
+     //printf("[Body Pos Task]\n");
+    //pretty_print(acc_des, std::cout, "acc_des");
+    //pretty_print(TK::pos_err_, std::cout, "pos_err_");
+    //pretty_print(*pos_cmd, std::cout, "pos cmd");
     //pretty_print(TK::Jt_, std::cout, "Jt");
 
     return true;
@@ -42,7 +48,13 @@ bool BodyPosTask<T>::_UpdateCommand(void* pos_des,
 
 template <typename T>
 bool BodyPosTask<T>::_UpdateTaskJacobian(){
-    return true;
+    Quat<T> quat = _robot_sys->_state.bodyOrientation;
+    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    TK::Jt_.block(0,3, 3,3) = Rot.transpose();
+    //TK::Jt_.block(0,3, 3,3) = Rot;
+    //pretty_print(TK::Jt_, std::cout, "Jt");
+    //TK::Jt_.block(0,3, 3,3) = Rot*TK::Jt_.block(0,3,3,3);
+     return true;
 }
 
 template <typename T>

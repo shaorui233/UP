@@ -3,17 +3,19 @@
 
 #include <WBC_States/Controller.hpp>
 #include <ParamHandler/ParamHandler.hpp>
+#include <Utilities/filters.h>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBLC;
 template <typename T> class WBLC_ExtraData;
 template <typename T> class KinWBC;
 template <typename T> class StateProvider;
+template <typename T> class BodyCtrlTest;
 
 template <typename T>
 class BodyPostureCtrl: public Controller<T>{
     public:
-        BodyPostureCtrl(const FloatingBaseModel<T>* );
+        BodyPostureCtrl(const FloatingBaseModel<T>* , BodyCtrlTest<T>* );
         virtual ~BodyPostureCtrl();
 
         virtual void OneStep(void* _cmd);
@@ -23,8 +25,12 @@ class BodyPostureCtrl: public Controller<T>{
 
         virtual void CtrlInitialization(const std::string & category_name);
         virtual void SetTestParameter(const std::string & test_file);
+        
+        Vec3<T> _target_ori_command;
 
     protected:
+        BodyCtrlTest<T>* _body_test;
+        std::vector<filter<T> * > _ori_cmd_filter;
         DVec<T> _Kp, _Kd;
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 
@@ -46,7 +52,6 @@ class BodyPostureCtrl: public Controller<T>{
         WBLC_ExtraData<T>* _wblc_data;
 
         T _target_body_height;
-        Vec3<T> _target_ori_command;
         
         void _task_setup();
         void _contact_setup();

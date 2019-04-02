@@ -8,7 +8,7 @@ sys.path.append(dir_path + '/../../build/algorithms/machine_learning')
 import pycheetah as cheetah
 import numpy as np
 
-for i in range(1):#(10000):
+for i in range(10000):
     in_jpos = cheetah.doubleArray(12)
     in_jvel = cheetah.doubleArray(12)
     
@@ -49,6 +49,6 @@ for i in range(1):#(10000):
     in_jpos[11] += 0.3*np.sin(i*0.001)
     in_jvel[11] = 0.3*np.cos(i*0.001)
 
-    cheetah.step(in_jpos, in_jvel, out_config, out_config_vel)
-    #for j in range(18):
-        #print out_config[j]
+    cheetah.step(in_jpos, in_jvel, out_config, out_config_vel, reset)
+    for j in range(18):
+        print out_config[j]

@@ -15,8 +15,8 @@ template <typename T>
 OptPlayTest<T>::OptPlayTest(FloatingBaseModel<T>* robot, const RobotType & robot_type):
     Test<T>(robot, robot_type){
 
-        TEST::_phase = OptPlayPhase::stance_wait;
-        TEST::_state_list.clear();
+        Test<T>::_phase = OptPlayPhase::stance_wait;
+        Test<T>::_state_list.clear();
 
         body_ctrl_stay_ = new FullContactCtrl<T>(robot);
         body_ctrl_ = new FullContactCtrl<T>(robot);
@@ -33,19 +33,19 @@ OptPlayTest<T>::OptPlayTest(FloatingBaseModel<T>* robot, const RobotType & robot
         flhr_swing_end_trans_ctrl_ = 
             new TwoContactTransCtrl<T>(robot, linkID::FL, linkID::HR, -1);
 
-        TEST::_state_list.push_back(body_ctrl_stay_);
+        Test<T>::_state_list.push_back(body_ctrl_stay_);
 
-        TEST::_state_list.push_back(body_ctrl_);
+        Test<T>::_state_list.push_back(body_ctrl_);
 
-        TEST::_state_list.push_back(frhl_swing_start_trans_ctrl_);
-        TEST::_state_list.push_back(frhl_swing_ctrl_);
-        TEST::_state_list.push_back(frhl_swing_end_trans_ctrl_);
+        Test<T>::_state_list.push_back(frhl_swing_start_trans_ctrl_);
+        Test<T>::_state_list.push_back(frhl_swing_ctrl_);
+        Test<T>::_state_list.push_back(frhl_swing_end_trans_ctrl_);
 
-        TEST::_state_list.push_back(body_ctrl_);
+        Test<T>::_state_list.push_back(body_ctrl_);
 
-        TEST::_state_list.push_back(flhr_swing_start_trans_ctrl_);
-        TEST::_state_list.push_back(flhr_swing_ctrl_);
-        TEST::_state_list.push_back(flhr_swing_end_trans_ctrl_);
+        Test<T>::_state_list.push_back(flhr_swing_start_trans_ctrl_);
+        Test<T>::_state_list.push_back(flhr_swing_ctrl_);
+        Test<T>::_state_list.push_back(flhr_swing_end_trans_ctrl_);
 
         _SettingParameter();
 
@@ -88,8 +88,8 @@ int OptPlayTest<T>::_NextPhase(const int & phase){
 
     if(next_phase == OptPlayPhase::flhr_swing_start_trans){
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
-        landing_loc_ave += 0.5 * TEST::_robot->_pGC[linkID::FR];
-        landing_loc_ave += 0.5 * TEST::_robot->_pGC[linkID::HL];
+        landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FR];
+        landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
 
         _sp->_contact_pt[0] = linkID::FR;
         _sp->_contact_pt[1] = linkID::HL;
@@ -102,8 +102,8 @@ int OptPlayTest<T>::_NextPhase(const int & phase){
 
     if(next_phase == OptPlayPhase::frhl_swing_start_trans){
         Vec3<T> landing_loc_ave = Vec3<T>::Zero();
-        landing_loc_ave += 0.5 * TEST::_robot->_pGC[linkID::FL];
-        landing_loc_ave += 0.5 * TEST::_robot->_pGC[linkID::HR];
+        landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FL];
+        landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HR];
 
         _sp->_contact_pt[0] = linkID::FL;
         _sp->_contact_pt[1] = linkID::HR;
@@ -130,7 +130,7 @@ int OptPlayTest<T>::_NextPhase(const int & phase){
 
 template <typename T>
 void OptPlayTest<T>::_SettingParameter(){
-    if(TEST::_robot_type == RobotType::MINI_CHEETAH){
+    if(Test<T>::_robot_type == RobotType::MINI_CHEETAH){
         printf("No mini cheetah data\n");
         exit(0);
     }
@@ -142,7 +142,8 @@ void OptPlayTest<T>::_SettingParameter(){
     }
     ParamHandler handler(CheetahConfigPath"TEST_opt_play_cheetah3.yaml");
     handler.getValue<int>("max_num_step", _max_num_step);
-    OptInterpreter<T>::getOptInterpreter()->SetParameter(CheetahConfigPath"TEST_opt_play_cheetah3.yaml");
+    OptInterpreter<T>::getOptInterpreter()->
+        SetParameter(CheetahConfigPath"TEST_opt_play_cheetah3.yaml");
 }
 
 template<typename T>
