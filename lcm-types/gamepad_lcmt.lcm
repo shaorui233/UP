@@ -1,19 +1,6 @@
 struct gamepad_lcmt {
-
-    boolean leftBumper;
-    boolean rightBumper;
-    boolean leftTriggerButton;
-    boolean rightTriggerButton;
-    boolean back;
-    boolean start;
-    boolean a;
-    boolean b;
-    boolean x;
-    boolean y;
-    boolean leftStickButton;
-    boolean rightStickButton;
-    boolean logitechButton;
-
-    float leftTriggerAnalog;
-    float rightTriggerAnalog;
+    int32_t leftBumper, rightBumper, leftTriggerButton, rightTriggerButton, back, start, a,b,x,y,leftStickButton, rightStickButton;
+    float leftTriggerAnalog, rightTriggerAnalog;
+    float leftStickAnalog[2];
+    float rightStickAnalog[2];
 }

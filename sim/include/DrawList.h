@@ -133,7 +133,7 @@ class DrawList {
          * This is to correct for errors when exporting parts and shifts them all to the origin.
          */
         QMatrix4x4 &getModelBaseTransform(size_t i) {
-            return _modelOffsets.at(i);
+            return _modelOffsets[i];
         }
 
         /*!
@@ -141,7 +141,7 @@ class DrawList {
          * to where it should be in the world
          */
         QMatrix4x4 &getModelKinematicTransform(size_t i) {
-            return _kinematicXform.at(i);
+            return _kinematicXform[i];
         }
 
         /*!
@@ -278,6 +278,7 @@ class DrawList {
           return _cameraOrigin;
         }
         vectorAligned<SolidColor> _instanceColor;
+        std::vector<QMatrix4x4> _kinematicXform;
     private:
         size_t _nUnique = 0, _nTotal = 0;
         std::vector<std::vector<float>> _vertexData;
@@ -296,7 +297,7 @@ class DrawList {
         std::vector<float> _glColorData;
 
         std::vector<QMatrix4x4> _modelOffsets;
-        std::vector<QMatrix4x4> _kinematicXform;
+
 
 
         bool _reloadNeeded = false;
