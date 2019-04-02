@@ -74,15 +74,14 @@ void BodyCtrlTest<T>::_SettingParameter(){
 
 template <typename T>
 void BodyCtrlTest<T>::_UpdateTestOneStep(){
-    // Update Desired Position & Velocity & Acceleration
-
-    
+   
+    // Data Save
     static int count(0);
     if(count % 10 == 0){
         Vec3<T> body_ori = ori::quatToRPY(Test<T>::_robot->_state.bodyOrientation);
+        saveVector(((BodyPostureCtrl<T>*)body_ctrl_)->_target_ori_command, 
+                _folder_name, "cmd_body_ori_rpy");
         saveValue(_sp->_curr_time, _folder_name, "time");
-        saveVector(((BodyPostureCtrl<T>*)body_ctrl_)->_target_ori_command, _folder_name, "cmd_body_ori_rpy");
-
         saveVector(body_ori, _folder_name, "body_ori_rpy");
         saveVector(_sp->_Q, _folder_name, "config");
         saveVector(_sp->_Qdot, _folder_name, "qdot");

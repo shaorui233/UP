@@ -194,7 +194,7 @@ void WBLCTrotTest<T>::_UpdateTestOneStep(){
         saveVector(_body_pos, _folder_name, "body_pos");
         saveVector(_body_vel, _folder_name, "body_vel");
         saveVector(_body_acc, _folder_name, "body_acc");
-        saveVector(_body_ori_rpy, _folder_name, "body_ori_rpy");
+        saveVector(_body_ori_rpy, _folder_name, "cmd_body_ori_rpy");
         saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
 
         saveVector(_sp->_Q, _folder_name, "config");
