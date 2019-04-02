@@ -19,13 +19,13 @@ class Handler
                 const simulation_to_python * msg)
         {
             output = *msg;
-            printf("Received message on channel \"%s\":\n", chan.c_str());
+//            printf("Received message on channel \"%s\":\n", chan.c_str());
         }
 };
 
-int step(double* in_jpos, double* in_jvel, double* out_config, double* out_config_vel)
+int step(double* in_jpos, double* in_jvel, double* out_config, double* out_config_vel, bool reset)
 {
-    printf("Python Bridge\n");
+//    printf("Python Bridge\n");
     lcm::LCM lcm_subscribe;
     lcm::LCM lcm_publish;
 
@@ -38,7 +38,7 @@ int step(double* in_jpos, double* in_jvel, double* out_config, double* out_confi
     Timer time;
 
     lcm_subscribe.subscribe("simulation_to_python", &Handler::handleMessage, &handlerObject);
-    input.reset_call = false;
+    input.reset_call = reset; //false;
     
     for(size_t i(0); i<cheetah::num_act_joint; ++i){
         input.jpos_cmd[i] = in_jpos[i];
@@ -52,6 +52,6 @@ int step(double* in_jpos, double* in_jvel, double* out_config, double* out_confi
         out_config[i] = output.config[i];
         out_config_vel[i] = output.config_vel[i];
     }
-    printf("%f ms\n", time.getMs());
+//    printf("%f ms\n", time.getMs());
     return 0;
 }

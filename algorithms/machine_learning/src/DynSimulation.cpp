@@ -63,7 +63,7 @@ DynSimulation::DynSimulation(SimGraphics3D *window):
     x0.qd = zero12;
 
     // Mini Cheetah Initial Posture
-    x0.bodyPosition[2] = 0.3;
+    x0.bodyPosition[2] = 0.25; //0.3;
     x0.q[0] = -0.03;
     x0.q[1] = -0.79;
     x0.q[2] = 1.715;
@@ -141,8 +141,44 @@ DynSimulation::~DynSimulation(){
 }
 
 void DynSimulation::reset(DVec<double> & state){
-    printf("resect call\n");
-    pretty_print(state, std::cout, "state");
+    DVec<double> zero12(12);
+    for(u32 i = 0; i < 12; i++) {
+        zero12[i] = 0.;
+    }
+
+    // set some sane defaults:
+    _tau = zero12;
+    FBModelState<double> x0;
+    x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Z, 0.));
+    // Mini Cheetah
+    x0.bodyPosition.setZero();
+    SVec<double> v0 = SVec<double>::Zero();
+    //v0[3] = 10;
+    x0.bodyVelocity = v0;
+    x0.q = zero12;
+    x0.qd = zero12;
+
+    // Mini Cheetah Initial Posture
+    x0.bodyPosition[2] = 0.3;
+    x0.q[0] = -0.03;
+    x0.q[1] = -0.79;
+    x0.q[2] = 1.715;
+
+    x0.q[3] = 0.03;
+    x0.q[4] = -0.79;
+    x0.q[5] = 1.715;
+
+    x0.q[6] = -0.03;
+    x0.q[7] = -0.72;
+    x0.q[8] = 1.715;
+
+    x0.q[9] = 0.03;
+    x0.q[10] = -0.72;
+    x0.q[11] = 1.715;
+
+    setRobotState(x0);
+//    printf("reset call\n");
+//    pretty_print(state, std::cout, "state");
 
 }
 void DynSimulation::step(
@@ -150,13 +186,13 @@ void DynSimulation::step(
         DVec<double> & nx_full_config, DVec<double> & nx_full_vel){
 
     //printf("doing some simulation...\n");
-    pretty_print(jpos_cmd, std::cout, "jpos_cmd");
-    pretty_print(jvel_cmd, std::cout, "jvel_cmd");
-    printf("\n");
+//    pretty_print(jpos_cmd, std::cout, "jpos_cmd");
+//    pretty_print(jvel_cmd, std::cout, "jvel_cmd");
+//    printf("\n");
     _tau.setZero();
     for(size_t i(0); i<cheetah::num_act_joint; ++i){
-        _torque_cmd[i] = 100.*(jpos_cmd[i] -_simulator->getState().q[i] ) + 
-            3.*(jvel_cmd[i] - _simulator->getState().qd[i]);
+        _torque_cmd[i] = 50.*(jpos_cmd[i] -_simulator->getState().q[i] ) +
+            5.*(jvel_cmd[i] - _simulator->getState().qd[i]);
     }
     _tau_update();
     _simulator->step(_dt, _tau, 500., 10.);
