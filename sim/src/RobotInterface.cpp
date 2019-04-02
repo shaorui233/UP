@@ -1,7 +1,7 @@
 #include <ControlParameters/ControlParameterInterface.h>
 #include "RobotInterface.h"
 #include "ControlParameters/SimulatorParameters.h"
-
+#include <unistd.h>
 
 RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx) :
 PeriodicTask(&_taskManager, ROBOT_INTERFACE_UPDATE_PERIOD, "robot-interface"),
