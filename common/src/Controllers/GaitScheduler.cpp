@@ -18,36 +18,36 @@ void GaitData<T>::zero() {
 
   // General Gait descriptors
   periodTimeNominal = 0.0;		// overall period time to scale
-  initialPhase = 0.0;				// initial phase to offset
+  initialPhase = 0.0;			// initial phase to offset
   switchingPhaseNominal = 0.0;	// nominal phase to switch contacts
 
   // Enable flag for each foot
   gaitEnabled = Eigen::Vector4i::Zero();	// enable gaint controlled legs
 
   // Time based descriptors
-  periodTime = Vec4<T>::Zero();			// overall gait period time
-  timeStance = Vec4<T>::Zero();			// total stance time
-  timeSwing = Vec4<T>::Zero();			// total swing time
+  periodTime = Vec4<T>::Zero();				// overall gait period time
+  timeStance = Vec4<T>::Zero();				// total stance time
+  timeSwing = Vec4<T>::Zero();				// total swing time
   timeStanceRemaining = Vec4<T>::Zero();	// stance time remaining
-  timeSwingRemaining = Vec4<T>::Zero();	// swing time remaining
+  timeSwingRemaining = Vec4<T>::Zero();		// swing time remaining
 
   // Phase based descriptors
-  switchingPhase = Vec4<T>::Zero();	// phase to switch to swing
-  phaseVariable = Vec4<T>::Zero();	// overall gait phase for each foot
+  switchingPhase = Vec4<T>::Zero();		// phase to switch to swing
+  phaseVariable = Vec4<T>::Zero();		// overall gait phase for each foot
   phaseOffset = Vec4<T>::Zero();		// nominal gait phase offsets
-  phaseScale = Vec4<T>::Zero();		// phase scale relative to variable
+  phaseScale = Vec4<T>::Zero();			// phase scale relative to variable
   phaseStance = Vec4<T>::Zero();		// stance subphase
-  phaseSwing = Vec4<T>::Zero();		// swing subphase
+  phaseSwing = Vec4<T>::Zero();			// swing subphase
 
   // Scheduled contact states
   contactStateScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
-  contactStatePrev = Eigen::Vector4i::Zero();			// previous contact state of the foot
+  contactStatePrev = Eigen::Vector4i::Zero();		// previous contact state of the foot
   touchdownScheduled = Eigen::Vector4i::Zero();		// scheduled touchdown flag
-  liftoffScheduled = Eigen::Vector4i::Zero();			// scheduled liftoff flag
+  liftoffScheduled = Eigen::Vector4i::Zero();		// scheduled liftoff flag
 
   // Position of the feet in the world frame at events
-  posFootTouchdownWorld = Mat34<T>::Zero();	//
-  posFootLiftoffWorld = Mat34<T>::Zero();		//
+  posFootTouchdownWorld = Mat34<T>::Zero();		// foot position when scheduled to lift off
+  posFootLiftoffWorld = Mat34<T>::Zero();		// foot position when scheduled to touchdown
 }
 
 template struct GaitData<double>;

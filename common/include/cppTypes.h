@@ -33,6 +33,10 @@ using Vec4 = typename Eigen::Matrix<T, 4, 1>;
 template<typename T>
 using Vec6 = Eigen::Matrix<T, 6, 1>;
 
+// 10x1 Vector
+template<typename T>
+using Vec10 = Eigen::Matrix<T, 10, 1>;
+
 // 12x1 Vector
 template<typename T>
 using Vec12 = Eigen::Matrix<T, 12, 1>;

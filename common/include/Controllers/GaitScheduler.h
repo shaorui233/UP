@@ -51,7 +51,7 @@ struct GaitData {
 
   // Gait descriptors
   T periodTimeNominal;		// overall period time to scale
-  T initialPhase;				// initial phase to offset
+  T initialPhase;			// initial phase to offset
   T switchingPhaseNominal;	// nominal phase to switch contacts
 
   // Enable flag for each foot
@@ -59,28 +59,28 @@ struct GaitData {
 
   // Time based descriptors
   Vec4<T> periodTime;			// overall foot scaled gait period time
-  Vec4<T> timeStance;				// total stance time
-  Vec4<T> timeSwing;				// total swing time
+  Vec4<T> timeStance;			// total stance time
+  Vec4<T> timeSwing;			// total swing time
   Vec4<T> timeStanceRemaining;	// stance time remaining
-  Vec4<T> timeSwingRemaining;		// swing time remaining
+  Vec4<T> timeSwingRemaining;	// swing time remaining
 
   // Phase based descriptors
-  Vec4<T> switchingPhase;		// phase to switch to swing
+  Vec4<T> switchingPhase;	// phase to switch to swing
   Vec4<T> phaseVariable;	// overall gait phase for each foot
-  Vec4<T> phaseOffset;	// nominal gait phase offsets
+  Vec4<T> phaseOffset;		// nominal gait phase offsets
   Vec4<T> phaseScale;		// phase scale relative to variable
-  Vec4<T> phaseStance;	// stance subphase
+  Vec4<T> phaseStance;		// stance subphase
   Vec4<T> phaseSwing;		// swing subphase
 
   // Scheduled contact states
   Eigen::Vector4i contactStateScheduled;	// contact state of the foot
-  Eigen::Vector4i contactStatePrev;		// previous contact state of the foot
+  Eigen::Vector4i contactStatePrev;			// previous contact state of the foot
   Eigen::Vector4i touchdownScheduled;		// scheduled touchdown event flag
-  Eigen::Vector4i liftoffScheduled;		// scheduled touchdown event flag
+  Eigen::Vector4i liftoffScheduled;			// scheduled touchdown event flag
 
   // Position of the feet in the world frame at takeoff time
-  Mat34<T> posFootLiftoffWorld;
-  Mat34<T> posFootTouchdownWorld;
+  Mat34<T> posFootLiftoffWorld;		// foot position when scheduled to lift off
+  Mat34<T> posFootTouchdownWorld;	// foot position when scheduled to touchdown
 };
 
 

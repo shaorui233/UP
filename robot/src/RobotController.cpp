@@ -31,7 +31,7 @@ void RobotController::initialize() {
     _gaitScheduler = new GaitScheduler<float>(_quadruped);
     _gaitScheduler->initialize();
 
-    _desiredStateCommand = new DesiredStateCommand<float>(driverCommand);
+    _desiredStateCommand = new DesiredStateCommand<float>(driverCommand, &_stateEstimate);
 
     // Initialize a new ContactEstimator object
     //_contactEstimator = new ContactEstimator<double>();
@@ -121,8 +121,16 @@ void RobotController::step() {
     // Find the current gait schedule
     _gaitScheduler->step();
 
+    // Temporary fix for testing 
+    //_stateEstimate.position(0) = cheaterState->position(0);
+    //_stateEstimate.position(1) = cheaterState->position(1);
+    //_stateEstimate.position(2) = cheaterState->position(2);
+
     // Find the desired state trajectory
     _desiredStateCommand->convertToStateCommands();
+    //Vec10<float> dtVec;
+    //dtVec << 0.1,0.1,0.1,0.1,0.1,0,0,0,0,0;
+    //_desiredStateCommand->desiredStateTrajectory(5, dtVec);
 
     // This function should eventually be moved to whatever the Locomotion FSM state ends up being
     //LocomotionControlStep();

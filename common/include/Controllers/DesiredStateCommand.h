@@ -6,6 +6,7 @@
 #define DESIRED_STATE_COMMAND_H
 
 #include "SimUtilities/GamepadCommand.h"
+#include <Controllers/StateEstimatorContainer.h>
 #include <iostream>
 #include <cppTypes.h>
 
@@ -23,6 +24,7 @@ struct DesiredStateData {
   void zero();
 
   Vec12<T> stateDes;
+  Eigen::Matrix<T, 12, 10> stateTrajDes;
 };
 
 
@@ -34,9 +36,13 @@ class DesiredStateCommand
 {
 public:
   // Initialize with the GamepadCommand struct
-  DesiredStateCommand(GamepadCommand *command) : gamepadCommand(command)  { }
+  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate)  {
+    gamepadCommand = command;
+    stateEstimate = sEstimate;
+  }
 
   void convertToStateCommands();
+  void desiredStateTrajectory(int N, Vec10<T> dtVec);
   void printRawInfo();
   void printStateCommandInfo();
   float deadband(float command, T minVal, T maxVal);
@@ -68,7 +74,11 @@ public:
   DesiredStateData<T> data;
 
 private:
-  GamepadCommand *gamepadCommand;
+  GamepadCommand* gamepadCommand;
+  StateEstimate<T>* stateEstimate;
+
+  // Dynamics matrix for discrete time approximation
+  Mat12<T> A;
 
   // Control loop timestep change
   T dt = 0.001;
