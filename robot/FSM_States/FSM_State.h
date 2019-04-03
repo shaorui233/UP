@@ -4,7 +4,7 @@
 #include "../hardware_interface.h"
 #include <string>
 
-#include "../control_fsm.h"
+#include "../ControlFSM.h"
 
 using std::string;
 class FSM_State
