@@ -24,7 +24,8 @@ void create_folder(const std::string & folder_name){
             //printf("%s is already exist\n", full_path.c_str());
         } else {
             // something else
-            std::cout << "cannot create session name folder error:" << strerror(errno) << std::endl;
+            std::cout << "cannot create session name folder error:" << 
+                strerror(errno) << std::endl;
             exit(0);
         }
     }
