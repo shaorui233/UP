@@ -55,6 +55,7 @@ WBLC_TwoContactTransCtrl<T>::WBLC_TwoContactTransCtrl(
     }
 
     wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_qddot_.head(6) = DVec<T>::Constant(6, Weight::qddot_relax_virtual);
     wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, Weight::tan_small);
     wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, Weight::foot_big);
 
@@ -286,6 +287,11 @@ void WBLC_TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
+    // torque limit default setting
+    handler.getVector<T>("tau_lim", tmp_vec);
+    wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);
+    wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[1]);
+
 }
 
 

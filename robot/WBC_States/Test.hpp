@@ -30,6 +30,7 @@ class Test{
         virtual void _UpdateExtraData(Cheetah_Extra_Data<T> * ext_data) = 0;
 
         bool _b_first_visit;
+        bool _b_save_file;
         int _phase;
         std::vector<Controller<T>*> _state_list;
 

@@ -44,10 +44,14 @@ class Path{
         BS_Basic<T, 3, 3, nMiddle, 2, 2> _lin_spline;
         BS_Basic<T, 3, 3, nMiddle, 2, 2> _ori_spline;
 
+        T _weight[nMiddle + 1];
+
         size_t _end_idx;
         int _path_idx;
 
-        T _step_size[2];
+        T _ini_vel[2];
+        T _fin_vel[2];
+        
         T _step_size_ori[3];
 
         T _fin_lin[9]; // Pos, vel, acc
@@ -61,8 +65,8 @@ class Path{
         Vec3<T> _fl_shoulder;
         Vec3<T> _hr_shoulder;
         Vec3<T> _hl_shoulder;
-        std::vector<T> _step_size_min;
-        std::vector<T> _step_size_max;
+        std::vector<T> _lin_vel_min;
+        std::vector<T> _lin_vel_max;
 
         std::vector<T> _step_size_ori_min;
         std::vector<T> _step_size_ori_max;
@@ -76,9 +80,11 @@ class Path{
             this->_end_idx = p._end_idx;
             this->_path_idx = p._path_idx;
 
-            this->_step_size[0] = p._step_size[0];
-            this->_step_size[1] = p._step_size[1];
-            for(size_t i(0); i<9; ++i){
+            this->_ini_vel[0] = p._ini_vel[0];
+            this->_ini_vel[1] = p._ini_vel[1];
+            this->_fin_vel[0] = p._fin_vel[0];
+            this->_fin_vel[1] = p._fin_vel[1];
+             for(size_t i(0); i<9; ++i){
                 this->_fin_lin[i] = p._fin_lin[i];
                 this->_fin_ori[i] = p._fin_ori[i];
             }

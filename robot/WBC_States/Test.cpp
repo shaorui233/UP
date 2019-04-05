@@ -4,6 +4,7 @@
 template<typename T>
 Test<T>::Test(FloatingBaseModel<T>* robot, const RobotType & robot_type):
     _b_first_visit(true),
+    _b_save_file(false),
     _robot(robot),
     _count(0),
     _waiting_count(5),

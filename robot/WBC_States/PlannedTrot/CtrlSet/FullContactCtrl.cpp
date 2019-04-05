@@ -52,7 +52,9 @@ FullContactCtrl<T>::FullContactCtrl(
         _dim_contact += Ctrl::_contact_list[i]->getDim();
     }
 
-    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, 100.0);
+    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_qddot_.head(6) = 
+        DVec<T>::Constant(6, Weight::qddot_relax_virtual);
     wblc_data_->W_rf_ = DVec<T>::Constant(_dim_contact, 1.);
     wblc_data_->W_xddot_ = DVec<T>::Constant(_dim_contact, 1000.0);
 

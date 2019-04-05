@@ -34,10 +34,17 @@ class BS_Basic{
                     for(int j(0); j<DIM; ++j)
                         CPoints_[i][j] = 0.;
                 }
+                if(NumKnots_ < 2* (DEGREE + 1)){
+                    printf("Invalid setup (num_knots, degree): %d, %d\n", NumKnots_, DEGREE);
+                }
             }
         ~BS_Basic(){}
 
         // size of T: DIM * CONST_LEVEL_INI (or CONST_LEVEL_FIN)
+        // ex) if dim:3, const level ini: 3(pos, vel, acc)
+        // ini[0 ~ 2]: pos
+        // ini[3 ~ 5]: vel
+        // ini[6 ~ 8]: acc
         bool SetParam(T* init, T* fin, T ** middle_pt, T fin_time){
             _CalcKnot(fin_time);
             _CalcConstrainedCPoints(init, fin, fin_time);
@@ -102,7 +109,7 @@ class BS_Basic{
             return false;
         }
 
-    protected:
+    //protected:
         inline void _CalcKnot(T Tf) {
             int _i(0);
             int _j(0);
@@ -121,8 +128,8 @@ class BS_Basic{
             // augment knot sequence for the final part, # of order ( degree + 1 )
             for (_j = 0; _j < DEGREE + 1; ++_j)  Knots_[_i++] = Tf;
 
-            // for(int i(0); i< NumKnots_; ++i)
-            //   std::cout<<Knots_[i]<<std::endl;
+             //for(int i(0); i< NumKnots_; ++i)
+               //std::cout<<Knots_[i]<<std::endl;
         }
 
 
@@ -259,7 +266,7 @@ class BS_Basic{
 
                 _r *= (DEGREE - _k);
             }
-
+            
             // Deallocate
             for (_j = 0; _j <= DEGREE; ++_j)    delete[] _ndu[_j];
             delete[] _ndu;

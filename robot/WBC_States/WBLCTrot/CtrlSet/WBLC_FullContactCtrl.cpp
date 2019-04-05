@@ -51,13 +51,14 @@ WBLC_FullContactCtrl<T>::WBLC_FullContactCtrl(
         _dim_contact += Ctrl::_contact_list[i]->getDim();
     }
 
-    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, 100.0);
-    wblc_data_->W_rf_ = DVec<T>::Constant(_dim_contact, 1.);
-    wblc_data_->W_xddot_ = DVec<T>::Constant(_dim_contact, 1000.0);
+    wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_qddot_.head(6) = DVec<T>::Constant(6, Weight::qddot_relax_virtual);
+    wblc_data_->W_rf_ = DVec<T>::Constant(_dim_contact, Weight::tan_small);
+    wblc_data_->W_xddot_ = DVec<T>::Constant(_dim_contact, Weight::foot_big);
 
     int idx_offset(0);
     for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
-        wblc_data_->W_rf_[idx_offset + Ctrl::_contact_list[i]->getFzIndex()]= 0.01;
+        wblc_data_->W_rf_[idx_offset + Ctrl::_contact_list[i]->getFzIndex()]= Weight::nor_small;
         idx_offset += Ctrl::_contact_list[i]->getDim();
     }
 
@@ -127,6 +128,7 @@ void WBLC_FullContactCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
 
     wblc_data_->_des_jacc_cmd = des_jacc_cmd;
     wblc_->MakeTorque(gamma, wblc_data_);
+    //pretty_print(gamma, std::cout, "gamma");
 }
 
 template <typename T>
@@ -222,6 +224,11 @@ void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
+    // torque limit default setting
+    _param_handler->getVector<T>("tau_lim", tmp_vec);
+    wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);
+    wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[1]);
+
 }
 
 template class WBLC_FullContactCtrl<double>;

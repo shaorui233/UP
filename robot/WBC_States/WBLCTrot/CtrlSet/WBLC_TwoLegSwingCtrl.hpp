@@ -37,10 +37,10 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
                 const Vec3<T> & ini, const Vec3<T> & fin, const T & t, 
                 Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des);
 
-        void _GetBsplineSwingTrajectory(const T & t, BS_Basic<double, 3, 3, 1, 2, 2> & spline,
+        void _GetBsplineSwingTrajectory(const T & t, BS_Basic<T, 3, 3, 1, 2, 2> & spline,
                 Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des);
         void _SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des_pos, 
-                BS_Basic<double, 3, 3, 1, 2, 2> & spline);
+                BS_Basic<T, 3, 3, 1, 2, 2> & spline);
         void _SetContact(const size_t & cp_idx, const T & upper_lim, 
                 const T & rf_weight, const T & rf_weight_z, const T & foot_weight);
 
@@ -108,7 +108,7 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
         StateProvider<T>* _sp;
         T _dir_command[2];
         std::string _test_file_name;
-        BS_Basic<double, 3, 3, 1, 2, 2> _foot_traj_1;
-        BS_Basic<double, 3, 3, 1, 2, 2> _foot_traj_2;
+        BS_Basic<T, 3, 3, 1, 2, 2> _foot_traj_1;
+        BS_Basic<T, 3, 3, 1, 2, 2> _foot_traj_2;
 };
 #endif

@@ -12,6 +12,7 @@
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
+#include "JPosInitializer.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -83,6 +84,7 @@ private:
   void BodyPathVisualization();
   void BodyPathArrowVisualization();
 
+  JPosInitializer<float>* _jpos_initializer;
   Quadruped<float> _quadruped;
   LegController<float>* _legController = nullptr;
   StateEstimate<float> _stateEstimate;
