@@ -2,14 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 project(machine_learning)
 
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-O3 -g -march=native -ggdb -Wall -Wall \
--Wextra -Wcast-align -Wcast-qual -Wdisabled-optimization -Wformat=2 \
--Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
--Wredundant-decls -Wshadow -Wsign-promo")
-set(CMAKE_C_FLAGS "-O3  -g  -march=native -std=gnu99 -I.")
-
-
 set(CMAKE_COLOR_MAKEFILE   ON)
 message("LCM machine learning")
 execute_process(COMMAND ../algorithms/machine_learning/scripts/lcm_generation.sh)

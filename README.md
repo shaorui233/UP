@@ -15,6 +15,13 @@ cd build
 cmake ..
 make -j4
 ```
+
+If you are building code on your computer that you would like to copy over to the mini cheetah, you must replace the cmake command with
+```
+cmake -DMINI_CHEETAH_BUILD=TRUE
+```
+otherwise it will not work.  If you are building mini cheetah code one the mini cheetah computer, you do not need to do this.
+
 This build process builds the common library, robot code, and simulator. If you just change robot code, you can simply run `make -j4` again. If you change LCM types, you'll need to run `cmake ..; make -j4`. This automatically runs `make_types.sh`.
 
 To test the common library, run `common/test-common`. To run the robot code, run `robot/robot`. To run the simulator, run `sim/sim`.

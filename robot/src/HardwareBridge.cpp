@@ -74,12 +74,16 @@ void HardwareBridge::setupScheduler() {
 
 void HardwareBridge::handleGamepadLCM(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
                                       const gamepad_lcmt *msg) {
+  (void)rbuf;
+  (void)chan;
   _gamepadCommand.set(msg);
 }
 
 void HardwareBridge::handleControlParameter(const lcm::ReceiveBuffer* rbuf,
                                             const std::string& chan,
                                             const control_parameter_request_lcmt* msg) {
+  (void)rbuf;
+  (void)chan;
   if (msg->requestNumber <= _parameter_response_lcmt.requestNumber) {
     // nothing to do!
     printf(
@@ -175,8 +179,9 @@ void MiniCheetahHardwareBridge::run() {
 
 //  _robotController->spiCommand    = &_sharedMemory().robotToSim.spiCommand;
 
-//  _robotController->controlParameters = &_robotParams;
-//  _robotController->visualizationData = &_sharedMemory().robotToSim.visualizationData;
+  _robotController->controlParameters = &_robotParams;
+  _robotController->visualizationData = &_visualizationData;
+  _robotController->cheetahMainVisualization = &_mainCheetahVisualization;
 
   _robotController->initialize();
   _firstRun = false;
@@ -196,6 +201,8 @@ void MiniCheetahHardwareBridge::initHardware() {
 //  if(!init_vectornav(&_vectorNavData)) {
 //    initError("failed to initialize vectornav!\n", false);
 //  }
+
+
   // init spi
   // init sbus
   // init lidarlite

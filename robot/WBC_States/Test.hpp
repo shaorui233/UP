@@ -54,5 +54,6 @@ class Test{
         StateProvider<T>* _sp;
 };
 
-
+template<typename T>
+constexpr T Test<T>::dt;
 #endif

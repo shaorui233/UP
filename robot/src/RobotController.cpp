@@ -39,10 +39,10 @@ void RobotController::initialize() {
 
     // For WBC state
     _model = _quadruped.buildModel();
-    //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
+    _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
     //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
     //_wbc_state = new OptPlayTest<float>(&_model, robotType);
-    _wbc_state = new PlannedTrotTest<float>(&_model, robotType);
+    //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
     //_wbc_state = new WBDCTrotTest<float>(&_model, robotType);
     //_wbc_state = new WBLCTrotTest<float>(&_model, robotType);
 
@@ -54,7 +54,7 @@ void RobotController::initialize() {
 void RobotController::step() {
     setupStep();
     _stateEstimator->run();
-    //testDebugVisualization();
+    testDebugVisualization();
     StepLocationVisualization();
     BodyPathVisualization();
     BodyPathArrowVisualization();
@@ -62,6 +62,9 @@ void RobotController::step() {
     // for now, we will always enable the legs:
     _legController->setEnabled(true);
     _legController->setMaxTorqueCheetah3(208.5);
+
+    // for debugging the visualizations from robot code
+
 
     // DH: Test
     // Find the current gait schedule
@@ -422,6 +425,16 @@ void RobotController::testDebugVisualization() {
     // Todo, move some of this into the robot controller.
 
     float t = (float)_iterations / 1000;
+
+  cheetahMainVisualization->q.setZero();
+  cheetahMainVisualization->p.setZero();
+  cheetahMainVisualization->quat.setZero();
+  cheetahMainVisualization->color << 1,1,1,0.5f;
+  cheetahMainVisualization->p[2] = sin(t * 10);
+
+  return;
+
+
     // Test sphere visualization
     SphereVisualization sphere;
     sphere.position[0] = 0; sphere.position[1] = 5 * std::sin(t); sphere.position[2] = 5 * std::cos(t);

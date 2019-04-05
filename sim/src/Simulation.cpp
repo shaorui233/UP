@@ -48,13 +48,16 @@ _tau(12) {
   // init graphics
   if(_window) {
     printf("[Simulation] Setup Cheetah graphics...\n");
-    _robotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah() : window->setupCheetah3();
+    _simRobotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah() : window->setupCheetah3();
+    _controllerRobotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah() : window->setupCheetah3();
   }
 
   // init rigid body dynamics
   printf("[Simulation] Build rigid body model...\n");
   _model = _quadruped.buildModel();
+  _robotDataModel = _quadruped.buildModel();
   _simulator = new DynamicsSimulator<double>(_model, (bool)_simParams.use_spring_damper);
+  _robotDataSimulator = new DynamicsSimulator<double>(_robotDataModel, false);
 
   DVec<double> zero12(12);
   for(u32 i = 0; i < 12; i++) {
@@ -63,6 +66,8 @@ _tau(12) {
 
   // set some sane defaults:
   _tau = zero12;
+  _robotControllerState.q = zero12;
+  _robotControllerState.qd = zero12;
   FBModelState<double> x0;
   //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
   //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .0));
@@ -118,6 +123,7 @@ _tau(12) {
   x0.q[11] = 1.715;
 
   setRobotState(x0);
+  _robotDataSimulator->setState(x0);
 
   printf("[Simulation] Setup low-level control...\n");
   // init spine:
@@ -730,4 +736,18 @@ void Simulation::loadTerrainFile(const std::string &terrainFileName, bool addGra
       throw std::runtime_error("unknown terrain " + typeName);
     }
   }
+}
+
+void Simulation::updateGraphics() {
+
+  _robotControllerState.bodyOrientation = _sharedMemory().robotToSim.mainCheetahVisualization.quat.cast<double>();
+  _robotControllerState.bodyPosition = _sharedMemory().robotToSim.mainCheetahVisualization.p.cast<double>();
+  for(int i = 0; i < 12; i++)
+    _robotControllerState.q[i] = _sharedMemory().robotToSim.mainCheetahVisualization.q[i];
+  _robotDataSimulator->setState(_robotControllerState);
+  _robotDataSimulator->forwardKinematics(); // calc all body positions
+  _window->_drawList.updateRobotFromModel(*_simulator, _simRobotID, true);
+  _window->_drawList.updateRobotFromModel(*_robotDataSimulator, _controllerRobotID, false);
+  _window->_drawList.updateAdditionalInfo(*_simulator);
+  _window->update();
 }

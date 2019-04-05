@@ -39,8 +39,10 @@ struct ArrowVisualization
 
 struct CheetahVisualization
 {
-	// TODO
-
+	Vec12<float> q;
+	Quat<float> quat;
+	Vec3<float> p;
+	Vec4<float> color;
 };
 
 struct PathVisualization
