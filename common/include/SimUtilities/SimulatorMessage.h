@@ -57,6 +57,7 @@ struct RobotToSimulatorMessage {
 
 
   VisualizationData visualizationData;
+  CheetahVisualization mainCheetahVisualization;
   ControlParameterResponse controlParameterResponse;
 };
 

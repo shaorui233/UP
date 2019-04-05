@@ -37,6 +37,8 @@ protected:
   PeriodicTaskManager taskManager;
   PrintTaskStatus     statusTask;
   GamepadCommand      _gamepadCommand;
+  VisualizationData   _visualizationData;
+  CheetahVisualization _mainCheetahVisualization;
   lcm::LCM            _interfaceLCM;
   control_parameter_respones_lcmt _parameter_response_lcmt;
 

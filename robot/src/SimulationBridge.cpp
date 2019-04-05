@@ -154,8 +154,7 @@ void SimulationBridge::runRobotControl() {
     _robotController->tiBoardCommand = _sharedMemory().robotToSim.tiBoardCommand;
     _robotController->controlParameters = &_robotParams;
     _robotController->visualizationData = &_sharedMemory().robotToSim.visualizationData;
-
-
+    _robotController->cheetahMainVisualization = &_sharedMemory().robotToSim.mainCheetahVisualization;
 
     _robotController->initialize();
     _firstControllerRun = false;

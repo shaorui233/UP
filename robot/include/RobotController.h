@@ -9,6 +9,7 @@
 #include "SimUtilities/GamepadCommand.h"
 #include "SimUtilities/VisualizationData.h"
 #include <Controllers/StateEstimatorContainer.h>
+#include "cheetah_visualization_lcmt.hpp"
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
@@ -75,6 +76,7 @@ public:
   TiBoardData* tiBoardData;
   RobotControlParameters* controlParameters;
   VisualizationData* visualizationData;
+  CheetahVisualization* cheetahMainVisualization;
 
 private:
   void setupStep();

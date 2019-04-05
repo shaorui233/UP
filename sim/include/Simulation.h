@@ -65,11 +65,7 @@ public:
   /*!
    * Updates the graphics from the connected window
    */
-  void updateGraphics() {
-    _window->_drawList.updateRobotFromModel(*_simulator, _robotID, true);
-    _window->_drawList.updateAdditionalInfo(*_simulator);
-    _window->update();
-  }
+  void updateGraphics();
 
   void runAtSpeed(bool graphics = true);
   void sendControlParameter(const std::string& name, ControlParameterValue value, ControlParameterValueKind kind);
@@ -83,6 +79,7 @@ public:
 
   ~Simulation() {
       delete _simulator;
+      delete _robotDataSimulator;
       delete _imuSimulator;
       delete _lcm;
   }
@@ -124,12 +121,15 @@ private:
   SimulatorControlParameters& _simParams;
   RobotControlParameters _robotParams;
 
-  size_t _robotID;
+  size_t _simRobotID, _controllerRobotID;
   Graphics3D *_window = nullptr;
   Quadruped<double> _quadruped;
+  FBModelState<double> _robotControllerState;
   FloatingBaseModel<double> _model;
+  FloatingBaseModel<double> _robotDataModel;
   DVec<double> _tau;
   DynamicsSimulator<double>* _simulator = nullptr;
+  DynamicsSimulator<double>* _robotDataSimulator = nullptr;
   std::vector<ActuatorModel<double>> _actuatorModels;
   SpiCommand _spiCommand;
   SpiData    _spiData;

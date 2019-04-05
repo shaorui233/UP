@@ -184,6 +184,7 @@ class DrawList {
                 }
             }
 
+
         /*!
          * Update the additional information drawn by GUI 
          * Doesn't run the simulator 

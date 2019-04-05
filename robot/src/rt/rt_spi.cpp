@@ -22,8 +22,8 @@ int spi_2_fd = -1;
 
 int spi_open();
 
-spine_cmd_t spine_cmd;
-spine_data_t spine_data;
+static spine_cmd_t g_spine_cmd;
+static spine_data_t g_spine_data;
 
 spi_command_t spi_command_drv;
 spi_data_t spi_data_drv;
@@ -47,7 +47,7 @@ const float knee_offset[4] = {K_KNEE_OFFSET_POS, -K_KNEE_OFFSET_POS, -K_KNEE_OFF
 
 uint32_t xor_checksum(uint32_t *data, size_t len) {
   uint32_t t = 0;
-  for (int i = 0; i < len; i++)
+  for (size_t i = 0; i < len; i++)
     t = t ^ data[i];
   //t = t ^ ((data[i]>>8) + ((data[i] & 0xff) << 8));
   //t = t ^ __bswap_16(data[i]);
@@ -64,6 +64,8 @@ class Handler{
                 const lcm::ReceiveBuffer *rbuf, 
                 const std::string & channel, 
                 const spi_data_t *msg) {
+          (void)rbuf;
+          (void)channel;
             pthread_mutex_lock(&spi_mutex);
             memcpy(&spi_data_drv, msg, sizeof(spi_data_drv));
             pthread_mutex_unlock(&spi_mutex);
@@ -218,6 +220,7 @@ int spi_open() {
   rv = ioctl(spi_2_fd, SPI_IOC_RD_LSB_FIRST, &lsb);
   if (rv < 0)
     perror("[ERROR] ioctl spi_ioc_rd_lsb_first (2)");
+  return rv;
 }
 
 int spi_driver_iterations = 0;
@@ -269,7 +272,7 @@ void spine_to_spi(spi_data_t *data, spine_data_t *spine_data, int leg_0) {
   }
 
   uint32_t calc_checksum = xor_checksum((uint32_t *) spine_data, 14);
-  if (calc_checksum != spine_data->checksum)
+  if (calc_checksum != (uint32_t)spine_data->checksum)
     printf("SPI ERROR BAD CHECKSUM GOT 0x%hx EXPECTED 0x%hx\n", calc_checksum, spine_data->checksum);
 }
 
@@ -286,11 +289,11 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
 
   for (int spi_board = 0; spi_board < 2; spi_board++) {
     // copy command into spine type:
-    spi_to_spine(command, &spine_cmd, spi_board * 2);
+    spi_to_spine(command, &g_spine_cmd, spi_board * 2);
 
     // pointers to command/data spine array
-    uint16_t *cmd_d = (uint16_t *) &spine_cmd;
-    uint16_t *data_d = (uint16_t *) &spine_data;
+    uint16_t *cmd_d = (uint16_t *) &g_spine_cmd;
+    uint16_t *data_d = (uint16_t *) &g_spine_data;
 
     // zero rx buffer
     memset(rx_buf, 0, K_WORDS_PER_MESSAGE * sizeof(uint16_t));
@@ -321,7 +324,7 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
 
     // do spi communication
     int rv = ioctl(spi_board == 0 ? spi_1_fd : spi_2_fd, SPI_IOC_MESSAGE(1), &spi_message);
-
+    (void)rv;
 
     // flip bytes the other way
     for (int i = 0; i < 30; i++)
@@ -329,7 +332,7 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
     //data_d[i] = __bswap_16(rx_buf[i]);
 
     // copy back to data
-    spine_to_spi(data, &spine_data, spi_board * 2);
+    spine_to_spi(data, &g_spine_data, spi_board * 2);
   }
 }
 
