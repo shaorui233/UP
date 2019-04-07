@@ -13,7 +13,7 @@
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 
 
-void RobotController::initialize() {
+void RobotController::init() {
     printf("[RobotController] initialize\n");
     if (robotType == RobotType::MINI_CHEETAH) {
         _quadruped = buildMiniCheetah<float>();
@@ -48,104 +48,108 @@ void RobotController::initialize() {
 
     _data = new Cheetah_Data<float>();
     _extra_data = new Cheetah_Extra_Data<float>();
+
+
 }
 
 
-void RobotController::step() {
+void RobotController::run() {
     setupStep();
-    _stateEstimator->run();
-    testDebugVisualization();
-    StepLocationVisualization();
-    BodyPathVisualization();
-    BodyPathArrowVisualization();
-
-    // for now, we will always enable the legs:
-    _legController->setEnabled(true);
-    _legController->setMaxTorqueCheetah3(208.5);
-
-    // for debugging the visualizations from robot code
-
-
-    // DH: Test
-    // Find the current gait schedule
-    //_gaitScheduler->step();
-
-    // ======= WBC state command computation  =============== //
-    // Commenting out WBC for now to test Locomotion control
-    for(size_t i(0); i<4; ++i){
-        _data->body_ori[i] = cheaterState->orientation[i];
-    }
-    for(int i(0);i<3; ++i){
-        _data->ang_vel[i] = cheaterState->omegaBody[i];
-        _data->global_body_pos[i] = cheaterState->position[i];
-    }
-    _data->global_body_pos[2] += 0.5;// because ground is -0.5
-
-    for(int leg(0); leg<4; ++leg){
-        for(int jidx(0); jidx<3; ++jidx){
-            _data->jpos[3*leg + jidx] = _legController->datas[leg].q[jidx];
-            _data->jvel[3*leg + jidx] = _legController->datas[leg].qd[jidx];
-        }
-    }
-    _data->dir_command[0] = driverCommand->leftStickAnalog[1];
-    _data->dir_command[1] = driverCommand->leftStickAnalog[0];
-
-    // Orientation
-    _data->ori_command[0] = driverCommand->rightTriggerAnalog;
-    _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
-
-    _data->ori_command[1] = driverCommand->rightStickAnalog[1];
-    _data->ori_command[2] = driverCommand->rightStickAnalog[0];
-
-    //pretty_print(_data->ori_command, "ori command", 3);
-
-    _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
-    // === End of WBC state command computation  =========== //
-
-    // run the controller:
-    Mat3<float> kpMat; kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
-        0, controlParameters->stand_kp_cartesian[1], 0,
-        0, 0, controlParameters->stand_kp_cartesian[2];
-
-    Mat3<float> kdMat; kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
-        0, controlParameters->stand_kd_cartesian[1], 0,
-        0, 0, controlParameters->stand_kd_cartesian[2];
-
-    for(int leg = 0; leg < 4; leg++) {
-        //_legController->commands[leg].pDes = pDes;
-        //_legController->commands[leg].kpCartesian = kpMat;
-        //_legController->commands[leg].kdCartesian = kdMat;
-
-        _legController->commands[leg].kpJoint = kpMat;
-        _legController->commands[leg].kdJoint = kdMat;
-
-    }
-
-    // Find the current gait schedule
-    _gaitScheduler->step();
-
-    // Temporary fix for testing 
-    //_stateEstimate.position(0) = cheaterState->position(0);
-    //_stateEstimate.position(1) = cheaterState->position(1);
-    //_stateEstimate.position(2) = cheaterState->position(2);
-
-    // Find the desired state trajectory
-    _desiredStateCommand->convertToStateCommands();
-    //Vec10<float> dtVec;
-    //dtVec << 0.1,0.1,0.1,0.1,0.1,0,0,0,0,0;
-    //_desiredStateCommand->desiredStateTrajectory(5, dtVec);
-
-    // This function should eventually be moved to whatever the Locomotion FSM state ends up being
-    //LocomotionControlStep();
-
-    // Sets the leg controller commands for the robot appropriate commands
-    finalizeStep();
-
-
-    // DH: TEST
-    //_gaitScheduler->printGaitInfo();
-    //_gamepadControl->printRawInfo();
-    //_desiredStateCommand->printStateCommandInfo();
+    cheetahMainVisualization->q.setZero();
+    cheetahMainVisualization->p.setZero();
+    _stateEstimator->run(cheetahMainVisualization);
+//    testDebugVisualization();
+//    StepLocationVisualization();
+//    BodyPathVisualization();
+//    BodyPathArrowVisualization();
+//
+//    // for now, we will always enable the legs:
+//    _legController->setEnabled(true);
+//    _legController->setMaxTorqueCheetah3(208.5);
+//
+//    // for debugging the visualizations from robot code
+//
+//
+//    // DH: Test
+//    // Find the current gait schedule
+//    //_gaitScheduler->step();
+//
+//    // ======= WBC state command computation  =============== //
+//    // Commenting out WBC for now to test Locomotion control
+//    for(size_t i(0); i<4; ++i){
+//        _data->body_ori[i] = cheaterState->orientation[i];
+//    }
+//    for(int i(0);i<3; ++i){
+//        _data->ang_vel[i] = cheaterState->omegaBody[i];
+//        _data->global_body_pos[i] = cheaterState->position[i];
+//    }
+//    _data->global_body_pos[2] += 0.5;// because ground is -0.5
+//
+//    for(int leg(0); leg<4; ++leg){
+//        for(int jidx(0); jidx<3; ++jidx){
+//            _data->jpos[3*leg + jidx] = _legController->datas[leg].q[jidx];
+//            _data->jvel[3*leg + jidx] = _legController->datas[leg].qd[jidx];
+//        }
+//    }
+//    _data->dir_command[0] = driverCommand->leftStickAnalog[1];
+//    _data->dir_command[1] = driverCommand->leftStickAnalog[0];
+//
+//    // Orientation
+//    _data->ori_command[0] = driverCommand->rightTriggerAnalog;
+//    _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
+//
+//    _data->ori_command[1] = driverCommand->rightStickAnalog[1];
+//    _data->ori_command[2] = driverCommand->rightStickAnalog[0];
+//
+//    //pretty_print(_data->ori_command, "ori command", 3);
+//
+//    _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
+//    // === End of WBC state command computation  =========== //
+//
+//    // run the controller:
+//    Mat3<float> kpMat; kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
+//        0, controlParameters->stand_kp_cartesian[1], 0,
+//        0, 0, controlParameters->stand_kp_cartesian[2];
+//
+//    Mat3<float> kdMat; kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
+//        0, controlParameters->stand_kd_cartesian[1], 0,
+//        0, 0, controlParameters->stand_kd_cartesian[2];
+//
+//    for(int leg = 0; leg < 4; leg++) {
+//        //_legController->commands[leg].pDes = pDes;
+//        //_legController->commands[leg].kpCartesian = kpMat;
+//        //_legController->commands[leg].kdCartesian = kdMat;
+//
+//        _legController->commands[leg].kpJoint = kpMat;
+//        _legController->commands[leg].kdJoint = kdMat;
+//
+//    }
+//
+//    // Find the current gait schedule
+//    _gaitScheduler->step();
+//
+//    // Temporary fix for testing
+//    //_stateEstimate.position(0) = cheaterState->position(0);
+//    //_stateEstimate.position(1) = cheaterState->position(1);
+//    //_stateEstimate.position(2) = cheaterState->position(2);
+//
+//    // Find the desired state trajectory
+//    _desiredStateCommand->convertToStateCommands();
+//    //Vec10<float> dtVec;
+//    //dtVec << 0.1,0.1,0.1,0.1,0.1,0,0,0,0,0;
+//    //_desiredStateCommand->desiredStateTrajectory(5, dtVec);
+//
+//    // This function should eventually be moved to whatever the Locomotion FSM state ends up being
+//    //LocomotionControlStep();
+//
+//    // Sets the leg controller commands for the robot appropriate commands
+//    finalizeStep();
+//
+//
+//    // DH: TEST
+//    //_gaitScheduler->printGaitInfo();
+//    //_gamepadControl->printRawInfo();
+//    //_desiredStateCommand->printStateCommandInfo();
 }
 
 
@@ -553,4 +557,8 @@ void RobotController::initializeStateEstimator(bool cheaterMode) {
 RobotController::~RobotController() {
     delete _legController;
     delete _stateEstimator;
+}
+
+void RobotController::cleanup() {
+
 }

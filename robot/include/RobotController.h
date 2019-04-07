@@ -13,6 +13,7 @@
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
+#include "Utilities/PeriodicTask.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -29,12 +30,13 @@
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 template <typename T> class Test;
 
-class RobotController {
+class RobotController : public PeriodicTask {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  RobotController() = default;
-  void initialize();
-  void step();
+  using PeriodicTask::PeriodicTask;
+  void init() override;
+  void run() override;
+  void cleanup() override;
 
   // Handles the logic for locomotion controlled by the Gait Scheduler
   void LocomotionControlStep();
@@ -61,7 +63,7 @@ public:
   void stanceLegImpedanceControl(int leg);
 
   void initializeStateEstimator(bool cheaterMode = false);
-  ~RobotController();
+  virtual ~RobotController();
 
 
   GamepadCommand* driverCommand;

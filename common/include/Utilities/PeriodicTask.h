@@ -105,5 +105,24 @@ private:
   PeriodicTaskManager* _tm;
 };
 
+template<typename T>
+class PeriodicMemberFunction : public PeriodicTask {
+public:
+  PeriodicMemberFunction(PeriodicTaskManager* taskManager, float period, std::string name,
+      void (T::*function)(), T* obj) : PeriodicTask(taskManager, period, name), _function(function),
+      _obj(obj) {
+
+  }
+
+  void cleanup() { }
+  void init() { }
+  void run() {
+    (_obj->*_function)();
+  }
+private:
+  void (T::*_function)();
+  T* _obj;
+};
+
 
 #endif //PROJECT_PERIODICTASK_H

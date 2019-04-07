@@ -50,6 +50,17 @@ Example)
 3: Cheetah 3, m: Mini Cheetah
 s: simulation, r: robot
 
+## Run Mini cheetah
+1. Create build folder `mkdir mc-build`
+2. Build as mini cheetah executable `cd mc-build; cmake -DMINI_CHEETAH_BUILD=TRUE ..; make -j`
+3. Connect to mini cheetah over ethernet, verify you can ssh in
+4. Copy program to mini cheetah with `../scripts/send_to_mini_cheetah.sh`
+5. ssh into the mini cheetah `ssh user@10.0.0.34`
+6. Enter the robot program folder `cd robot-software-....`
+7. Run robot code `./run_mc.sh` 
+
+2. 
+
 
 ## Dependencies:
 - Qt 5.10 - https://www.qt.io/download-qt-installer

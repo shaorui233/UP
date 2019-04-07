@@ -8,6 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 #include <Utilities/PeriodicTask.h>
+#include <cheetah_visualization_lcmt.hpp>
+#include <Dynamics/Quadruped.h>
 #include "Graphics3D.h"
 #include "gamepad_lcmt.hpp"
 #include "control_parameter_respones_lcmt.hpp"
@@ -19,7 +21,7 @@
 
 class RobotInterface : PeriodicTask {
 public:
-  RobotInterface(RobotType robotType, Graphics3D* gfx);
+  RobotInterface(RobotType robotType, Graphics3D* gfx, PeriodicTaskManager* tm);
   RobotControlParameters& getParams() { return _controlParameters; }
   void startInterface();
   void stopInterface();
@@ -30,9 +32,17 @@ public:
                               const std::string& chan,
                               const control_parameter_respones_lcmt* msg);
 
+  void handleVisualizationData(const lcm::ReceiveBuffer* rbuf,
+                               const std::string& chan,
+                               const cheetah_visualization_lcmt* msg);
+
   void init() { }
   void run();
   void cleanup() { }
+  virtual ~RobotInterface() {
+    delete _simulator;
+    stop();
+  }
 
 private:
   PeriodicTaskManager _taskManager;
@@ -52,6 +62,12 @@ private:
   std::condition_variable _lcmCV;
   bool _waitingForLcmResponse = false;
   bool _lcmResponseBad = true;
+
+  // forward kinematics
+  Quadruped<double> _quadruped;
+  FloatingBaseModel<double> _model;
+  DynamicsSimulator<double>* _simulator = nullptr;
+  FBModelState<double> _fwdKinState;
 };
 
 

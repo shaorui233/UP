@@ -14,7 +14,7 @@ CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
     ${CMAKE_BINARY_DIR}/Configuration.h)
 
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+  #set(CMAKE_VERBOSE_MAKEFILE ON)
 
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 
