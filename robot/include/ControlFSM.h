@@ -21,17 +21,6 @@ enum class FSM_OperatingMode {
   ESTOP,
 };
 
-/*
- * Enumerate all of the FSM states so we can keep track of them
- */
-enum class FSM_StateName {
-  INVALID,
-  DO_NOTHING,
-  BALANCE_STAND,
-  LOCOMOTION
-};
-
-
 
 /*
  * Control FSM handles the FSM states from a higher level
@@ -64,8 +53,8 @@ public:
   // The next FSM State that the robot will transition to
   FSM_State<T>* nextState;
 
-  FSM_StateName currentStateName;
-  FSM_StateName nextStateName;
+  //FSM_StateName currentStateName;
+  //FSM_StateName nextStateName;
 
 
 private:

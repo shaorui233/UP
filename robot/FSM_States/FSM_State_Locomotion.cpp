@@ -1,15 +1,15 @@
 #include "FSM_State_Locomotion.h"
-/*
+
 template <typename T>
-FSM_State_DoNothing<T>::FSM_State_DoNothing(ControlFSMData<T>* _controlFSMDataIn)//:
-  //FSM_State(ControlFSMData<T>* _controlFSMDataIn) {
-{  	// Do nothing here
+FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData):
+  FSM_State<T>(_controlFSMData) {
+  this->stateName = FSM_StateName::LOCOMOTION;
 }
-*/
+
 
 template <typename T>
 void FSM_State_Locomotion<T>::onEnter() {
-  // NOthing to initialize
+  // Nothing to initialize
 }
 
 
@@ -38,10 +38,10 @@ void FSM_State_Locomotion<T>::onExit() {
  */
 template <typename T>
 void FSM_State_Locomotion<T>::LocomotionControlStep() {
-	//StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
+  //StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
   // Contact state logic
-  //
+  //estimateContact();
 
   // Run the balancing controllers to get GRF and next step locations
   //runControls();
@@ -63,6 +63,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   // Calculate appropriate control actions for each leg to be sent out
   for (int leg = 0; leg < 4; leg++) {
 
+  	// The actual contact logic should come from the contact estimator later rather than schedule
     if (this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
       // Leg is in contact
       //std::cout << "[CONTROL] Leg " << leg << " is in stance" << std::endl;
@@ -70,7 +71,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
       // Impedance control for the stance leg
       //stanceLegImpedanceControl(leg);
 
-      // Stance leg Ground Reaction Force command
+      // Stance leg Ground Reaction Force command 
       this->_data->_legController->commands[leg].forceFeedForward = groundReactionForces.col(leg);
 
     } else if (!this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {

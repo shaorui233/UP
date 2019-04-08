@@ -4,10 +4,8 @@
 
 template <typename T>
 void ControlFSM<T>::initialize() {
-  currentState = new FSM_State_Locomotion<T>();//(&data);
-  currentState->_data = &data;
-  currentStateName = FSM_StateName::DO_NOTHING;
-  nextStateName = currentStateName;
+  // Initialize a new FSM State with the control data
+  currentState = new FSM_State_Locomotion<T>(&data);
 }
 
 
@@ -22,12 +20,13 @@ void ControlFSM<T>::runFSM() {
   }
   if (operatingMode == FSM_OperatingMode::NORMAL) {
     */
-    currentState->run();
+  // Run the iteration for the current state
+  currentState->run();
   //}
 
 
 }
 
 
-//template class ControlFSM<double>;
+//template class ControlFSM<double>; This should be fixed... need to make RobotController a template
 template class ControlFSM<float>;

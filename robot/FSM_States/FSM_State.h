@@ -6,6 +6,16 @@
 #include "../include/ControlFSMData.h"
 #include <stdio.h>
 
+/*
+ * Enumerate all of the FSM states so we can keep track of them
+ */
+enum class FSM_StateName {
+  INVALID,
+  DO_NOTHING,
+  BALANCE_STAND,
+  LOCOMOTION
+};
+
 
 /*
  *
@@ -13,7 +23,7 @@
 template <typename T>
 class FSM_State {
 public:
-  //FSM_State();//ControlFSMData<T>* _controlFSMDataIn);//: _controlFSMData(_controlFSMData) { }//hardware_interface* hw_i, FSM_StateName stateName, control_fsm* fsm);
+  FSM_State(ControlFSMData<T>* _controlFSMData);//: _data(_controlFSMData) { };
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() { }
@@ -29,6 +39,9 @@ public:
 
   // Holds all of the relevant control data
   ControlFSMData<T>* _data;
+
+  // The enumerated name of the current state
+  FSM_StateName stateName;
 private:
 
 

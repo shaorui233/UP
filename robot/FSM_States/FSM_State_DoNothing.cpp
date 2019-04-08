@@ -1,11 +1,10 @@
 #include "FSM_State_DoNothing.h"
-/*
+
 template <typename T>
-FSM_State_DoNothing<T>::FSM_State_DoNothing(ControlFSMData<T>* _controlFSMDataIn)//:
-  //FSM_State(ControlFSMData<T>* _controlFSMDataIn) {
-{  	// Do nothing here
+FSM_State_DoNothing<T>::FSM_State_DoNothing(ControlFSMData<T>* _controlFSMData):
+  FSM_State<T>(_controlFSMData) {
+  this->stateName = FSM_StateName::DO_NOTHING;
 }
-*/
 
 template <typename T>
 void FSM_State_DoNothing<T>::onEnter() {
