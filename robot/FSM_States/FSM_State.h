@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "ControlFSMData.h"
+#include "../include/ControlFSMData.h"
 #include <stdio.h>
 
 
@@ -13,7 +13,7 @@
 template <typename T>
 class FSM_State {
 public:
-  FSM_State(ControlFSMData<T>* _controlFSMData);//: _controlFSMData(_controlFSMData) { }//hardware_interface* hw_i, FSM_StateName stateName, control_fsm* fsm);
+  //FSM_State();//ControlFSMData<T>* _controlFSMDataIn);//: _controlFSMData(_controlFSMData) { }//hardware_interface* hw_i, FSM_StateName stateName, control_fsm* fsm);
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() { }

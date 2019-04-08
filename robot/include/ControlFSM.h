@@ -55,7 +55,7 @@ public:
   ControlFSMData<T> data;
 
   FSM_State<T>* currentState;
-  //FSM_State<T>* nextState;
+  FSM_State<T>* nextState;
   FSM_StateName currentStateName;
   FSM_StateName nextStateName;
 

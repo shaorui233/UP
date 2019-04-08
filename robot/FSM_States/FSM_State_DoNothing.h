@@ -10,7 +10,7 @@
 template <typename T>
 class FSM_State_DoNothing: public FSM_State<T> {
 public:
-  FSM_State_DoNothing(ControlFSMData<T>* _controlFSMData);
+  //FSM_State_DoNothing(ControlFSMData<T>* _controlFSMDataIn);
 
   // Behavior to be carried out when entering a state
   void onEnter();

@@ -14,6 +14,7 @@
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
 #include "Utilities/PeriodicTask.h"
+#include "ControlFSM.h"
 // gamepadCommand
 // robotType
 // kvh
@@ -93,6 +94,7 @@ private:
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
+  ControlFSM<float>* _controlFSM;
 
   // Ground reaction forces for the stance feet to be calculated by the controllers
   Mat34<float> groundReactionForces;
