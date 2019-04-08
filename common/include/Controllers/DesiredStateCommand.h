@@ -89,7 +89,7 @@ private:
   T deadbandRegion = 0.075;
 
   // Choose how often to print info, every N iterations
-  int printNum = 4; // N*(0.001s) in simulation time
+  int printNum = 5; // N*(0.001s) in simulation time
 
   // Track the number of iterations since last info print
   int printIter = 0;

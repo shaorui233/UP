@@ -106,7 +106,7 @@ private:
   GaitScheduler<float>* _gaitScheduler;
 
   // Contact Estimator to calculate estimated forces and contacts
-  //ContactEstimator<double>* _contactEstimator;
+  ContactEstimator<double>* _contactEstimator;
 
   // For WBC state (test)
   Test<float>* _wbc_state;

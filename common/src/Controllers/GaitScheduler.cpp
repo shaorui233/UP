@@ -17,37 +17,37 @@ void GaitData<T>::zero() {
   _nextGait = _currentGait;
 
   // General Gait descriptors
-  periodTimeNominal = 0.0;		// overall period time to scale
-  initialPhase = 0.0;			// initial phase to offset
-  switchingPhaseNominal = 0.0;	// nominal phase to switch contacts
+  periodTimeNominal = 0.0;      // overall period time to scale
+  initialPhase = 0.0;           // initial phase to offset
+  switchingPhaseNominal = 0.0;  // nominal phase to switch contacts
 
   // Enable flag for each foot
-  gaitEnabled = Eigen::Vector4i::Zero();	// enable gaint controlled legs
+  gaitEnabled = Eigen::Vector4i::Zero();  // enable gaint controlled legs
 
   // Time based descriptors
-  periodTime = Vec4<T>::Zero();				// overall gait period time
-  timeStance = Vec4<T>::Zero();				// total stance time
-  timeSwing = Vec4<T>::Zero();				// total swing time
-  timeStanceRemaining = Vec4<T>::Zero();	// stance time remaining
-  timeSwingRemaining = Vec4<T>::Zero();		// swing time remaining
+  periodTime = Vec4<T>::Zero();           // overall gait period time
+  timeStance = Vec4<T>::Zero();           // total stance time
+  timeSwing = Vec4<T>::Zero();            // total swing time
+  timeStanceRemaining = Vec4<T>::Zero();  // stance time remaining
+  timeSwingRemaining = Vec4<T>::Zero();   // swing time remaining
 
   // Phase based descriptors
-  switchingPhase = Vec4<T>::Zero();		// phase to switch to swing
-  phaseVariable = Vec4<T>::Zero();		// overall gait phase for each foot
-  phaseOffset = Vec4<T>::Zero();		// nominal gait phase offsets
-  phaseScale = Vec4<T>::Zero();			// phase scale relative to variable
-  phaseStance = Vec4<T>::Zero();		// stance subphase
-  phaseSwing = Vec4<T>::Zero();			// swing subphase
+  switchingPhase = Vec4<T>::Zero();   // phase to switch to swing
+  phaseVariable = Vec4<T>::Zero();    // overall gait phase for each foot
+  phaseOffset = Vec4<T>::Zero();      // nominal gait phase offsets
+  phaseScale = Vec4<T>::Zero();       // phase scale relative to variable
+  phaseStance = Vec4<T>::Zero();      // stance subphase
+  phaseSwing = Vec4<T>::Zero();       // swing subphase
 
   // Scheduled contact states
-  contactStateScheduled = Eigen::Vector4i::Zero();	// contact state of the foot
-  contactStatePrev = Eigen::Vector4i::Zero();		// previous contact state of the foot
-  touchdownScheduled = Eigen::Vector4i::Zero();		// scheduled touchdown flag
-  liftoffScheduled = Eigen::Vector4i::Zero();		// scheduled liftoff flag
+  contactStateScheduled = Eigen::Vector4i::Zero();  // contact state of the foot
+  contactStatePrev = Eigen::Vector4i::Zero();       // previous contact state of the foot
+  touchdownScheduled = Eigen::Vector4i::Zero();     // scheduled touchdown flag
+  liftoffScheduled = Eigen::Vector4i::Zero();       // scheduled liftoff flag
 
   // Position of the feet in the world frame at events
-  posFootTouchdownWorld = Mat34<T>::Zero();		// foot position when scheduled to lift off
-  posFootLiftoffWorld = Mat34<T>::Zero();		// foot position when scheduled to touchdown
+  posFootTouchdownWorld = Mat34<T>::Zero();   // foot position when scheduled to lift off
+  posFootLiftoffWorld = Mat34<T>::Zero();     // foot position when scheduled to touchdown
 }
 
 template struct GaitData<double>;
@@ -55,6 +55,16 @@ template struct GaitData<float>;
 
 
 /*========================= Gait Scheduler ============================*/
+
+
+/*
+ * Constructor to automatically setup a basic gait
+ */
+template <typename T>
+GaitScheduler<T>::GaitScheduler() {
+  initialize();
+}
+
 
 /*
  * Initialize the gait data

@@ -28,13 +28,12 @@ void RobotController::init() {
   initializeStateEstimator(false);
 
   // Initialize a new GaitScheduler object
-  _gaitScheduler = new GaitScheduler<float>(_quadruped);
-  _gaitScheduler->initialize();
+  _gaitScheduler = new GaitScheduler<float>();
 
   _desiredStateCommand = new DesiredStateCommand<float>(driverCommand, &_stateEstimate);
 
   // Initialize a new ContactEstimator object
-  //_contactEstimator = new ContactEstimator<double>();
+  _contactEstimator = new ContactEstimator<double>();
   //_contactEstimator->initialize();
 
   // Initializes the Control FSM with all the required data

@@ -13,7 +13,7 @@
 #include "Controllers/StateEstimatorContainer.h"
 
 template <typename T>
-class PhaseContactEstimator : public GenericEstimator<T> {
+class ContactEstimator : public GenericEstimator<T> {
 public:
   virtual void run() {
     this->_stateEstimatorData.result->contactEstimate = *this->_stateEstimatorData.contactPhase;
