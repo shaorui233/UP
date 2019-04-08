@@ -1,22 +1,36 @@
 #ifndef FSM_State_H
 #define FSM_State_H
 
-#include "../hardware_interface.h"
 #include <string>
 
-#include "../ControlFSM.h"
+#include "ControlFSMData.h"
+#include <stdio.h>
 
-using std::string;
-class FSM_State
-{
+
+/*
+ *
+ */
+template <typename T>
+class FSM_State {
 public:
-    FSM_State(hardware_interface* hw_i,string name,control_fsm* fsm);
-    virtual FSM_State* get_next_state() { return 0;}
-    virtual void run_state() { }
-    virtual void cleanup_state() { }
-    hardware_interface* hw_i;
-    string name;
-    control_fsm* fsm;
+  FSM_State(ControlFSMData<T>* _controlFSMData);//: _controlFSMData(_controlFSMData) { }//hardware_interface* hw_i, FSM_StateName stateName, control_fsm* fsm);
+
+  // Behavior to be carried out when entering a state
+  virtual void onEnter() { }
+
+  // Run the normal behavior for the state
+  virtual void run() { }
+
+  //
+  virtual FSM_State<T>* getNextState() { return 0; }
+
+  // Behavior to be carried out when exiting a state
+  virtual void onExit() { }
+
+  //hardware_interface* hw_i;
+  //FSM_StateName stateName;
+  //RobotController* _robotController;
+  ControlFSMData<T>* _controlFSMData;
 private:
 
 

@@ -64,7 +64,7 @@ void GaitScheduler<T>::initialize() {
   std::cout << "[GAIT] Initialize Gait Scheduler" << std::endl;
 
   // Start the gait in a trot since we use this the most
-  gaitData._currentGait = GaitType::STAND;
+  gaitData._currentGait = GaitType::TROT;//STAND;
 
   // Zero all gait data
   gaitData.zero();

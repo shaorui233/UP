@@ -71,7 +71,7 @@ using Mat6 = typename Eigen::Matrix<T, 6, 6>;
 
 // 12x12 Matrix
 template<typename T>
-using Mat12 = Eigen::Matrix<T, 12, 12>;
+using Mat12 = typename Eigen::Matrix<T, 12, 12>;
 
 // 18x18 Matrix
 template<typename T>

@@ -12,8 +12,7 @@
 #include "../../cpp_dynamics/spatial_utilities.h"
 #include "../Gait.h"
 
-class FSM_State_locomotion: public FSM_State
-{
+class FSM_State_locomotion: public FSM_State {
 public:
   FSM_State_locomotion(hardware_interface* hw_i, string name, control_fsm* fsm);
   void run_state();

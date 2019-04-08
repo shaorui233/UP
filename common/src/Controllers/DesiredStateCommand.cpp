@@ -30,37 +30,42 @@ void DesiredStateCommand<T>::convertToStateCommands() {
 
   data.zero();
 
-  velXDes = deadband(gamepadCommand->leftStickAnalog[1], minVelX, maxVelX);
-  velYDes = deadband(gamepadCommand->leftStickAnalog[0], minVelY, maxVelY);
-  angVelZDes = deadband(gamepadCommand->rightStickAnalog[0], minTurnRate, maxTurnRate);
-  pitchDes = deadband(gamepadCommand->rightStickAnalog[1], minPitch, maxPitch);
+  // Forward linear velocity
+  data.stateDes(6) = deadband(gamepadCommand->leftStickAnalog[1], minVelX, maxVelX);
 
-  posXDes = stateEstimate->position(0) + dt * velXDes;
-  posYDes = stateEstimate->position(1) + dt * velYDes;
-  posZDes = 0.45;
+  // Lateral linear velocity
+  data.stateDes(7) = deadband(gamepadCommand->leftStickAnalog[0], minVelY, maxVelY);
 
-  rollDes = 0.0;
-  yawDes = stateEstimate->rpy(2) + dt * angVelZDes;
+  // VErtical linear velocity
+  data.stateDes(8) = 0.0;  
 
-  velZDes = 0.0;
+  // X position
+  data.stateDes(0) = stateEstimate->position(0) + dt * velXDes;
 
-  angVelXDes = 0.0;
-  angVelYDes = 0.0;
+  // Y position
+  data.stateDes(1) = stateEstimate->position(1) + dt * velYDes;
 
+  // Z position height
+  data.stateDes(2) = 0.45;
 
-  // Add the values to the desired state data
-  data.stateDes(0) = posXDes;
-  data.stateDes(1) = posYDes;
-  data.stateDes(2) = posZDes;
-  data.stateDes(3) = rollDes;
-  data.stateDes(4) = pitchDes;
-  data.stateDes(5) = yawDes;
-  data.stateDes(6) = velXDes;
-  data.stateDes(7) = velYDes;
-  data.stateDes(8) = velZDes;
-  data.stateDes(9) = angVelXDes;
-  data.stateDes(10) = angVelYDes;
-  data.stateDes(11) = angVelZDes;
+  // Roll rate
+  data.stateDes(9) = 0.0;
+
+  // Pitch rate
+  data.stateDes(10) = 0.0;
+
+  // Yaw turn rate
+  data.stateDes(11) = deadband(gamepadCommand->rightStickAnalog[0], minTurnRate, maxTurnRate);
+
+  // Roll
+  data.stateDes(3) = 0.0;
+
+  // Pitch
+  data.stateDes(4) = deadband(gamepadCommand->rightStickAnalog[1], minPitch, maxPitch);
+
+  // Yaw
+  data.stateDes(5) = stateEstimate->rpy(2) + dt * angVelZDes;
+
 }
 
 
@@ -91,14 +96,13 @@ void DesiredStateCommand<T>::desiredStateTrajectory(int N, Vec10<T> dtVec) {
     A(5, 11) = dtVec(k - 1);
     data.stateTrajDes.col(k) = A * data.stateTrajDes.col(k - 1);
     for (int i = 0; i < 12; i++) {
-      std::cout << data.stateTrajDes(i, k) << " ";
+      //std::cout << data.stateTrajDes(i, k) << " ";
     }
-    std::cout << std::endl;
+    //std::cout << std::endl;
   }
-  std::cout << std::endl;
+  //std::cout << std::endl;
 
 }
-
 
 
 template <typename T>
@@ -135,6 +139,7 @@ void DesiredStateCommand<T>::printRawInfo() {
     printIter = 0;
   }
 }
+
 
 template <typename T>
 void DesiredStateCommand<T>::printStateCommandInfo() {

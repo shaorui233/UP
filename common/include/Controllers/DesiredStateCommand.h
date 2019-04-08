@@ -35,6 +35,7 @@ template <typename T>
 class DesiredStateCommand
 {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // Initialize with the GamepadCommand struct
   DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate)  {
     gamepadCommand = command;
@@ -72,6 +73,7 @@ public:
   T angVelZDes;
 
   DesiredStateData<T> data;
+
 
 private:
   GamepadCommand* gamepadCommand;
