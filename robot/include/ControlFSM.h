@@ -2,13 +2,14 @@
 #define CONTROLFSM_H
 
 #include <iostream>
+
+// Contains all of the control related data
+#include "ControlFSMData.h"
+
+// FSM States
 #include "../FSM_States/FSM_State.h"
 #include "../FSM_States/FSM_State_DoNothing.h"
-#include "Controllers/StateEstimatorContainer.h"
-#include "Controllers/LegController.h"
-#include "Controllers/GaitScheduler.h"
-#include "Controllers/DesiredStateCommand.h"
-#include "ControlFSMData.h"
+#include "../FSM_States/FSM_State_Locomotion.h"
 
 
 /*
@@ -48,14 +49,21 @@ public:
     data._desiredStateCommand = _desiredStateCommand;
   }
 
+  // Initializes the Control FSM instance
   void initialize();
 
+  // Runs the FSM logic and handles the state transitions and normal runs
   void runFSM();
 
+  // Contains all of the control related data
   ControlFSMData<T> data;
 
+  // The current FSM State of the robot
   FSM_State<T>* currentState;
+
+  // The next FSM State that the robot will transition to
   FSM_State<T>* nextState;
+
   FSM_StateName currentStateName;
   FSM_StateName nextStateName;
 

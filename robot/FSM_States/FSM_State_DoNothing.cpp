@@ -16,8 +16,11 @@ void FSM_State_DoNothing<T>::onEnter() {
 template <typename T>
 void FSM_State_DoNothing<T>::run() {
   // Do nothing, all commands should begin as zeros
-  this->_controlFSMData->_gaitScheduler->printGaitInfo();
-  this->_controlFSMData->_desiredStateCommand->printStateCommandInfo();
+  this->_data->_gaitScheduler->printGaitInfo();
+  this->_data->_desiredStateCommand->printStateCommandInfo();
+  for (int leg = 0; leg < 3; leg++) {
+    this->_data->_legController->commands[leg].forceFeedForward << 0, 0, -110.36;
+  }
 }
 
 template <typename T>

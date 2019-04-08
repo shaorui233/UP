@@ -1,7 +1,6 @@
 #ifndef FSM_STATE_DONOTHING_H
 #define FSM_STATE_DONOTHING_H
 
-
 #include "FSM_State.h"
 
 /*

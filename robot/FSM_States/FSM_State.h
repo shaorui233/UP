@@ -27,10 +27,8 @@ public:
   // Behavior to be carried out when exiting a state
   virtual void onExit() { }
 
-  //hardware_interface* hw_i;
-  //FSM_StateName stateName;
-  //RobotController* _robotController;
-  ControlFSMData<T>* _controlFSMData;
+  // Holds all of the relevant control data
+  ControlFSMData<T>* _data;
 private:
 
 
