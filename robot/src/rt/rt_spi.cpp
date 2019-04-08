@@ -54,24 +54,6 @@ uint32_t xor_checksum(uint32_t *data, size_t len) {
   return t;
 }
 
-// handle simulator spi data
-class Handler{
-    public:
-        Handler() {}
-        ~Handler() {}
-    
-        void spi_lcm_data_handler(
-                const lcm::ReceiveBuffer *rbuf, 
-                const std::string & channel, 
-                const spi_data_t *msg) {
-          (void)rbuf;
-          (void)channel;
-            pthread_mutex_lock(&spi_mutex);
-            memcpy(&spi_data_drv, msg, sizeof(spi_data_drv));
-            pthread_mutex_unlock(&spi_mutex);
-        }
-};
-
 //static void *read_lcm_spi(void *arg) {
   //printf("[RT SPI] Simulator SPI LCM read thread started!\n");
   //while (1)
@@ -112,7 +94,7 @@ void fake_spine_control(spi_command_t *cmd, spi_data_t *data, spi_torque_t *torq
 }
 
 
-void init_spi(int sim) {
+void init_spi() {
 
   // check sizes:
   size_t command_size = sizeof(spi_command_t);
@@ -134,23 +116,7 @@ void init_spi(int sim) {
   } else
     printf("[RT SPI] data size good\n");
 
-
-  if (sim) {
-    printf("[RT SPI] Initialize for simulation\n");
-    //lcm_spi = lcm_create("udpm://239.255.76.67:7667?ttl=255");
-    lcm_spi = new lcm::LCM("udpm://239.255.76.67:7667?ttl=255");
-    if (!lcm_spi)
-      printf("[ERROR: RT SPI] Unable to intialize lcm in rt_ethercat!\n");
-
-    //spi_data_t_subscribe(lcm_spi, "SIMULATOR_spi_data", &spi_lcm_data_handler, NULL);
-    Handler handlerObj;
-    lcm_spi->subscribe("SIMULATOR_spi_data", &Handler::spi_lcm_data_handler, &handlerObj);
-
-    //pthread_t spi_lcm_read_thread;
-    //int thread_rc = pthread_create(&spi_lcm_read_thread, NULL, read_lcm_spi, NULL);
-    //if (thread_rc) printf("[ERROR: RT SPI] Failed to create lcm read thread!\n");
-    return;
-  }
+  
   printf("[RT SPI] Open\n");
   spi_open();
 }
@@ -336,31 +302,19 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
   }
 }
 
-//void increment_driver_status_id(spi_data_t* data)
-//{
-//    data->spi_driver_status = spi_driver_iterations++ << 16;
-//    data->spi_driver_status += 0xaa;
-//}
 
-void spi_driver_run(int is_sim) {
+void spi_driver_run() {
 
   // do spi board calculations
   for (int i = 0; i < 4; i++)
     fake_spine_control(&spi_command_drv, &spi_data_drv, &spi_torque, i);
   publish_spi_torque(&spi_torque);
 
-
-  if (!is_sim) {
+  
     // in here, the driver is good
     pthread_mutex_lock(&spi_mutex);
     spi_send_receive(&spi_command_drv, &spi_data_drv);
     pthread_mutex_unlock(&spi_mutex);
-  }
-  //printf("ab: %.3f\n",spi_command_drv.q_des_abad[0]);
-//    else
-//    {
-//        increment_driver_status_id(&spi_data);
-//    }
 }
 
 spi_command_t *get_spi_command() {
