@@ -9,6 +9,7 @@
 // FSM States
 #include "../FSM_States/FSM_State.h"
 #include "../FSM_States/FSM_State_DoNothing.h"
+#include "../FSM_States/FSM_State_BalanceStand.h"
 #include "../FSM_States/FSM_State_Locomotion.h"
 
 

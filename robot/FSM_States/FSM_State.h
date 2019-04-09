@@ -23,7 +23,7 @@ enum class FSM_StateName {
 template <typename T>
 class FSM_State {
 public:
-  FSM_State(ControlFSMData<T>* _controlFSMData);//: _data(_controlFSMData) { };
+  FSM_State(ControlFSMData<T>* _controlFSMData, FSM_StateName stateNameIn);
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() { }

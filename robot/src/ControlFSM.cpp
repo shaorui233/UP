@@ -5,7 +5,7 @@
 template <typename T>
 void ControlFSM<T>::initialize() {
   // Initialize a new FSM State with the control data
-  currentState = new FSM_State_Locomotion<T>(&data);
+  currentState = new FSM_State_BalanceStand<T>(&data);
 }
 
 

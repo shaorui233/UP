@@ -2,8 +2,8 @@
 
 template <typename T>
 FSM_State_DoNothing<T>::FSM_State_DoNothing(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData) {
-  this->stateName = FSM_StateName::DO_NOTHING;
+  FSM_State<T>(_controlFSMData, FSM_StateName::DO_NOTHING) {
+  // Do nothing
 }
 
 template <typename T>

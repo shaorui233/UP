@@ -2,8 +2,10 @@
 
 template <typename T>
 FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData) {
-  this->stateName = FSM_StateName::LOCOMOTION;
+  FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION) {
+  // Initialize GRF and footstep locations to 0s
+  groundReactionForces = Mat34<T>::Zero();
+  footstepLocations = Mat34<T>::Zero();
 }
 
 
@@ -50,7 +52,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   groundReactionForces = Mat34<T>::Zero();
   footstepLocations = Mat34<T>::Zero();
 
-  // Test to make sure we can control the robot
+  // Test to make sure we can control the robot these will be calculated by the controllers
   for (int leg = 0; leg < 4; leg++) {
     groundReactionForces.col(leg) << 0.0, 0.0, -220.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
