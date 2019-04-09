@@ -32,12 +32,7 @@ public:
   ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
              LegController<T>* _legController,
              GaitScheduler<T>* _gaitScheduler,
-             DesiredStateCommand<T>* _desiredStateCommand) {
-    data._stateEstimator = _stateEstimator;
-    data._legController = _legController;
-    data._gaitScheduler = _gaitScheduler;
-    data._desiredStateCommand = _desiredStateCommand;
-  }
+             DesiredStateCommand<T>* _desiredStateCommand);
 
   // Initializes the Control FSM instance
   void initialize();

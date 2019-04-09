@@ -1,10 +1,10 @@
 #ifndef FSM_State_H
 #define FSM_State_H
 
+#include <stdio.h>
 #include <string>
 
 #include "../include/ControlFSMData.h"
-#include <stdio.h>
 
 /*
  * Enumerate all of the FSM states so we can keep track of them
@@ -31,7 +31,7 @@ public:
   // Run the normal behavior for the state
   virtual void run() { }
 
-  //
+  // Manages state specific transitions
   virtual FSM_State<T>* getNextState() { return 0; }
 
   // Behavior to be carried out when exiting a state
@@ -42,6 +42,7 @@ public:
 
   // The enumerated name of the current state
   FSM_StateName stateName;
+
 private:
 
 

@@ -19,7 +19,7 @@ Cheetah-3-Documentation-Control:
 #define EIGEN_NO_DEBUG
 #endif
 
-#include <Eigen/Dense>
+#include <eigen3/Eigen/Dense>
 #include <qpOASES.hpp>
 #include "MyThreadClass.hpp"
 #include "OptimizationThread.hpp"

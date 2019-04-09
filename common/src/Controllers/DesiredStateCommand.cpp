@@ -37,13 +37,13 @@ void DesiredStateCommand<T>::convertToStateCommands() {
   data.stateDes(7) = deadband(gamepadCommand->leftStickAnalog[0], minVelY, maxVelY);
 
   // VErtical linear velocity
-  data.stateDes(8) = 0.0;  
+  data.stateDes(8) = 0.0;
 
   // X position
-  data.stateDes(0) = stateEstimate->position(0) + dt * velXDes;
+  data.stateDes(0) = stateEstimate->position(0) + dt * data.stateDes(6);
 
   // Y position
-  data.stateDes(1) = stateEstimate->position(1) + dt * velYDes;
+  data.stateDes(1) = stateEstimate->position(1) + dt * data.stateDes(7);
 
   // Z position height
   data.stateDes(2) = 0.45;
@@ -64,7 +64,7 @@ void DesiredStateCommand<T>::convertToStateCommands() {
   data.stateDes(4) = deadband(gamepadCommand->rightStickAnalog[1], minPitch, maxPitch);
 
   // Yaw
-  data.stateDes(5) = stateEstimate->rpy(2) + dt * angVelZDes;
+  data.stateDes(5) = stateEstimate->rpy(2) + dt * data.stateDes(11);
 
 }
 

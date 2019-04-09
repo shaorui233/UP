@@ -18,7 +18,7 @@ public:
   // Run the normal behavior for the state
   void run();
 
-  //
+  // Manages state specific transitions
   FSM_State<T>* getNextState();
 
   // Behavior to be carried out when exiting a state

@@ -1,3 +1,9 @@
+/*=========================== Balance Stand ===========================*/
+/*
+ * FSM State that forces all legs to be on the ground and uses the QP
+ * Balance controller for instantaneous balance control.
+ */
+
 #include "FSM_State_BalanceStand.h"
 
 template <typename T>
@@ -14,6 +20,9 @@ void FSM_State_BalanceStand<T>::onEnter() {
 }
 
 
+/*
+ * Calls the functions to be executed on each control loop iteration.
+ */
 template <typename T>
 void FSM_State_BalanceStand<T>::run() {
   // Do nothing, all commands should begin as zeros
@@ -22,6 +31,11 @@ void FSM_State_BalanceStand<T>::run() {
   BalanceStandStep();
 }
 
+
+/*
+ * Manages which states can be transitioned into either by the user
+ * commands or state event triggers.
+ */
 template <typename T>
 FSM_State<T>* FSM_State_BalanceStand<T>::getNextState() {
   // Get the next state
@@ -29,6 +43,9 @@ FSM_State<T>* FSM_State_BalanceStand<T>::getNextState() {
 }
 
 
+/*
+ * Cleans up the state information on exiting the state.
+ */
 template <typename T>
 void FSM_State_BalanceStand<T>::onExit() {
   // Nothing to clean up when exiting
@@ -40,9 +57,6 @@ void FSM_State_BalanceStand<T>::onExit() {
 template <typename T>
 void FSM_State_BalanceStand<T>::BalanceStandStep() {
   //StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
-
-  // Contact state logic
-  //estimateContact();
 
   // Run the balancing controllers to get GRF and next step locations
   //runControls();
@@ -58,7 +72,7 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
 
   //std::cout << groundReactionForces << std::endl;
 
-  // Calculate appropriate control actions for each leg to be sent out
+  // All legs are force commanded to be on the ground
   for (int leg = 0; leg < 4; leg++) {
     this->_data->_legController->commands[leg].forceFeedForward = groundReactionForces.col(leg);
 

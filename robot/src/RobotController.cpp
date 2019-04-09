@@ -38,7 +38,6 @@ void RobotController::init() {
 
   // Initializes the Control FSM with all the required data
   _controlFSM = new ControlFSM<float>(_stateEstimator, _legController, _gaitScheduler, _desiredStateCommand);
-  _controlFSM->initialize();
 
   // For WBC state
   _model = _quadruped.buildModel();
@@ -254,7 +253,6 @@ void RobotController::runControls() {
     groundReactionForces = Mat34<float>::Zero();
     footstepLocations = Mat34<float>::Zero();
   }
-
 }
 
 
@@ -262,7 +260,67 @@ void RobotController::runControls() {
  * Calls the interface for the controller
  */
 void RobotController::runBalanceController() {
-  // TODO
+  /*
+  if (firstRun) {
+    yawOffset = hw_i->state_estimator->se_rpy[2];
+    firstRun = false;
+  }
+
+  // set gains/weights/settings
+  minForce = hw_i->balanceSettings.min_force;
+  maxForce = hw_i->balanceSettings.max_force;
+  balanceController.set_alpha_control(hw_i->balanceSettings.Force_regularization_stance);
+  balanceController.set_friction(hw_i->balanceSettings.mu);
+  balanceController.set_mass(hw_i->balanceSettings.mass);
+  balanceController.set_PDgains(hw_i->balanceSettings.KpCOM_stance,  hw_i->balanceSettings.KdCOM_stance,
+                                hw_i->balanceSettings.KpBase_stance, hw_i->balanceSettings.KdBase_stance);
+
+  balanceController.set_wrench_weights(hw_i->balanceSettings.COM_weights_stance, hw_i->balanceSettings.Base_weights_stance);
+
+  double allOnGround[4] = {1, 1, 1, 1};
+  double minForces[4] = {minForce, minForce, minForce, minForce};
+  double maxForces[4] = {maxForce, maxForce, maxForce, maxForce};
+  balanceController.SetContactData(allOnGround, minForces, maxForces);
+
+  double pFeet[12];
+  for (int i = 0; i < 3; i++)
+    for (int foot = 0; foot < 4; foot++)
+      pFeet[i + 3 * foot] = hw_i->state_estimator->se_pFoot[foot][i] - hw_i->state_estimator->se_pBody[i];
+  double p_des[3],  p_act[3], v_des[3], v_act[3], O_err[3];
+
+  vec3 averageFootPosition(0, 0, 0);
+  for (int i = 0; i < 4; i++)
+    averageFootPosition += 0.25f * hw_i->state_estimator->se_pFoot[i];
+
+  double p_des_corrected[3];
+  for (int i = 0; i < 2; i++)
+    p_des_corrected[i] = averageFootPosition[i] + fsm->main_control_settings.p_des[i];
+  p_des_corrected[2] = fsm->main_control_settings.p_des[2];
+
+  double rpy_des_corrected[3] = {fsm->main_control_settings.rpy_des[0], fsm->main_control_settings.rpy_des[1] - hw_i->state_estimator->se_ground_pitch, fsm->main_control_settings.rpy_des[2] + yawOffset};
+  // set desired trajectory
+  balanceController.set_desiredTrajectoryData(rpy_des_corrected,
+      p_des_corrected,
+      fsm->main_control_settings.omega_des,
+      fsm->main_control_settings.v_des);
+
+
+  //    Vector4f contact(1,1,1,1);
+  //    hw_i->state_estimator->set_contact_state(contact);
+  // robot information
+  // MIGHT BE WRONG WAY!!
+
+  Vector4f se_contactState(.5, .5, .5, .5);
+  hw_i->state_estimator->set_contact_state(se_contactState);
+
+  balanceController.updateProblemData(hw_i->state_estimator->se_xfb, pFeet, p_des, p_act, v_des, v_act,
+                                      O_err, hw_i->state_estimator->se_rpy[2]);
+
+
+
+  double fOpt[12];
+  balanceController.solveQP_nonThreaded(fOpt);
+  */
 }
 
 
