@@ -8,7 +8,7 @@
 
 // FSM States
 #include "../FSM_States/FSM_State.h"
-#include "../FSM_States/FSM_State_DoNothing.h"
+#include "../FSM_States/FSM_State_Passive.h"
 #include "../FSM_States/FSM_State_BalanceStand.h"
 #include "../FSM_States/FSM_State_Locomotion.h"
 
@@ -48,10 +48,6 @@ public:
 
   // The next FSM State that the robot will transition to
   FSM_State<T>* nextState;
-
-  //FSM_StateName currentStateName;
-  //FSM_StateName nextStateName;
-
 
 private:
 

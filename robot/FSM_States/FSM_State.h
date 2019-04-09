@@ -11,7 +11,7 @@
  */
 enum class FSM_StateName {
   INVALID,
-  DO_NOTHING,
+  PASSIVE,
   BALANCE_STAND,
   LOCOMOTION
 };
