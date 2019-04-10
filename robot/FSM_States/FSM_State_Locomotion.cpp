@@ -9,7 +9,7 @@
 
 template <typename T>
 FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION) {
+  FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION") {
   // Initialize GRF and footstep locations to 0s
   groundReactionForces = Mat34<T>::Zero();
   footstepLocations = Mat34<T>::Zero();
@@ -18,7 +18,8 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData
 
 template <typename T>
 void FSM_State_Locomotion<T>::onEnter() {
-  // Nothing to initialize
+  // Default is to not transition
+  this->nextStateName = this->stateName;
 }
 
 
@@ -31,8 +32,8 @@ void FSM_State_Locomotion<T>::run() {
   LocomotionControlStep();
 
   // Print some information about the current iteration
-  this->_data->_gaitScheduler->printGaitInfo();
-  this->_data->_desiredStateCommand->printStateCommandInfo();
+  //this->_data->_gaitScheduler->printGaitInfo();
+  //this->_data->_desiredStateCommand->printStateCommandInfo();
 }
 
 
@@ -41,9 +42,42 @@ void FSM_State_Locomotion<T>::run() {
  * commands or state event triggers.
  */
 template <typename T>
-FSM_State<T>* FSM_State_Locomotion<T>::getNextState() {
+FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   // Get the next state
-  return this;
+  iter++;
+  if (iter > 2500) {
+    this->nextStateName = FSM_StateName::BALANCE_STAND;
+  }
+
+  // Return the next state name to the FSM
+  return this->nextStateName;
+
+}
+
+
+/*
+ * Handles the actual transition for the robot between states.
+ * Returns true when the transition is completed.
+ */
+template <typename T>
+bool FSM_State_Locomotion<T>::transition() {
+  // Get the next state
+
+  if (this->nextStateName == FSM_StateName::BALANCE_STAND) {
+    // Call the locomotion control logic for this iteration
+    LocomotionControlStep();
+
+    iter++;
+    if (iter > 5000) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+
+  }
+
+  return true;
 }
 
 
@@ -53,6 +87,7 @@ FSM_State<T>* FSM_State_Locomotion<T>::getNextState() {
 template <typename T>
 void FSM_State_Locomotion<T>::onExit() {
   // Nothing to clean up when exiting
+  iter = 0;
 }
 
 /*

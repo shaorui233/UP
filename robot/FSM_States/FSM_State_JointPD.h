@@ -1,5 +1,5 @@
-#ifndef FSM_STATE_PASSIVE_H
-#define FSM_STATE_PASSIVE_H
+#ifndef FSM_STATE_JOINTPD_H
+#define FSM_STATE_JOINTPD_H
 
 #include "FSM_State.h"
 
@@ -7,9 +7,10 @@
  *
  */
 template <typename T>
-class FSM_State_Passive: public FSM_State<T> {
+class FSM_State_JointPD: public FSM_State<T> {
 public:
-  FSM_State_Passive(ControlFSMData<T>* _controlFSMData);
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  FSM_State_JointPD(ControlFSMData<T>* _controlFSMData);
 
   // Behavior to be carried out when entering a state
   void onEnter();
@@ -30,4 +31,4 @@ private:
 
 };
 
-#endif // FSM_STATE_PASSIVE_H
+#endif // FSM_STATE_JOINTPD_H

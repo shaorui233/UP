@@ -74,9 +74,10 @@ TwoLegSwingCtrl<T>::TwoLegSwingCtrl(PlannedTrotTest<T> * test, const FloatingBas
     }
 
     wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_qddot_.head(6) = 
+        DVec<T>::Constant(6, Weight::qddot_relax_virtual);
     wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, Weight::tan_small);
     wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, Weight::foot_big);
-
 
     int idx_offset(0);
     for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
@@ -224,15 +225,15 @@ void TwoLegSwingCtrl<T>::_task_setup(){
     body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
     // set Foot trajectory
-    //_GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::_state_machine_time, 
-            //_foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
-    //_GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::_state_machine_time, 
-            //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
-
-    _GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_1,
+    _GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::_state_machine_time, 
             _foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
-    _GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_2, 
+    _GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::_state_machine_time, 
             _foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
+
+    //_GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_1,
+            //_foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
+    //_GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_2, 
+            //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
 
     _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
     _cp_pos_task2->UpdateTask(&(_foot_pos_des2), _foot_vel_des2, _foot_acc_des2);

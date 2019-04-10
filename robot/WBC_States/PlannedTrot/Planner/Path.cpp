@@ -7,8 +7,8 @@ template <typename T>
 Path<T>::Path(): _path_idx(0){
     _b_used = false;
     _end_idx = 0;
-    _step_size_min.clear(); _step_size_min.resize(2, 0.);
-    _step_size_max.clear(); _step_size_max.resize(2, 0.);
+    _lin_vel_min.clear(); _lin_vel_min.resize(2, 0.);
+    _lin_vel_max.clear(); _lin_vel_max.resize(2, 0.);
 
     _front_footloc_list.resize(nMiddle + 2);
     _hind_footloc_list.resize(nMiddle + 2);
@@ -27,7 +27,15 @@ Path<T>::Path(): _path_idx(0){
         _fin_lin[i] = 0.;
     }
 
+    for(size_t i(0); i<2; ++i){
+        _ini_vel[i] = 0.;
+        _fin_vel[i] = 0.;
+    }
     _path_start_loc.setZero();
+
+    for(size_t i(0); i<nMiddle+1; ++i){
+        _weight[i] = ((T)(i+1)/(nMiddle+2));
+    }
 }
 
 template<typename T>
@@ -72,9 +80,12 @@ Path<T>::~Path(){
 template<typename T>
 void Path<T>::initialization(T* ini_lin, T* ini_ori, int stance_foot){
     _b_used = false;
-    
-    _step_size[0] = 0.;
-    _step_size[1] = 0.;
+
+    _ini_vel[0] = 0.;
+    _ini_vel[1] = 0.;
+
+    _fin_vel[0] = 0.;
+    _fin_vel[1] = 0.;
     
     _step_size_ori[0] = 0.;
     _step_size_ori[1] = 0.;
@@ -165,27 +176,38 @@ void Path<T>::updatePath(T* dir, T* ori, T* ini_lin, T* ini_ori, int ini_stance_
     _ori_spline.SetParam(ini_ori, _fin_ori, mid_ori, _tot_time);
  
     // Linear
-    _step_size[0] += (0.0005*dir[0]);
-    _step_size[1] += (-0.001*dir[1]);
+    _fin_vel[0] = 3.0*dir[0];
+    _fin_vel[1] = 0.7*dir[1];
     
     for(size_t i(0); i<2; ++i)
-        _step_size[i] = _bound(_step_size[i], _step_size_min[i], _step_size_max[i]);
+        _fin_vel[i] = _bound(_fin_vel[i], _lin_vel_min[i], _lin_vel_max[i]);
 
-    mid_lin[0][0] = ini_lin[0] + _step_size[0] * cos(ini_ori[2]);
-    mid_lin[0][1] = ini_lin[1] + _step_size[1] * sin(ini_ori[2]);
+    T vel_gap[2];
+    T step_size[2];
+    for(size_t i(0);i<2; ++i) vel_gap[i] = _fin_vel[i] - _ini_vel[i];
+
+    for(size_t i(0);i<2; ++i) step_size[i] = (_ini_vel[i] +_weight[0]*vel_gap[i]) * _step_time;
+    mid_lin[0][0] = ini_lin[0] + step_size[0] * cos(ini_ori[2]);
+    mid_lin[0][1] = ini_lin[1] + step_size[1] * sin(ini_ori[2]);
     mid_lin[0][2] = ini_lin[2];
 
     T yaw;
     for(size_t i(1); i< nMiddle; ++i){
+        for(size_t k(0);k<2; ++k) step_size[k] = (_ini_vel[k] +_weight[i]*vel_gap[k]) * _step_time;
+
         yaw = mid_ori[i-1][2];
-        mid_lin[i][0] = cos(yaw) * _step_size[0] - sin(yaw) * _step_size[1] + mid_lin[i-1][0];
-        mid_lin[i][1] = sin(yaw) * _step_size[0] + cos(yaw) * _step_size[1] + mid_lin[i-1][1];
+        mid_lin[i][0] = cos(yaw) * step_size[0] - sin(yaw) * step_size[1] + mid_lin[i-1][0];
+        mid_lin[i][1] = sin(yaw) * step_size[0] + cos(yaw) * step_size[1] + mid_lin[i-1][1];
         mid_lin[i][2] = ini_lin[2];
     }
     yaw = mid_ori[nMiddle-1][2];
-    _fin_lin[0] = cos(yaw) * _step_size[0] - sin(yaw) * _step_size[1] + mid_lin[nMiddle-1][0];
-    _fin_lin[1] = sin(yaw) * _step_size[0] + cos(yaw) * _step_size[1] + mid_lin[nMiddle-1][1];
+    for(size_t k(0);k<2; ++k) step_size[k] = (_ini_vel[k] +_weight[nMiddle]*vel_gap[k]) * _step_time;
+    _fin_lin[0] = cos(yaw) * step_size[0] - sin(yaw) * step_size[1] + mid_lin[nMiddle-1][0];
+    _fin_lin[1] = sin(yaw) * step_size[0] + cos(yaw) * step_size[1] + mid_lin[nMiddle-1][1];
     _fin_lin[2] = ini_lin[2];
+
+    _fin_lin[3] = cos(yaw) * _fin_vel[0] - sin(yaw) * _fin_vel[1];
+    _fin_lin[4] = sin(yaw) * _fin_vel[0] + cos(yaw) * _fin_vel[1];
 
     _lin_spline.SetParam(ini_lin, _fin_lin, mid_lin, _tot_time);
     
@@ -276,8 +298,8 @@ void Path<T>::setParameters(ParamHandler* handle){
     _tot_time = _step_time * (T)(nMiddle+1);
 
     // Limit
-    handle->getVector<T>("step_size_min", _step_size_min);
-    handle->getVector<T>("step_size_max", _step_size_max);
+    handle->getVector<T>("lin_vel_min", _lin_vel_min);
+    handle->getVector<T>("lin_vel_max", _lin_vel_max);
     handle->getVector<T>("step_size_ori_min", _step_size_ori_min);
     handle->getVector<T>("step_size_ori_max", _step_size_ori_max);
 
@@ -314,9 +336,9 @@ T Path<T>::_bound(const T & value, const T & min, const T & max){
 template<typename T>
 void Path<T>::printPathInfo(){
 
-    printf("path idx, end idx, step size: %d, %lu, (%f, %f)\n",
+    printf("path idx, end idx, final velocity: %d, %lu, (%f, %f)\n",
             _path_idx, 
-            _end_idx, _step_size[0], _step_size[1]);
+            _end_idx, _fin_vel[0], _fin_vel[1]);
     printf("step time, total time: %f, %f\n", _step_time, _tot_time);
 
     T pos[3]; T vel[3]; T ori[3];

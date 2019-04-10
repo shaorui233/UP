@@ -32,7 +32,7 @@ class Planner{
         int _path_flag;
         T _curr_path_st_time;
         T _body_height;
-        T _min_trot_initiating_step_size = 0.01;
+        T _min_walking_initiating_speed= 0.01;
         int _step_idx; // -1: before start, -2: end of motion
         int _first_stance_foot;
 

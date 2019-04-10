@@ -18,6 +18,8 @@ class Handler
                 const std::string& chan, 
                 const simulation_to_python * msg)
         {
+            (void)rbuf;
+            (void)chan;
             output = *msg;
 //            printf("Received message on channel \"%s\":\n", chan.c_str());
         }

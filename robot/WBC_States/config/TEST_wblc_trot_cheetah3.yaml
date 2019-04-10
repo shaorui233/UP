@@ -1,7 +1,7 @@
 # Initialization
 
 ## Cheetah 3
-swing_time: 0.18
+swing_time: 0.16
 transition_time: 0.005
 stance_time: 0.005
 
@@ -18,14 +18,14 @@ CTRL_fix_stance:
 CTRL_frhl_swing:
     default_target_foot_location_1: [0.3, -0.17, 0.0] # Front Right
     default_target_foot_location_2: [-0.3, 0.17, 0.0] # Hind Left
-    swing_height: 0.12
+    swing_height: 0.08
     landing_offset: [0, 0, 0]
 
 
 CTRL_flhr_swing:
     default_target_foot_location_1: [0.3, 0.17, 0.0] # Front Left
     default_target_foot_location_2: [-0.3, -0.17, 0.0] # Hind Right
-    swing_height: 0.12
+    swing_height: 0.08
     landing_offset: [0, 0, 0]
 
 CTRL_two_leg_trans:
@@ -46,3 +46,4 @@ Kd: [ 40., 40., 40.,
       40., 40., 40., 
       40., 40., 40. ]
 
+tau_lim: [-250., 250.]

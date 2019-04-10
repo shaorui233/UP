@@ -3,10 +3,12 @@
 
 template <typename T>
 FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData,
-                        FSM_StateName stateNameIn):
+                        FSM_StateName stateNameIn,
+                        std::string stateStringIn):
   _data(_controlFSMData),
-  stateName(stateNameIn) {
-  printf("[FSM_State] Initialized FSM state");// %s\n",name.c_str());
+  stateName(stateNameIn),
+  stateString(stateStringIn) {
+  printf("[FSM_State] Initialized FSM state\n");// %s\n",name.c_str());
 }
 
 

@@ -9,6 +9,8 @@
 // FSM States
 #include "../FSM_States/FSM_State.h"
 #include "../FSM_States/FSM_State_Passive.h"
+#include "../FSM_States/FSM_State_JointPD.h"
+#include "../FSM_States/FSM_State_ImpedanceControl.h"
 #include "../FSM_States/FSM_State_BalanceStand.h"
 #include "../FSM_States/FSM_State_Locomotion.h"
 
@@ -21,6 +23,21 @@ enum class FSM_OperatingMode {
   TRANSITIONING,
   ESTOP,
 };
+
+
+/*
+ *
+ */
+template <typename T>
+struct FSM_StatesList {
+  FSM_State<T>* invalid;
+  FSM_State_Passive<T>* passive;
+  FSM_State_JointPD<T>* jointPD;
+  FSM_State_ImpedanceControl<T>* impedanceControl;
+  FSM_State_BalanceStand<T>* balanceStand;
+  FSM_State_Locomotion<T>* locomotion;
+};
+
 
 
 /*
@@ -40,8 +57,17 @@ public:
   // Runs the FSM logic and handles the state transitions and normal runs
   void runFSM();
 
+  //
+  FSM_OperatingMode safetyCheck();
+
+  // Gets the next FSM_State from the list of created states when requested
+  FSM_State<T>* getNextState(FSM_StateName stateName);
+
   // Contains all of the control related data
   ControlFSMData<T> data;
+
+  // Holds all of the FSM States
+  FSM_StatesList<T> statesList;
 
   // The current FSM State of the robot
   FSM_State<T>* currentState;
@@ -49,9 +75,13 @@ public:
   // The next FSM State that the robot will transition to
   FSM_State<T>* nextState;
 
+  // The name of the next FSM State
+  FSM_StateName nextStateName;
+
 private:
 
-
+  // Operating mode of the FSM
+  FSM_OperatingMode operatingMode;
 };
 
 

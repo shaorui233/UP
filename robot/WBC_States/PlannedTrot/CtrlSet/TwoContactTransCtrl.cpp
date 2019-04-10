@@ -56,6 +56,8 @@ TwoContactTransCtrl<T>::TwoContactTransCtrl(
     }
 
     wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_qddot_.head(6) = 
+        DVec<T>::Constant(6, Weight::qddot_relax_virtual);
     wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, Weight::tan_small);
     wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, Weight::foot_big);
 

@@ -73,6 +73,7 @@ WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const Floa
     }
 
     wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
+    wblc_data_->W_qddot_.head(6) = DVec<T>::Constant(6, Weight::qddot_relax_virtual);
     wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, Weight::tan_small);
     wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, Weight::foot_big);
 
@@ -276,8 +277,8 @@ void WBLC_TwoLegSwingCtrl<T>::_GetSinusoidalSwingTrajectory(
         acc_des[i] = smooth_change_acc(ini[i], fin[i], _end_time, t);
     }
     // for Z (height)
-    double amp(_swing_height/2.);
-    double omega ( 2.*M_PI /_end_time );
+    T amp(_swing_height/2.);
+    T omega ( 2.*M_PI /_end_time );
 
     pos_des[2] = ini[2] + amp * (1-cos(omega * t));
     vel_des[2] = amp * omega * sin(omega * t);
@@ -338,12 +339,12 @@ void WBLC_TwoLegSwingCtrl<T>::FirstVisit(){
 
 template<typename T>
 void WBLC_TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des_pos, 
-        BS_Basic<double, 3, 3, 1, 2, 2> & spline){
+        BS_Basic<T, 3, 3, 1, 2, 2> & spline){
     // Trajectory Setup
-    double init[9];
-    double fin[9];
-    double** middle_pt = new double*[1];
-    middle_pt[0] = new double[3];
+    T init[9];
+    T fin[9];
+    T** middle_pt = new T*[1];
+    middle_pt[0] = new T[3];
     Vec3<T> middle_pos;
 
     middle_pos = (st_pos + des_pos)/2.;
@@ -373,12 +374,12 @@ void WBLC_TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> 
 
 template<typename T>
 void WBLC_TwoLegSwingCtrl<T>::_GetBsplineSwingTrajectory(const T & t, 
-        BS_Basic<double, 3, 3, 1, 2, 2> & spline,
+        BS_Basic<T, 3, 3, 1, 2, 2> & spline,
         Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des){
 
-    double pos[3];
-    double vel[3];
-    double acc[3];
+    T pos[3];
+    T vel[3];
+    T acc[3];
     
     spline.getCurvePoint(t, pos);
     spline.getCurveDerPoint(t, 1, vel);
@@ -457,6 +458,11 @@ void WBLC_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
 
     handler.getValue<T>("step_time_ratio", tmp_value);
     _step_time *= tmp_value;
+    // torque limit default setting
+    handler.getVector<T>("tau_lim", tmp_vec);
+    wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);
+    wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[1]);
+
 }
 
 template<typename T>

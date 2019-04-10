@@ -75,6 +75,7 @@ template <typename T>
 void Planner<T>::SetParameter(const std::string & config_file){
     ParamHandler handler(config_file);
     handler.getValue<T>("body_height", _body_height);
+    handler.getValue<T>("min_walking_initiating_speed", _min_walking_initiating_speed);
 
     _engaged_path.setParameters(&handler);
     _replanned_path.setParameters(&handler);
@@ -126,8 +127,8 @@ void Planner<T>::UpdateUserInput(T* dir, T* ori){
             _engaged_path.getPathInfo(0, 0., ini_lin, ini_ori, ini_stance_foot);
             _engaged_path.updatePath(dir, ori, ini_lin, ini_ori, ini_stance_foot);
             // Simultaneously update next path target
-            _replanned_path._step_size[0] = _engaged_path._step_size[0];
-            _replanned_path._step_size[1] = _engaged_path._step_size[1];
+            _replanned_path._fin_vel[0] = _engaged_path._fin_vel[0];
+            _replanned_path._fin_vel[1] = _engaged_path._fin_vel[1];
             _replanned_path._fin_ori[2] = _engaged_path._fin_ori[2];
 
             _replanned_path._path_start_loc = _curr_global_frame_loc;
@@ -246,11 +247,13 @@ bool Planner<T>::stop(const T & curr_time){
     if(_step_idx<0){ _curr_path_st_time = curr_time; }
     // If the commanded path is too small to take a step, then stop
 
-    T step_len = sqrt(
-            _engaged_path._step_size[0] * _engaged_path._step_size[0] + 
-            _engaged_path._step_size[1] * _engaged_path._step_size[1]);
-    if(step_len < _min_trot_initiating_step_size 
-            && _engaged_path._step_size_ori[2] < _min_trot_initiating_step_size){ 
+    T cmd_vel = sqrt(
+            _engaged_path._fin_vel[0] * _engaged_path._fin_vel[0] + 
+            _engaged_path._fin_vel[1] * _engaged_path._fin_vel[1]) 
+        + fabs(_engaged_path._step_size_ori[2]);
+
+    if(cmd_vel < _min_walking_initiating_speed
+            && _engaged_path._step_size_ori[2] < _min_walking_initiating_speed){ 
         //printf("short command: %f/ %f\n", step_len, _min_trot_initiating_step_size);
         _step_idx = -1;
         _curr_path_st_time = curr_time;

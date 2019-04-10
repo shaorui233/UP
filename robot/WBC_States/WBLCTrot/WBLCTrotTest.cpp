@@ -161,6 +161,7 @@ void WBLCTrotTest<T>::_SettingParameter(){
     }
     handler->getValue<T>("body_height", _target_body_height);
     _body_pos[2] = _target_body_height;
+    handler->getBoolean("save_file", Test<T>::_b_save_file);
     delete handler;
 }
 
@@ -188,26 +189,36 @@ void WBLCTrotTest<T>::_UpdateTestOneStep(){
     _body_pos += _body_vel*Test<T>::dt;
     //_body_pos = Test<T>::_robot->_state.bodyPosition;
     
-    static int count(0);
-    if(count % 10 == 0){
-        saveValue(_sp->_curr_time, _folder_name, "time");
-        saveVector(_body_pos, _folder_name, "body_pos");
-        saveVector(_body_vel, _folder_name, "body_vel");
-        saveVector(_body_acc, _folder_name, "body_acc");
-        saveVector(_body_ori_rpy, _folder_name, "cmd_body_ori_rpy");
-        saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
-
-        saveVector(_sp->_Q, _folder_name, "config");
-        saveVector(_sp->_Qdot, _folder_name, "qdot");
-
-        saveValue(Test<T>::_phase, _folder_name, "phase");
-    }
-    ++count;
 }
 
 template <typename T>
 void WBLCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
     (void)ext_data;
+
+    if(Test<T>::_b_save_file){
+        static int count(0);
+        if(count % 10 == 0){
+            saveValue(_sp->_curr_time, _folder_name, "time");
+            saveVector(_body_pos, _folder_name, "body_pos");
+            saveVector(_body_vel, _folder_name, "body_vel");
+            saveVector(_body_acc, _folder_name, "body_acc");
+
+            Vec3<T> body_ori_rpy = ori::quatToRPY(Test<T>::_robot->_state.bodyOrientation);
+            saveVector(body_ori_rpy, _folder_name, "body_ori_rpy");
+            saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
+            saveVector(_body_ori_rpy, _folder_name, "cmd_body_ori_rpy");
+
+            saveVector(_sp->_Q, _folder_name, "config");
+            saveVector(_sp->_Qdot, _folder_name, "qdot");
+            saveVector((Test<T>::_copy_cmd)[0].tauFeedForward, _folder_name, "fr_tau");
+            saveVector((Test<T>::_copy_cmd)[1].tauFeedForward, _folder_name, "fl_tau");
+            saveVector((Test<T>::_copy_cmd)[2].tauFeedForward, _folder_name, "hr_tau");
+            saveVector((Test<T>::_copy_cmd)[3].tauFeedForward, _folder_name, "hl_tau");
+
+            saveValue(Test<T>::_phase, _folder_name, "phase");
+        }
+        ++count;
+    }
 }
 
 template class WBLCTrotTest<double>;

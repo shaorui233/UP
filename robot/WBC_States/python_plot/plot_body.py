@@ -36,11 +36,6 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
 
     data_x = np.genfromtxt(file_path+'time.txt', delimiter='\n', dtype=(float))
 
-    ## Check
-    check_t = np.genfromtxt(file_path+'check_time.txt', delimiter='\n', dtype=(float))
-    check_v = np.genfromtxt(file_path+'check_vel.txt', delimiter=None, dtype=(float))
-    # lin_info = np.genfromtxt(file_path+'body_lin_info.txt', delimiter=None, dtype=(float))
-
     st_idx = 0
     end_idx = len(data_x)
     data_x = data_x[st_idx:end_idx]
@@ -138,28 +133,7 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     elif plot_configuration == PLOT_VERTICALLY:
         row_index +=1
  
-
-    ## Check
-    fig = plt.figure(figure_number)
-    plt.get_current_fig_manager().window.wm_geometry(str(subfigure_width) + "x" + str(subfigure_height) +  "+" + str(subfigure_width*col_index) + "+" + str(subfigure_height*row_index))    
-    fig.canvas.set_window_title('check vel')
-    for i in range(3):
-        ax1 = plt.subplot(3, 1, i+1)
-        plt.plot(check_t[st_idx:end_idx], check_v[st_idx:end_idx,i], "b-")
-        # plt.plot(data_x, check_t[st_idx:end_idx], "b-")
-        plt.grid(True)
-        for j in phseChange:
-            # phase line
-            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
-            # phase number
-            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
-    ## increment figure number and index
-    figure_number += 1
-    if plot_configuration == PLOT_HORIZONTALLY:
-        col_index += 1
-    elif plot_configuration == PLOT_VERTICALLY:
-        row_index +=1
-     
+    
 if __name__ == "__main__":
     create_figures()
     plt.show()

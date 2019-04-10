@@ -16,6 +16,8 @@ namespace Weight{
     constexpr float foot_big = 1000.;
     constexpr float foot_small = 0.001;
     constexpr float qddot_relax = 100.;
+    constexpr float qddot_relax_virtual = 0.0001;
+    //constexpr float qddot_relax_virtual = 100.0;
 }
 
 

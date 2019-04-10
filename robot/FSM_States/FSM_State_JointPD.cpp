@@ -1,20 +1,20 @@
-/*============================== Passive ==============================*/
+/*============================= Joint PD ==============================*/
 /*
- * FSM State that calls no controls. Meant to be a safe state where the
- * robot should not do anything as all commands will be set to 0.
+ * FSM State that allows PD control of the joints.
  */
 
-#include "FSM_State_Passive.h"
+#include "FSM_State_JointPD.h"
 
 template <typename T>
-FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE, "PASSIVE") {
-  // Do nothing
+FSM_State_JointPD<T>::FSM_State_JointPD(ControlFSMData<T>* _controlFSMData):
+  FSM_State<T>(_controlFSMData, FSM_StateName::JOINT_PD, "JOINT_PD") {
+  // Do nothing here yet
 }
 
+
 template <typename T>
-void FSM_State_Passive<T>::onEnter() {
-  // NOthing to initialize
+void FSM_State_JointPD<T>::onEnter() {
+  // Nothing to initialize
 }
 
 
@@ -22,10 +22,8 @@ void FSM_State_Passive<T>::onEnter() {
  * Calls the functions to be executed on each control loop iteration.
  */
 template <typename T>
-void FSM_State_Passive<T>::run() {
+void FSM_State_JointPD<T>::run() {
   // Do nothing, all commands should begin as zeros
-
-  // Print some information about the current iteration
   this->_data->_gaitScheduler->printGaitInfo();
   this->_data->_desiredStateCommand->printStateCommandInfo();
 }
@@ -36,7 +34,7 @@ void FSM_State_Passive<T>::run() {
  * commands or state event triggers.
  */
 template <typename T>
-FSM_StateName FSM_State_Passive<T>::checkTransition() {
+FSM_StateName FSM_State_JointPD<T>::checkTransition() {
   // Get the next state
   return this->stateName;
 }
@@ -47,7 +45,7 @@ FSM_StateName FSM_State_Passive<T>::checkTransition() {
  * Returns true when the transition is completed.
  */
 template <typename T>
-bool FSM_State_Passive<T>::transition() {
+bool FSM_State_JointPD<T>::transition() {
   // Get the next state
   return true;
 }
@@ -57,11 +55,10 @@ bool FSM_State_Passive<T>::transition() {
  * Cleans up the state information on exiting the state.
  */
 template <typename T>
-void FSM_State_Passive<T>::onExit() {
+void FSM_State_JointPD<T>::onExit() {
   // Nothing to clean up when exiting
 }
 
 
-
-template class FSM_State_Passive<double>;
-template class FSM_State_Passive<float>;
+//template class FSM_State_JointPD<double>;
+template class FSM_State_JointPD<float>;
