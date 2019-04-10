@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include "HardwareBridge.h"
 #include "rt/rt_vectornav.h"
+#include "rt/rt_spi.h"
 
 /*!
  * If an error occurs during initialization, before motors are enabled, print error and exit.
@@ -160,7 +161,7 @@ void HardwareBridge::handleControlParameter(const lcm::ReceiveBuffer* rbuf,
   _interfaceLCM.publish("interface-response", &_parameter_response_lcmt);
 }
 
-MiniCheetahHardwareBridge::MiniCheetahHardwareBridge()
+MiniCheetahHardwareBridge::MiniCheetahHardwareBridge() :_spiLcm(getLcmUrl(255))
 {
 
 }
@@ -198,7 +199,11 @@ void MiniCheetahHardwareBridge::run() {
   PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
       &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
 
+  PeriodicMemberFunction<MiniCheetahHardwareBridge> spiTask(
+      &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
+
   visualizationLCMTask.start();
+  spiTask.start();
 
   for(;;) {
     usleep(1000000);
@@ -213,6 +218,8 @@ void MiniCheetahHardwareBridge::initHardware() {
     initError("failed to initialize vectornav!\n", false);
   }
 
+  init_spi();
+
 
   // init spi
   // init sbus
@@ -222,6 +229,20 @@ void MiniCheetahHardwareBridge::initHardware() {
 
 
   //
+}
+
+void MiniCheetahHardwareBridge::runSpi() {
+  spi_command_t* cmd = get_spi_command();
+  spi_data_t* data = get_spi_data();
+
+  memcpy(cmd, &_spiCommand, sizeof(spi_command_t));
+  spi_driver_run();
+  memcpy(&_spiData, data, sizeof(spi_data_t));
+
+  _spiLcm.publish("spi-data", data);
+  _spiLcm.publish("spi-command", cmd);
+
+
 }
 
 void HardwareBridge::publishVisualizationLCM() {
