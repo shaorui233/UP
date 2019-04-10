@@ -207,7 +207,7 @@ void BodyPostureCtrl<T>::CtrlInitialization(const std::string & category_name){
 template <typename T>
 void BodyPostureCtrl<T>::SetTestParameter(const std::string & test_file){
     _param_handler = new ParamHandler(test_file);
-    if(_param_handler->getValue<T>("body_height", _target_body_height)){
+    if(!_param_handler->getValue<T>("body_height", _target_body_height)){
         printf("[Body Posture Ctrl] Error. No Height Target\n");
     }
     _param_handler->getValue<T>("stance_time", _end_time);

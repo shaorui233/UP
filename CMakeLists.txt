@@ -12,7 +12,7 @@ execute_process(COMMAND ../scripts/make_types.sh)
 
 
 
-  #set(CMAKE_VERBOSE_MAKEFILE ON)
+#set(CMAKE_VERBOSE_MAKEFILE ON)
 
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 
