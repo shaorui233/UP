@@ -2,16 +2,17 @@
 #define FSM_State_H
 
 #include <stdio.h>
-#include <string>
 
 #include "../include/ControlFSMData.h"
 
 /*
- * Enumerate all of the FSM states so we can keep track of them
+ * Enumerate all of the FSM states so we can keep track of them.
  */
 enum class FSM_StateName {
   INVALID,
   PASSIVE,
+  JOINT_PD,
+  IMPEDANCE_CONTROL,
   BALANCE_STAND,
   LOCOMOTION
 };
@@ -23,7 +24,9 @@ enum class FSM_StateName {
 template <typename T>
 class FSM_State {
 public:
-  FSM_State(ControlFSMData<T>* _controlFSMData, FSM_StateName stateNameIn);
+  FSM_State(ControlFSMData<T>* _controlFSMData,
+            FSM_StateName stateNameIn,
+            std::string stateStringIn);
 
   // Behavior to be carried out when entering a state
   virtual void onEnter() { }
@@ -32,7 +35,10 @@ public:
   virtual void run() { }
 
   // Manages state specific transitions
-  virtual FSM_State<T>* getNextState() { return 0; }
+  virtual FSM_StateName checkTransition() { return FSM_StateName::INVALID; }
+
+  //
+  virtual bool transition() { return false; }
 
   // Behavior to be carried out when exiting a state
   virtual void onExit() { }
@@ -42,6 +48,15 @@ public:
 
   // The enumerated name of the current state
   FSM_StateName stateName;
+
+  // The enumerated name of the next state
+  FSM_StateName nextStateName;
+
+  // State name string
+  std::string stateString;
+
+  // Save the time transition starts
+  T tStartTransition = 0;
 
 private:
 
