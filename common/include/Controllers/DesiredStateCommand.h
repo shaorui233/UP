@@ -23,7 +23,10 @@ struct DesiredStateData {
   // Zero out all of the data
   void zero();
 
+  // Instantaneous desired state command
   Vec12<T> stateDes;
+
+  // Desired future state trajectory (for up to 10 timestep MPC)
   Eigen::Matrix<T, 12, 10> stateTrajDes;
 };
 
@@ -48,6 +51,7 @@ public:
   void printStateCommandInfo();
   float deadband(float command, T minVal, T maxVal);
 
+  // These should come from the inferface
   T maxRoll = 0.4;
   T minRoll = -0.4;
   T maxPitch = 0.4;
@@ -59,19 +63,7 @@ public:
   T maxTurnRate = 4.0;
   T minTurnRate = -4.0;
 
-  T posXDes;
-  T posYDes;
-  T posZDes;
-  T rollDes;
-  T pitchDes;
-  T yawDes;
-  T velXDes;
-  T velYDes;
-  T velZDes;
-  T angVelXDes;
-  T angVelYDes;
-  T angVelZDes;
-
+  // Holds the instantaneous desired state and future desired state trajectory
   DesiredStateData<T> data;
 
 
@@ -85,7 +77,7 @@ private:
   // Control loop timestep change
   T dt = 0.001;
 
-  // value cutoff for the analog stick deadband
+  // Value cutoff for the analog stick deadband
   T deadbandRegion = 0.075;
 
   // Choose how often to print info, every N iterations
