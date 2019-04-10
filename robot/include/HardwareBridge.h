@@ -60,6 +60,7 @@ protected:
 class MiniCheetahHardwareBridge : public HardwareBridge {
 public:
   MiniCheetahHardwareBridge();
+  void runSpi();
   void initHardware();
   void run();
   void abort(const std::string& reason);
@@ -68,6 +69,7 @@ public:
 
 private:
   VectorNavData _vectorNavData;
+  lcm::LCM _spiLcm;
 
 
 
