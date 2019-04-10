@@ -1,18 +1,13 @@
 #ifndef CONTROLFSMDATA_H
 #define CONTROLFSMDATA_H
 
-//#include <iostream>
-//#include "RobotController.h"
-//#include "FSM_States/FSM_State.h"
 #include "Controllers/StateEstimatorContainer.h"
 #include "Controllers/LegController.h"
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/DesiredStateCommand.h"
 
 
-
-
-/*
+/**
  *
  */
 template <typename T>

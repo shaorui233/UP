@@ -3,7 +3,7 @@
 
 #include "FSM_State.h"
 
-/*
+/**
  *
  */
 template <typename T>

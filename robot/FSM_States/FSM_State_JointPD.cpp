@@ -1,10 +1,17 @@
 /*============================= Joint PD ==============================*/
-/*
+/**
  * FSM State that allows PD control of the joints.
  */
 
 #include "FSM_State_JointPD.h"
 
+
+/**
+ * Constructor for the FSM State that passes in state specific info to 
+ * the generif FSM State constructor.
+ *
+ * @param _controlFSMData holds all of the relevant control data
+ */
 template <typename T>
 FSM_State_JointPD<T>::FSM_State_JointPD(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::JOINT_PD, "JOINT_PD") {
@@ -18,7 +25,7 @@ void FSM_State_JointPD<T>::onEnter() {
 }
 
 
-/*
+/**
  * Calls the functions to be executed on each control loop iteration.
  */
 template <typename T>
@@ -29,9 +36,11 @@ void FSM_State_JointPD<T>::run() {
 }
 
 
-/*
+/**
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
+ *
+ * @return the enumarated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_JointPD<T>::checkTransition() {
@@ -40,9 +49,11 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
 }
 
 
-/*
+/**
  * Handles the actual transition for the robot between states.
  * Returns true when the transition is completed.
+ *
+ * @return true if transition is complete
  */
 template <typename T>
 bool FSM_State_JointPD<T>::transition() {
@@ -51,7 +62,7 @@ bool FSM_State_JointPD<T>::transition() {
 }
 
 
-/*
+/**
  * Cleans up the state information on exiting the state.
  */
 template <typename T>

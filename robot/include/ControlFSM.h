@@ -15,7 +15,7 @@
 #include "../FSM_States/FSM_State_Locomotion.h"
 
 
-/*
+/**
  * Enumerate all of the operating modes
  */
 enum class FSM_OperatingMode {
@@ -25,7 +25,7 @@ enum class FSM_OperatingMode {
 };
 
 
-/*
+/**
  *
  */
 template <typename T>
@@ -40,7 +40,7 @@ struct FSM_StatesList {
 
 
 
-/*
+/**
  * Control FSM handles the FSM states from a higher level
  */
 template <typename T>
@@ -63,6 +63,9 @@ public:
   // Gets the next FSM_State from the list of created states when requested
   FSM_State<T>* getNextState(FSM_StateName stateName);
 
+  // Prints the current FSM status
+  void printInfo(int opt);
+
   // Contains all of the control related data
   ControlFSMData<T> data;
 
@@ -79,9 +82,15 @@ public:
   FSM_StateName nextStateName;
 
 private:
-
   // Operating mode of the FSM
   FSM_OperatingMode operatingMode;
+
+  // Choose how often to print info, every N iterations
+  int printNum = 5000; // N*(0.001s) in simulation time
+
+  // Track the number of iterations since last info print
+  int printIter = 0;
+
 };
 
 

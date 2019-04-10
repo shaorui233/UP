@@ -1,11 +1,18 @@
 /*=========================== Balance Stand ===========================*/
-/*
+/**
  * FSM State that forces all legs to be on the ground and uses the QP
  * Balance controller for instantaneous balance control.
  */
 
 #include "FSM_State_BalanceStand.h"
 
+
+/**
+ * Constructor for the FSM State that passes in state specific info to 
+ * the generif FSM State constructor.
+ *
+ * @param _controlFSMData holds all of the relevant control data
+ */
 template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND") {
@@ -21,7 +28,7 @@ void FSM_State_BalanceStand<T>::onEnter() {
 }
 
 
-/*
+/**
  * Calls the functions to be executed on each control loop iteration.
  */
 template <typename T>
@@ -33,9 +40,11 @@ void FSM_State_BalanceStand<T>::run() {
 }
 
 
-/*
+/**
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
+ *
+ * @return the enumarated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
@@ -51,20 +60,20 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
 }
 
 
-/*
+/**
  * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed, false otherwise.
+ * Returns true when the transition is completed.
+ *
+ * @return true if transition is complete
  */
 template <typename T>
 bool FSM_State_BalanceStand<T>::transition() {
   // Get the next state
 
-
-
   if (this->nextStateName == FSM_StateName::LOCOMOTION) {
 
     BalanceStandStep();
-    
+
     iter++;
     if (iter > 5000) {
       return true;
@@ -79,7 +88,7 @@ bool FSM_State_BalanceStand<T>::transition() {
 
 
 
-/*
+/**
  * Cleans up the state information on exiting the state.
  */
 template <typename T>
@@ -87,7 +96,7 @@ void FSM_State_BalanceStand<T>::onExit() {
   iter = 0;
 }
 
-/*
+/**
  * Calculate the commands for the leg controllers for each of the feet.
  */
 template <typename T>

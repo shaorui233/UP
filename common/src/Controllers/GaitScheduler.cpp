@@ -1,5 +1,5 @@
 /*========================= Gait Scheduler ============================*/
-/*
+/**
  *
  */
 
@@ -7,7 +7,7 @@
 
 
 /*=========================== Gait Data ===============================*/
-/*
+/**
  *
  */
 template <typename T>
@@ -57,7 +57,7 @@ template struct GaitData<float>;
 /*========================= Gait Scheduler ============================*/
 
 
-/*
+/**
  * Constructor to automatically setup a basic gait
  */
 template <typename T>
@@ -66,7 +66,7 @@ GaitScheduler<T>::GaitScheduler() {
 }
 
 
-/*
+/**
  * Initialize the gait data
  */
 template <typename T>
@@ -84,7 +84,7 @@ void GaitScheduler<T>::initialize() {
 }
 
 
-/*
+/**
  * Executes the Gait Schedule step to calculate values for the defining
  * gait parameters.
  */
@@ -186,7 +186,7 @@ void GaitScheduler<T>::step() {
 }
 
 
-/*
+/**
  * Creates the gait structure from the important defining parameters of each gait
  */
 template <typename T>
@@ -370,7 +370,7 @@ void GaitScheduler<T>::createGait() {
 }
 
 
-/*
+/**
  * Prints relevant information about the gait and current gait state
  */
 template <typename T>

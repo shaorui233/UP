@@ -1,12 +1,12 @@
 /*========================= Gamepad Control ==========================*/
-/*
+/**
  *
  */
 
 #include "Controllers/DesiredStateCommand.h"
 
 /*=========================== Gait Data ===============================*/
-/*
+/**
  *
  */
 template <typename T>
@@ -21,10 +21,9 @@ template struct DesiredStateData<double>;
 template struct DesiredStateData<float>;
 
 
-
-
-
-
+/**
+ *
+ */
 template <typename T>
 void DesiredStateCommand<T>::convertToStateCommands() {
 
@@ -69,7 +68,9 @@ void DesiredStateCommand<T>::convertToStateCommands() {
 }
 
 
-
+/**
+ *
+ */
 template <typename T>
 void DesiredStateCommand<T>::desiredStateTrajectory(int N, Vec10<T> dtVec) {
   A = Mat12<T>::Zero();
@@ -105,6 +106,9 @@ void DesiredStateCommand<T>::desiredStateTrajectory(int N, Vec10<T> dtVec) {
 }
 
 
+/**
+ *
+ */
 template <typename T>
 float DesiredStateCommand<T>::deadband(float command, T minVal, T maxVal) {
   if (command < deadbandRegion && command > -deadbandRegion) {
@@ -115,7 +119,9 @@ float DesiredStateCommand<T>::deadband(float command, T minVal, T maxVal) {
 }
 
 
-
+/**
+ *
+ */
 template <typename T>
 void DesiredStateCommand<T>::printRawInfo() {
 
@@ -141,6 +147,9 @@ void DesiredStateCommand<T>::printRawInfo() {
 }
 
 
+/**
+ *
+ */
 template <typename T>
 void DesiredStateCommand<T>::printStateCommandInfo() {
 

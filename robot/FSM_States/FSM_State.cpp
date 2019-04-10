@@ -1,6 +1,12 @@
 #include "FSM_State.h"
 
-
+/**
+ * Constructor for the FSM State class.
+ *
+ * @param _controlFSMData holds all of the relevant control data
+ * @param stateNameIn the enumerated state name
+ * @param stateStringIn the string name of the current FSM state
+ */
 template <typename T>
 FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData,
                         FSM_StateName stateNameIn,
@@ -8,7 +14,7 @@ FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData,
   _data(_controlFSMData),
   stateName(stateNameIn),
   stateString(stateStringIn) {
-  printf("[FSM_State] Initialized FSM state\n");// %s\n",name.c_str());
+  std::cout << "[FSM_State] Initialized FSM state" <<  stateStringIn << ;
 }
 
 

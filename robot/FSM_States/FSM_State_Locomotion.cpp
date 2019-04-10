@@ -1,5 +1,5 @@
 /*============================ Locomotion =============================*/
-/*
+/**
  * FSM State for robot locomotion. Manages the contact specific logic
  * and handles calling the interfaces to the controllers. This state
  * should be independent of controller, gait, and desired trajectory.
@@ -7,6 +7,13 @@
 
 #include "FSM_State_Locomotion.h"
 
+
+/**
+ * Constructor for the FSM State that passes in state specific info to 
+ * the generif FSM State constructor.
+ *
+ * @param _controlFSMData holds all of the relevant control data
+ */
 template <typename T>
 FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION") {
@@ -23,7 +30,7 @@ void FSM_State_Locomotion<T>::onEnter() {
 }
 
 
-/*
+/**
  * Calls the functions to be executed on each control loop iteration.
  */
 template <typename T>
@@ -37,9 +44,11 @@ void FSM_State_Locomotion<T>::run() {
 }
 
 
-/*
+/**
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
+ *
+ * @return the enumarated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
@@ -55,9 +64,11 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
 }
 
 
-/*
+/**
  * Handles the actual transition for the robot between states.
  * Returns true when the transition is completed.
+ *
+ * @return true if transition is complete
  */
 template <typename T>
 bool FSM_State_Locomotion<T>::transition() {
@@ -81,7 +92,7 @@ bool FSM_State_Locomotion<T>::transition() {
 }
 
 
-/*
+/**
  * Cleans up the state information on exiting the state.
  */
 template <typename T>
@@ -90,7 +101,7 @@ void FSM_State_Locomotion<T>::onExit() {
   iter = 0;
 }
 
-/*
+/**
  * Calculate the commands for the leg controllers for each of the feet by
  * calling the appropriate balance controller and parsing the results for
  * each stance or swing leg.
@@ -114,7 +125,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     groundReactionForces.col(leg) << 0.0, 0.0, -220.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
 
-    footstepLocations.col(leg) << 0.3, 0.1, 0.45;
+    footstepLocations.col(leg) << 0.1, 0, -0.35;
   }
 
   //std::cout << groundReactionForces << std::endl;
@@ -136,7 +147,21 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     } else if (!this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
       // Leg is not in contact
       //std::cout << "[CONTROL] Leg " << leg << " is in swing" << std::endl;
+      this->_data->_legController->commands[leg].pDes = footstepLocations.col(leg);
 
+      // Create the cartesian P gain matrix
+      Mat3<float> kpMat;
+      kpMat << 500, 0, 0,
+            0, 500, 0,
+            0, 0, 500;
+      this->_data->_legController->commands[leg].kpCartesian = kpMat;
+
+      // Create the cartesian D gain matrix
+      Mat3<float> kdMat;
+      kdMat << 10, 0, 0,
+            0, 10, 0,
+            0, 0, 10;
+      this->_data->_legController->commands[leg].kdCartesian = kdMat;
       // Swing leg trajectory
       // TODO
 

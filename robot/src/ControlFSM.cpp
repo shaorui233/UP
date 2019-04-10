@@ -1,5 +1,5 @@
 /*============================ Control FSM ============================*/
-/*
+/**
  * The Finite State Machine that manages the robot's controls. Handles
  * calls to the FSM State functions and manages transitions between all
  * of the states.
@@ -7,6 +7,10 @@
 
 #include "ControlFSM.h"
 
+
+/**
+ *
+ */
 template <typename T>
 ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
                           LegController<T>* _legController,
@@ -17,7 +21,7 @@ ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
   data._gaitScheduler = _gaitScheduler;
   data._desiredStateCommand = _desiredStateCommand;
 
-  // Add all of the FSM States to the state list
+  // Initialize and add all of the FSM States to the state list
   statesList.invalid = nullptr;
   statesList.passive = new FSM_State_Passive<T>(&data);
   statesList.jointPD = new FSM_State_JointPD<T>(&data);
@@ -27,11 +31,15 @@ ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
 
   // Initialize the FSM with an FSM State
   initialize();
+
 }
 
+
+/**
+ * Initialize the Control FSM with the default settings.
+ */
 template <typename T>
 void ControlFSM<T>::initialize() {
-
   // Initialize a new FSM State with the control data
   currentState = statesList.balanceStand;
 
@@ -43,10 +51,11 @@ void ControlFSM<T>::initialize() {
 
   // Initialize FSM mode to normal operation
   operatingMode = FSM_OperatingMode::NORMAL;
+
 }
 
 
-/*
+/**
  * Called each control loop iteration. Decides if the robot is safe to
  * run controls and checks the current state for any transitions. Runs
  * the regular state behavior if all is normal.
@@ -73,10 +82,10 @@ void ControlFSM<T>::runFSM() {
         // Get the next FSM State
         nextState = getNextState(nextStateName);
 
-        std::cout << "[CONTROL FSM] Transition initialized from " << currentState->stateString << " to " << nextState->stateString << std::endl;
+        // Print transition initialized info
+        printInfo(1);
 
       } else {
-      	
         // Run the iteration for the current state normally
         currentState->run();
 
@@ -88,10 +97,12 @@ void ControlFSM<T>::runFSM() {
     if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
       // Run the state transition
       if (currentState->transition()) {
-        std::cout << "[CONTROL FSM] Transition finalizing from " << currentState->stateString << " to " << nextState->stateString << std::endl;
 
         // Exit the current state cleanly
         currentState->onExit();
+
+        // Print finalizing transition info
+        printInfo(2);
 
         // Complete the transition
         currentState = nextState;
@@ -111,31 +122,37 @@ void ControlFSM<T>::runFSM() {
     nextStateName = currentState->stateName;
   }
 
+  // Print the current state of the FSM
+  printInfo(0);
+
 }
 
 
-/*
+/**
  * Checks the robot state for safe operation conditions. If it is in
  * an unsafe state, it will not run the normal control code until it
  * is safe to operate again.
  */
 template <typename T>
 FSM_OperatingMode ControlFSM<T>::safetyCheck() {
+
+  if (roll >= 1.3 || pitch >= 1.3) {
+    return FSM_OperatingMode::ESTOP;
+  }
+
   // Default is to return the current operating mode
   return operatingMode;
 
 }
 
 
-/*
- * Called each control loop iteration. Decides if the robot is safe to
- * run controls and checks the current state for any transitions. Runs
- * the regular state behavior if all is normal.
+/**
+ * Returns the approptiate next FSM State when requested.
  */
 template <typename T>
 FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
+  // Choose the correct FSM State by enumerated state name
   switch (stateName) {
-
   case FSM_StateName::INVALID :
     return statesList.invalid;
 
@@ -158,6 +175,52 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
     return statesList.invalid;
   }
 
+}
+
+
+/**
+ * Prints Control FSM info at regular intervals and on important events
+ * such as transition initializations and finalizations. Separate function
+ * to not clutter the actual code.
+ */
+template <typename T>
+void ControlFSM<T>::printInfo(int opt) {
+  switch (opt) {
+  case 0 :  // Normal printing case at regular intervals
+    // Increment printing iteration
+    printIter++;
+
+    // Print at requested frequency
+    if (printIter == printNum) {
+      std::cout << "[CONTROL FSM] Printing FSM Info...\n";
+      if (operatingMode == FSM_OperatingMode::NORMAL) {
+        std::cout << "Operating Mode: NORMAL in " << currentState->stateString << "\n";
+
+      } else if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
+        std::cout << "Operating Mode: TRANSITIONING from " << currentState->stateString << " to " << nextState->stateString << "\n";
+
+      } else if (operatingMode == FSM_OperatingMode::ESTOP) {
+        std::cout << "Operating Mode: ESTOP\n";
+
+      }
+      std::cout << "---------------------------------------------------------\n";
+      std::cout << std::endl;
+
+      // Reset iteration counter
+      printIter = 0;
+    }
+    break;
+
+  case 1 :  // Initializing FSM State transition
+    std::cout << "[CONTROL FSM] Transition initialized from " << currentState->stateString << " to " << nextState->stateString << "\n" << std::endl;
+
+    break;
+
+  case 2 :  // Finalizing FSM State transition
+    std::cout << "[CONTROL FSM] Transition finalizing from " << currentState->stateString << " to " << nextState->stateString << "\n" << std::endl;
+
+    break;
+  }
 }
 
 

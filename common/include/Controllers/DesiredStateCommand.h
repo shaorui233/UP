@@ -1,5 +1,5 @@
 /*========================= Gamepad Control ==========================*/
-/*
+/**
  *
  */
 #ifndef DESIRED_STATE_COMMAND_H
@@ -10,7 +10,7 @@
 #include <iostream>
 #include <cppTypes.h>
 
-/*
+/**
  *
  */
 template <typename T>
@@ -31,7 +31,7 @@ struct DesiredStateData {
 };
 
 
-/*
+/**
  *
  */
 template <typename T>

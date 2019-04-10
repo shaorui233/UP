@@ -5,7 +5,7 @@
 
 #include "../include/ControlFSMData.h"
 
-/*
+/**
  * Enumerate all of the FSM states so we can keep track of them.
  */
 enum class FSM_StateName {
@@ -18,7 +18,7 @@ enum class FSM_StateName {
 };
 
 
-/*
+/**
  *
  */
 template <typename T>

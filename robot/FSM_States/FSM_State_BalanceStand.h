@@ -3,7 +3,7 @@
 
 #include "FSM_State.h"
 
-/*
+/**
  *
  */
 template <typename T>
@@ -36,7 +36,7 @@ private:
 
   // Parses contact specific controls to the leg controller
   void BalanceStandStep();
-  
+
 };
 
 #endif // FSM_STATE_BALANCESTAND_H

@@ -6,7 +6,7 @@
 #include "Dynamics/Quadruped.h"
 
 
-/*
+/**
  *
  */
 enum class GaitType {
@@ -27,7 +27,7 @@ enum class GaitType {
 };
 
 
-/*
+/**
  *
  */
 template <typename T>
@@ -84,7 +84,7 @@ struct GaitData {
 };
 
 
-/*
+/**
  *
  */
 template <typename T>
