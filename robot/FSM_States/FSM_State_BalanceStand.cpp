@@ -8,7 +8,7 @@
 
 template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND) {
+  FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND") {
   // Initialize GRF to 0s
   groundReactionForces = Mat34<T>::Zero();
 }
@@ -16,7 +16,8 @@ FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSM
 
 template <typename T>
 void FSM_State_BalanceStand<T>::onEnter() {
-  // Nothing to initialize
+  // Default is to not transition
+  this->nextStateName = this->stateName;
 }
 
 
@@ -26,8 +27,8 @@ void FSM_State_BalanceStand<T>::onEnter() {
 template <typename T>
 void FSM_State_BalanceStand<T>::run() {
   // Do nothing, all commands should begin as zeros
-  this->_data->_gaitScheduler->printGaitInfo();
-  this->_data->_desiredStateCommand->printStateCommandInfo();
+  //this->_data->_gaitScheduler->printGaitInfo();
+  //this->_data->_desiredStateCommand->printStateCommandInfo();
   BalanceStandStep();
 }
 
@@ -37,10 +38,42 @@ void FSM_State_BalanceStand<T>::run() {
  * commands or state event triggers.
  */
 template <typename T>
-FSM_State<T>* FSM_State_BalanceStand<T>::getNextState() {
+FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
   // Get the next state
-  return this;
+  iter++;
+  if (iter > 2500) {
+    this->nextStateName = FSM_StateName::LOCOMOTION;
+  }
+
+  // Return the next state name to the FSM
+  return this->nextStateName;
+
 }
+
+
+/*
+ * Handles the actual transition for the robot between states.
+ * Returns true when the transition is completed.
+ */
+template <typename T>
+bool FSM_State_BalanceStand<T>::transition() {
+  // Get the next state
+
+
+
+  if (this->nextStateName == FSM_StateName::LOCOMOTION) {
+    iter++;
+    if (iter > 5000) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+
+  return true;
+}
+
 
 
 /*
@@ -48,7 +81,7 @@ FSM_State<T>* FSM_State_BalanceStand<T>::getNextState() {
  */
 template <typename T>
 void FSM_State_BalanceStand<T>::onExit() {
-  // Nothing to clean up when exiting
+  iter = 0;
 }
 
 /*

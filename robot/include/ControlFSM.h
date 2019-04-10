@@ -9,6 +9,8 @@
 // FSM States
 #include "../FSM_States/FSM_State.h"
 #include "../FSM_States/FSM_State_Passive.h"
+#include "../FSM_States/FSM_State_JointPD.h"
+#include "../FSM_States/FSM_State_ImpedanceControl.h"
 #include "../FSM_States/FSM_State_BalanceStand.h"
 #include "../FSM_States/FSM_State_Locomotion.h"
 
@@ -40,6 +42,9 @@ public:
   // Runs the FSM logic and handles the state transitions and normal runs
   void runFSM();
 
+  // Gets the next FSM_State from the list of created states when requested
+  FSM_State<T>* getNextState(FSM_StateName stateName);
+
   // Contains all of the control related data
   ControlFSMData<T> data;
 
@@ -49,9 +54,21 @@ public:
   // The next FSM State that the robot will transition to
   FSM_State<T>* nextState;
 
+  // The name of the next FSM State
+  FSM_StateName nextStateName;
+
 private:
 
+  // Operating mode of the FSM
+  FSM_OperatingMode operatingMode;
 
+
+  FSM_State<T>* invalid;
+  FSM_State<T>* passive;
+  FSM_State<T>* jointPD;
+  FSM_State<T>* impedanceControl;
+  FSM_State<T>* balanceStand;
+  FSM_State<T>* locomotion;
 };
 
 

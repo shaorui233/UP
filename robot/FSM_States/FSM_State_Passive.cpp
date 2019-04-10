@@ -8,7 +8,7 @@
 
 template <typename T>
 FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE) {
+  FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE, "PASSIVE") {
   // Do nothing
 }
 
@@ -36,9 +36,20 @@ void FSM_State_Passive<T>::run() {
  * commands or state event triggers.
  */
 template <typename T>
-FSM_State<T>* FSM_State_Passive<T>::getNextState() {
+FSM_StateName FSM_State_Passive<T>::checkTransition() {
   // Get the next state
-  return this;
+  return this->stateName;
+}
+
+
+/*
+ * Handles the actual transition for the robot between states.
+ * Returns true when the transition is completed.
+ */
+template <typename T>
+bool FSM_State_Passive<T>::transition() {
+  // Get the next state
+  return true;
 }
 
 

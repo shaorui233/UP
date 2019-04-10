@@ -17,8 +17,11 @@ public:
   // Run the normal behavior for the state
   void run();
 
+  // Checks for any transition triggers
+  FSM_StateName checkTransition();
+
   // Manages state specific transitions
-  FSM_State<T>* getNextState();
+  bool transition();
 
   // Behavior to be carried out when exiting a state
   void onExit();

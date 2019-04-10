@@ -18,8 +18,11 @@ public:
   // Run the normal behavior for the state
   void run();
 
-  //
-  FSM_State<T>* getNextState();
+  // Checks for any transition triggers
+  FSM_StateName checkTransition();
+
+  // Manages state specific transitions
+  bool transition();
 
   // Behavior to be carried out when exiting a state
   void onExit();
@@ -28,6 +31,7 @@ public:
   void BalanceStandStep();
 
 private:
+  int iter = 0;
 
   // Ground reaction forces for the stance feet to be calculated by the controllers
   Mat34<T> groundReactionForces;
