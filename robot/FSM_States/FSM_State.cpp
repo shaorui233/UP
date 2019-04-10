@@ -1,10 +1,13 @@
 #include "FSM_State.h"
-#include <stdio.h>
 
-FSM_State::FSM_State(hardware_interface* hw_i,  string name,control_fsm* fsm):
-    hw_i(hw_i),
-    fsm(fsm),
-    name(name)
-{
-    printf("[FSM_State] Initialized FSM state %s\n",name.c_str());
+
+template <typename T>
+FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData):
+  _data(_controlFSMData) {
+  printf("[FSM_State] Initialized FSM state");// %s\n",name.c_str());
 }
+
+
+
+template class FSM_State<double>;
+template class FSM_State<float>;

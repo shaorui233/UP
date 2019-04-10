@@ -41,10 +41,10 @@ extern "C" {
   (byte & 0x02 ? '1' : '0'), \
   (byte & 0x01 ? '1' : '0')
 
-void init_spi(int sim);
+void init_spi();
 
 void spi_send_receive(spi_command_t* command, spi_data_t* data);
-void spi_driver_run(int is_sim);
+void spi_driver_run();
 
 spi_data_t *get_spi_data();
 spi_command_t *get_spi_command();

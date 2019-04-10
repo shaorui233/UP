@@ -65,6 +65,7 @@ private:
   bool _started = false;
   Ui::SimControlPanel *ui;
   Simulation *_simulation = nullptr;
+  PeriodicTaskManager* _interfaceTaskManager = nullptr;
   RobotInterface* _robotInterface = nullptr;
   Graphics3D *_graphicsWindow = nullptr;
   SimulatorControlParameters _parameters;

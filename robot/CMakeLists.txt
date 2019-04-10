@@ -16,7 +16,7 @@ include_directories("../lcm-types/cpp")
 include_directories("/usr/local/include/lcm/")   # lcm includes
 
 include_directories(${CMAKE_BINARY_DIR})
-file(GLOB sources "src/*.cpp" "src/rt/*.c"  "src/rt/*.cpp" )
+file(GLOB sources "src/*.cpp" "src/rt/*.c"  "src/rt/*.cpp" "FSM_States/*.h" FSM_States/*.cpp)
 
 add_executable(robot ${sources})
 target_link_libraries(robot biomimetics pthread lcm rt inih 

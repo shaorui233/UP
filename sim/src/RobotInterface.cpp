@@ -2,9 +2,11 @@
 #include "RobotInterface.h"
 #include "ControlParameters/SimulatorParameters.h"
 #include <unistd.h>
+#include <Dynamics/MiniCheetah.h>
+#include <Dynamics/Cheetah3.h>
 
-RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx) :
-PeriodicTask(&_taskManager, ROBOT_INTERFACE_UPDATE_PERIOD, "robot-interface"),
+RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx, PeriodicTaskManager* tm) :
+PeriodicTask(tm, ROBOT_INTERFACE_UPDATE_PERIOD, "robot-interface"),
 _lcm(getLcmUrl(255))
 {
   _parameter_request_lcmt.requestNumber = 0;
@@ -34,11 +36,45 @@ _lcm(getLcmUrl(255))
   _gfx->_drawList.buildDrawList();
 
   _lcm.subscribe("interface-response", &RobotInterface::handleControlParameter, this);
+  _lcm.subscribe("main-cheetah-visualization", &RobotInterface::handleVisualizationData, this);
+
+  printf("[RobotInterface] Init dynamics\n");
+  _quadruped = robotType == RobotType::MINI_CHEETAH ? buildMiniCheetah<double>() : buildCheetah3<double>();
+  _model = _quadruped.buildModel();
+  _simulator = new DynamicsSimulator<double>(_model, false);
+  DVec<double> zero12(12);
+  for(u32 i = 0; i < 12; i++) {
+    zero12[i] = 0.;
+  }
+
+  _fwdKinState.q = zero12;
+  _fwdKinState.qd = zero12;
+
 }
 
+void RobotInterface::handleVisualizationData(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+                                             const cheetah_visualization_lcmt *msg) {
+  (void)rbuf;
+  (void)chan;
+  for(int i = 0; i < 3; i++) {
+    _fwdKinState.bodyPosition[i] = msg->x[i];
+  }
+
+  for(int i = 0; i < 4; i++) {
+    _fwdKinState.bodyOrientation[i] = msg->quat[i];
+  }
+
+  for(int i = 0; i < 12; i++) {
+    _fwdKinState.q[i] = msg->q[i];
+  }
+
+  _simulator->setState(_fwdKinState);
+  _simulator->forwardKinematics();
+}
 
 void RobotInterface::run() {
   if(_gfx) {
+    _gfx->_drawList.updateRobotFromModel(*_simulator, _robotID, true);
     _gfx->update();
     _gfx->getDriverCommand().get(&_gamepad_lcmt);
     _lcm.publish(INTERFACE_LCM_NAME, &_gamepad_lcmt);

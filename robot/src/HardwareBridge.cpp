@@ -169,38 +169,49 @@ void MiniCheetahHardwareBridge::run() {
   initCommon();
   initHardware();
 
-  _robotController = new RobotController;
+  _robotController = new RobotController(&taskManager, 0.001f, "robot-control");
 
   _robotController->driverCommand = &_gamepadCommand;
-//  _robotController->spiData       = &_sharedMemory().simToRobot.spiData;
-
+  _robotController->spiData = &_spiData;
+  _robotController->spiCommand = &_spiCommand;
   _robotController->robotType     = RobotType::MINI_CHEETAH;
   _robotController->vectorNavData = &_vectorNavData;
-
-//  _robotController->spiCommand    = &_sharedMemory().robotToSim.spiCommand;
-
   _robotController->controlParameters = &_robotParams;
   _robotController->visualizationData = &_visualizationData;
   _robotController->cheetahMainVisualization = &_mainCheetahVisualization;
 
-  _robotController->initialize();
+  while(!_robotParams.isFullyInitialized()) {
+    printf("[Hardware Bridge] Waiting for parameters...\n");
+    usleep(1000000);
+  }
+
+  printf("[Hardware Bridge] Got all parameters, starting up!\n");
+
+  _robotController->init();
   _firstRun = false;
 
   // init control thread
 
   statusTask.start();
+  _robotController->start();
+
+  PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
+      &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
+
+  visualizationLCMTask.start();
 
   for(;;) {
     usleep(1000000);
-    printf("joy %f\n", _robotController->driverCommand->leftStickAnalog[0]);
+    //printf("joy %f\n", _robotController->driverCommand->leftStickAnalog[0]);
   }
 }
 
 void MiniCheetahHardwareBridge::initHardware() {
   printf("[MiniCheetahHardware] Init vectornav\n");
-//  if(!init_vectornav(&_vectorNavData)) {
-//    initError("failed to initialize vectornav!\n", false);
-//  }
+  _vectorNavData.quat << 1,0,0,0;
+  if(!init_vectornav(&_vectorNavData)) {
+    initError("failed to initialize vectornav!\n", false);
+  }
 
 
   // init spi
@@ -211,5 +222,23 @@ void MiniCheetahHardwareBridge::initHardware() {
 
 
   //
+}
+
+void HardwareBridge::publishVisualizationLCM() {
+  cheetah_visualization_lcmt visualization_data;
+  for(int i = 0; i < 3; i++) {
+    visualization_data.x[i] = _mainCheetahVisualization.p[i];
+  }
+
+  for(int i = 0; i < 4; i++) {
+    visualization_data.quat[i] = _mainCheetahVisualization.quat[i];
+    visualization_data.rgba[i] = _mainCheetahVisualization.color[i];
+  }
+
+  for(int i = 0; i < 12; i++) {
+    visualization_data.q[i] = _mainCheetahVisualization.q[i];
+  }
+
+  _visualizationLCM.publish("main-cheetah-visualization", &visualization_data);
 }
 

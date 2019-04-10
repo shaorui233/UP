@@ -141,7 +141,9 @@ void SimulationBridge::runRobotControl() {
       throw std::runtime_error("not all parameters initialized when going into RUN_CONTROLLER");
     }
 
-    _robotController = new RobotController;
+    _fakeTaskManager = new PeriodicTaskManager;
+
+    _robotController = new RobotController(_fakeTaskManager, 0, "robot-task");
 
     _robotController->driverCommand = &_sharedMemory().simToRobot.gamepadCommand;
     _robotController->spiData       = &_sharedMemory().simToRobot.spiData;
@@ -156,10 +158,10 @@ void SimulationBridge::runRobotControl() {
     _robotController->visualizationData = &_sharedMemory().robotToSim.visualizationData;
     _robotController->cheetahMainVisualization = &_sharedMemory().robotToSim.mainCheetahVisualization;
 
-    _robotController->initialize();
+    _robotController->init();
     _firstControllerRun = false;
   }
 
 
-  _robotController->step();
+  _robotController->run();
 }

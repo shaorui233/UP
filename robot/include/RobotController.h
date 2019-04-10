@@ -14,6 +14,9 @@
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
 #include "JPosInitializer.h"
+#include "Utilities/PeriodicTask.h"
+#include "ControlFSM.h"
+
 // gamepadCommand
 // robotType
 // kvh
@@ -30,12 +33,13 @@
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 template <typename T> class Test;
 
-class RobotController {
+class RobotController : public PeriodicTask {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  RobotController() = default;
-  void initialize();
-  void step();
+  using PeriodicTask::PeriodicTask;
+  void init() override;
+  void run() override;
+  void cleanup() override;
 
   // Handles the logic for locomotion controlled by the Gait Scheduler
   void LocomotionControlStep();
@@ -62,7 +66,7 @@ public:
   void stanceLegImpedanceControl(int leg);
 
   void initializeStateEstimator(bool cheaterMode = false);
-  ~RobotController();
+  virtual ~RobotController();
 
 
   GamepadCommand* driverCommand;
@@ -93,6 +97,7 @@ private:
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
+  ControlFSM<float>* _controlFSM;
 
   // Ground reaction forces for the stance feet to be calculated by the controllers
   Mat34<float> groundReactionForces;
@@ -104,7 +109,7 @@ private:
   GaitScheduler<float>* _gaitScheduler;
 
   // Contact Estimator to calculate estimated forces and contacts
-  //ContactEstimator<double>* _contactEstimator;
+  ContactEstimator<double>* _contactEstimator;
 
   // For WBC state (test)
   Test<float>* _wbc_state;

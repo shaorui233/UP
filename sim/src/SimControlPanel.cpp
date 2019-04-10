@@ -35,6 +35,7 @@ SimControlPanel::SimControlPanel(QWidget *parent) :
 
 SimControlPanel::~SimControlPanel() {
   delete _simulation;
+  delete _interfaceTaskManager;
   delete _robotInterface;
   delete _graphicsWindow;
   delete ui;
@@ -92,7 +93,8 @@ void SimControlPanel::on_startButton_clicked() {
     _graphicsWindow->setAnimating(true);
   } else {
     printf("[SimControlPanel] Init Robot Interface...\n");
-    _robotInterface = new RobotInterface(robotType, _graphicsWindow);
+    _interfaceTaskManager = new PeriodicTaskManager;
+    _robotInterface = new RobotInterface(robotType, _graphicsWindow, _interfaceTaskManager);
     loadRobotParameters(_robotInterface->getParams());
     _robotInterface->startInterface();
     _graphicsWindow->setAnimating(true);
@@ -118,13 +120,17 @@ void SimControlPanel::on_stopButton_clicked() {
   }
 
   printf("calling destructors\n");
+  delete _interfaceTaskManager;
+  delete _robotInterface;
   delete _simulation;
   delete _graphicsWindow;
-  delete _robotInterface;
+
+
 
   _simulation = nullptr;
   _graphicsWindow = nullptr;
   _robotInterface = nullptr;
+  _interfaceTaskManager = nullptr;
 
   _started = false;
   updateUiEnable();

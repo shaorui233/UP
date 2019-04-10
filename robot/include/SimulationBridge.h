@@ -19,10 +19,12 @@ public:
   void handleControlParameters();
   void runRobotControl();
   ~SimulationBridge() {
+    delete _fakeTaskManager;
     delete _robotController;
   }
 private:
   bool _firstControllerRun = true;
+  PeriodicTaskManager* _fakeTaskManager = nullptr;
   RobotType _robot;
   RobotController* _robotController = nullptr;
   SimulatorMode _simMode;

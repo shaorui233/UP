@@ -9,16 +9,17 @@ endif ()
 set(CMAKE_COLOR_MAKEFILE   ON)
 execute_process(COMMAND ../scripts/make_types.sh)
 
-SET (THIS_COM "${PROJECT_SOURCE_DIR}/" )
-CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake 
-    ${CMAKE_BINARY_DIR}/Configuration.h)
 
 
-set(CMAKE_VERBOSE_MAKEFILE ON)
+
+  #set(CMAKE_VERBOSE_MAKEFILE ON)
 
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 
 if(MINI_CHEETAH_BUILD)
+  SET (THIS_COM "../" )
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
+          ${CMAKE_BINARY_DIR}/Configuration.h)
   set(CMAKE_CXX_FLAGS "-O3 -no-pie -ggdb -Wall \
 -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
@@ -26,6 +27,11 @@ if(MINI_CHEETAH_BUILD)
   set(CMAKE_C_FLAGS "-O3  -ggdb -std=gnu99 -I.")
   message(WARNING "set to mini cheetah build")
 else(MINI_CHEETAH_BUILD)
+
+  SET (THIS_COM "${PROJECT_SOURCE_DIR}/" )
+  CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
+          ${CMAKE_BINARY_DIR}/Configuration.h)
+
   set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
 -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \

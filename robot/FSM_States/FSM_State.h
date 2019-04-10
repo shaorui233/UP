@@ -1,22 +1,47 @@
 #ifndef FSM_State_H
 #define FSM_State_H
 
-#include "../hardware_interface.h"
 #include <string>
 
-#include "../ControlFSM.h"
+#include "../include/ControlFSMData.h"
+#include <stdio.h>
 
-using std::string;
-class FSM_State
-{
+/*
+ * Enumerate all of the FSM states so we can keep track of them
+ */
+enum class FSM_StateName {
+  INVALID,
+  DO_NOTHING,
+  BALANCE_STAND,
+  LOCOMOTION
+};
+
+
+/*
+ *
+ */
+template <typename T>
+class FSM_State {
 public:
-    FSM_State(hardware_interface* hw_i,string name,control_fsm* fsm);
-    virtual FSM_State* get_next_state() { return 0;}
-    virtual void run_state() { }
-    virtual void cleanup_state() { }
-    hardware_interface* hw_i;
-    string name;
-    control_fsm* fsm;
+  FSM_State(ControlFSMData<T>* _controlFSMData);//: _data(_controlFSMData) { };
+
+  // Behavior to be carried out when entering a state
+  virtual void onEnter() { }
+
+  // Run the normal behavior for the state
+  virtual void run() { }
+
+  //
+  virtual FSM_State<T>* getNextState() { return 0; }
+
+  // Behavior to be carried out when exiting a state
+  virtual void onExit() { }
+
+  // Holds all of the relevant control data
+  ControlFSMData<T>* _data;
+
+  // The enumerated name of the current state
+  FSM_StateName stateName;
 private:
 
 

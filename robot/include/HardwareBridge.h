@@ -16,10 +16,10 @@
 
 class HardwareBridge {
 public:
-  HardwareBridge() : statusTask(&taskManager, 0.5f), _interfaceLCM(getLcmUrl(255)) { }
+  HardwareBridge() : statusTask(&taskManager, 0.5f), _interfaceLCM(getLcmUrl(255)),
+  _visualizationLCM(getLcmUrl(255)) { }
   void prefaultStack();
   void setupScheduler();
-  void addPeriodicTask(void* func, uint64_t periodNs);
   void initError(const char* reason, bool printErrno = false);
   void initCommon();
   ~HardwareBridge() {
@@ -33,6 +33,8 @@ public:
   void handleControlParameter(const lcm::ReceiveBuffer* rbuf,
                               const std::string& chan,
                               const control_parameter_request_lcmt* msg);
+
+  void publishVisualizationLCM();
 protected:
   PeriodicTaskManager taskManager;
   PrintTaskStatus     statusTask;
@@ -40,7 +42,10 @@ protected:
   VisualizationData   _visualizationData;
   CheetahVisualization _mainCheetahVisualization;
   lcm::LCM            _interfaceLCM;
+  lcm::LCM            _visualizationLCM;
   control_parameter_respones_lcmt _parameter_response_lcmt;
+  SpiData _spiData;
+  SpiCommand _spiCommand;
 
 
   bool _firstRun = true;
