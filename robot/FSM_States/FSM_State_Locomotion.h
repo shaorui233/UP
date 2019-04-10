@@ -27,18 +27,18 @@ public:
   // Behavior to be carried out when exiting a state
   void onExit();
 
-  // Parses contact specific controls to the leg controller
-  void LocomotionControlStep();
-
 private:
-
-	int iter = 0;
+  // Keep track of the control iterations
+  int iter = 0;
 
   // Ground reaction forces for the stance feet to be calculated by the controllers
   Mat34<T> groundReactionForces;
 
   // Next footstep location for the swing feet
   Mat34<T> footstepLocations;
+
+  // Parses contact specific controls to the leg controller
+  void LocomotionControlStep();
 
 };
 

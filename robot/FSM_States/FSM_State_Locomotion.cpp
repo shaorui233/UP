@@ -64,6 +64,9 @@ bool FSM_State_Locomotion<T>::transition() {
   // Get the next state
 
   if (this->nextStateName == FSM_StateName::BALANCE_STAND) {
+    // Call the locomotion control logic for this iteration
+    LocomotionControlStep();
+
     iter++;
     if (iter > 5000) {
       return true;

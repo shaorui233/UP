@@ -59,8 +59,8 @@ void RobotController::run() {
   setupStep();
 
   // send back joint positions
-  for(int leg = 0; leg < 4; leg++) {
-    for(int joint = 0; joint < 3; joint++) {
+  for (int leg = 0; leg < 4; leg++) {
+    for (int joint = 0; joint < 3; joint++) {
       cheetahMainVisualization->q[leg * 3 + joint] = _legController->datas[leg].q[joint];
     }
   }
@@ -132,34 +132,20 @@ void RobotController::run() {
 
   }*/
 
+  /*
   // Find the current gait schedule
-//  _gaitScheduler->step();
-//
-//  // Temporary fix for testing
-//  //_stateEstimate.position(0) = cheaterState->position(0);
-//  //_stateEstimate.position(1) = cheaterState->position(1);
-//  //_stateEstimate.position(2) = cheaterState->position(2);
-//
-//  // Find the desired state trajectory
-//  _desiredStateCommand->convertToStateCommands();
-//  //Vec10<float> dtVec;
-//  //dtVec << 0.1,0.1,0.1,0.1,0.1,0,0,0,0,0;
-//  //_desiredStateCommand->desiredStateTrajectory(5, dtVec);
-//
-//  // This function should eventually be moved to whatever the Locomotion FSM state ends up being
-//  //LocomotionControlStep();
-//
-//  // Run the Control FSM code
-//  _controlFSM->runFSM();
+  _gaitScheduler->step();
+
+  // Find the desired state trajectory
+  _desiredStateCommand->convertToStateCommands();
+
+  // Run the Control FSM code
+  _controlFSM->runFSM();
+  */
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
 
-
-  // DH: TEST
-  //_gaitScheduler->printGaitInfo();
-  //_gamepadControl->printRawInfo();
-  //_desiredStateCommand->printStateCommandInfo();
 }
 
 

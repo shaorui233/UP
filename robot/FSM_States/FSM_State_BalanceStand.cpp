@@ -53,7 +53,7 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
 
 /*
  * Handles the actual transition for the robot between states.
- * Returns true when the transition is completed.
+ * Returns true when the transition is completed, false otherwise.
  */
 template <typename T>
 bool FSM_State_BalanceStand<T>::transition() {
@@ -62,6 +62,9 @@ bool FSM_State_BalanceStand<T>::transition() {
 
 
   if (this->nextStateName == FSM_StateName::LOCOMOTION) {
+
+    BalanceStandStep();
+    
     iter++;
     if (iter > 5000) {
       return true;

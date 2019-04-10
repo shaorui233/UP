@@ -17,12 +17,13 @@ ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
   data._gaitScheduler = _gaitScheduler;
   data._desiredStateCommand = _desiredStateCommand;
 
-  invalid = nullptr;
-  passive = new FSM_State_Passive<T>(&data);
-  jointPD = new FSM_State_JointPD<T>(&data);
-  impedanceControl = new FSM_State_ImpedanceControl<T>(&data);
-  balanceStand = new FSM_State_BalanceStand<T>(&data);
-  locomotion = new FSM_State_Locomotion<T>(&data);
+  // Add all of the FSM States to the state list
+  statesList.invalid = nullptr;
+  statesList.passive = new FSM_State_Passive<T>(&data);
+  statesList.jointPD = new FSM_State_JointPD<T>(&data);
+  statesList.impedanceControl = new FSM_State_ImpedanceControl<T>(&data);
+  statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
+  statesList.locomotion = new FSM_State_Locomotion<T>(&data);
 
   // Initialize the FSM with an FSM State
   initialize();
@@ -32,7 +33,7 @@ template <typename T>
 void ControlFSM<T>::initialize() {
 
   // Initialize a new FSM State with the control data
-  currentState = balanceStand;
+  currentState = statesList.balanceStand;
 
   // Enter the new current state cleanly
   currentState->onEnter();
@@ -52,10 +53,13 @@ void ControlFSM<T>::initialize() {
  */
 template <typename T>
 void ControlFSM<T>::runFSM() {
+  // Check the robot state for safe operation
+  operatingMode = safetyCheck();
 
+  // Run the robot control code if operating mode is not unsafe
   if (operatingMode != FSM_OperatingMode::ESTOP) {
 
-    //
+    // Run normal controls if no transition is detected
     if (operatingMode == FSM_OperatingMode::NORMAL) {
       // Check the current state for any transition
       nextStateName = currentState->checkTransition();
@@ -71,8 +75,8 @@ void ControlFSM<T>::runFSM() {
 
         std::cout << "[CONTROL FSM] Transition initialized from " << currentState->stateString << " to " << nextState->stateString << std::endl;
 
-
       } else {
+      	
         // Run the iteration for the current state normally
         currentState->run();
 
@@ -80,6 +84,7 @@ void ControlFSM<T>::runFSM() {
 
     }
 
+    // Run the transition code while transition is occuring
     if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
       // Run the state transition
       if (currentState->transition()) {
@@ -101,13 +106,25 @@ void ControlFSM<T>::runFSM() {
     }
 
   } else {
-
+    currentState = statesList.passive;
+    currentState->onEnter();
+    nextStateName = currentState->stateName;
   }
 
-
-  currentState->run();
 }
 
+
+/*
+ * Checks the robot state for safe operation conditions. If it is in
+ * an unsafe state, it will not run the normal control code until it
+ * is safe to operate again.
+ */
+template <typename T>
+FSM_OperatingMode ControlFSM<T>::safetyCheck() {
+  // Default is to return the current operating mode
+  return operatingMode;
+
+}
 
 
 /*
@@ -120,25 +137,25 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
   switch (stateName) {
 
   case FSM_StateName::INVALID :
-    return invalid;
+    return statesList.invalid;
 
   case FSM_StateName::PASSIVE :
-    return passive;
+    return statesList.passive;
 
   case FSM_StateName::JOINT_PD :
-    return jointPD;
+    return statesList.jointPD;
 
   case FSM_StateName::IMPEDANCE_CONTROL :
-    return impedanceControl;
+    return statesList.impedanceControl;
 
   case FSM_StateName::BALANCE_STAND :
-    return balanceStand;
+    return statesList.balanceStand;
 
   case FSM_StateName::LOCOMOTION :
-    return locomotion;
+    return statesList.locomotion;
 
   default:
-    return invalid;
+    return statesList.invalid;
   }
 
 }
