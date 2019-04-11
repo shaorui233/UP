@@ -56,8 +56,8 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   iter++;
   if (iter >= 2500) {
     this->nextStateName = FSM_StateName::BALANCE_STAND;
+    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
     this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
-    this->transitionDuration = 0.5;
     iter = 0;
   }
 
@@ -136,7 +136,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     groundReactionForces.col(leg) << 0.0, 0.0, -220.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
 
-    footstepLocations.col(leg) << 0.1, 0, -0.55;
+    footstepLocations.col(leg) << 0.1, 0, -0.35;
   }
 
   //std::cout << groundReactionForces << std::endl;

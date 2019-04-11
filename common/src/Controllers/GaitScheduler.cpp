@@ -338,12 +338,12 @@ void GaitScheduler<T>::createGait() {
     gaitData.gaitEnabled << 1, 1, 1, 1;
     T oldGaitPeriodTimeNominal = gaitData.periodTimeNominal;
     gaitData.periodTimeNominal = 3 * gaitData.periodTimeNominal;
-    gaitData.initialPhase = (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.phaseVariable(0) - 1)) / gaitData.periodTimeNominal;
+    gaitData.initialPhase = 0.0;
     gaitData.switchingPhaseNominal = (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.switchingPhaseNominal - 1)) / gaitData.periodTimeNominal;
-    gaitData.phaseOffset << oldGaitPeriodTimeNominal*gaitData.phaseOffset(0) / gaitData.periodTimeNominal,
-                         oldGaitPeriodTimeNominal*gaitData.phaseOffset(1) / gaitData.periodTimeNominal,
-                         oldGaitPeriodTimeNominal*gaitData.phaseOffset(2) / gaitData.periodTimeNominal,
-                         oldGaitPeriodTimeNominal*gaitData.phaseOffset(3) / gaitData.periodTimeNominal;
+    gaitData.phaseOffset << (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.phaseVariable(0) - 1)) / gaitData.periodTimeNominal,
+                         (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.phaseVariable(1) - 1)) / gaitData.periodTimeNominal,
+                         (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.phaseVariable(2) - 1)) / gaitData.periodTimeNominal,
+                         (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.phaseVariable(3) - 1)) / gaitData.periodTimeNominal;
     gaitData.phaseScale << 1.0, 1.0, 1.0, 1.0;
 
     break;
