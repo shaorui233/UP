@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+#include "Controllers/GaitScheduler.h"
 #include "../include/ControlFSMData.h"
 
 /**
@@ -55,8 +56,11 @@ public:
   // State name string
   std::string stateString;
 
+  // Transition duration time
+  T transitionDuration;
+
   // Save the time transition starts
-  T tStartTransition = 0;
+  T tStartTransition;
 
 private:
 

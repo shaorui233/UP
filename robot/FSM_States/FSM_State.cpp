@@ -14,7 +14,7 @@ FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData,
   _data(_controlFSMData),
   stateName(stateNameIn),
   stateString(stateStringIn) {
-  std::cout << "[FSM_State] Initialized FSM state" <<  stateStringIn << ;
+  std::cout << "[FSM_State] Initialized FSM state: " <<  stateStringIn << std::endl;
 }
 
 

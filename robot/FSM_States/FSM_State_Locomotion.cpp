@@ -9,7 +9,7 @@
 
 
 /**
- * Constructor for the FSM State that passes in state specific info to 
+ * Constructor for the FSM State that passes in state specific info to
  * the generif FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
@@ -54,9 +54,20 @@ template <typename T>
 FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   // Get the next state
   iter++;
-  if (iter > 2500) {
+  if (iter >= 2500) {
     this->nextStateName = FSM_StateName::BALANCE_STAND;
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
+    this->transitionDuration = 0.5;
+    iter = 0;
   }
+
+  /*if (this->data->main_control_settings.mode == K_BALANCE_STAND) {
+    this->nextStateName = FSM_StateName::BALANCE_STAND;
+
+    // Transition over the duration of one period
+    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;;
+
+  }*/
 
   // Return the next state name to the FSM
   return this->nextStateName;
@@ -79,7 +90,7 @@ bool FSM_State_Locomotion<T>::transition() {
     LocomotionControlStep();
 
     iter++;
-    if (iter > 5000) {
+    if (iter >= this->transitionDuration * 1000) {
       return true;
     } else {
       return false;
@@ -125,7 +136,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     groundReactionForces.col(leg) << 0.0, 0.0, -220.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
 
-    footstepLocations.col(leg) << 0.1, 0, -0.35;
+    footstepLocations.col(leg) << 0.1, 0, -0.55;
   }
 
   //std::cout << groundReactionForces << std::endl;
@@ -175,7 +186,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     // Singularity barrier calculation (maybe an overall safety checks function?)
     // TODO
   }
-
+  this->_data->_gaitScheduler->printGaitInfo();
 }
 
 //template class FSM_State_Locomotion<double>;

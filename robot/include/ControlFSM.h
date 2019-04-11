@@ -89,7 +89,7 @@ private:
   int printNum = 5000; // N*(0.001s) in simulation time
 
   // Track the number of iterations since last info print
-  int printIter = 0;
+  int printIter = 5001;  // make larger than printNum to not print
 
 };
 

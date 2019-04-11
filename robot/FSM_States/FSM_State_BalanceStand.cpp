@@ -8,7 +8,7 @@
 
 
 /**
- * Constructor for the FSM State that passes in state specific info to 
+ * Constructor for the FSM State that passes in state specific info to
  * the generif FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
@@ -25,6 +25,8 @@ template <typename T>
 void FSM_State_BalanceStand<T>::onEnter() {
   // Default is to not transition
   this->nextStateName = this->stateName;
+  this->transitionDuration = 0.0;
+  this->_data->_gaitScheduler->gaitData._nextGait = GaitType::STAND;
 }
 
 
@@ -50,9 +52,20 @@ template <typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
   // Get the next state
   iter++;
-  if (iter > 2500) {
+  if (iter >= 2500) {
     this->nextStateName = FSM_StateName::LOCOMOTION;
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT; // Or get whatever is in main_control_settings
+    this->transitionDuration = 0.0;
+    iter = 0;
   }
+
+  /* NEED MAIN CONTROL SETTINGS TO BE PASSED IN
+  if (this->data->main_control_settings.mode == K_LOCOMOTION) {
+    this->nextStateName = FSM_StateName::LOCOMOTION;
+
+    // Transition instantaneously to locomotion state on request
+    this->transitionDuration = 0.0;
+  }*/
 
   // Return the next state name to the FSM
   return this->nextStateName;
@@ -75,7 +88,7 @@ bool FSM_State_BalanceStand<T>::transition() {
     BalanceStandStep();
 
     iter++;
-    if (iter > 5000) {
+    if (iter >= this->transitionDuration * 1000) {
       return true;
     } else {
       return false;
@@ -95,6 +108,7 @@ template <typename T>
 void FSM_State_BalanceStand<T>::onExit() {
   iter = 0;
 }
+
 
 /**
  * Calculate the commands for the leg controllers for each of the feet.

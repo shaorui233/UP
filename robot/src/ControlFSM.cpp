@@ -9,7 +9,14 @@
 
 
 /**
+ * Constructor for the Control FSM. Passes in all of the necessary
+ * data and stores it in a struct. Initializes the FSM with a starting
+ * state and operating mode.
  *
+ * @param _stateEstimator contains the estimated states
+ * @param _legController interface to the leg controllers
+ * @param _gaitScheduler controls scheduled foot contact modes
+ * @param _desiredStateCommand gets the desired COM state trajectories
  */
 template <typename T>
 ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
@@ -79,7 +86,7 @@ void ControlFSM<T>::runFSM() {
         // Set the FSM operating mode to transitioning
         operatingMode = FSM_OperatingMode::TRANSITIONING;
 
-        // Get the next FSM State
+        // Get the next FSM State by name
         nextState = getNextState(nextStateName);
 
         // Print transition initialized info
@@ -132,13 +139,15 @@ void ControlFSM<T>::runFSM() {
  * Checks the robot state for safe operation conditions. If it is in
  * an unsafe state, it will not run the normal control code until it
  * is safe to operate again.
+ *
+ * @return the appropriate operating mode
  */
 template <typename T>
 FSM_OperatingMode ControlFSM<T>::safetyCheck() {
 
-  if (roll >= 1.3 || pitch >= 1.3) {
+  /*if (roll >= 1.3 || pitch >= 1.3) {
     return FSM_OperatingMode::ESTOP;
-  }
+  }*/
 
   // Default is to return the current operating mode
   return operatingMode;
@@ -148,6 +157,9 @@ FSM_OperatingMode ControlFSM<T>::safetyCheck() {
 
 /**
  * Returns the approptiate next FSM State when requested.
+ *
+ * @param  next requested enumerated state name
+ * @return next FSM state
  */
 template <typename T>
 FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
@@ -182,6 +194,8 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
  * Prints Control FSM info at regular intervals and on important events
  * such as transition initializations and finalizations. Separate function
  * to not clutter the actual code.
+ *
+ * @param printing mode option for regular or an event
  */
 template <typename T>
 void ControlFSM<T>::printInfo(int opt) {

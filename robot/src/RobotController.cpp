@@ -48,9 +48,9 @@ void RobotController::init() {
   //_wbc_state = new WBDCTrotTest<float>(&_model, robotType);
   //_wbc_state = new WBLCTrotTest<float>(&_model, robotType);
 
-    _jpos_initializer = new JPosInitializer<float>(10.);
-    _data = new Cheetah_Data<float>();
-    _extra_data = new Cheetah_Extra_Data<float>();
+  _jpos_initializer = new JPosInitializer<float>(10.);
+  _data = new Cheetah_Data<float>();
+  _extra_data = new Cheetah_Extra_Data<float>();
 }
 
 void RobotController::run() {
@@ -80,65 +80,66 @@ void RobotController::run() {
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
-  Mat3<float> kpMat; 
-  Mat3<float> kdMat; 
-  if(!_jpos_initializer->IsInitialized(_legController)){
-      kpMat << 
+
+  Mat3<float> kpMat;
+  Mat3<float> kdMat;
+  if (!_jpos_initializer->IsInitialized(_legController)) {
+    kpMat <<
           5, 0, 0,
           0, 5, 0,
           0, 0, 5;
 
-      kdMat << 
+    kdMat <<
           0.1, 0, 0,
-          0, 0.1, 0,
-          0, 0, 0.1;
-   }else {
-      for(size_t i(0); i<4; ++i){
-          _data->body_ori[i] = cheaterState->orientation[i];
+               0, 0.1, 0,
+               0, 0, 0.1;
+  } else {
+    for (size_t i(0); i < 4; ++i) {
+      _data->body_ori[i] = cheaterState->orientation[i];
+    }
+    for (int i(0); i < 3; ++i) {
+      _data->ang_vel[i] = cheaterState->omegaBody[i];
+      _data->global_body_pos[i] = cheaterState->position[i];
+    }
+    _data->global_body_pos[2] += 0.5;// because ground is -0.5
+
+    for (int leg(0); leg < 4; ++leg) {
+      for (int jidx(0); jidx < 3; ++jidx) {
+        _data->jpos[3 * leg + jidx] = _legController->datas[leg].q[jidx];
+        _data->jvel[3 * leg + jidx] = _legController->datas[leg].qd[jidx];
       }
-      for(int i(0);i<3; ++i){
-          _data->ang_vel[i] = cheaterState->omegaBody[i];
-          _data->global_body_pos[i] = cheaterState->position[i];
-      }
-      _data->global_body_pos[2] += 0.5;// because ground is -0.5
+    }
+    _data->dir_command[0] = driverCommand->leftStickAnalog[1];
+    _data->dir_command[1] = driverCommand->leftStickAnalog[0];
 
-      for(int leg(0); leg<4; ++leg){
-          for(int jidx(0); jidx<3; ++jidx){
-              _data->jpos[3*leg + jidx] = _legController->datas[leg].q[jidx];
-              _data->jvel[3*leg + jidx] = _legController->datas[leg].qd[jidx];
-          }
-      }
-      _data->dir_command[0] = driverCommand->leftStickAnalog[1];
-      _data->dir_command[1] = driverCommand->leftStickAnalog[0];
+    // Orientation
+    _data->ori_command[0] = driverCommand->rightTriggerAnalog;
+    _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
 
-      // Orientation
-      _data->ori_command[0] = driverCommand->rightTriggerAnalog;
-      _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
+    _data->ori_command[1] = driverCommand->rightStickAnalog[1];
+    _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
-      _data->ori_command[1] = driverCommand->rightStickAnalog[1];
-      _data->ori_command[2] = driverCommand->rightStickAnalog[0];
+    //pretty_print(_data->ori_command, "ori command", 3);
 
-      //pretty_print(_data->ori_command, "ori command", 3);
+    _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
+    // === End of WBC state command computation  =========== //
 
-      _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
-      // === End of WBC state command computation  =========== //
-
-      // run the controller:
-      kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
+    // run the controller:
+    kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
           0, controlParameters->stand_kp_cartesian[1], 0,
           0, 0, controlParameters->stand_kp_cartesian[2];
 
-      kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
+    kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
           0, controlParameters->stand_kd_cartesian[1], 0,
           0, 0, controlParameters->stand_kd_cartesian[2];
   }
-  for(int leg = 0; leg < 4; leg++) {
-      //_legController->commands[leg].pDes = pDes;
-      //_legController->commands[leg].kpCartesian = kpMat;
-      //_legController->commands[leg].kdCartesian = kdMat;
+  for (int leg = 0; leg < 4; leg++) {
+    //_legController->commands[leg].pDes = pDes;
+    //_legController->commands[leg].kpCartesian = kpMat;
+    //_legController->commands[leg].kdCartesian = kdMat;
 
-      _legController->commands[leg].kpJoint = kpMat;
-      _legController->commands[leg].kdJoint = kdMat;
+    _legController->commands[leg].kpJoint = kpMat;
+    _legController->commands[leg].kdJoint = kdMat;
 
   }
 
@@ -151,16 +152,10 @@ void RobotController::run() {
 
   // Run the Control FSM code
   _controlFSM->runFSM();
-  */
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
-
-
-  // DH: TEST
-  //_gaitScheduler->printGaitInfo();
-  //_gamepadControl->printRawInfo();
-  //_desiredStateCommand->printStateCommandInfo();
+  */
 }
 
 
@@ -625,12 +620,12 @@ void RobotController::initializeStateEstimator(bool cheaterMode) {
 }
 
 RobotController::~RobotController() {
-    delete _legController;
-    delete _stateEstimator;
-    delete _wbc_state;
-    delete _data;
-    delete _extra_data;
-    delete _jpos_initializer;
+  delete _legController;
+  delete _stateEstimator;
+  delete _wbc_state;
+  delete _data;
+  delete _extra_data;
+  delete _jpos_initializer;
 }
 
 void RobotController::cleanup() {

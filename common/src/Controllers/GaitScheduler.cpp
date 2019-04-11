@@ -74,7 +74,7 @@ void GaitScheduler<T>::initialize() {
   std::cout << "[GAIT] Initialize Gait Scheduler" << std::endl;
 
   // Start the gait in a trot since we use this the most
-  gaitData._currentGait = GaitType::TROT;//STAND;
+  gaitData._currentGait = GaitType::STAND;
 
   // Zero all gait data
   gaitData.zero();
@@ -93,8 +93,9 @@ void GaitScheduler<T>::step() {
 
   // Create a new gait structure if a new gait has been requested
   if (gaitData._currentGait != gaitData._nextGait) {
-    printf("[GAIT] Transitioning gait\n");
+    std::cout << "[GAIT] Transitioning gait from " << gaitData.gaitName << " to ";
     createGait();
+    std::cout << gaitData.gaitName << "\n" << std::endl;
     gaitData._currentGait = gaitData._nextGait;
   }
 
@@ -102,7 +103,12 @@ void GaitScheduler<T>::step() {
   for (int foot = 0; foot < 4; foot++) {
     if (gaitData.gaitEnabled(foot) == 1) {
       // Monotonic time based phase incrementation
-      dphase = gaitData.phaseScale(foot) * (dt / gaitData.periodTimeNominal);
+      if (gaitData._currentGait == GaitType::STAND) {
+        // Don't increment the phase when in stand mode
+        dphase = 0.0;
+      } else {
+        dphase = gaitData.phaseScale(foot) * (dt / gaitData.periodTimeNominal);
+      }
 
       // Find each foot's current phase
       gaitData.phaseVariable(foot) = fmod((gaitData.phaseVariable(foot) + dphase), 1);
@@ -179,10 +185,8 @@ void GaitScheduler<T>::step() {
     // Set the previous contact state for the next timestep
     gaitData.contactStatePrev(foot) = gaitData.contactStateScheduled(foot);
 
-
-    //std::cout << gaitData.contactStateScheduled(foot) << ", " << gaitData.gaitName << " | ";
   }
-  //std::cout << std::endl;
+
 }
 
 
@@ -200,13 +204,13 @@ void GaitScheduler<T>::createGait() {
     gaitData.initialPhase = 0.0;
     gaitData.switchingPhaseNominal = 1.0;
     gaitData.phaseOffset << 0.5, 0.5, 0.5, 0.5;
-    gaitData.phaseScale << 0.0, 0.0, 0.0, 0.0;
+    gaitData.phaseScale << 1.0, 1.0, 1.0, 1.0;
     break;
 
   case GaitType::STAND_CYCLE :
     gaitData.gaitName = "STAND_CYCLE";
     gaitData.gaitEnabled << 1, 1, 1, 1;
-    gaitData.periodTimeNominal = 10.0;
+    gaitData.periodTimeNominal = 1.0;
     gaitData.initialPhase = 0.0;
     gaitData.switchingPhaseNominal = 1.0;
     gaitData.phaseOffset << 0.5, 0.5, 0.5, 0.5;
@@ -329,6 +333,21 @@ void GaitScheduler<T>::createGait() {
     // TODO: get custom gait parameters from operator GUI
     break;
 
+  case GaitType::TRANSITION_TO_STAND :
+    gaitData.gaitName = "TRANSITION_TO_STAND";
+    gaitData.gaitEnabled << 1, 1, 1, 1;
+    T oldGaitPeriodTimeNominal = gaitData.periodTimeNominal;
+    gaitData.periodTimeNominal = 3 * gaitData.periodTimeNominal;
+    gaitData.initialPhase = (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.phaseVariable(0) - 1)) / gaitData.periodTimeNominal;
+    gaitData.switchingPhaseNominal = (gaitData.periodTimeNominal + oldGaitPeriodTimeNominal * (gaitData.switchingPhaseNominal - 1)) / gaitData.periodTimeNominal;
+    gaitData.phaseOffset << oldGaitPeriodTimeNominal*gaitData.phaseOffset(0) / gaitData.periodTimeNominal,
+                         oldGaitPeriodTimeNominal*gaitData.phaseOffset(1) / gaitData.periodTimeNominal,
+                         oldGaitPeriodTimeNominal*gaitData.phaseOffset(2) / gaitData.periodTimeNominal,
+                         oldGaitPeriodTimeNominal*gaitData.phaseOffset(3) / gaitData.periodTimeNominal;
+    gaitData.phaseScale << 1.0, 1.0, 1.0, 1.0;
+
+    break;
+
   }
 
   // Set the gait parameters for each foot
@@ -396,6 +415,7 @@ void GaitScheduler<T>::printGaitInfo() {
     printIter = 0;
   }
 }
+
 
 template class GaitScheduler<double>;
 template class GaitScheduler<float>;

@@ -7,7 +7,7 @@
 
 
 /**
- *
+ * Enumerated gait types. Preplanned gaits are defined.
  */
 enum class GaitType {
   STAND,
@@ -23,7 +23,8 @@ enum class GaitType {
   TRAVERSE_GALLOP,
   PRONK,
   THREE_FOOT,
-  CUSTOM
+  CUSTOM,
+  TRANSITION_TO_STAND
 };
 
 
