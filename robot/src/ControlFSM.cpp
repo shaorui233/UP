@@ -207,6 +207,7 @@ void ControlFSM<T>::printInfo(int opt) {
     // Print at requested frequency
     if (printIter == printNum) {
       std::cout << "[CONTROL FSM] Printing FSM Info...\n";
+      std::cout << "---------------------------------------------------------\n";
       if (operatingMode == FSM_OperatingMode::NORMAL) {
         std::cout << "Operating Mode: NORMAL in " << currentState->stateString << "\n";
 
@@ -217,7 +218,7 @@ void ControlFSM<T>::printInfo(int opt) {
         std::cout << "Operating Mode: ESTOP\n";
 
       }
-      std::cout << "---------------------------------------------------------\n";
+      std::cout << "Gait Type: " << data._gaitScheduler->gaitData.gaitName << "\n";
       std::cout << std::endl;
 
       // Reset iteration counter

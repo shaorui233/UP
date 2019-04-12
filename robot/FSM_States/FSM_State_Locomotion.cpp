@@ -54,7 +54,7 @@ template <typename T>
 FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   // Get the next state
   iter++;
-  if (iter >= 2500) {
+  if (iter >= 2058) {
     this->nextStateName = FSM_StateName::BALANCE_STAND;
     this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
     this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
@@ -65,7 +65,21 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
     this->nextStateName = FSM_StateName::BALANCE_STAND;
 
     // Transition over the duration of one period
-    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;;
+    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
+
+    // Notify the gait scheduler that the robot is transitioning to stand
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
+
+  }*/
+
+  /*if (velocity < v_min) {
+    this->nextStateName = FSM_StateName::BALANCE_STAND;
+
+    // Transition over the duration of one period
+    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
+
+    // Notify the gait scheduler that the robot is transitioning to stand
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
 
   }*/
 
@@ -152,6 +166,23 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
       // Impedance control for the stance leg
       //stanceLegImpedanceControl(leg);
 
+      footstepLocations.col(leg) << 0.0, 0.0, -0.65;
+      this->_data->_legController->commands[leg].pDes = footstepLocations.col(leg);
+
+      // Create the cartesian P gain matrix
+      Mat3<float> kpMat;
+      kpMat << 500, 0, 0,
+            0, 500, 0,
+            0, 0, 500;
+      this->_data->_legController->commands[leg].kpCartesian = kpMat;
+
+      // Create the cartesian D gain matrix
+      Mat3<float> kdMat;
+      kdMat << 10, 0, 0,
+            0, 10, 0,
+            0, 0, 10;
+      this->_data->_legController->commands[leg].kdCartesian = kdMat;
+
       // Stance leg Ground Reaction Force command
       this->_data->_legController->commands[leg].forceFeedForward = groundReactionForces.col(leg);
 
@@ -186,7 +217,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     // Singularity barrier calculation (maybe an overall safety checks function?)
     // TODO
   }
-  this->_data->_gaitScheduler->printGaitInfo();
+  //this->_data->_gaitScheduler->printGaitInfo();
 }
 
 //template class FSM_State_Locomotion<double>;
