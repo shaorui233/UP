@@ -13,5 +13,6 @@ cp ../scripts/config_network_lcm.sh ./robot-software
 cp -r ../robot robot-software
 
 DATE=$(date +"%Y%m%d%H%M")
-scp -r robot-software user@10.0.0.34:~/robot-software-$DATE/
+#scp -r robot-software user@10.0.0.34:~/robot-software-$DATE/
+scp -r robot-software user@10.0.0.34:~/
 

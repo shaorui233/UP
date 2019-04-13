@@ -246,29 +246,37 @@ void spine_to_spi(spi_data_t *data, spine_data_t *spine_data, int leg_0) {
 // send receive from spine
 void spi_send_receive(spi_command_t *command, spi_data_t *data) {
   // update driver status flag
+      printf("send receive iter: %d\n", spi_driver_iterations);
   spi_driver_iterations++;
   data->spi_driver_status = spi_driver_iterations << 16;
 
+      printf("sr 1\n");
   // transmit and receive buffers
   uint16_t tx_buf[K_WORDS_PER_MESSAGE];
   uint16_t rx_buf[K_WORDS_PER_MESSAGE];
+      printf("sr 2\n");
 
   for (int spi_board = 0; spi_board < 2; spi_board++) {
+      printf("spi board: %d\n", spi_board);
     // copy command into spine type:
     spi_to_spine(command, &g_spine_cmd, spi_board * 2);
 
+      printf("spi board ccc\n");
     // pointers to command/data spine array
     uint16_t *cmd_d = (uint16_t *) &g_spine_cmd;
     uint16_t *data_d = (uint16_t *) &g_spine_data;
 
+      printf("spi board ccc\n");
     // zero rx buffer
     memset(rx_buf, 0, K_WORDS_PER_MESSAGE * sizeof(uint16_t));
 
+      printf("spi board ccc\n");
     // copy into tx buffer flipping bytes
     for (int i = 0; i < K_WORDS_PER_MESSAGE; i++)
       tx_buf[i] = (cmd_d[i] >> 8) + ((cmd_d[i] & 0xff) << 8);
     //tx_buf[i] = __bswap_16(cmd_d[i]);
 
+      printf("spi board ccc\n");
     // each word is two bytes long
     size_t word_len = 2; // 16 bit word
 
@@ -278,6 +286,7 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
     // zero message struct.
     memset(spi_message, 0, 1 * sizeof(struct spi_ioc_transfer));
 
+      printf("spi board ccc\n");
     // set up message struct
     for (int i = 0; i < 1; i++) {
       spi_message[i].bits_per_word = spi_bits_per_word;
@@ -286,35 +295,49 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
       spi_message[i].len = word_len * 66;
       spi_message[i].rx_buf = (uint64_t) rx_buf;
       spi_message[i].tx_buf = (uint64_t) tx_buf;
+      printf("spi board ddd\n");
     }
 
+      printf("spi board eee\n");
     // do spi communication
     int rv = ioctl(spi_board == 0 ? spi_1_fd : spi_2_fd, SPI_IOC_MESSAGE(1), &spi_message);
+    printf("rv? %d\n", rv);
     (void)rv;
 
+      printf("spi board eee\n");
     // flip bytes the other way
     for (int i = 0; i < 30; i++)
       data_d[i] = (rx_buf[i] >> 8) + ((rx_buf[i] & 0xff) << 8);
     //data_d[i] = __bswap_16(rx_buf[i]);
 
+      printf("spi board ee3\n");
     // copy back to data
     spine_to_spi(data, &g_spine_data, spi_board * 2);
+      printf("spi board ff0\n");
   }
 }
 
 
 void spi_driver_run() {
-
+printf("111\n");
   // do spi board calculations
-  for (int i = 0; i < 4; i++)
-    fake_spine_control(&spi_command_drv, &spi_data_drv, &spi_torque, i);
+  for (int i = 0; i < 4; i++){
+      printf("222\n");
+      fake_spine_control(&spi_command_drv, &spi_data_drv, &spi_torque, i);
+  }
+      printf("333\n");
   publish_spi_torque(&spi_torque);
+      printf("444\n");
 
   
     // in here, the driver is good
+      printf("555\n");
     pthread_mutex_lock(&spi_mutex);
+      printf("666\n");
     spi_send_receive(&spi_command_drv, &spi_data_drv);
+      printf("777\n");
     pthread_mutex_unlock(&spi_mutex);
+      printf("888\n");
 }
 
 spi_command_t *get_spi_command() {

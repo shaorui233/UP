@@ -38,6 +38,8 @@ bool JPosInitializer<T>::IsInitialized(LegController<T>* ctrl){
         T jpos[cheetah::num_act_joint];
         _jpos_trj.getCurvePoint(_curr_time, jpos);
 
+        //pretty_print(jpos, "jpos_cmd", cheetah::num_act_joint);
+
         for(size_t leg(0); leg<cheetah::num_leg; ++leg){
             for(size_t jidx(0); jidx<cheetah::num_leg_joint; ++jidx){
                 ctrl->commands[leg].tauFeedForward[jidx] = 0.;
@@ -48,6 +50,8 @@ bool JPosInitializer<T>::IsInitialized(LegController<T>* ctrl){
         return false;
     }
     return true;
+    // TEST
+    //return true;
 }
 
 template<typename T>
