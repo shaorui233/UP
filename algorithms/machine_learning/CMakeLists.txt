@@ -1,6 +1,11 @@
 cmake_minimum_required(VERSION 3.5)
 project(machine_learning)
 
+set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
+-Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
+-Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
+ -Wsign-promo -Werror")
+ 
 
 set(CMAKE_COLOR_MAKEFILE   ON)
 message("LCM machine learning")

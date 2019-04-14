@@ -10,8 +10,6 @@ set(CMAKE_COLOR_MAKEFILE   ON)
 execute_process(COMMAND ../scripts/make_types.sh)
 
 
-
-
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
@@ -46,4 +44,4 @@ add_subdirectory(robot)
 add_subdirectory(third-party)
 add_subdirectory(common)
 add_subdirectory(sim)
-#add_subdirectory(algorithms)
+add_subdirectory(algorithms)
