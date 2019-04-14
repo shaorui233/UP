@@ -17,8 +17,8 @@ sim_data
 test_data
 planning_data
 *.m~
-algorithm/machine_learning/python_bridge/pycheetah.cpp
-algorithm/machine_learning/python_bridge/pycheetah.py
+algorithms/machine_learning/python_bridge/pycheetah.cpp
+algorithms/machine_learning/python_bridge/pycheetah.py
 *.pyc
-algorithm/machine_learning/bridge_lcm_types/cpp/*
+algorithms/machine_learning/bridge_lcm_types/cpp/*
 
