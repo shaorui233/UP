@@ -1,5 +1,6 @@
 add_subdirectory(optimization)
 add_subdirectory(path_planning)
+add_subdirectory(traj_optimization)
 
 # Machine Learning Package
 find_package(SWIG)
