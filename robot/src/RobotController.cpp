@@ -151,10 +151,10 @@ void RobotController::run() {
 
   // Run the Control FSM code
   _controlFSM->runFSM();
+  */
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
-  */
 }
 
 

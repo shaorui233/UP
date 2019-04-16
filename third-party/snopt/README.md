@@ -9,7 +9,7 @@ sudo apt-get install gfortran-7
 In mac, you may try the following:
 https://www.webmo.net/support/fortran_osx.html
 
-for license:
+for license, add the following line in your bashrc:
 ````
-export SNOPT_LICENSE=pwd/snopt7.lic 
+export SNOPT_LICENSE=${Cheetah-Software directory}/third-party/snopt/snopt7.lic
 ````

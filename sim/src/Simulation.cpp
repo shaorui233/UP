@@ -417,6 +417,10 @@ void Simulation::highLevelControl() {
   // update
   if(_robot == RobotType::MINI_CHEETAH) {
     _spiCommand = _sharedMemory().robotToSim.spiCommand;
+
+    //pretty_print(_spiCommand.q_des_abad, "q des abad", 4);
+    //pretty_print(_spiCommand.q_des_hip, "q des hip", 4);
+    //pretty_print(_spiCommand.q_des_knee, "q des knee", 4);
   } else if(_robot == RobotType::CHEETAH_3) {
     for(int i = 0; i < 4; i++) {
       _tiBoards[i].command = _sharedMemory().robotToSim.tiBoardCommand[i];
