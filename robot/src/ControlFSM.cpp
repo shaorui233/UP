@@ -22,11 +22,13 @@ template <typename T>
 ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
                           LegController<T>* _legController,
                           GaitScheduler<T>* _gaitScheduler,
-                          DesiredStateCommand<T>* _desiredStateCommand) {
+                          DesiredStateCommand<T>* _desiredStateCommand,
+                          RobotControlParameters* controlParameters) {
   data._stateEstimator = _stateEstimator;
   data._legController = _legController;
   data._gaitScheduler = _gaitScheduler;
   data._desiredStateCommand = _desiredStateCommand;
+  data.controlParameters = controlParameters;
 
   // Initialize and add all of the FSM States to the state list
   statesList.invalid = nullptr;
@@ -48,7 +50,7 @@ ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
 template <typename T>
 void ControlFSM<T>::initialize() {
   // Initialize a new FSM State with the control data
-  currentState = statesList.balanceStand;
+  currentState = statesList.passive;
 
   // Enter the new current state cleanly
   currentState->onEnter();
@@ -102,8 +104,10 @@ void ControlFSM<T>::runFSM() {
 
     // Run the transition code while transition is occuring
     if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
+      // transitionData = currentState->transition();
+
       // Run the state transition
-      if (currentState->transition()) {
+      if (currentState->transition()) { // (transitionData.transitionComplete) {
 
         // Exit the current state cleanly
         currentState->onExit();
@@ -121,6 +125,7 @@ void ControlFSM<T>::runFSM() {
         operatingMode = FSM_OperatingMode::NORMAL;
 
       }
+
     }
 
   } else {
@@ -145,9 +150,12 @@ void ControlFSM<T>::runFSM() {
 template <typename T>
 FSM_OperatingMode ControlFSM<T>::safetyCheck() {
 
-  /*if (roll >= 1.3 || pitch >= 1.3) {
-    return FSM_OperatingMode::ESTOP;
-  }*/
+  // Check for safe orientation if the current state requires it
+  if (currentState->checkSafeOrientation) {
+    /*if (roll >= 1.3 || pitch >= 1.3) {
+      return FSM_OperatingMode::ESTOP;
+    }*/
+  }
 
   // Default is to return the current operating mode
   return operatingMode;

@@ -37,7 +37,7 @@ void RobotController::init() {
   //_contactEstimator->initialize();
 
   // Initializes the Control FSM with all the required data
-  //_controlFSM = new ControlFSM<float>(_stateEstimator, _legController, _gaitScheduler, _desiredStateCommand);
+  _controlFSM = new ControlFSM<float>(_stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
 
   // For WBC state
   _model = _quadruped.buildModel();
@@ -89,9 +89,9 @@ void RobotController::run() {
           0, 0, 5;
 
     kdMat <<
-        0.1, 0, 0,
-        0, 0.1, 0,
-        0, 0, 0.1;
+          0.1, 0, 0,
+               0, 0.1, 0,
+               0, 0, 0.1;
   } else {
     for (size_t i(0); i < 4; ++i) {
       _data->body_ori[i] = cheaterState->orientation[i];

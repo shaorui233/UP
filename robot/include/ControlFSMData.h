@@ -5,6 +5,7 @@
 #include "Controllers/LegController.h"
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/DesiredStateCommand.h"
+#include <ControlParameters/RobotParameters.h>
 
 
 /**
@@ -17,6 +18,7 @@ struct ControlFSMData {
   LegController<T>* _legController;
   GaitScheduler<T>* _gaitScheduler;
   DesiredStateCommand<T>* _desiredStateCommand;
+  RobotControlParameters* controlParameters;
 };
 
 
