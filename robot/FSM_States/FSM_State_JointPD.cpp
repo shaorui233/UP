@@ -7,8 +7,8 @@
 
 
 /**
- * Constructor for the FSM State that passes in state specific info to 
- * the generif FSM State constructor.
+ * Constructor for the FSM State that passes in state specific info to
+ * the generic FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
  */
@@ -30,9 +30,17 @@ void FSM_State_JointPD<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_JointPD<T>::run() {
+  Vec3<T> qDes;
+  qDes << 0, -1.052, 2.63;
+  Vec3<T> qdDes;
+  qdDes << 0, 0, 0;
+  this->jointPDControl(0, qDes, qdDes);
+  this->jointPDControl(1, qDes, qdDes);
+  this->jointPDControl(2, qDes, qdDes);
+  this->jointPDControl(3, qDes, qdDes);
   // Do nothing, all commands should begin as zeros
-  this->_data->_gaitScheduler->printGaitInfo();
-  this->_data->_desiredStateCommand->printStateCommandInfo();
+  //this->_data->_gaitScheduler->printGaitInfo();
+  //this->_data->_desiredStateCommand->printStateCommandInfo();
 }
 
 
@@ -44,8 +52,15 @@ void FSM_State_JointPD<T>::run() {
  */
 template <typename T>
 FSM_StateName FSM_State_JointPD<T>::checkTransition() {
+  this->nextStateName = this->stateName;
+
+  iter++;
+  if (iter >= 2345) {
+  	this->nextStateName = FSM_StateName::BALANCE_STAND;
+  }
+
   // Get the next state
-  return this->stateName;
+  return this->nextStateName;
 }
 
 
