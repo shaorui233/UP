@@ -1,6 +1,5 @@
 add_subdirectory(optimization)
 add_subdirectory(path_planning)
-add_subdirectory(traj_optimization)
 
 # Machine Learning Package
 find_package(SWIG)
@@ -9,3 +8,13 @@ if(SWIG_FOUND)
 else()
     message("Swig is not installed. machine learning codes will not be compiled")
 endif()
+
+if (CMAKE_SYSTEM_NAME MATCHES Linux)
+   find_library(gfortran NAMES libgfortran.so.4 PATHS /usr/lib/x86_64-linux-gnu/)
+   if(gfortran)
+	   message("**** Trajetory Optimization: Found gfortran compiler. ")
+       add_subdirectory(traj_optimization)
+   else()
+       message("**** Could not find gfortran compiler. traj_optimization will not be compiled")
+   endif()
+endif (CMAKE_SYSTEM_NAME MATCHES Linux)

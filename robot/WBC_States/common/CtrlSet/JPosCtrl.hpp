@@ -31,6 +31,9 @@ class JPosCtrl: public Controller<T>{
         virtual void CtrlInitialization(const std::string & category_name);
         virtual void SetTestParameter(const std::string & test_file);
 
+        void SetJPosTarget(const DVec<T> & jpos_target){
+            _jpos_target = jpos_target;
+        }
     protected:
         int _motion_type;
         DVec<T> _Kp, _Kd;

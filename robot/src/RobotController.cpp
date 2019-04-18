@@ -11,10 +11,13 @@
 #include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
+//#include <WBC_States/BackFlip/BackFlipTest.hpp>
 
+#include <unistd.h>
 
 void RobotController::init() {
   printf("[RobotController] initialize\n");
+  //usleep(1000000);
   if (robotType == RobotType::MINI_CHEETAH) {
     _quadruped = buildMiniCheetah<float>();
   } else {
@@ -41,12 +44,13 @@ void RobotController::init() {
 
   // For WBC state
   _model = _quadruped.buildModel();
-  _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
+  //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptPlayTest<float>(&_model, robotType);
   //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
-  //_wbc_state = new WBDCTrotTest<float>(&_model, robotType);
+  _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
   //_wbc_state = new WBLCTrotTest<float>(&_model, robotType);
+  //_wbc_state = new BackFlipTest<float>(&_model, robotType);
 
   _jpos_initializer = new JPosInitializer<float>(10.);
   _data = new Cheetah_Data<float>();
@@ -72,7 +76,17 @@ void RobotController::run() {
   BodyPathArrowVisualization();
 
   // for now, we will always enable the legs:
-  _legController->setEnabled(true);
+  static int count_ini(0);
+  ++count_ini;
+  if(count_ini <10){
+      _legController->setEnabled(false);
+  }else if(20<count_ini && count_ini< 30){
+      _legController->setEnabled(false);
+  }else if(40<count_ini && count_ini< 50){
+      _legController->setEnabled(false);
+  }else{
+      _legController->setEnabled(true);
+  }
   _legController->setMaxTorqueCheetah3(208.5);
 
   // for debugging the visualizations from robot code
@@ -92,15 +106,26 @@ void RobotController::run() {
         0.1, 0, 0,
         0, 0.1, 0,
         0, 0, 0.1;
+    _ini_yaw = _stateEstimator->getResult().rpy[2];
   } else {
-    for (size_t i(0); i < 4; ++i) {
-      _data->body_ori[i] = cheaterState->orientation[i];
+      Vec3<float> rpy = _stateEstimator->getResult().rpy;
+      rpy[2] -= _ini_yaw;
+      Quat<float> quat_ori = ori::rpyToQuat(rpy);
+
+      //if(count_ini% 100 == 0 ){
+      //pretty_print(rpy, std::cout, "original rpy");
+      //pretty_print(quat_ori, std::cout, "quat");
+      //}
+      for (size_t i(0); i < 4; ++i) {
+          _data->body_ori[i] = quat_ori[i];
+          //_data->body_ori[i] = cheaterState->orientation[i];
+      }
+      for (int i(0); i < 3; ++i) {
+          //_data->ang_vel[i] = cheaterState->omegaBody[i];
+          _data->ang_vel[i] = _stateEstimator->getResult().omegaBody[i];
+          //_data->global_body_pos[i] = cheaterState->position[i];
     }
-    for (int i(0); i < 3; ++i) {
-      _data->ang_vel[i] = cheaterState->omegaBody[i];
-      _data->global_body_pos[i] = cheaterState->position[i];
-    }
-    _data->global_body_pos[2] += 0.5;// because ground is -0.5
+    //_data->global_body_pos[2] += 0.5;// because ground is -0.5
 
     for (int leg(0); leg < 4; ++leg) {
       for (int jidx(0); jidx < 3; ++jidx) {
@@ -332,68 +357,7 @@ void RobotController::runBalanceController() {
  * Calls the interface for the controller
  */
 void RobotController::runWholeBodyController() {
-  Mat3<float> kpMat;
-  Mat3<float> kdMat;
-  if (!_jpos_initializer->IsInitialized(_legController)) {
-    kpMat <<
-          5, 0, 0,
-          0, 5, 0,
-          0, 0, 5;
-
-    kdMat <<
-          0.1, 0, 0,
-               0, 0.1, 0,
-               0, 0, 0.1;
-  } else {
-    for (size_t i(0); i < 4; ++i) {
-      _data->body_ori[i] = cheaterState->orientation[i];
-    }
-    for (int i(0); i < 3; ++i) {
-      _data->ang_vel[i] = cheaterState->omegaBody[i];
-      _data->global_body_pos[i] = cheaterState->position[i];
-    }
-    _data->global_body_pos[2] += 0.5;// because ground is -0.5
-
-    for (int leg(0); leg < 4; ++leg) {
-      for (int jidx(0); jidx < 3; ++jidx) {
-        _data->jpos[3 * leg + jidx] = _legController->datas[leg].q[jidx];
-        _data->jvel[3 * leg + jidx] = _legController->datas[leg].qd[jidx];
-      }
-    }
-    _data->dir_command[0] = driverCommand->leftStickAnalog[1];
-    _data->dir_command[1] = driverCommand->leftStickAnalog[0];
-
-    // Orientation
-    _data->ori_command[0] = driverCommand->rightTriggerAnalog;
-    _data->ori_command[0] -= driverCommand->leftTriggerAnalog;
-
-    _data->ori_command[1] = driverCommand->rightStickAnalog[1];
-    _data->ori_command[2] = driverCommand->rightStickAnalog[0];
-
-    //pretty_print(_data->ori_command, "ori command", 3);
-
-    _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
-    // === End of WBC state command computation  =========== //
-
-    // run the controller:
-    kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
-          0, controlParameters->stand_kp_cartesian[1], 0,
-          0, 0, controlParameters->stand_kp_cartesian[2];
-
-    kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
-          0, controlParameters->stand_kd_cartesian[1], 0,
-          0, 0, controlParameters->stand_kd_cartesian[2];
-  }
-  for (int leg = 0; leg < 4; leg++) {
-    //_legController->commands[leg].pDes = pDes;
-    //_legController->commands[leg].kpCartesian = kpMat;
-    //_legController->commands[leg].kdCartesian = kdMat;
-
-    _legController->commands[leg].kpJoint = kpMat;
-    _legController->commands[leg].kdJoint = kdMat;
-
-  }
-
+    // TODO
 }
 
 
@@ -507,7 +471,7 @@ void RobotController::StepLocationVisualization() {
   }
 }
 void RobotController::BodyPathVisualization() {
-  // Test Path visualization
+  // Path visualization
   PathVisualization path;
   path.num_points = _extra_data->num_path_pt;
   for (size_t j = 0 ; j < path.num_points ; j++)

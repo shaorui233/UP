@@ -163,12 +163,7 @@ void WBLC_TwoContactTransCtrl<T>::_task_setup(){
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    Mat3<T> Rot = rpyToRotMat(rpy_des);
-    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
-    des_quat[0] = eigen_quat.w();
-    des_quat[1] = eigen_quat.x();
-    des_quat[2] = eigen_quat.y();
-    des_quat[3] = eigen_quat.z();
+    des_quat = ori::rpyToQuat(rpy_des);
 
     DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();
     _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);

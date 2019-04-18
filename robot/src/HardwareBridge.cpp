@@ -194,24 +194,24 @@ void MiniCheetahHardwareBridge::run() {
   // init control thread
 
   statusTask.start();
-  _robotController->start();
 
-  PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
-      &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
-
+  // spi Task start
   PeriodicMemberFunction<MiniCheetahHardwareBridge> spiTask(
       &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
-printf("1\n");
-  //visualizationLCMTask.start();
-printf("2\n");
   spiTask.start();
-printf("3\n");
+
+  // robot controller start
+  _robotController->start();
+
+  // visualization start
+  PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
+      &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
+  visualizationLCMTask.start();
 
   for(;;) {
     usleep(1000000);
     //printf("joy %f\n", _robotController->driverCommand->leftStickAnalog[0]);
   }
-printf("4\n");
 }
 
 void MiniCheetahHardwareBridge::initHardware() {
@@ -235,25 +235,15 @@ void MiniCheetahHardwareBridge::initHardware() {
 }
 
 void MiniCheetahHardwareBridge::runSpi() {
-    printf("a\n");
   spi_command_t* cmd = get_spi_command();
-    printf("b\n");
   spi_data_t* data = get_spi_data();
-    printf("c\n");
 
   memcpy(cmd, &_spiCommand, sizeof(spi_command_t));
-    printf("d\n");
   spi_driver_run();
-    printf("e\n");
   memcpy(&_spiData, data, sizeof(spi_data_t));
-    printf("f\n");
 
   _spiLcm.publish("spi-data", data);
-    printf("g\n");
   _spiLcm.publish("spi-command", cmd);
-    printf("h\n");
-
-
 }
 
 void HardwareBridge::publishVisualizationLCM() {

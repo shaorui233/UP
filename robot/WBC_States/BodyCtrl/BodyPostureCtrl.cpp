@@ -157,13 +157,14 @@ void BodyPostureCtrl<T>::_task_setup(){
         _target_ori_command[i] += _ori_cmd_filter[i]->output()*Test<T>::dt;
     }
 
-    Mat3<T> Rot = rpyToRotMat(_target_ori_command);
-    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
-    des_quat[0] = eigen_quat.w();
-    des_quat[1] = eigen_quat.x();
-    des_quat[2] = eigen_quat.y();
-    des_quat[3] = eigen_quat.z();
+    //Mat3<T> Rot = rpyToRotMat(_target_ori_command);
+    //Eigen::Quaternion<T> eigen_quat(Rot.transpose());
+    //des_quat[0] = eigen_quat.w();
+    //des_quat[1] = eigen_quat.x();
+    //des_quat[2] = eigen_quat.y();
+    //des_quat[3] = eigen_quat.z();
 
+    des_quat = rpyToQuat(_target_ori_command);
 
     DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
     DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();

@@ -8,7 +8,8 @@ JPosInitializer<T>::JPosInitializer(T end_time):
     _b_first_visit(true),
     _end_time(end_time),
     _curr_time(0.),
-    _dt(0.001)
+    _dt(0.001),
+    _ini_jpos(cheetah::num_act_joint)
 {
     _UpdateParam();
 }
@@ -44,14 +45,14 @@ bool JPosInitializer<T>::IsInitialized(LegController<T>* ctrl){
             for(size_t jidx(0); jidx<cheetah::num_leg_joint; ++jidx){
                 ctrl->commands[leg].tauFeedForward[jidx] = 0.;
                 ctrl->commands[leg].qDes[jidx] = jpos[3*leg + jidx];
+                //ctrl->commands[leg].qDes[jidx] = _ini_jpos[3*leg + jidx];
+                //ctrl->commands[leg].qDes[jidx] = ctrl->datas[leg].q[jidx];
                 ctrl->commands[leg].qdDes[jidx] = 0.;
             }
         }
         return false;
     }
     return true;
-    // TEST
-    //return true;
 }
 
 template<typename T>
@@ -69,9 +70,12 @@ void JPosInitializer<T>::_UpdateInitial(const LegController<T>* ctrl){
     for(int leg(0); leg<4; ++leg){
         for(int jidx(0); jidx<3; ++jidx){
             ini[3*leg + jidx] = ctrl->datas[leg].q[jidx];
+            _ini_jpos[3*leg + jidx]  = ctrl->datas[leg].q[jidx];
+            //_ini_jpos[3*leg + jidx]  = 0.3;
         }
     }
 
+    //pretty_print(_ini_jpos, "ini jpos");
     for(size_t i(0); i<cheetah::num_act_joint; ++i){
         fin[i] = _target_jpos[i];
         mid[0][i] = _mid_jpos[i];

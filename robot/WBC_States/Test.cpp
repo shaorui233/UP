@@ -97,6 +97,10 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _robot->massMatrix();
     _robot->gravityForce();
     _robot->coriolisForce();
+    //printf("limit: %f, %f\n", _roll_limit, _pitch_limit);
+    //printf("ori: %f, %f, %f, %f\n", 
+            //data->body_ori[0] , data->body_ori[1],
+            //data->body_ori[2], data->body_ori[3] );
     _SafetyCheck();
 
     if(_b_running){
@@ -141,7 +145,6 @@ void Test<T>::_SafeCommand(const Cheetah_Data<T>* data,
 template <typename T>
 bool Test<T>::_Initialization(
         const Cheetah_Data<T>* data, LegControllerCommand<T>* command){
-
     static bool test_initialized(false);
     if(!test_initialized) {
         _TestInitialization();

@@ -1,12 +1,10 @@
 CTRL_jpos_move_to_target:
     motion_type: "move_to_target"
     move_time: 2.0
-    moving_to_target: true
 
 CTRL_jpos_stay:
     motion_type: "stay"
     move_time: 2.
-    moving_to_target: false
 
 CTRL_jpos_swing:
     motion_type: "swing"

@@ -21,6 +21,7 @@ class JPosInitializer{
         T _curr_time;
         T _dt;
 
+        std::vector<T> _ini_jpos;
         std::vector<T> _target_jpos;
         std::vector<T> _mid_jpos;
 

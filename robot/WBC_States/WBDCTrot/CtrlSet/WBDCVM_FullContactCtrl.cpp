@@ -89,11 +89,12 @@ void WBDCVM_FullContactCtrl<T>::_compute_torque_wbdc(DVec<T> & gamma){
     _trot_test->_vm_qdot += _wbdc_data->_qddot * _trot_test->dt;
     _trot_test->_vm_q.head(cheetah::dim_config) += _trot_test->_vm_qdot * _trot_test->dt;
 
-    _des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
-    _des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
+    //_des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
+    //_des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
 
-    //_des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
-    //_des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
+    _des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
+    _des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
+    _des_jvel.setZero();
 }
 
 template <typename T>

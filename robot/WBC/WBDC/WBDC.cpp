@@ -118,7 +118,6 @@ void WBDC<T>::MakeTorque(
     // Stack The last Task
     DMat<T> JtBar, JtPre;
     for(size_t i(1); i<_task_list.size(); ++i){
-        printf("there is a second task\n");
         task = _task_list[i];
 
         if(!task->IsTaskSet()){ printf("%lu th task is not set!\n", i); exit(0); }

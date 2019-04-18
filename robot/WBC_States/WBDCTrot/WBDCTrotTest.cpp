@@ -199,7 +199,7 @@ void WBDCTrotTest<T>::_UpdateTestOneStep(){
         Test<T>::_robot->coriolisForce();
     }
 
-    T scale(1.5);
+    T scale(0.5);
     if(Test<T>::_phase == WBDCTrotPhase::frhl_swing || 
             Test<T>::_phase == WBDCTrotPhase::flhr_swing){
         _body_ang_vel.setZero();

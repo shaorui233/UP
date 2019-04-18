@@ -6,7 +6,7 @@
 #include <WBC/WBLC/WBLC.hpp>
 #include <Utilities/utilities.h>
 
-    template <typename T>
+template <typename T>
 JPosCtrl<T>::JPosCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
     _Kp(cheetah::num_act_joint),
     _Kd(cheetah::num_act_joint),
