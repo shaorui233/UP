@@ -40,7 +40,7 @@ void RobotController::init() {
   //_contactEstimator->initialize();
 
   // Initializes the Control FSM with all the required data
-  //_controlFSM = new ControlFSM<float>(_stateEstimator, _legController, _gaitScheduler, _desiredStateCommand);
+  _controlFSM = new ControlFSM<float>(_stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
 
   // For WBC state
   _model = _quadruped.buildModel();
@@ -107,7 +107,7 @@ void RobotController::run() {
         0, 0.1, 0,
         0, 0, 0.1;
     _ini_yaw = _stateEstimator->getResult().rpy[2];
-  } else {
+ } else {
       Vec3<float> rpy = _stateEstimator->getResult().rpy;
       rpy[2] -= _ini_yaw;
       Quat<float> quat_ori = ori::rpyToQuat(rpy);

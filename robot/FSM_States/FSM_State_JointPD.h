@@ -28,6 +28,8 @@ public:
   void onExit();
 
 private:
+  // Keep track of the control iterations
+  int iter = 0;
 
 };
 

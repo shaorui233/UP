@@ -49,7 +49,8 @@ public:
   ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
              LegController<T>* _legController,
              GaitScheduler<T>* _gaitScheduler,
-             DesiredStateCommand<T>* _desiredStateCommand);
+             DesiredStateCommand<T>* _desiredStateCommand,
+             RobotControlParameters* controlParameters);
 
   // Initializes the Control FSM instance
   void initialize();

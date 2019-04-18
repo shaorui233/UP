@@ -8,7 +8,7 @@
 
 
 /**
- * Constructor for the FSM State that passes in state specific info to 
+ * Constructor for the FSM State that passes in state specific info to
  * the generif FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
@@ -60,7 +60,6 @@ FSM_StateName FSM_State_ImpedanceControl<T>::checkTransition() {
  */
 template <typename T>
 bool FSM_State_ImpedanceControl<T>::transition() {
-  // Get the next state
   return true;
 }
 

@@ -5,6 +5,7 @@
 
 #include "Controllers/GaitScheduler.h"
 #include "../include/ControlFSMData.h"
+//#include "../include/TransitionData.h"
 
 /**
  * Enumerate all of the FSM states so we can keep track of them.
@@ -25,6 +26,9 @@ enum class FSM_StateName {
 template <typename T>
 class FSM_State {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  // Generic constructor for all states
   FSM_State(ControlFSMData<T>* _controlFSMData,
             FSM_StateName stateNameIn,
             std::string stateStringIn);
@@ -38,32 +42,43 @@ public:
   // Manages state specific transitions
   virtual FSM_StateName checkTransition() { return FSM_StateName::INVALID; }
 
-  //
+  // Runs the transition behaviors and returns true when done transitioning
   virtual bool transition() { return false; }
 
   // Behavior to be carried out when exiting a state
   virtual void onExit() { }
 
+  //
+  void jointPDControl(int leg, Vec3<T> qDes = Vec3<T>::Zero(), Vec3<T> qdDes = Vec3<T>::Zero());
+  void cartesianImpedanceControl(int leg, Vec3<T> pDes = Vec3<T>::Zero(), Vec3<T> vDes = Vec3<T>::Zero());
+  void footstepHeuristicPlacement(int leg);
+  void runControls();
+
   // Holds all of the relevant control data
   ControlFSMData<T>* _data;
 
-  // The enumerated name of the current state
-  FSM_StateName stateName;
+  // FSM State info
+  FSM_StateName stateName;		// enumerated name of the current state
+  FSM_StateName nextStateName;	// enumerated name of the next state
+  std::string stateString;		// state name string
 
-  // The enumerated name of the next state
-  FSM_StateName nextStateName;
+  // Transition parameters
+  T transitionDuration;		// transition duration time
+  T tStartTransition; 		// time transition starts
 
-  // State name string
-  std::string stateString;
+  // Notify the FSM if the state needs to check for rotation safety
+  bool checkSafeOrientation = true;
 
-  // Transition duration time
-  T transitionDuration;
-
-  // Save the time transition starts
-  T tStartTransition;
+  Mat34<T> groundReactionForces;	// Ground reaction forces for the stance feet to be calculated by the controllers
+  Mat34<T> footstepLocations;		// Next footstep location for the swing feet
 
 private:
 
+  // Create the cartesian P gain matrix
+  Mat3<float> kpMat;
+
+  // Create the cartesian D gain matrix
+  Mat3<float> kdMat;
 
 };
 

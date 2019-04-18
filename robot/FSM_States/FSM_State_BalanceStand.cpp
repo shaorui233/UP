@@ -9,7 +9,7 @@
 
 /**
  * Constructor for the FSM State that passes in state specific info to
- * the generif FSM State constructor.
+ * the generic FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
  */
@@ -17,7 +17,7 @@ template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND") {
   // Initialize GRF to 0s
-  groundReactionForces = Mat34<T>::Zero();
+  this->groundReactionForces = Mat34<T>::Zero();
 }
 
 
@@ -99,7 +99,6 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
  */
 template <typename T>
 bool FSM_State_BalanceStand<T>::transition() {
-  // Get the next state
 
   if (this->nextStateName == FSM_StateName::LOCOMOTION) {
 
@@ -139,38 +138,27 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
   //runControls();
 
   // Reset the forces and steps to 0
-  groundReactionForces = Mat34<T>::Zero();
+  this->groundReactionForces = Mat34<T>::Zero();
 
   // Test to make sure we can control the robot
   for (int leg = 0; leg < 4; leg++) {
-    groundReactionForces.col(leg) << 0.0, 0.0, -110.36;
+    this->groundReactionForces.col(leg) << 0.0, 0.0, -110.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
+
+    this->footstepLocations.col(leg) << 0.0, 0.0, -0.65;
   }
+  Vec3<T> vDes;
+  vDes << 0, 0, 0;
 
   //std::cout << groundReactionForces << std::endl;
 
   // All legs are force commanded to be on the ground
   for (int leg = 0; leg < 4; leg++) {
 
-    footstepLocations.col(leg) << 0.0, 0.0, -0.65;
-    this->_data->_legController->commands[leg].pDes = footstepLocations.col(leg);
-
-    // Create the cartesian P gain matrix
-    Mat3<float> kpMat;
-    kpMat << 500, 0, 0,
-          0, 500, 0,
-          0, 0, 500;
-    this->_data->_legController->commands[leg].kpCartesian = kpMat;
-
-    // Create the cartesian D gain matrix
-    Mat3<float> kdMat;
-    kdMat << 10, 0, 0,
-          0, 10, 0,
-          0, 0, 10;
-    this->_data->_legController->commands[leg].kdCartesian = kdMat;
+    this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
 
 
-    this->_data->_legController->commands[leg].forceFeedForward = groundReactionForces.col(leg);
+    this->_data->_legController->commands[leg].forceFeedForward = this->groundReactionForces.col(leg);
 
     // Singularity barrier calculation (maybe an overall safety checks function?)
     // TODO
