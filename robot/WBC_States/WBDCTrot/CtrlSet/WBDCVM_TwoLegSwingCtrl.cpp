@@ -100,7 +100,6 @@ void WBDCVM_TwoLegSwingCtrl<T>::_SetContact(const size_t & cp_idx,
     ((SingleContact<T>*)Ctrl::_contact_list[cp_idx])->setMaxFz(upper_lim);
     for(size_t i(0); i<3; ++i){
         _wbdc_data->_W_rf[i + 3*cp_idx] = rf_weight;
-        //_wbdc_data->_W_contact[i + 3*cp_idx] = foot_weight;
     }
     _wbdc_data->_W_rf[2 + 3*cp_idx] = rf_weight_z;
 }
@@ -142,11 +141,11 @@ void WBDCVM_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
             ((LegControllerCommand<T>*)_cmd)[leg].tauFeedForward[jidx] 
                 = gamma[cheetah::num_leg_joint * leg + jidx];
 
-            ((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
-                _des_jpos[cheetah::num_leg_joint * leg + jidx];
+            //((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
+                //_des_jpos[cheetah::num_leg_joint * leg + jidx];
 
-            ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
-                _des_jvel[cheetah::num_leg_joint * leg + jidx];
+            //((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
+                //_des_jvel[cheetah::num_leg_joint * leg + jidx];
         }
     }
     Ctrl::_PostProcessing_Command();
@@ -157,17 +156,8 @@ void WBDCVM_TwoLegSwingCtrl<T>::_compute_torque_wbdc(DVec<T> & gamma){
     // WBDC
     _wbdc->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
     _wbdc->MakeTorque(gamma, _wbdc_data);
-    
-    _trot_test->_vm_qdot += _wbdc_data->_qddot * _trot_test->dt;
-    _trot_test->_vm_q.head(cheetah::dim_config) += _trot_test->_vm_qdot * _trot_test->dt;
 
-    //_des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
-    //_des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
-
-    _des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
-    _des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
-
-    _des_jvel.setZero();
+    //_des_jvel.setZero();
     //pretty_print(_wbdc_data->Fr_, std::cout, "Fr");
 }
 
@@ -175,7 +165,7 @@ template <typename T>
 void WBDCVM_TwoLegSwingCtrl<T>::_task_setup(){
     Vec3<T> rpy_des; rpy_des.setZero();
 
-    DVec<T> pos_des(7); pos_des.setZero();
+    DVec<T> pos_des(7); 
     DVec<T> vel_des(6); vel_des.setZero();
     DVec<T> acc_des(6); acc_des.setZero();
 

@@ -84,9 +84,9 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _sp->_Q[4] = _state.bodyPosition[1];
     _sp->_Q[5] = _state.bodyPosition[2];
  
-    for(size_t i(0); i<6; ++i){
-        _sp->_Qdot[i] = _state.bodyVelocity[i];
-    }
+    //for(size_t i(0); i<6; ++i){
+        //_sp->_Qdot[i] = _state.bodyVelocity[i];
+    //}
   
     // Update with new body position
     _robot->setState(_state);
@@ -111,8 +111,9 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     }else{
         _SafeCommand(data, command);
     }
-    _copy_cmd = command;
-    _UpdateExtraData(ext_data);
+    (void)ext_data;
+    //_copy_cmd = command;
+    //_UpdateExtraData(ext_data);
     ++_count;
     // When there is sensed time
     _sp->_curr_time += cheetah::servo_rate;

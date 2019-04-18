@@ -37,11 +37,6 @@ class WBDCTrotTest: public Test<T>{
         Vec3<T> _front_foot_loc;
         Vec3<T> _hind_foot_loc;
 
-
-        // virtual model
-        DVec<T> _vm_q;
-        DVec<T> _vm_qdot;
-
         std::string _folder_name;
     protected:
         virtual void _UpdateTestOneStep();

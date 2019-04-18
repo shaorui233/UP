@@ -286,8 +286,8 @@ void WBLC<T>::_GetSolution(DVec<T> & cmd){
         WB::A_ * (qddot_ + delta_qddot) + WB::cori_ + WB::grav_ - Jc_.transpose() * data_->Fr_;
 
     data_->qddot_ = qddot_ + delta_qddot;
-    cmd = WB::Sa_ * tau;
-
+    //cmd = WB::Sa_ * tau;
+    cmd = tau.tail(WB::num_act_joint_);
     //pretty_print(qddot_, std::cout, "qddot_");
     //pretty_print(delta_qddot, std::cout, "delta_qddot");
     //pretty_print(data_->Fr_, std::cout, "Fr");

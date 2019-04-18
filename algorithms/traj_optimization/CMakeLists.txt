@@ -28,6 +28,6 @@ target_link_libraries(test_trj_opt Goldfarb_Optimizer nlopt snopt)
 
 
 #message($ENV{CASADI_PREFIX})
-find_package(CASADI REQUIRED)
+#find_package(CASADI REQUIRED)
 include_directories(${CASADI_INCLUDE_DIR})
 target_link_libraries(test_trj_opt ${CASADI_LIBRARIES})

@@ -76,11 +76,11 @@ void WBDCVM_TwoContactTransCtrl<T>::OneStep(void* _cmd){
             ((LegControllerCommand<T>*)_cmd)[leg].tauFeedForward[jidx] 
                 = gamma[cheetah::num_leg_joint * leg + jidx];
 
-            ((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
-                _des_jpos[cheetah::num_leg_joint * leg + jidx];
+            //((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
+                //_des_jpos[cheetah::num_leg_joint * leg + jidx];
 
-            ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
-                _des_jvel[cheetah::num_leg_joint * leg + jidx];
+            //((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
+                //_des_jvel[cheetah::num_leg_joint * leg + jidx];
         }
     }
     Ctrl::_PostProcessing_Command();
@@ -92,16 +92,10 @@ void WBDCVM_TwoContactTransCtrl<T>::_compute_torque_wbdc(DVec<T> & gamma){
     _wbdc->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
     _wbdc->MakeTorque(gamma, _wbdc_data);
 
-    _trot_test->_vm_qdot += _wbdc_data->_qddot * _trot_test->dt;
-    _trot_test->_vm_q.head(cheetah::dim_config) += _trot_test->_vm_qdot * _trot_test->dt;
+    //_des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
+    //_des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
 
-    //_des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
-    //_des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
-
-    _des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
-    _des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
-
-    _des_jvel.setZero();
+    //_des_jvel.setZero();
    //pretty_print(_wbdc_data->Fr_, std::cout, "reaction force");
 }
 

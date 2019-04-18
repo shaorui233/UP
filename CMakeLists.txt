@@ -14,6 +14,7 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
+set(BUILD_TYPE_RELEASE TRUE)
 
 if(MINI_CHEETAH_BUILD)
   SET (THIS_COM "../" )

@@ -13,6 +13,7 @@
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 //#include <WBC_States/BackFlip/BackFlipTest.hpp>
 
+#include <Utilities/Timer.h>
 #include <unistd.h>
 
 void RobotController::init() {
@@ -52,7 +53,7 @@ void RobotController::init() {
   //_wbc_state = new WBLCTrotTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);
 
-  _jpos_initializer = new JPosInitializer<float>(10.);
+  _jpos_initializer = new JPosInitializer<float>(5.);
   _data = new Cheetah_Data<float>();
   _extra_data = new Cheetah_Extra_Data<float>();
 }
@@ -71,9 +72,9 @@ void RobotController::run() {
   _stateEstimator->run(cheetahMainVisualization);
 
   //testDebugVisualization();
-  StepLocationVisualization();
-  BodyPathVisualization();
-  BodyPathArrowVisualization();
+  //StepLocationVisualization();
+  //BodyPathVisualization();
+  //BodyPathArrowVisualization();
 
   // for now, we will always enable the legs:
   static int count_ini(0);
@@ -112,10 +113,6 @@ void RobotController::run() {
       rpy[2] -= _ini_yaw;
       Quat<float> quat_ori = ori::rpyToQuat(rpy);
 
-      //if(count_ini% 100 == 0 ){
-      //pretty_print(rpy, std::cout, "original rpy");
-      //pretty_print(quat_ori, std::cout, "quat");
-      //}
       for (size_t i(0); i < 4; ++i) {
           _data->body_ori[i] = quat_ori[i];
           //_data->body_ori[i] = cheaterState->orientation[i];
@@ -146,6 +143,7 @@ void RobotController::run() {
     //pretty_print(_data->ori_command, "ori command", 3);
 
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
+
     // === End of WBC state command computation  =========== //
 
     // run the controller:
@@ -158,10 +156,6 @@ void RobotController::run() {
           0, 0, controlParameters->stand_kd_cartesian[2];
   }
   for (int leg = 0; leg < 4; leg++) {
-    //_legController->commands[leg].pDes = pDes;
-    //_legController->commands[leg].kpCartesian = kpMat;
-    //_legController->commands[leg].kdCartesian = kdMat;
-
     _legController->commands[leg].kpJoint = kpMat;
     _legController->commands[leg].kdJoint = kdMat;
 

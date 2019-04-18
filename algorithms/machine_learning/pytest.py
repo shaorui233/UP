@@ -49,6 +49,7 @@ for i in range(10000):
     in_jpos[11] += 0.3*np.sin(i*0.001)
     in_jvel[11] = 0.3*np.cos(i*0.001)
 
+    reset = False;
     cheetah.step(in_jpos, in_jvel, out_config, out_config_vel, reset)
     for j in range(18):
         print out_config[j]
