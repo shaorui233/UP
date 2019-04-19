@@ -23,10 +23,14 @@ void CheaterOrientationEstimator<T>::run()  {
 
 template<typename T>
 void VectorNavOrientationEstimator<T>::run() {
-  this->_stateEstimatorData.result->orientation[0] = this->_stateEstimatorData.vectorNavData->quat[3];
-  this->_stateEstimatorData.result->orientation[1] = this->_stateEstimatorData.vectorNavData->quat[0];
-  this->_stateEstimatorData.result->orientation[2] = this->_stateEstimatorData.vectorNavData->quat[1];
-  this->_stateEstimatorData.result->orientation[3] = this->_stateEstimatorData.vectorNavData->quat[2];
+  this->_stateEstimatorData.result->orientation[0] = 
+      this->_stateEstimatorData.vectorNavData->quat[3];
+  this->_stateEstimatorData.result->orientation[1] = 
+      this->_stateEstimatorData.vectorNavData->quat[0];
+  this->_stateEstimatorData.result->orientation[2] = 
+      this->_stateEstimatorData.vectorNavData->quat[1];
+  this->_stateEstimatorData.result->orientation[3] = 
+      this->_stateEstimatorData.vectorNavData->quat[2];
   this->_stateEstimatorData.result->rBody = ori::quaternionToRotationMatrix(this->_stateEstimatorData.result->orientation);
   this->_stateEstimatorData.result->omegaBody = this->_stateEstimatorData.vectorNavData->gyro.template cast <T>();
   this->_stateEstimatorData.result->omegaWorld = this->_stateEstimatorData.result->rBody.transpose() * this->_stateEstimatorData.result->omegaBody;

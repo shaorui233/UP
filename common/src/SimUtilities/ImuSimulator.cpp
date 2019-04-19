@@ -39,7 +39,10 @@ void ImuSimulator<T>::updateKVH(const FBModelState<T> &robotState, const FBModel
 }
 
 template <typename T>
-void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const FBModelStateDerivative<T>& robotStateD, VectorNavData *data) {
+void ImuSimulator<T>::updateVectornav(
+        const FBModelState<T> &robotState, 
+        const FBModelStateDerivative<T>& robotStateD, 
+        VectorNavData *data) {
   // body orientation
   RotMat<float> R_body = quaternionToRotationMatrix(
           robotState.bodyOrientation.template cast<float>());

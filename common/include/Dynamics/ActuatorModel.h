@@ -27,7 +27,8 @@ public:
     // compute motor torque
     T tauDesMotor = tauDes / _gr; // motor torque
     T iDes = tauDesMotor / (_kt * 1.5);   // i = tau / KT
-    T bemf =  qd * _gr * _kt * 1.732;     // back emf
+    //T bemf =  qd * _gr * _kt * 1.732;     // back emf
+    T bemf =  qd * _gr * _kt * 2.;     // back emf
     T vDes = iDes * _R + bemf; // v = I*R + emf
     T vActual = coerce(vDes, -_V, _V);   // limit to battery voltage
     T tauActMotor = 1.5 * _kt * (vActual - bemf) / _R;  // tau = Kt * I = Kt * V / R
