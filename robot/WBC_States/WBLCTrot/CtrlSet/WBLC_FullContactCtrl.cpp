@@ -218,6 +218,16 @@ void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
+    // Feedback gain for kinematic tasks
+    _param_handler->getVector<T>("Kp_body_pos_kin", tmp_vec);
+    for(size_t i(0); i<_body_pos_task->getDim(); ++i){
+        ((BodyPosTask<T>*)_body_pos_task)->_Kp_kin[i] = tmp_vec[i];
+    }
+    _param_handler->getVector<T>("Kp_body_ori_kin", tmp_vec);
+    for(size_t i(0); i<_body_ori_task->getDim(); ++i){
+        ((BodyOriTask<T>*)_body_ori_task)->_Kp_kin[i] = tmp_vec[i];
+    }
+
     // torque limit default setting
     _param_handler->getVector<T>("tau_lim", tmp_vec);
     wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);

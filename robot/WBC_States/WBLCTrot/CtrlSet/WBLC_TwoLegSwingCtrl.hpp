@@ -67,8 +67,8 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
         DVec<T> _foot_vel_des2;
         DVec<T> _foot_acc_des2;
 
-        Task<T>* body_pos_task_;
-        Task<T>* body_ori_task_;
+        Task<T>* _body_pos_task;
+        Task<T>* _body_ori_task;
 
         ContactSpec<T>* fr_contact_;
         ContactSpec<T>* fl_contact_;

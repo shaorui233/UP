@@ -49,11 +49,11 @@ void RobotController::init() {
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptPlayTest<float>(&_model, robotType);
   //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
-  _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
-  //_wbc_state = new WBLCTrotTest<float>(&_model, robotType);
+  //_wbc_state = new WBDCTrotTest<float>(&_model, robotType);
+  _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);
 
-  _jpos_initializer = new JPosInitializer<float>(5.);
+  _jpos_initializer = new JPosInitializer<float>(4.);
   _data = new Cheetah_Data<float>();
   _extra_data = new Cheetah_Extra_Data<float>();
 }

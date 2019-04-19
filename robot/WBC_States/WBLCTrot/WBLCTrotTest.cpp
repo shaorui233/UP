@@ -57,9 +57,11 @@ WBLCTrotTest<T>::WBLCTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
     _filtered_input_vel.push_back(new digital_lp_filter<T>(2.*M_PI*15. , Test<T>::dt));
 
     _input_vel.setZero();
-        
-    _folder_name = "/robot/WBC_States/sim_data/";
-    create_folder(_folder_name);
+
+    if(Test<T>::_b_save_file){
+        _folder_name = "/robot/WBC_States/sim_data/";
+        create_folder(_folder_name);
+    }
     printf("[Trot Test] Constructed\n");
 }
 
