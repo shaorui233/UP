@@ -63,8 +63,10 @@ WBDCTrotTest<T>::WBDCTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
     _sp = StateProvider<T>::getStateProvider();
     _SettingParameter();
 
-    _folder_name = "/robot/WBC_States/sim_data/";
-    create_folder(_folder_name);
+    if(Test<T>::_b_save_file){
+        _folder_name = "/robot/WBC_States/sim_data/";
+        create_folder(_folder_name);
+    }
     printf("[WBDC Trot Test] Constructed\n");
 }
 
@@ -90,17 +92,14 @@ void WBDCTrotTest<T>::_TestInitialization(){
     // Swing
     frhl_swing_ctrl_->CtrlInitialization("CTRL_frhl_swing");
     flhr_swing_ctrl_->CtrlInitialization("CTRL_flhr_swing");
-
-    _vm_q = _sp->_Q;
-    _vm_qdot = _sp->_Qdot;
 }
 
 template <typename T>
 int WBDCTrotTest<T>::_NextPhase(const int & phase){
     int next_phase = phase + 1;
     if(phase == WBDCTrotPhase::lift_up){ // First loop
-        _vm_q = _sp->_Q;
-        _vm_qdot = _sp->_Qdot;
+        //_vm_q = _sp->_Q;
+        //_vm_qdot = _sp->_Qdot;
     }
     if (next_phase == WBDCTrotPhase::NUM_TROT_PHASE) {
         next_phase = WBDCTrotPhase::full_contact_1;
@@ -164,42 +163,8 @@ void WBDCTrotTest<T>::_SettingParameter(){
 
 template <typename T>
 void WBDCTrotTest<T>::_UpdateTestOneStep(){
-    // Update Desired Position & Velocity & Acceleration
-
-    if(Test<T>::_phase < 0){ // disabled
-        printf("robot is updated with virtual config\n");
-        for(size_t i(0); i < cheetah::num_act_joint; ++i){
-            Test<T>::_state.q[i] = _vm_q[i + 6];
-            Test<T>::_state.qd[i] = _vm_qdot[i + 6];
-        }
-        Test<T>::_robot->setState(Test<T>::_state);
-        Test<T>::_robot->forwardKinematics();
-
-        Vec3<T> ave_foot;
-        Vec3<T> ave_foot_vel;
-        ave_foot.setZero();
-        ave_foot_vel.setZero();
-
-        // Simulation) Update global location
-        for(size_t i(0); i<_sp->_num_contact; ++i){
-            ave_foot += (1./_sp->_num_contact) * Test<T>::_robot->_pGC[_sp->_contact_pt[i] ];
-            ave_foot_vel += (1./_sp->_num_contact) * Test<T>::_robot->_vGC[_sp->_contact_pt[i]];
-        }
-        Test<T>::_state.bodyPosition -= ave_foot;
-        Test<T>::_state.bodyVelocity.tail(3) -= ave_foot_vel;
-
-        // Update with new body position
-        Test<T>::_robot->setState(Test<T>::_state);
-        Test<T>::_robot->forwardKinematics();
-
-        // Update Mass, Gravity, Coriolis
-        Test<T>::_robot->contactJacobians();
-        Test<T>::_robot->massMatrix();
-        Test<T>::_robot->gravityForce();
-        Test<T>::_robot->coriolisForce();
-    }
-
-    T scale(1.5);
+    
+    T scale(0.5);
     if(Test<T>::_phase == WBDCTrotPhase::frhl_swing || 
             Test<T>::_phase == WBDCTrotPhase::flhr_swing){
         _body_ang_vel.setZero();
@@ -234,12 +199,6 @@ void WBDCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
             saveVector(body_ori_rpy, _folder_name, "body_ori_rpy");
             saveVector(_body_ori_rpy, _folder_name, "cmd_body_ori_rpy");
             saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
-
-            saveVector(_sp->_Q, _folder_name, "config");
-            saveVector(_sp->_Qdot, _folder_name, "qdot");
-
-            saveVector(_vm_q, _folder_name, "vm_q");
-            saveVector(_vm_qdot, _folder_name, "vm_qdot");
 
             saveValue(Test<T>::_phase, _folder_name, "phase");
 

@@ -9,7 +9,7 @@
 
 /**
  * Constructor for the FSM State that passes in state specific info to
- * the generif FSM State constructor.
+ * the generic FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
  */
@@ -17,7 +17,7 @@ template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND") {
   // Initialize GRF to 0s
-  groundReactionForces = Mat34<T>::Zero();
+  this->groundReactionForces = Mat34<T>::Zero();
 }
 
 
@@ -52,19 +52,37 @@ template <typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
   // Get the next state
   iter++;
-  if (iter >= 2500) {
+  if (iter >= 2058) {
     this->nextStateName = FSM_StateName::LOCOMOTION;
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT; // Or get whatever is in main_control_settings
     this->transitionDuration = 0.0;
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT; // Or get whatever is in main_control_settings
     iter = 0;
   }
 
   /* NEED MAIN CONTROL SETTINGS TO BE PASSED IN
   if (this->data->main_control_settings.mode == K_LOCOMOTION) {
+    // Notify the State of the upcoming next state
     this->nextStateName = FSM_StateName::LOCOMOTION;
 
     // Transition instantaneously to locomotion state on request
     this->transitionDuration = 0.0;
+
+    // Set the next gait in the scheduler to
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
+
+  }*/
+
+  /*
+    if (velocity > v_max) {
+    // Notify the State of the upcoming next state
+    this->nextStateName = FSM_StateName::LOCOMOTION;
+
+    // Transition instantaneously to locomotion state on request
+    this->transitionDuration = 0.0;
+
+    // Set the next gait in the scheduler to
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
+
   }*/
 
   // Return the next state name to the FSM
@@ -81,7 +99,6 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
  */
 template <typename T>
 bool FSM_State_BalanceStand<T>::transition() {
-  // Get the next state
 
   if (this->nextStateName == FSM_StateName::LOCOMOTION) {
 
@@ -121,19 +138,27 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
   //runControls();
 
   // Reset the forces and steps to 0
-  groundReactionForces = Mat34<T>::Zero();
+  this->groundReactionForces = Mat34<T>::Zero();
 
   // Test to make sure we can control the robot
   for (int leg = 0; leg < 4; leg++) {
-    groundReactionForces.col(leg) << 0.0, 0.0, -110.36;
+    this->groundReactionForces.col(leg) << 0.0, 0.0, -110.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
+
+    this->footstepLocations.col(leg) << 0.0, 0.0, -0.65;
   }
+  Vec3<T> vDes;
+  vDes << 0, 0, 0;
 
   //std::cout << groundReactionForces << std::endl;
 
   // All legs are force commanded to be on the ground
   for (int leg = 0; leg < 4; leg++) {
-    this->_data->_legController->commands[leg].forceFeedForward = groundReactionForces.col(leg);
+
+    this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
+
+
+    this->_data->_legController->commands[leg].forceFeedForward = this->groundReactionForces.col(leg);
 
     // Singularity barrier calculation (maybe an overall safety checks function?)
     // TODO

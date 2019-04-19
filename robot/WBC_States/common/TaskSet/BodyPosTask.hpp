@@ -12,6 +12,7 @@ public:
   BodyPosTask(const FloatingBaseModel<T>*);
   virtual ~BodyPosTask();
 
+  DVec<T> _Kp_kin;
 protected:
   // Update op_cmd_
   virtual bool _UpdateCommand(void* pos_des,

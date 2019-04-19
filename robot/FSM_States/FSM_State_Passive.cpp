@@ -7,8 +7,8 @@
 #include "FSM_State_Passive.h"
 
 /**
- * Constructor for the FSM State that passes in state specific info to 
- * the generif FSM State constructor.
+ * Constructor for the FSM State that passes in state specific info to
+ * the generic FSM State constructor.
  *
  * @param _controlFSMData holds all of the relevant control data
  */
@@ -20,7 +20,8 @@ FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData):
 
 template <typename T>
 void FSM_State_Passive<T>::onEnter() {
-  // NOthing to initialize
+  // Nothing to initialize
+
 }
 
 
@@ -32,8 +33,8 @@ void FSM_State_Passive<T>::run() {
   // Do nothing, all commands should begin as zeros
 
   // Print some information about the current iteration
-  this->_data->_gaitScheduler->printGaitInfo();
-  this->_data->_desiredStateCommand->printStateCommandInfo();
+  //this->_data->_gaitScheduler->printGaitInfo();
+  //this->_data->_desiredStateCommand->printStateCommandInfo();
 }
 
 
@@ -45,8 +46,14 @@ void FSM_State_Passive<T>::run() {
  */
 template <typename T>
 FSM_StateName FSM_State_Passive<T>::checkTransition() {
+  this->nextStateName = this->stateName;
+  iter++;
+  if (iter >= 2987) {
+    this->nextStateName = FSM_StateName::JOINT_PD;
+  }
+
   // Get the next state
-  return this->stateName;
+  return this->nextStateName;
 }
 
 
@@ -73,5 +80,5 @@ void FSM_State_Passive<T>::onExit() {
 
 
 
-template class FSM_State_Passive<double>;
+//template class FSM_State_Passive<double>;
 template class FSM_State_Passive<float>;

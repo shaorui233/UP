@@ -194,9 +194,6 @@ void PlannedTrotTest<T>::_UpdateTestOneStep(){
         saveVector(body_ori, _folder_name, "body_ori_rpy");
         saveVector(_body_ang_vel, _folder_name, "body_ang_vel");
 
-        saveVector(_sp->_Q, _folder_name, "config");
-        saveVector(_sp->_Qdot, _folder_name, "qdot");
-
         saveValue(Test<T>::_phase, _folder_name, "phase");
     }
     ++count;

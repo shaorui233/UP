@@ -1,44 +1,53 @@
 # Initialization
 
 ## Mini Cheetah
-swing_time: 0.11
+swing_time: 0.13
 transition_time: 0.01
-stance_time: 0.02
+stance_time: 0.01
 
 body_height: .25 
-body_posture_Kp: [300, 300, 300, 100, 100, 300]
-body_posture_Kd: [10, 10, 10, 20, 20, 10]
+body_posture_Kp: [70, 70, 40, 100, 100, 100]
+body_posture_Kd: [3, 3, 3, 3, 3, 3]
+
+#body_posture_Kp: [400, 400, 400, 400, 400, 400]
+#body_posture_Kd: [10, 10, 10, 10, 10, 10]
+
 
 
 CTRL_move_to_target_height:
     max_rf_z: 100
-    min_rf_z: 3
+    min_rf_z: 0
 
 CTRL_fix_stance:
 
 CTRL_frhl_swing:
-    default_target_foot_location_1: [0.19, -0.11, 0.0] # Front Right
-    default_target_foot_location_2: [-0.19, 0.11, 0.0] # Hind Left
-    swing_height: 0.06
+    default_target_foot_location_1: [0.18, -0.08, 0.0] # Front Right
+    default_target_foot_location_2: [-0.18, 0.08, 0.0] # Hind Left
+    swing_height: 0.08
     landing_offset: [0, 0, 0]
-    foot_Kp: [200, 200, 200]
-    foot_Kd: [30, 30, 30]
+    foot_Kp: [180, 180, 180]
+    foot_Kd: [7, 7, 7]
+    #foot_Kp: [200, 200, 200]
+    #foot_Kd: [30, 30, 30]
+
 
 CTRL_flhr_swing:
-    default_target_foot_location_1: [0.19, 0.11, 0.0] # Front Left
-    default_target_foot_location_2: [-0.19, -0.11, 0.0] # Hind Right
-    swing_height: 0.06
+    default_target_foot_location_1: [0.18, 0.08, 0.0] # Front Left
+    default_target_foot_location_2: [-0.18, -0.08, 0.0] # Hind Right
+    swing_height: 0.08
     landing_offset: [0, 0, 0.00]
-    foot_Kp: [200, 200, 200]
-    foot_Kd: [30, 30, 30]
+    foot_Kp: [180, 180, 180]
+    foot_Kd: [7, 7, 7]
+    #foot_Kp: [200, 200, 200]
+    #foot_Kd: [30, 30, 30]
  
 CTRL_two_leg_trans:
     max_rf_z: 100
-    min_rf_z: 3
+    min_rf_z: 0
 
 
 # Timing Parameters (sec)
-body_lifting_time: 0.5
+body_lifting_time: 2.0
 
 
 Kp: [ 100, 100, 100, 

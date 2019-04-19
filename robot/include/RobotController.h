@@ -83,6 +83,8 @@ public:
   CheetahVisualization* cheetahMainVisualization;
 
 private:
+  float _ini_yaw;
+
   void setupStep();
   void finalizeStep();
   void testDebugVisualization();

@@ -41,8 +41,16 @@ void ImuSimulator<T>::updateKVH(const FBModelState<T> &robotState, const FBModel
 template <typename T>
 void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const FBModelStateDerivative<T>& robotStateD, VectorNavData *data) {
   // body orientation
-  RotMat<float> R_body = quaternionToRotationMatrix(robotState.bodyOrientation.template cast<float>());
+  RotMat<float> R_body = quaternionToRotationMatrix(
+          robotState.bodyOrientation.template cast<float>());
 
+  Quat<float> ori_quat;
+  //printf("imu ori: %f, %f, %f, %f\n", 
+          //robotState.bodyOrientation[0], 
+          //robotState.bodyOrientation[1], 
+          //robotState.bodyOrientation[2],
+          //robotState.bodyOrientation[3] );
+      
   // acceleration
   computeAcceleration(robotState, robotStateD, data->accelerometer, _vectornavAccelerometerDistribution, R_body);
 
@@ -55,10 +63,21 @@ void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const F
     Vec3<float> omegaNoise;
     fillEigenWithRandom(omegaNoise, _mt, _vectornavQuatDistribution);
     Quat<float> floatQuat = robotState.bodyOrientation.template cast<float>();
-    data->quat = integrateQuat(floatQuat, omegaNoise, 1.0f);
-  } else {
-    data->quat = robotState.bodyOrientation.template cast<float>();
+    //data->quat = integrateQuat(floatQuat, omegaNoise, 1.0f);
+    ori_quat = integrateQuat(floatQuat, omegaNoise, 1.0f);
+    //printf("imu noised ori: %f, %f, %f, %f\n", 
+          //robotState.bodyOrientation[0], 
+          //robotState.bodyOrientation[1], 
+          //robotState.bodyOrientation[2],
+          //robotState.bodyOrientation[3] );
+ } else {
+    //data->quat = robotState.bodyOrientation.template cast<float>();
+    ori_quat = robotState.bodyOrientation.template cast<float>();
   }
+  data->quat[3] = ori_quat[0];
+  data->quat[0] = ori_quat[1];
+  data->quat[1] = ori_quat[2];
+  data->quat[2] = ori_quat[3];
 }
 
 template <typename T>

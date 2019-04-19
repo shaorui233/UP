@@ -1,12 +1,13 @@
 #include "WBDC.hpp"
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
+#include <Utilities/Timer.h>
 
 template<typename T> 
 WBDC<T>::WBDC(size_t num_qdot, 
         const std::vector<ContactSpec<T> * > & contact_list, 
         const std::vector<Task<T> * > & task_list): 
-    WBC<T>(num_qdot){
+    WBC<T>(num_qdot), _b_first_visit(true){
 
     _Sf = DMat<T>::Zero(6, WB::num_qdot_);
     _Sf.block(0,0, 6, 6).setIdentity();
@@ -89,11 +90,10 @@ void WBDC<T>::MakeTorque(
     _JaDotQdot.head(_dim_rf) = _JcDotQdot;
     _JaDotQdot.tail(_dim_first_task) = JtDotQdot;
 
+    WB::_WeightedInverse(_Ja, WB::Ainv_, JaBar);
+
     _xa_ddot.head(_dim_rf) = _data->_contact_pt_acc;
     _xa_ddot.tail(_dim_first_task) = xddot;
-
-    WB::_WeightedInverse(_Ja, WB::Ainv_, JaBar);
-    DMat<T> Npre = _eye - JaBar * _Ja;
 
     // Optimization
     // Set equality constraints
@@ -109,6 +109,7 @@ void WBDC<T>::MakeTorque(
     }
     // Optimization
     T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
+
     (void)f;
     DVec<T> delta(_dim_rf + _dim_first_task);
     for(size_t i(0); i<_dim_rf + _dim_first_task; ++i) { delta[i] = z[i]; }
@@ -116,21 +117,24 @@ void WBDC<T>::MakeTorque(
 
     // First Qddot is found
     // Stack The last Task
-    DMat<T> JtBar, JtPre;
-    for(size_t i(1); i<_task_list.size(); ++i){
-        printf("there is a second task\n");
-        task = _task_list[i];
+    if(_task_list.size() > 1){
+        DMat<T> JtBar, JtPre;
+        DMat<T> Npre = _eye - JaBar * _Ja;
 
-        if(!task->IsTaskSet()){ printf("%lu th task is not set!\n", i); exit(0); }
-        task->getTaskJacobian(Jt);
-        task->getTaskJacobianDotQdot(JtDotQdot);
-        task->getCommand(xddot);
+        for(size_t i(1); i<_task_list.size(); ++i){
+            task = _task_list[i];
 
-        JtPre = Jt * Npre;
-        WB::_WeightedInverse(JtPre, WB::Ainv_, JtBar);
+            if(!task->IsTaskSet()){ printf("%lu th task is not set!\n", i); exit(0); }
+            task->getTaskJacobian(Jt);
+            task->getTaskJacobianDotQdot(JtDotQdot);
+            task->getCommand(xddot);
 
-        qddot_pre = qddot_pre + JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
-        Npre = Npre * (_eye - JtBar * JtPre);
+            JtPre = Jt * Npre;
+            WB::_WeightedInverse(JtPre, WB::Ainv_, JtBar);
+
+            qddot_pre = qddot_pre + JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
+            Npre = Npre * (_eye - JtBar * JtPre);
+        }
     }
     _GetSolution(qddot_pre, cmd);
 
@@ -138,6 +142,8 @@ void WBDC<T>::MakeTorque(
     for(size_t i(0); i<_dim_opt; ++i){
         _data->_opt_result[i] = z[i];
     }
+
+    if(_b_first_visit){ _b_first_visit = false; }
     //std::cout << "f: " << f << std::endl;
     //std::cout << "x: " << z << std::endl;
     //pretty_print(_xa_ddot, std::cout, "xa ddot");

@@ -16,6 +16,7 @@ BodyOriTask<T>::BodyOriTask(const FloatingBaseModel<T>* robot):
     TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
     TK::Jt_.block(0,0,3,3).setIdentity();
     TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
+    _Kp_kin = DVec<T>::Constant(TK::dim_task_, 1.);
 }
 
 template <typename T>
@@ -47,7 +48,7 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
 
     // Rx, Ry, Rz
     for(int i(0); i<3; ++i){
-        TK::pos_err_[i] = ori_err_so3[i];
+        TK::pos_err_[i] = _Kp_kin[i] * ori_err_so3[i];
         TK::vel_des_[i] = vel_des[i];
         TK::acc_des_[i] = acc_des[i];
     }

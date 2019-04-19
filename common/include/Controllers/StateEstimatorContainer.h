@@ -115,8 +115,8 @@ public:
   /*!
    * Get the result
    */
-  StateEstimate<T>& getResult() {
-    return &_data.result;
+  const StateEstimate<T>& getResult() {
+    return *_data.result;
   }
 
   /*!

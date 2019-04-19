@@ -32,6 +32,8 @@ WBDCVM_TwoLegSwingCtrl<T>::WBDCVM_TwoLegSwingCtrl(
     _cp_pos_task1 = new LinkPosTask<T>(Ctrl::_robot_sys, _cp1);
     _cp_pos_task2 = new LinkPosTask<T>(Ctrl::_robot_sys, _cp2);
 
+    //Ctrl::_task_list.push_back(_cp_pos_task1);
+    //Ctrl::_task_list.push_back(_cp_pos_task2);
 
     _foot_pos_ini1.setZero();
     _foot_pos_des1.setZero();
@@ -98,7 +100,6 @@ void WBDCVM_TwoLegSwingCtrl<T>::_SetContact(const size_t & cp_idx,
     ((SingleContact<T>*)Ctrl::_contact_list[cp_idx])->setMaxFz(upper_lim);
     for(size_t i(0); i<3; ++i){
         _wbdc_data->_W_rf[i + 3*cp_idx] = rf_weight;
-        //_wbdc_data->_W_contact[i + 3*cp_idx] = foot_weight;
     }
     _wbdc_data->_W_rf[2 + 3*cp_idx] = rf_weight_z;
 }
@@ -140,11 +141,11 @@ void WBDCVM_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
             ((LegControllerCommand<T>*)_cmd)[leg].tauFeedForward[jidx] 
                 = gamma[cheetah::num_leg_joint * leg + jidx];
 
-            ((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
-                _des_jpos[cheetah::num_leg_joint * leg + jidx];
+            //((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
+                //_des_jpos[cheetah::num_leg_joint * leg + jidx];
 
-            ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
-                _des_jvel[cheetah::num_leg_joint * leg + jidx];
+            //((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
+                //_des_jvel[cheetah::num_leg_joint * leg + jidx];
         }
     }
     Ctrl::_PostProcessing_Command();
@@ -155,16 +156,8 @@ void WBDCVM_TwoLegSwingCtrl<T>::_compute_torque_wbdc(DVec<T> & gamma){
     // WBDC
     _wbdc->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
     _wbdc->MakeTorque(gamma, _wbdc_data);
-    
-    _trot_test->_vm_qdot += _wbdc_data->_qddot * _trot_test->dt;
-    _trot_test->_vm_q.head(cheetah::dim_config) += _trot_test->_vm_qdot * _trot_test->dt;
 
-    _des_jpos = _trot_test->_vm_q.segment(6, cheetah::num_act_joint);
-    _des_jvel = _trot_test->_vm_qdot.segment(6, cheetah::num_act_joint);
-
-    //_des_jpos = _sp->_Q.segment(6, cheetah::num_act_joint);
-    //_des_jvel = _sp->_Qdot.segment(6, cheetah::num_act_joint);
-
+    //_des_jvel.setZero();
     //pretty_print(_wbdc_data->Fr_, std::cout, "Fr");
 }
 
@@ -172,7 +165,7 @@ template <typename T>
 void WBDCVM_TwoLegSwingCtrl<T>::_task_setup(){
     Vec3<T> rpy_des; rpy_des.setZero();
 
-    DVec<T> pos_des(7); pos_des.setZero();
+    DVec<T> pos_des(7); 
     DVec<T> vel_des(6); vel_des.setZero();
     DVec<T> acc_des(6); acc_des.setZero();
 
@@ -210,24 +203,26 @@ void WBDCVM_TwoLegSwingCtrl<T>::_task_setup(){
 
 
     // Capture Point
-    Vec3<T> global_body_vel;
-    Vec3<T> local_body_vel;
-    for(size_t i(0);i<3; ++i){
-        local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
+    //if(false){
+    if(true){
+        Vec3<T> global_body_vel;
+        Vec3<T> local_body_vel;
+        for(size_t i(0);i<3; ++i){
+            local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
+        }
+        Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
+        Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
+        global_body_vel = Rot_curr.transpose()*local_body_vel;
+
+        for(size_t i(0); i<2; ++i){
+
+            _foot_pos_des1[i] += sqrt(_target_body_height/9.81) * 
+                (global_body_vel[i] - _trot_test->_body_vel[i]);
+            _foot_pos_des2[i] += sqrt(_target_body_height/9.81) * 
+                (global_body_vel[i] - _trot_test->_body_vel[i]);
+
+        }
     }
-    Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
-    Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
-    global_body_vel = Rot_curr.transpose()*local_body_vel;
-
-    for(size_t i(0); i<2; ++i){
-
-        _foot_pos_des1[i] += sqrt(_target_body_height/9.81) * 
-            (global_body_vel[i] - _trot_test->_body_vel[i]);
-        _foot_pos_des2[i] += sqrt(_target_body_height/9.81) * 
-            (global_body_vel[i] - _trot_test->_body_vel[i]);
-
-    }
-
     _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
     _cp_pos_task2->UpdateTask(&(_foot_pos_des2), _foot_vel_des2, _foot_acc_des2);
 
@@ -300,16 +295,16 @@ void WBDCVM_TwoLegSwingCtrl<T>::FirstVisit(){
             cmd_vel, 
             _trot_test->_body_ang_vel, _target_loc2);
 
-    _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
-    _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
+    //_SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
+    //_SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
     //pretty_print(Rot, std::cout, "Rot");
     //pretty_print(_trot_test->_body_pos, std::cout, "commanded body_pos");
     //pretty_print(next_body_pos, std::cout, "nx body_pos");
-    pretty_print(_trot_test->_body_vel, std::cout, "body vel");
+    //pretty_print(_trot_test->_body_vel, std::cout, "body vel");
     //pretty_print(_trot_test->_body_ang_vel, std::cout, "body ang vel");
-    pretty_print(_target_loc1, std::cout, "target loc 1");
-    pretty_print(_target_loc2, std::cout, "target loc 2");
+    //pretty_print(_target_loc1, std::cout, "target loc 1");
+    //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
 
 
@@ -352,7 +347,7 @@ void WBDCVM_TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T
         middle_pt[0][i] = middle_pos[i];
     }
     // TEST
-    fin[5] = -0.05;
+    //fin[5] = -0.05;
     fin[8] = 5.;
     spline.SetParam(init, fin, middle_pt, _end_time);
 

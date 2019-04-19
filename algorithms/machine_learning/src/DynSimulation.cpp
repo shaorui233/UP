@@ -141,6 +141,7 @@ DynSimulation::~DynSimulation(){
 }
 
 void DynSimulation::reset(DVec<double> & state){
+    (void)state;
     DVec<double> zero12(12);
     for(u32 i = 0; i < 12; i++) {
         zero12[i] = 0.;

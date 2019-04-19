@@ -49,7 +49,8 @@ public:
   ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
              LegController<T>* _legController,
              GaitScheduler<T>* _gaitScheduler,
-             DesiredStateCommand<T>* _desiredStateCommand);
+             DesiredStateCommand<T>* _desiredStateCommand,
+             RobotControlParameters* controlParameters);
 
   // Initializes the Control FSM instance
   void initialize();
@@ -86,10 +87,10 @@ private:
   FSM_OperatingMode operatingMode;
 
   // Choose how often to print info, every N iterations
-  int printNum = 5000; // N*(0.001s) in simulation time
+  int printNum = 1000; // N*(0.001s) in simulation time
 
   // Track the number of iterations since last info print
-  int printIter = 5001;  // make larger than printNum to not print
+  int printIter = 0;  // make larger than printNum to not print
 
 };
 

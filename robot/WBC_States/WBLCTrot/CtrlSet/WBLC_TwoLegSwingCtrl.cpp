@@ -28,10 +28,10 @@ WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const Floa
     dim_contact_(0),
     ctrl_start_time_(0.)
 {
-    body_pos_task_ = new BodyPosTask<T>(Ctrl::_robot_sys);
-    body_ori_task_ = new BodyOriTask<T>(Ctrl::_robot_sys);
-    Ctrl::_task_list.push_back(body_ori_task_);
-    Ctrl::_task_list.push_back(body_pos_task_);
+    _body_pos_task = new BodyPosTask<T>(Ctrl::_robot_sys);
+    _body_ori_task = new BodyOriTask<T>(Ctrl::_robot_sys);
+    Ctrl::_task_list.push_back(_body_ori_task);
+    Ctrl::_task_list.push_back(_body_pos_task);
 
     _cp_pos_task1 = new LinkPosTask<T>(Ctrl::_robot_sys, _cp1, false);
     _cp_pos_task2 = new LinkPosTask<T>(Ctrl::_robot_sys, _cp2, false);
@@ -197,7 +197,7 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
     DVec<T> vel_des(3); vel_des.setZero();
     DVec<T> acc_des(3); acc_des.setZero();
     Vec3<T> rpy_des; rpy_des.setZero();
-    DVec<T> ang_vel_des(body_ori_task_->getDim()); ang_vel_des.setZero();
+    DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
     
     for(size_t i(0); i<3; ++i){
         pos_des[i] = _trot_test->_body_pos[i];
@@ -209,19 +209,14 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
         ang_vel_des[i] = _trot_test->_body_ang_vel[i];
     }
 
-    body_pos_task_->UpdateTask(&(pos_des), vel_des, acc_des);
+    _body_pos_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    Mat3<T> Rot = rpyToRotMat(rpy_des);
-    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
-    des_quat[0] = eigen_quat.w();
-    des_quat[1] = eigen_quat.x();
-    des_quat[2] = eigen_quat.y();
-    des_quat[3] = eigen_quat.z();
+    des_quat = ori::rpyToQuat(rpy_des);
 
-    DVec<T> ang_acc_des(body_ori_task_->getDim()); ang_acc_des.setZero();
-    body_ori_task_->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
+    DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();
+    _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
 
     // set Foot trajectory
     _GetSinusoidalSwingTrajectory(_foot_pos_ini1, _target_loc1, Ctrl::_state_machine_time, 
@@ -235,23 +230,25 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
             //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
 
     // Capture Point
-    Vec3<T> global_body_vel;
-    Vec3<T> local_body_vel;
-    for(size_t i(0);i<3; ++i){
-        local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
+    //if(false){
+    if(true){
+        Vec3<T> global_body_vel;
+        Vec3<T> local_body_vel;
+        for(size_t i(0);i<3; ++i){
+            local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
+        }
+        Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
+        Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
+        global_body_vel = Rot_curr.transpose()*local_body_vel;
+
+        for(size_t i(0); i<2; ++i){
+            _foot_pos_des1[i] += sqrt(_target_body_height/9.81) * 
+                (global_body_vel[i] - _trot_test->_body_vel[i]);
+            _foot_pos_des2[i] += sqrt(_target_body_height/9.81) * 
+                (global_body_vel[i] - _trot_test->_body_vel[i]);
+
+        }
     }
-    Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
-    Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
-    global_body_vel = Rot_curr.transpose()*local_body_vel;
-
-    for(size_t i(0); i<2; ++i){
-        _foot_pos_des1[i] += sqrt(_target_body_height/9.81) * 
-            (global_body_vel[i] - _trot_test->_body_vel[i]);
-        _foot_pos_des2[i] += sqrt(_target_body_height/9.81) * 
-            (global_body_vel[i] - _trot_test->_body_vel[i]);
-
-    }
-
 
 
     _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
@@ -325,16 +322,16 @@ void WBLC_TwoLegSwingCtrl<T>::FirstVisit(){
     _target_loc2 += _landing_offset;
 
 
-    _SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
-    _SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
+    //_SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
+    //_SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
 
-    pretty_print(Rot, std::cout, "Rot");
-    pretty_print(_trot_test->_body_pos, std::cout, "commanded body_pos");
-    pretty_print(next_body_pos, std::cout, "nx body_pos");
-    pretty_print(_trot_test->_body_vel, std::cout, "body vel");
-    pretty_print(_trot_test->_body_ang_vel, std::cout, "body ang vel");
-    pretty_print(_target_loc1, std::cout, "target loc 1");
-    pretty_print(_target_loc2, std::cout, "target loc 2");
+    //pretty_print(Rot, std::cout, "Rot");
+    //pretty_print(_trot_test->_body_pos, std::cout, "commanded body_pos");
+    //pretty_print(next_body_pos, std::cout, "nx body_pos");
+    //pretty_print(_trot_test->_body_vel, std::cout, "body vel");
+    //pretty_print(_trot_test->_body_ang_vel, std::cout, "body ang vel");
+    //pretty_print(_target_loc1, std::cout, "target loc 1");
+    //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
 
 template<typename T>
@@ -445,6 +442,18 @@ void WBLC_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
+
+    // Feedback gain for kinematic tasks
+    handler.getVector<T>("Kp_body_pos_kin", tmp_vec);
+    for(size_t i(0); i<_body_pos_task->getDim(); ++i){
+        ((BodyPosTask<T>*)_body_pos_task)->_Kp_kin[i] = tmp_vec[i];
+    }
+    handler.getVector<T>("Kp_body_ori_kin", tmp_vec);
+    for(size_t i(0); i<_body_ori_task->getDim(); ++i){
+        ((BodyOriTask<T>*)_body_ori_task)->_Kp_kin[i] = tmp_vec[i];
+    }
+
+
     _step_time = 0.;
     _step_time += _end_time;
     

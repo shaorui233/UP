@@ -13,10 +13,10 @@ namespace Weight{
     constexpr float tan_small = 1.;
     constexpr float nor_big = 0.5;
     constexpr float nor_small = 0.01;
-    constexpr float foot_big = 1000.;
-    constexpr float foot_small = 0.001;
-    constexpr float qddot_relax = 100.;
-    constexpr float qddot_relax_virtual = 0.0001;
+    constexpr float foot_big = 100.;
+    constexpr float foot_small = 0.01;
+    constexpr float qddot_relax = 30.;
+    constexpr float qddot_relax_virtual = 0.001;
     //constexpr float qddot_relax_virtual = 100.0;
 }
 
@@ -35,6 +35,11 @@ public:
   virtual void CtrlInitialization(const std::string & setting_file_name) = 0;
   virtual void SetTestParameter(const std::string & test_file) = 0;
 
+  DMat<T> _A;
+  DMat<T> _Ainv;
+  DVec<T> _grav;
+  DVec<T> _coriolis;
+
 protected:
   void _DynConsistent_Inverse(const DMat<T> & J, DMat<T> & Jinv){
       DMat<T> Jtmp(J * _Ainv * J.transpose());
@@ -49,16 +54,11 @@ protected:
   }
 
   void _PostProcessing_Command(){
-      for(size_t i(0); i<_task_list.size(); ++i){ _task_list[i]->UnsetTask(); }
-      for(size_t i(0); i<_contact_list.size(); ++i){ _contact_list[i]->UnsetContact(); }
+      //for(size_t i(0); i<_task_list.size(); ++i){ _task_list[i]->UnsetTask(); }
+      //for(size_t i(0); i<_contact_list.size(); ++i){ _contact_list[i]->UnsetContact(); }
   }
 
   const FloatingBaseModel<T>* _robot_sys;
-
-  DMat<T> _A;
-  DMat<T> _Ainv;
-  DVec<T> _grav;
-  DVec<T> _coriolis;
 
   std::vector<Task<T>*> _task_list;
   std::vector<ContactSpec<T>*> _contact_list;

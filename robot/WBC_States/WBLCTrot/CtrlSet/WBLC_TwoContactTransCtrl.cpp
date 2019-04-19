@@ -163,12 +163,7 @@ void WBLC_TwoContactTransCtrl<T>::_task_setup(){
 
     // Set Desired Orientation
     Quat<T> des_quat; des_quat.setZero();
-    Mat3<T> Rot = rpyToRotMat(rpy_des);
-    Eigen::Quaternion<T> eigen_quat(Rot.transpose());
-    des_quat[0] = eigen_quat.w();
-    des_quat[1] = eigen_quat.x();
-    des_quat[2] = eigen_quat.y();
-    des_quat[3] = eigen_quat.z();
+    des_quat = ori::rpyToQuat(rpy_des);
 
     DVec<T> ang_acc_des(_body_ori_task->getDim()); ang_acc_des.setZero();
     _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);
@@ -287,6 +282,16 @@ void WBLC_TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file
     for(size_t i(0); i<tmp_vec.size(); ++i){
         Kd_[i] = tmp_vec[i];
     }
+    // Feedback gain for kinematic tasks
+    handler.getVector<T>("Kp_body_pos_kin", tmp_vec);
+    for(size_t i(0); i<_body_pos_task->getDim(); ++i){
+        ((BodyPosTask<T>*)_body_pos_task)->_Kp_kin[i] = tmp_vec[i];
+    }
+    handler.getVector<T>("Kp_body_ori_kin", tmp_vec);
+    for(size_t i(0); i<_body_ori_task->getDim(); ++i){
+        ((BodyOriTask<T>*)_body_ori_task)->_Kp_kin[i] = tmp_vec[i];
+    }
+
     // torque limit default setting
     handler.getVector<T>("tau_lim", tmp_vec);
     wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);

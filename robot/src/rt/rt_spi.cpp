@@ -245,11 +245,11 @@ void spine_to_spi(spi_data_t *data, spine_data_t *spine_data, int leg_0) {
 
 // send receive from spine
 void spi_send_receive(spi_command_t *command, spi_data_t *data) {
-  // update driver status flag
-  spi_driver_iterations++;
-  data->spi_driver_status = spi_driver_iterations << 16;
+    // update driver status flag
+    spi_driver_iterations++;
+    data->spi_driver_status = spi_driver_iterations << 16;
 
-  // transmit and receive buffers
+    // transmit and receive buffers
   uint16_t tx_buf[K_WORDS_PER_MESSAGE];
   uint16_t rx_buf[K_WORDS_PER_MESSAGE];
 
@@ -304,12 +304,11 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
 
 
 void spi_driver_run() {
-
   // do spi board calculations
-  for (int i = 0; i < 4; i++)
-    fake_spine_control(&spi_command_drv, &spi_data_drv, &spi_torque, i);
+  for (int i = 0; i < 4; i++){
+      fake_spine_control(&spi_command_drv, &spi_data_drv, &spi_torque, i);
+  }
   publish_spi_torque(&spi_torque);
-
   
     // in here, the driver is good
     pthread_mutex_lock(&spi_mutex);

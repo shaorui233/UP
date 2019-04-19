@@ -25,6 +25,7 @@ bool KinWBC<T>::FindConfiguration(
     DMat<T> Jc, Jc_i;
     contact_list[0]->getContactJacobian(Jc);
     size_t num_rows = Jc.rows();
+
     for(size_t i(1); i<contact_list.size(); ++i){
         contact_list[i]->getContactJacobian(Jc_i);
         size_t num_new_rows = Jc_i.rows();

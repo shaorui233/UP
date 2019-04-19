@@ -11,6 +11,7 @@ public:
   BodyOriTask(const FloatingBaseModel<T>*);
   virtual ~BodyOriTask();
 
+  DVec<T> _Kp_kin;
 protected:
   // Update op_cmd_
   virtual bool _UpdateCommand(void* pos_des,

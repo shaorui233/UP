@@ -44,6 +44,7 @@ class WBDC: public WBC<T>{
                 void* extra_input = NULL);
 
     private:
+        bool _b_first_visit;
         std::vector<ContactSpec<T> *> _contact_list;
         std::vector<Task<T> *> _task_list;
 

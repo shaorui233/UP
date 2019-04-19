@@ -17,11 +17,12 @@ download_project(PROJ                googletest
 )
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+message(${googletest_SOURCE_DIR})
+message(${googletest_BINARY_DIR})
 if (CMAKE_VERSION VERSION_LESS 2.8.11)
     include_directories("${gtest_SOURCE_DIR}/include"
                         "${gmock_SOURCE_DIR}/include")
 endif()
-
 
 # Source/Include files
 include_directories(".")

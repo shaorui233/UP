@@ -194,16 +194,19 @@ void MiniCheetahHardwareBridge::run() {
   // init control thread
 
   statusTask.start();
-  _robotController->start();
 
-  PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
-      &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
-
+  // spi Task start
   PeriodicMemberFunction<MiniCheetahHardwareBridge> spiTask(
       &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
-
-  visualizationLCMTask.start();
   spiTask.start();
+
+  // robot controller start
+  _robotController->start();
+
+  // visualization start
+  PeriodicMemberFunction<MiniCheetahHardwareBridge> visualizationLCMTask(
+      &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
+  visualizationLCMTask.start();
 
   for(;;) {
     usleep(1000000);
@@ -241,8 +244,6 @@ void MiniCheetahHardwareBridge::runSpi() {
 
   _spiLcm.publish("spi-data", data);
   _spiLcm.publish("spi-command", cmd);
-
-
 }
 
 void HardwareBridge::publishVisualizationLCM() {
