@@ -27,9 +27,9 @@ using namespace std;
  * Apply a unit test force at a contact. Returns the inv contact inertia  in that direction
  * and computes the resultant qdd
  * @param gc_index index of the contact
- * @param force_ics_at_contact unit test forcoe
+ * @param force_ics_at_contact unit test force expressed in inertial coordinates
  * @params dstate - Output paramter of resulting accelerations
- * @return the 1x1 inverse contact inertia J H^{-1} J^T
+ * @return the 1x1 inverse contact inertia J H^{-1} J^T 
  */
 template <typename T>
 T FloatingBaseModel<T>:: applyTestForce(
@@ -73,7 +73,6 @@ T FloatingBaseModel<T>:: applyTestForce(
     i = _parents[i];
   }
 
-  // TODO: Only carry out the QR once within update Aritculated Bodies
   dstate_out.head(6) = _invIA5.solve(F);
   LambdaInv+= F.dot(dstate_out.head(6));
   dstate_out.tail(_nDof -6) +=_qdd_from_base_accel*dstate_out.head(6);
@@ -544,8 +543,9 @@ void FloatingBaseModel<T>::contactJacobians() {
     // Bias acceleration
     SVec<T> ac = Xc * _avp[i];
     SVec<T> vc = Xc * _v[i];
+    
     // Correct to classical
-    _Jcdqd[k] = sAccToClassicalAcc(ac, vc);
+    _Jcdqd[k] = spatialToLinearAcceleration(ac, vc);
 
     // rows for linear velcoity in the world
     D3Mat<T> Xout = Xc.template bottomRows<3>();
@@ -646,6 +646,46 @@ DVec<T> FloatingBaseModel<T>::coriolisForce() {
   return _Cqd;
 }
 
+
+template <typename T>
+Mat3<T> FloatingBaseModel<T>::getOrientation(int body) {
+  forwardKinematics();
+  Mat3<T> Rai = _Xa[body].template block<3,3>(0,0);
+  Rai.transposeInPlace();
+  return Rai;
+}
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getLinearAcceleration(int body, const Vec3<T> & point) {
+  forwardAccelerationKinematics();
+  Mat3<T> R = getOrientation(body);
+  return R * spatialToLinearAcceleration(_a[body], _v[body], point);
+
+}
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getLinearVelocity(int body, const Vec3<T> & point) {
+  forwardKinematics();
+  Mat3<T> Rai = getOrientation(body);
+  return Rai*spatialToLinearVelocity(_v[body],point);
+}
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getAngularVelocity(int body) {
+  forwardKinematics();
+  Mat3<T> Rai = getOrientation(body);
+  //Vec3<T> v3 = 
+  return Rai * _v[body].template head<3>();;
+}
+
+template <typename T> 
+Vec3<T> FloatingBaseModel<T>::getAngularAcceleration(int body) {
+  forwardAccelerationKinematics();
+  Mat3<T> Rai = getOrientation(body);
+  return Rai * _a[body].template head<3>();
+}
+
+
 /*!
  * (Support Function) Computes the composite rigid body inertia
  * of each subtree _IC[i] contains body i, and the body/rotor 
@@ -712,14 +752,12 @@ DMat<T> FloatingBaseModel<T>::massMatrix() {
   return _H;
 }
 
-/*!
- * Computes the inverse dynamics of the system
- * @return an _nDof x 1 vector. The first six entries
- * give the external wrengh on the base, with the remaining giving the 
- * joint torques
- */
 template <typename T>
-DVec<T> FloatingBaseModel<T>::inverseDynamics(FBModelStateDerivative<T> & dState) {
+void FloatingBaseModel<T>::forwardAccelerationKinematics() {
+  if (_accelerationsUpToDate) {
+    return;
+  }
+
   forwardKinematics();
   biasAccelerations();
   
@@ -728,16 +766,36 @@ DVec<T> FloatingBaseModel<T>::inverseDynamics(FBModelStateDerivative<T> & dState
   aGravity.template tail<3>() = _gravity;
 
   // Spatial force for floating base
-  SVec<T> hb = _Ibody[5].getMatrix() * _v[5];
-  _a[5] = -_Xup[5] * aGravity + dState.dBodyVelocity;
-  _f[5] = _Ibody[5].getMatrix() * _a[5] + forceCrossProduct(_v[5], hb);
+  _a[5] = -_Xup[5] * aGravity + _dState.dBodyVelocity;
 
   // loop through joints
   for(size_t i = 6 ; i < _nDof ; i++) {
     // spatial acceleration
-    _a[i] = _Xup[i]*_a[_parents[i]] + _S[i] * dState.qdd[i-6] + _c[i];
-    _arot[i] = _Xuprot[i]*_a[_parents[i]] + _Srot[i] * dState.qdd[i-6] + _crot[i];
-    
+    _a[i] = _Xup[i]*_a[_parents[i]] + _S[i] * _dState.qdd[i-6] + _c[i];
+    _arot[i] = _Xuprot[i]*_a[_parents[i]] + _Srot[i] * _dState.qdd[i-6] + _crot[i];
+  }
+  _accelerationsUpToDate = true;
+}
+
+
+/*!
+ * Computes the inverse dynamics of the system
+ * @return an _nDof x 1 vector. The first six entries
+ * give the external wrengh on the base, with the remaining giving the 
+ * joint torques
+ */
+template <typename T>
+DVec<T> FloatingBaseModel<T>::inverseDynamics(const FBModelStateDerivative<T> & dState) {
+  setDState(dState);
+  forwardAccelerationKinematics();
+
+  // Spatial force for floating base
+  SVec<T> hb = _Ibody[5].getMatrix() * _v[5];
+  _f[5] = _Ibody[5].getMatrix() * _a[5] + forceCrossProduct(_v[5], hb);
+
+  // loop through joints
+  for(size_t i = 6 ; i < _nDof ; i++) {
+
     // spatial momentum
     SVec<T> hi = _Ibody[i].getMatrix() * _v[i];
     SVec<T> hr = _Irot[i].getMatrix() * _vrot[i];

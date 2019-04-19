@@ -191,19 +191,30 @@ public:
       _kinematicsUpToDate = false;
       _forcePropagatorsUpToDate = false;
       _qddEffectsUpToDate = false;
+      _accelerationsUpToDate = false;
   }
 
+  void setDState(const FBModelStateDerivative<T> & dState) {
+    _dState = dState;
+    _accelerationsUpToDate = false;
+  }
 
+  Mat3<T> getOrientation(int body);
+  Vec3<T> getLinearVelocity(int body, const Vec3<T> & point);
+  Vec3<T> getLinearAcceleration(int body, const Vec3<T> & point);
+  Vec3<T> getAngularVelocity(int body);
+  Vec3<T> getAngularAcceleration(int body);
+  
   void forwardKinematics();
   void biasAccelerations();
   void compositeInertias();
-
+  void forwardAccelerationKinematics();
   void contactJacobians();
   
   DVec<T> gravityForce();
   DVec<T> coriolisForce();
   DMat<T> massMatrix();
-  DVec<T> inverseDynamics(FBModelStateDerivative<T> & dState);
+  DVec<T> inverseDynamics(const FBModelStateDerivative<T> & dState);
   void runABA(const DVec<T> &tau, FBModelStateDerivative<T> & dstate);
 
 
@@ -236,6 +247,8 @@ public:
 
   /// BEGIN ALGORITHM SUPPORT VARIABLES
   FBModelState<T> _state;
+  FBModelStateDerivative<T> _dState;
+
 
   vectorAligned< SVec<T> > _v, _vrot, _a, _arot, _avp,_avprot,  _c, _crot, 
       _S, _Srot, _fvp, _fvprot, _ag, _agrot, _f, _frot;
@@ -258,7 +271,10 @@ public:
 
   bool  _kinematicsUpToDate = false;
   bool  _biasAccelerationsUpToDate = false;
+  bool  _accelerationsUpToDate = false;
+
   bool  _compositeInertiasUpToDate = false;
+
 
   void updateArticulatedBodies();
   void updateForcePropagators();

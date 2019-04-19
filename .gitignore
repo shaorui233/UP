@@ -21,4 +21,7 @@ machine_learning/python_bridge/pycheetah.cpp
 machine_learning/python_bridge/pycheetah.py
 machine_learning/python_bridge/pycheetah.pyc
 machine_learning/bridge_lcm_types/cpp/*
+documentation/doxygen/html
+documentation/doxygen/latex
+
 

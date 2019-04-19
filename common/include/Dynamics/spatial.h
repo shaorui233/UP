@@ -101,19 +101,10 @@ namespace spatial {
     return mv;
   }
 
-  /*!
-   * Compute the classical lienear accleeration of a frame given its spatial acceleration and velocity
-   */
-  template<typename T, typename T2>
-  auto sAccToClassicalAcc(const Eigen::MatrixBase<T> &a , const Eigen::MatrixBase<T2> &v ) {
-    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 6, "Must have 6x1 vector");
-    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 6, "Must have 6x1 vector");
-    
-    Vec3<typename T::Scalar> acc;
-    // classical accleration = spatial linear acc + omega x v
-    acc = a.template tail<3>() + v.template head<3>().cross( v.template tail<3>() );
-    return acc;
-  }
+
+
+
+
 
   /*!
    * Convert a spatial transform to a homogeneous coordinate transformation
@@ -266,6 +257,50 @@ namespace spatial {
     return vLinear;
    }
 
+
+  /*!
+   * Convert from spatial velocity to angular velocity.
+   */
+   template<typename T>
+   auto spatialToAngularVelocity(const Eigen::MatrixBase<T>& v) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    Vec3<typename T::Scalar> vsAng = v.template topLeftCorner<3,1>();
+    return vsAng;
+   }
+
+  /*!
+   * Compute the classical lienear accleeration of a frame given its spatial acceleration and velocity
+   */
+  template<typename T, typename T2>
+  auto spatialToLinearAcceleration(const Eigen::MatrixBase<T> &a , const Eigen::MatrixBase<T2> &v ) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    
+    Vec3<typename T::Scalar> acc;
+    // classical accleration = spatial linear acc + omega x v
+    acc = a.template tail<3>() + v.template head<3>().cross( v.template tail<3>() );
+    return acc;
+  }
+
+  /*!
+   * Compute the classical lienear acceleration of a frame given its spatial acceleration and velocity
+   */
+  template<typename T, typename T2, typename T3>
+  auto spatialToLinearAcceleration(const Eigen::MatrixBase<T> &a , const Eigen::MatrixBase<T2> &v,  const Eigen::MatrixBase<T3> &x ) {
+    static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    static_assert(T2::ColsAtCompileTime == 1 && T2::RowsAtCompileTime == 6, "Must have 6x1 vector");
+    static_assert(T3::ColsAtCompileTime == 1 && T3::RowsAtCompileTime == 3, "Must have 3x1 vector");
+
+    Vec3<typename T::Scalar>  alin_x = spatialToLinearVelocity(a, x);
+    Vec3<typename T::Scalar>  vlin_x = spatialToLinearVelocity(v, x);
+
+    // classical accleration = spatial linear acc + omega x v
+    Vec3<typename T::Scalar> acc = alin_x + v.template head<3>().cross( vlin_x );
+    return acc;
+  }
+
+
+
    /*!
     * Apply spatial transformation to a point.
     */
@@ -294,6 +329,8 @@ namespace spatial {
      fs.template bottomLeftCorner<3,1>() = f;
      return fs;
    }
+
+
 
 }
 
