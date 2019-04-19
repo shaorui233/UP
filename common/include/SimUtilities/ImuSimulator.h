@@ -23,7 +23,9 @@ public:
     _mt(seed),
     _kvhGyroDistribution(-simSettings.kvh_imu_gyro_noise, simSettings.kvh_imu_gyro_noise),
     _kvhAccelerometerDistribution(-simSettings.kvh_imu_accelerometer_noise, simSettings.kvh_imu_gyro_noise),
-    _vectornavGyroDistribution(-simSettings.vectornav_imu_gyro_noise, simSettings.vectornav_imu_gyro_noise),
+    _vectornavGyroDistribution(
+            -simSettings.vectornav_imu_gyro_noise, 
+            simSettings.vectornav_imu_gyro_noise),
     _vectornavAccelerometerDistribution(-simSettings.vectornav_imu_accelerometer_noise, simSettings.vectornav_imu_accelerometer_noise),
     _vectornavQuatDistribution(-simSettings.vectornav_imu_quat_noise, simSettings.vectornav_imu_quat_noise) {
     if(simSettings.vectornav_imu_quat_noise != 0) {

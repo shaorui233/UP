@@ -21,7 +21,7 @@ void ImuSimulator<T>::computeAcceleration(const FBModelState<T> &robotState,
   acc += (R_body * Vec3<float>(0,0,9.81));
 
   // acceleration (todo check with pat that this should work)
-  acc += spatial::sAccToClassicalAcc(robotStateD.dBodyVelocity, robotState.bodyVelocity).template cast<float>();
+  acc += spatial::spatialToLinearAcceleration(robotStateD.dBodyVelocity, robotState.bodyVelocity).template cast<float>();
 }
 
 template <typename T>
@@ -39,7 +39,10 @@ void ImuSimulator<T>::updateKVH(const FBModelState<T> &robotState, const FBModel
 }
 
 template <typename T>
-void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const FBModelStateDerivative<T>& robotStateD, VectorNavData *data) {
+void ImuSimulator<T>::updateVectornav(
+        const FBModelState<T> &robotState, 
+        const FBModelStateDerivative<T>& robotStateD, 
+        VectorNavData *data) {
   // body orientation
   RotMat<float> R_body = quaternionToRotationMatrix(
           robotState.bodyOrientation.template cast<float>());
@@ -83,7 +86,7 @@ void ImuSimulator<T>::updateVectornav(const FBModelState<T> &robotState, const F
 template <typename T>
 void ImuSimulator<T>::updateCheaterState(const FBModelState<T> &robotState, const FBModelStateDerivative<T>& robotStateD, CheaterState<T> &state) {
   RotMat<T> R_body = quaternionToRotationMatrix(robotState.bodyOrientation);
-  state.acceleration = (R_body * Vec3<T>(0,0,9.81)) + spatial::sAccToClassicalAcc(robotStateD.dBodyVelocity, robotState.bodyVelocity);
+  state.acceleration = (R_body * Vec3<T>(0,0,9.81)) + spatial::spatialToLinearAcceleration(robotStateD.dBodyVelocity, robotState.bodyVelocity);
   state.orientation = robotState.bodyOrientation;
   state.position = robotState.bodyPosition;
   state.omegaBody = robotState.bodyVelocity.template head<3>();

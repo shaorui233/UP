@@ -48,7 +48,8 @@ TEST(ImuSimulator, passThrough) {
   Vec3<float> imuZero(0,0,0);
   Vec3<float> imuGravity(0,0,9.81);
   Quat<float> imuLevel;
-  imuLevel << 1,0,0,0;
+  //imuLevel << 1,0,0,0;
+  imuLevel << 0,0,0,1; //vectornave quaternion description sequence is (x, y, z, w)
 
   EXPECT_TRUE(almostEqual(imuZero, vn.gyro, .00001f));
   EXPECT_TRUE(almostEqual(imuZero, kvh.gyro, .000001f));
@@ -95,7 +96,11 @@ TEST(ImuSimulator, orientation) {
 
   Vec3<float> imuZero(0,0,0);
   Vec3<float> imuGravity(0,0,9.81);
-  Quat<float> imuLevel = quat.cast<float>();
+  //Quat<float> imuLevel = quat.cast<float>();
+  Quat<float> imuLevel;
+  Quat<float> sim_quat = quat.cast<float>();
+  //vectornave quaternion description sequence is (x, y, z, w)
+  imuLevel << sim_quat[1], sim_quat[2], sim_quat[3], sim_quat[0]; 
 
   EXPECT_TRUE(almostEqual(imuZero, vn.gyro, .00001f));
   EXPECT_TRUE(almostEqual(imuZero, kvh.gyro, .000001f));
@@ -141,7 +146,9 @@ TEST(ImuSimulator, omega) {
 
   Vec3<float> imuZero(0,0,0);
   Vec3<float> imuGravity(0,0,9.81);
-  Quat<float> imuLevel = quat.cast<float>();
+  Quat<float> imuLevel;
+  Quat<float> sim_quat = quat.cast<float>();
+  imuLevel<< sim_quat[1], sim_quat[2], sim_quat[3], sim_quat[0];
   Vec3<float> omegaB = xfb.bodyVelocity.head<3>().cast<float>();
 
   EXPECT_TRUE(almostEqual(omegaB, vn.gyro, .00001f));
@@ -187,7 +194,9 @@ TEST(ImuSimulator, omegaCrossV) {
 
   Vec3<float> imuZero(0,0,0);
   Vec3<float> imuGravity(0,0,9.81);
-  Quat<float> imuLevel = quat.cast<float>();
+  Quat<float> imuLevel;
+  Quat<float> sim_quat = quat.cast<float>();
+  imuLevel<< sim_quat[1], sim_quat[2], sim_quat[3], sim_quat[0];
   Vec3<float> omegaB = xfb.bodyVelocity.head<3>().cast<float>();
 
   // we should see -y acceleration (man sitting inside robot will feel pulled toward the outside)
@@ -247,7 +256,9 @@ TEST(ImuSimulator, noise) {
   for(size_t i = 0; i < nIterations; i++) {
     imuSimNoise.updateVectornav(xfb, xfbd, &vn);
     imuSimNoise.updateKVH(xfb, xfbd, &kvh);
-    Vec3<float> rpy = ori::quatToRPY(vn.quat);
+    Quat<float> sim_quat;
+    sim_quat<<vn.quat[3], vn.quat[0], vn.quat[1], vn.quat[2];
+    Vec3<float> rpy = ori::quatToRPY(sim_quat);
     rpy_avg += rpy  / float(nIterations);
   }
 

@@ -287,3 +287,73 @@ TEST(Spatial, forceToSpatialForce) {
   SVec<double> fSpatial = forceToSpatialForce(fLinear, point);
   EXPECT_TRUE(almostEqual(fSpatial, fRef, .0005));
 }
+
+/*! 
+ * Test utility function for converting the spatial velocity to the velocity at a point
+ */
+TEST(Spatial, spatialToLinearVelocity) {
+
+  SVec<double> vspat;
+  vspat << 1.93,2.34,3.345,-4.23,5.8383,6.921;
+  Vec3<double> vlin = vspat.tail(3);
+  Vec3<double> vang = vspat.head(3);
+  Vec3<double> point;
+  point<<-23.23, 2.638, 9.324;
+
+  Vec3<double> vpoint = vlin + vang.cross(point);
+  Vec3<double> vpoint2 = spatialToLinearVelocity(vspat, point);
+
+  EXPECT_TRUE(almostEqual(vpoint2, vpoint,1e-8));
+}
+
+/*! 
+ * Test utility function for converting the spatial acceleration to the linear acceleration of a point
+ */
+TEST(Spatial, spatialToLinearAcceleration) {
+
+  SVec<double> vspat, aspat;
+  // Top spinning with angular velocity w on a skateboard that is traveling at velocity v and is currently at point p
+  double w = 5;
+  double v = 1;
+  double p = 1;
+
+  vspat << 0,0,w,v,-w*p,0;
+  aspat << 0,0,0,0,-w*v,0;
+
+  Vec3<double> p2;
+  p2 <<p,0,0; 
+
+  Vec3<double> a1  = spatialToLinearAcceleration(aspat, vspat);
+
+  Vec3<double> a2 = spatialToLinearAcceleration(aspat, vspat, p2);
+
+  Vec3<double> a1_expected , a2_expected;
+  a1_expected << w*w*p , 0, 0;
+  a2_expected << 0,0,0;
+
+  EXPECT_TRUE(almostEqual(a1, a1_expected,1e-8));
+  EXPECT_TRUE(almostEqual(a2, a2_expected,1e-8));
+
+  vspat << 1.93,2.34,3.345,-4.23,5.8383,6.921;
+  aspat << -5.164,68.4,1.56879,-98.44,8.14,6.324;
+  p2 << 54.797,-6.1654,3.64587;
+
+  Vec3<double> w1,v1,wd1,vd1;
+  Vec3<double> w2, v2, wd2, vd2;
+
+  w1 = vspat.head(3); v1 = vspat.tail(3);
+  wd1= aspat.head(3); vd1= aspat.tail(3);
+
+  w2 = w1; wd2 = w2;
+  v2 = v1 + w1.cross(p2);
+  vd2= vd1+wd1.cross(p2);
+
+  a1_expected = vd1 +w1.cross(v1);
+  a2_expected = vd2 +w2.cross(v2);
+
+  a1  = spatialToLinearAcceleration(aspat, vspat);
+  a2 = spatialToLinearAcceleration(aspat, vspat, p2);
+
+  EXPECT_TRUE(almostEqual(a1, a1_expected,1e-8));
+  EXPECT_TRUE(almostEqual(a2, a2_expected,1e-8));
+}
