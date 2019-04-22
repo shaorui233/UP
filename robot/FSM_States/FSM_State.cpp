@@ -36,17 +36,17 @@ void FSM_State<T>::jointPDControl(int leg, Vec3<T> qDes, Vec3<T> qdDes) {
   _data->_legController->commands[leg].qDes = qDes;
   // Create the cartesian P gain matrix
   //controlParameters->stand_kp_cartesian[0]
-  kpMat << 500, 0, 0,
-        0, 500, 0,
-        0, 0, 500;
+  kpMat << 50, 0, 0,
+        0, 50, 0,
+        0, 0, 50;
   _data->_legController->commands[leg].kpJoint = kpMat;
 
   _data->_legController->commands[leg].qdDes = qdDes;
   // Create the cartesian D gain matrix
   //controlParameters->stand_kd_cartesian[0]
-  kdMat << 10, 0, 0,
-        0, 10, 0,
-        0, 0, 10;
+  kdMat << 1, 0, 0,
+        0, 1, 0,
+        0, 0, 1;
   _data->_legController->commands[leg].kdJoint = kdMat;
 
 }
@@ -101,27 +101,36 @@ void FSM_State<T>::footstepHeuristicPlacement(int leg) {
       // The leg is in contact so nothing to do here
 
     } else {
-      // Pull out the approximate yaw rate component of the robot in the world.
-      Vec3<float> yaw_rate;
-      yaw_rate << 0, 0, _stateEstimate.omegaWorld(3);
+      if (_gaitScheduler->gaitData._currentGait == GaitType::TRANSITION_TO_STAND) {
+        // Position the legs under the hips to stand...
+        // Could also get rid of this and simply send 0 velocity ang vel commands
+        // from the CoM desired planner...
+        Vec3<float> posHip = _quadruped.getHipLocation(leg);
+        footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*
+                                   (_stateEstimate.position +                             //
+                                    rBody * posHip);
+      } else {
+        // Pull out the approximate yaw rate component of the robot in the world.
+        Vec3<float> yaw_rate;
+        yaw_rate << 0, 0, _stateEstimate.omegaWorld(3);
 
-      Vec3<float> posHip = _quadruped.getHipLocation(leg);
+        Vec3<float> posHip = _quadruped.getHipLocation(leg);
 
-      float timeStance = _gaitScheduler->gaitData.timeStance(leg);
+        float timeStance = _gaitScheduler->gaitData.timeStance(leg);
 
-      // Footstep heuristic composed of several parts in the world frame
-      footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*      // Ground projection
-                                 (_stateEstimate.position +                             //
-                                  rBody * posHip +                                      // Foot under hips
-                                  timeStance / 2 * velDes +                             // Raibert Heuristic
-                                  timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
-                                  (_stateEstimate.vBody - velDes));
+        // Footstep heuristic composed of several parts in the world frame
+        footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*      // Ground projection
+                                   (_stateEstimate.position +                             //
+                                    rBody * posHip +                                      // Foot under hips
+                                    timeStance / 2 * velDes +                             // Raibert Heuristic
+                                    timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
+                                    (_stateEstimate.vBody - velDes));
+      }
     }
-  }
 
+  }
 }
 */
-
 
 /*
  * Gait independent formulation for choosing appropriate GRF and step locations

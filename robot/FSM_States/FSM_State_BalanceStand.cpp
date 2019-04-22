@@ -36,8 +36,6 @@ void FSM_State_BalanceStand<T>::onEnter() {
 template <typename T>
 void FSM_State_BalanceStand<T>::run() {
   // Do nothing, all commands should begin as zeros
-  //this->_data->_gaitScheduler->printGaitInfo();
-  //this->_data->_desiredStateCommand->printStateCommandInfo();
   BalanceStandStep();
 }
 

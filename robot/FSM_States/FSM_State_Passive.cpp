@@ -31,10 +31,6 @@ void FSM_State_Passive<T>::onEnter() {
 template <typename T>
 void FSM_State_Passive<T>::run() {
   // Do nothing, all commands should begin as zeros
-
-  // Print some information about the current iteration
-  //this->_data->_gaitScheduler->printGaitInfo();
-  //this->_data->_desiredStateCommand->printStateCommandInfo();
 }
 
 
@@ -48,8 +44,14 @@ template <typename T>
 FSM_StateName FSM_State_Passive<T>::checkTransition() {
   this->nextStateName = this->stateName;
   iter++;
-  if (iter >= 2987) {
+
+  // Switch FSM control mode
+  if (this->_data->controlParameters->control_mode == 1) { // == K_JOINT_PD) {
+    // Requested switch to joint PD control
     this->nextStateName = FSM_StateName::JOINT_PD;
+
+  } else if (this->_data->controlParameters->control_mode != 0) {
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
   }
 
   // Get the next state

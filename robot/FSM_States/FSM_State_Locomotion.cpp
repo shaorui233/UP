@@ -37,10 +37,7 @@ template <typename T>
 void FSM_State_Locomotion<T>::run() {
   // Call the locomotion control logic for this iteration
   LocomotionControlStep();
-
-  // Print some information about the current iteration
-  //this->_data->_gaitScheduler->printGaitInfo();
-  //this->_data->_desiredStateCommand->printStateCommandInfo();
+  
 }
 
 
