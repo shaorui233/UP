@@ -61,6 +61,7 @@ public:
   FSM_StateName stateName;		// enumerated name of the current state
   FSM_StateName nextStateName;	// enumerated name of the next state
   std::string stateString;		// state name string
+  int controlMode; 				// FSM state control mode
 
   // Transition parameters
   T transitionDuration;		// transition duration time
@@ -69,9 +70,27 @@ public:
   // Notify the FSM if the state needs to check for rotation safety
   bool checkSafeOrientation = true;
 
+  //
+  Mat34<T> jointTorques;
   Mat34<T> groundReactionForces;	// Ground reaction forces for the stance feet to be calculated by the controllers
+  Mat34<T> jointPositions;
+  Mat34<T> jointVelocities;
+  Mat34<T> footPositions;
+  Mat34<T> footVelocities;
   Mat34<T> footstepLocations;		// Next footstep location for the swing feet
 
+  /*
+  tauFeedForward = Vec3<T>::Zero();
+  forceFeedForward = Vec3<T>::Zero();
+  qDes = Vec3<T>::Zero();
+  qdDes = Vec3<T>::Zero();
+  pDes = Vec3<T>::Zero();
+  vDes = Vec3<T>::Zero();
+  kpCartesian = Mat3<T>::Zero();
+  kdCartesian = Mat3<T>::Zero();
+  kpJoint = Mat3<T>::Zero();
+  kdJoint = Mat3<T>::Zero();
+  */
 private:
 
   // Create the cartesian P gain matrix

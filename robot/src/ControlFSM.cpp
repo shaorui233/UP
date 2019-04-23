@@ -134,6 +134,8 @@ void ControlFSM<T>::runFSM() {
     nextStateName = currentState->stateName;
   }
 
+  // Safety check and modify commands function here?
+
   // Print the current state of the FSM
   printInfo(0);
 
@@ -232,6 +234,11 @@ void ControlFSM<T>::printInfo(int opt) {
       // Reset iteration counter
       printIter = 0;
     }
+
+    // Print robot info about the robot's status 
+    //data._gaitScheduler->printGaitInfo();
+    //data._desiredStateCommand->printStateCommandInfo();
+
     break;
 
   case 1 :  // Initializing FSM State transition

@@ -38,9 +38,7 @@ void FSM_State_JointPD<T>::run() {
   this->jointPDControl(1, qDes, qdDes);
   this->jointPDControl(2, qDes, qdDes);
   this->jointPDControl(3, qDes, qdDes);
-  // Do nothing, all commands should begin as zeros
-  //this->_data->_gaitScheduler->printGaitInfo();
-  //this->_data->_desiredStateCommand->printStateCommandInfo();
+
 }
 
 
@@ -55,7 +53,10 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
   this->nextStateName = this->stateName;
 
   iter++;
-  if (iter >= 2345) {
+
+  // Switch FSM control mode 
+  if (this->_data->controlParameters->control_mode == 2) {
+  	// Requested change to balance stand
   	this->nextStateName = FSM_StateName::BALANCE_STAND;
   }
 

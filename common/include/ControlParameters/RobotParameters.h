@@ -16,6 +16,7 @@ public:
   RobotControlParameters() :
           ControlParameters("robot-parameters"),
           INIT_PARAMETER(myValue),
+          INIT_PARAMETER(control_mode),
           INIT_PARAMETER(testValue),
           INIT_PARAMETER(controller_dt),
           INIT_PARAMETER(stand_kp_cartesian),
@@ -32,6 +33,7 @@ public:
   }
 
   DECLARE_PARAMETER(double, myValue)
+  DECLARE_PARAMETER(double, control_mode)
   DECLARE_PARAMETER(double, testValue)
   DECLARE_PARAMETER(double, controller_dt)
   DECLARE_PARAMETER(Vec3<double>, stand_kp_cartesian)

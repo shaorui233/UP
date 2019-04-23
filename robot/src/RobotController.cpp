@@ -70,6 +70,11 @@ void RobotController::init() {
   _extra_data = new Cheetah_Extra_Data<float>();
 }
 
+
+/**
+ * Runs the overall robot control system by calling each of the major components
+ * to run each of their respective steps.
+ */
 void RobotController::run() {
   setupStep();
 
@@ -107,6 +112,7 @@ void RobotController::run() {
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
+  /*
   Mat3<float> kpMat;
   Mat3<float> kdMat;
   if (!_jpos_initializer->IsInitialized(_legController)) {
@@ -162,10 +168,8 @@ void RobotController::run() {
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
 
     // === End of WBC state command computation  =========== //
-
-}
-  /*
-  // Find the current gait schedule
+*/
+    // Find the current gait schedule
   _gaitScheduler->step();
 
   // Find the desired state trajectory
@@ -173,7 +177,7 @@ void RobotController::run() {
 
   // Run the Control FSM code
   _controlFSM->runFSM();
-  */
+  
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();

@@ -33,8 +33,6 @@ void FSM_State_ImpedanceControl<T>::onEnter() {
 template <typename T>
 void FSM_State_ImpedanceControl<T>::run() {
   // Do nothing, all commands should begin as zeros
-  this->_data->_gaitScheduler->printGaitInfo();
-  this->_data->_desiredStateCommand->printStateCommandInfo();
 }
 
 
