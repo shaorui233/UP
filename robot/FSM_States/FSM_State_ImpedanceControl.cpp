@@ -45,6 +45,28 @@ void FSM_State_ImpedanceControl<T>::run() {
 template <typename T>
 FSM_StateName FSM_State_ImpedanceControl<T>::checkTransition() {
   // Get the next state
+  // Switch FSM control mode
+  switch ((int)this->_data->controlParameters->control_mode) {
+  case K_IMPEDANCE_CONTROL:
+    // Normal operation for state based transitions
+    break;
+
+  case K_BALANCE_STAND:
+    // Requested change to balance stand
+    this->nextStateName = FSM_StateName::BALANCE_STAND;
+
+    // Transition instantaneously to locomotion state on request
+    this->transitionDuration = 0.0;
+
+    // Set the next gait in the scheduler to
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::STAND;
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+
+  }
+
   return this->nextStateName;
 
 }

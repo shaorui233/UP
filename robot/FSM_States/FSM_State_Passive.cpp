@@ -46,13 +46,33 @@ FSM_StateName FSM_State_Passive<T>::checkTransition() {
   iter++;
 
   // Switch FSM control mode
-  if (this->_data->controlParameters->control_mode == 1) { // == K_JOINT_PD) {
+  switch ((int)this->_data->controlParameters->control_mode) {
+  case K_PASSIVE:  // normal c
+    // Normal operation for state based transitions
+    break;
+
+  case K_JOINT_PD:
+    // Requested switch to joint PD control
+    this->nextStateName = FSM_StateName::JOINT_PD;
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+
+  }
+
+  /*
+  if (this->_data->controlParameters->control_mode == K_JOINT_PD) {
     // Requested switch to joint PD control
     this->nextStateName = FSM_StateName::JOINT_PD;
 
-  } else if (this->_data->controlParameters->control_mode != 0) {
+  } else if (this->_data->controlParameters->control_mode == K_PASSIVE) {
+
+
+  } else {
     std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
   }
+  */
 
   // Get the next state
   return this->nextStateName;

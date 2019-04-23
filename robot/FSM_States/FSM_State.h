@@ -5,7 +5,15 @@
 
 #include "Controllers/GaitScheduler.h"
 #include "../include/ControlFSMData.h"
-//#include "../include/TransitionData.h"
+//#include "../include/TransitionData.h" // this will be implemented later
+
+#define K_PASSIVE 0
+#define K_JOINT_PD 1
+#define K_IMPEDANCE_CONTROL 2
+#define K_BALANCE_STAND 3
+#define K_LOCOMOTION 4
+
+#define K_INVALID 100
 
 /**
  * Enumerate all of the FSM states so we can keep track of them.
