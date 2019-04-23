@@ -25,6 +25,8 @@ class WBDCVM_FullContactCtrl: public Controller<T>{
         virtual void SetTestParameter(const std::string & test_file);
 
     protected:
+        std::vector<T> _Kp_joint, _Kd_joint;
+
         WBDCTrotTest<T>* _trot_test;
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 

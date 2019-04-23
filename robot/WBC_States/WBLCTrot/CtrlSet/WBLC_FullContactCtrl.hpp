@@ -28,6 +28,9 @@ class WBLC_FullContactCtrl: public Controller<T>{
     protected:
         WBLCTrotTest<T>* _trot_test;
         DVec<T> _Kp, _Kd;
+        std::vector<T> _Kp_joint;
+        std::vector<T> _Kd_joint;
+
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 
         DVec<T> _des_jacc;

@@ -10,10 +10,15 @@ CTRL_backflip_pre:
     motion_type: "move_to_target"
     move_time: 2.0
 
+CTRL_backflip:
+
+
+CTRL_backflip_end:
+    motion_type: "stay"
+    move_time: 10000.
 
 # Timing Parameters (sec)
 body_lifting_time: 1.0
-stance_time: 10000.
 
 CTRL_stance:
 
@@ -26,6 +31,13 @@ Kd: [ 5., 5., 5.,
       5., 5., 5., 
       5., 5., 5., 
       5., 5., 5. ]
+
+# temp
+target_jpos: [ 
+    -0.2, -1.1, 1.8, 
+    0.2, -1.0, 1.8, 
+    -0.2, -1.0, 1.8, 
+    0.2, -1.0, 1.8 ]
 
 save_file: false
 #save_file: true

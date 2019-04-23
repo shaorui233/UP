@@ -9,7 +9,6 @@
 
 #include <WBC/WBLC/KinWBC.hpp>
 #include <WBC/WBLC/WBLC.hpp>
-#include <ParamHandler/ParamHandler.hpp>
 
 
 template <typename T>
@@ -110,7 +109,10 @@ void FullContactTransCtrl<T>::OneStep(void* _cmd){
 
             ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
                 _des_jvel[cheetah::num_leg_joint * leg + jidx];
-        }
+
+            ((LegControllerCommand<T>*)_cmd)[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+            ((LegControllerCommand<T>*)_cmd)[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
+         }
     }
     Ctrl::_PostProcessing_Command();
 }
@@ -195,31 +197,33 @@ bool FullContactTransCtrl<T>::EndOfPhase(){
 
 template <typename T>
 void FullContactTransCtrl<T>::CtrlInitialization(const std::string & category_name){
-    ParamHandler handler(_test_file_name);
-    handler.getValue<T>(category_name, "max_rf_z", _max_rf_z);
-    handler.getValue<T>(category_name, "min_rf_z", _min_rf_z);
+    _param_handler->getValue<T>(category_name, "max_rf_z", _max_rf_z);
+    _param_handler->getValue<T>(category_name, "min_rf_z", _min_rf_z);
 }
 
 template <typename T>
 void FullContactTransCtrl<T>::SetTestParameter(
         const std::string & test_file){
-    _test_file_name = test_file;
-    ParamHandler handler(_test_file_name);
-    if(handler.getValue<T>("body_height", _target_body_height)){
+
+    _param_handler = new ParamHandler(test_file);
+    if(_param_handler->getValue<T>("body_height", _target_body_height)){
         _b_set_height_target = true;
     }
-    handler.getValue<T>("body_lifting_time", _end_time);
+    _param_handler->getValue<T>("body_lifting_time", _end_time);
 
     // Feedback Gain
     std::vector<T> tmp_vec;
-    handler.getVector<T>("Kp", tmp_vec);
+    _param_handler->getVector<T>("Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kp[i] = tmp_vec[i];
     }
-    handler.getVector<T>("Kd", tmp_vec);
+    _param_handler->getVector<T>("Kd", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
+    // Joint level feedback gain
+    _param_handler->getVector<T>("Kp_joint", _Kp_joint);
+    _param_handler->getVector<T>("Kd_joint", _Kd_joint);
 }
 template class FullContactTransCtrl<double>;
 template class FullContactTransCtrl<float>;

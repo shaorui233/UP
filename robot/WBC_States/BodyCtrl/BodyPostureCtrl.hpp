@@ -31,6 +31,7 @@ class BodyPostureCtrl: public Controller<T>{
     protected:
         BodyCtrlTest<T>* _body_test;
         std::vector<filter<T> * > _ori_cmd_filter;
+        std::vector<T> _Kp_joint, _Kd_joint;
         DVec<T> _Kp, _Kd;
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 

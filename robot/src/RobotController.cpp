@@ -11,7 +11,9 @@
 #include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
-//#include <WBC_States/BackFlip/BackFlipTest.hpp>
+#include <WBC_States/BackFlip/BackFlipTest.hpp>
+#include <Configuration.h>
+#include <ParamHandler.hpp>
 
 #include <Utilities/Timer.h>
 #include <unistd.h>
@@ -44,13 +46,23 @@ void RobotController::init() {
   _controlFSM = new ControlFSM<float>(_stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
 
   // For WBC state
+  ParamHandler handler(THIS_COM"robot/WBC_States/config/ROBOT_test_setup.yaml");
+  std::string test_name;
+  if(!handler.getString("test_name", test_name)){
+    printf("cannot find test name\n");
+    exit(0);
+  }
   _model = _quadruped.buildModel();
-  //_wbc_state = new BodyCtrlTest<float>(&_model, robotType);
+  if(test_name == "body_ctrl"){
+      _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
+  }else if(test_name == "wbdc_trot"){
+      _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
+  }else if(test_name == "wblc_trot"){
+      _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
+  }
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptPlayTest<float>(&_model, robotType);
   //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
-  //_wbc_state = new WBDCTrotTest<float>(&_model, robotType);
-  _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);
 
   _jpos_initializer = new JPosInitializer<float>(4.);
@@ -108,6 +120,11 @@ void RobotController::run() {
         0, 0.1, 0,
         0, 0, 0.1;
     _ini_yaw = _stateEstimator->getResult().rpy[2];
+    for (int leg = 0; leg < 4; leg++) {
+        _legController->commands[leg].kpJoint = kpMat;
+        _legController->commands[leg].kdJoint = kdMat;
+
+    }
  } else {
       Vec3<float> rpy = _stateEstimator->getResult().rpy;
       rpy[2] -= _ini_yaw;
@@ -146,21 +163,7 @@ void RobotController::run() {
 
     // === End of WBC state command computation  =========== //
 
-    // run the controller:
-    kpMat << controlParameters->stand_kp_cartesian[0], 0, 0,
-          0, controlParameters->stand_kp_cartesian[1], 0,
-          0, 0, controlParameters->stand_kp_cartesian[2];
-
-    kdMat << controlParameters->stand_kd_cartesian[0], 0, 0,
-          0, controlParameters->stand_kd_cartesian[1], 0,
-          0, 0, controlParameters->stand_kd_cartesian[2];
-  }
-  for (int leg = 0; leg < 4; leg++) {
-    _legController->commands[leg].kpJoint = kpMat;
-    _legController->commands[leg].kdJoint = kdMat;
-
-  }
-
+}
   /*
   // Find the current gait schedule
   _gaitScheduler->step();

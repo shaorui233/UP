@@ -1,37 +1,20 @@
-#ifndef WHOLE_BODY_DYNAMIC_CONTROL_H
-#define WHOLE_BODY_DYNAMIC_CONTROL_H
+#ifndef WHOLE_BODY_DYNAMIC_CONTROL_FULL_H
+#define WHOLE_BODY_DYNAMIC_CONTROL_FULL_H
 
 #include <WBC/WBC.hpp>
 #include <WBC/ContactSpec.hpp>
 #include <WBC/Task.hpp>
 #include <Utilities/Utilities_print.h>
 #include <Goldfarb_Optimizer/QuadProg++.hh>
+#include "WBDC.hpp"
 
 template<typename T>
-class WBDC_ExtraData{
+class WBDC_Full: public WBC<T>{
     public:
-        // Output
-        DVec<T> _opt_result;
-        DVec<T> _qddot;
-        DVec<T> _Fr;
-
-        // Input
-        DVec<T> _W_contact;
-        DVec<T> _W_task;
-        DVec<T> _W_rf;
-        DVec<T> _contact_pt_acc;
-
-        WBDC_ExtraData(){}
-        ~WBDC_ExtraData(){}
-};
-
-template<typename T>
-class WBDC: public WBC<T>{
-    public:
-        WBDC(size_t num_qdot, 
+        WBDC_Full(size_t num_qdot, 
             const std::vector<ContactSpec<T>* > & contact_list,
             const std::vector<Task<T>* > & task_list);
-        virtual ~WBDC(){}
+        virtual ~WBDC_Full(){}
 
         virtual void UpdateSetting(const DMat<T> & A,
                 const DMat<T> & Ainv,
@@ -44,6 +27,7 @@ class WBDC: public WBC<T>{
                 void* extra_input = NULL);
 
     private:
+        bool _b_first_visit;
         std::vector<ContactSpec<T> *> _contact_list;
         std::vector<Task<T> *> _task_list;
 
@@ -86,6 +70,10 @@ class WBDC: public WBC<T>{
         DMat<T> _S_delta;
         DMat<T> _Uf;
         DVec<T> _Uf_ieq_vec;
+
+        DMat<T> _Ja;
+        DVec<T> _JaDotQdot;
+        DVec<T> _xa_ddot;
 
         DMat<T> _Jc;
         DVec<T> _JcDotQdot;

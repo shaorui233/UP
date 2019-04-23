@@ -6,7 +6,6 @@
 #include <WBC_States/common/TaskSet/BodyPostureTask.hpp>
 
 #include <WBC/WBDC/WBDC.hpp>
-#include <ParamHandler/ParamHandler.hpp>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 
 template <typename T>
@@ -81,6 +80,8 @@ void WBDCVM_TwoContactTransCtrl<T>::OneStep(void* _cmd){
 
             //((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
                 //_des_jvel[cheetah::num_leg_joint * leg + jidx];
+            ((LegControllerCommand<T>*)_cmd)[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+            ((LegControllerCommand<T>*)_cmd)[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
         }
     }
     Ctrl::_PostProcessing_Command();
@@ -201,29 +202,31 @@ bool WBDCVM_TwoContactTransCtrl<T>::EndOfPhase(){
 
 template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::CtrlInitialization(const std::string & category_name){
-    ParamHandler handler(_test_file_name);
-    handler.getValue<T>(category_name, "max_rf_z", _max_rf_z);
-    handler.getValue<T>(category_name, "min_rf_z", _min_rf_z);
+    _param_handler->getValue<T>(category_name, "max_rf_z", _max_rf_z);
+    _param_handler->getValue<T>(category_name, "min_rf_z", _min_rf_z);
     //printf("rf max/min: %f/%f\n", _max_rf_z, _min_rf_z);
 }
 
 template <typename T>
 void WBDCVM_TwoContactTransCtrl<T>::SetTestParameter(const std::string & test_file){
-    _test_file_name = test_file;
-    ParamHandler handler(_test_file_name);
-    handler.getValue<T>("body_height", _target_body_height);
-    handler.getValue<T>("transition_time", _end_time);
+    _param_handler = new ParamHandler(test_file);
+    _param_handler->getValue<T>("body_height", _target_body_height);
+    _param_handler->getValue<T>("transition_time", _end_time);
     //printf("target body height: %f\n", _target_body_height);
 
     std::vector<T> tmp_vec;
-    handler.getVector<T>("body_posture_Kp", tmp_vec);
+    _param_handler->getVector<T>("body_posture_Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){ 
         ((BodyPostureTask<T>*)_body_posture_task)->_Kp[i] = tmp_vec[i]; 
     }
-    handler.getVector<T>("body_posture_Kd", tmp_vec);
+    _param_handler->getVector<T>("body_posture_Kd", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){ 
         ((BodyPostureTask<T>*)_body_posture_task)->_Kd[i] = tmp_vec[i]; 
     }
+    // Joint level feedback gain
+    _param_handler->getVector<T>("Kp_joint", _Kp_joint);
+    _param_handler->getVector<T>("Kd_joint", _Kd_joint);
+
 }
 
 template <typename T>

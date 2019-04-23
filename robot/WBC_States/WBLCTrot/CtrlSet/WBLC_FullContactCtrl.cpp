@@ -113,8 +113,12 @@ void WBLC_FullContactCtrl<T>::OneStep(void* _cmd){
 
             ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
                 _des_jvel[cheetah::num_leg_joint * leg + jidx];
+            
+            ((LegControllerCommand<T>*)_cmd)[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+            ((LegControllerCommand<T>*)_cmd)[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
         }
     }
+
     Ctrl::_PostProcessing_Command();
 }
 
@@ -218,6 +222,9 @@ void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
+    // Joint level feedback gain
+    _param_handler->getVector<T>("Kp_joint", _Kp_joint);
+    _param_handler->getVector<T>("Kd_joint", _Kd_joint);
     // Feedback gain for kinematic tasks
     _param_handler->getVector<T>("Kp_body_pos_kin", tmp_vec);
     for(size_t i(0); i<_body_pos_task->getDim(); ++i){
@@ -232,7 +239,6 @@ void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     _param_handler->getVector<T>("tau_lim", tmp_vec);
     wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);
     wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[1]);
-
 }
 
 template class WBLC_FullContactCtrl<double>;

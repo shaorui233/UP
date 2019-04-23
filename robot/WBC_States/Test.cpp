@@ -1,5 +1,6 @@
 #include "Test.hpp"
 #include <ParamHandler/ParamHandler.hpp>
+#include <Utilities/Utilities_print.h>
 
 template<typename T>
 Test<T>::Test(FloatingBaseModel<T>* robot, const RobotType & robot_type):
@@ -40,6 +41,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _sp->_Q[1] = _state.bodyOrientation[2];
     _sp->_Q[2] = _state.bodyOrientation[3];
 
+    _body_rpy = ori::quatToRPY(_state.bodyOrientation);
 
     _state.bodyPosition.setZero();
     _state.bodyVelocity.setZero();
@@ -113,7 +115,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     }
     (void)ext_data;
     //_copy_cmd = command;
-    //_UpdateExtraData(ext_data);
+    _UpdateExtraData(ext_data);
     ++_count;
     // When there is sensed time
     _sp->_curr_time += cheetah::servo_rate;
@@ -121,10 +123,11 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
 
 template <typename T>
 void Test<T>::_SafetyCheck(){
-    if(fabs(_sp->_Q[0]) > _roll_limit){
+    //pretty_print(_body_rpy, std::cout, "body rpy");
+    if(fabs(_body_rpy[0]) > _roll_limit){
         _b_running = false;
     }
-    if(fabs(_sp->_Q[1]) > _pitch_limit){
+    if(fabs(_body_rpy[1]) > _pitch_limit){
         _b_running = false;
     }
 }

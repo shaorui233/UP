@@ -12,7 +12,6 @@ class Test{
         virtual ~Test();
 
 
-        //TEST
         constexpr static T dt = 0.001;
         void GetCommand(
                 const Cheetah_Data<T>* data, 
@@ -44,6 +43,7 @@ class Test{
 
         T _roll_limit;
         T _pitch_limit;
+        Vec3<T> _body_rpy;
         bool _b_running;
 
         void _ParameterSetting();

@@ -37,6 +37,7 @@ class JPosCtrl: public Controller<T>{
     protected:
         int _motion_type;
         DVec<T> _Kp, _Kd;
+        std::vector<T> _Kp_joint, _Kd_joint;
 
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 
@@ -62,7 +63,7 @@ class JPosCtrl: public Controller<T>{
         void _contact_setup();
         void _compute_torque_wblc(DVec<T> & gamma);
 
-        ParamHandler* _handler = NULL;
+        ParamHandler* _param_handler = NULL;
         StateProvider<T>* _sp;
         std::string _test_file_name;
 };

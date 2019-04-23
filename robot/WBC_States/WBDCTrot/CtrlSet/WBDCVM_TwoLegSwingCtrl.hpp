@@ -3,9 +3,10 @@
 
 #include <WBC_States/Controller.hpp>
 #include <Utilities/BSplineBasic.h>
+#include <ParamHandler/ParamHandler.hpp>
 
 template <typename T> class ContactSpec;
-template <typename T> class WBDC;
+template <typename T> class WBC;
 template <typename T> class WBDC_ExtraData;
 template <typename T> class StateProvider;
 template <typename T> class WBDCTrotTest;
@@ -55,6 +56,8 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
         void _updateContactAcc(const size_t & cp_idx, const DVec<T>& cmd);
 
         WBDCTrotTest<T>* _trot_test;
+        std::vector<T> _Kp_joint, _Kd_joint;
+
         size_t _cp1, _cp2;
         Vec3<T> _default_target_foot_loc_1;
         Vec3<T> _default_target_foot_loc_2;
@@ -77,7 +80,7 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
         ContactSpec<T>* _hr_contact;
         ContactSpec<T>* _hl_contact;
 
-        WBDC<T>* _wbdc;
+        WBC<T>* _wbdc;
         WBDC_ExtraData<T>* _wbdc_data;
 
         DVec<T> base_pos_ini_;
@@ -99,6 +102,7 @@ class WBDCVM_TwoLegSwingCtrl: public Controller<T>{
         void _contact_setup();
         void _compute_torque_wbdc(DVec<T> & gamma);
 
+        ParamHandler* _param_handler;
         StateProvider<T>* _sp;
         
         std::string _test_file_name;

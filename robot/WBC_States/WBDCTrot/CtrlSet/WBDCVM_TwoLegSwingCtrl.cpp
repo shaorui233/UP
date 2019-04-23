@@ -7,7 +7,7 @@
 #include <WBC_States/common/TaskSet/BodyPostureTask.hpp>
 
 #include <WBC/WBDC/WBDC.hpp>
-#include <ParamHandler/ParamHandler.hpp>
+#include <WBC/WBDC/WBDC_Full.hpp>
 #include <Utilities/utilities.h>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 
@@ -56,6 +56,7 @@ WBDCVM_TwoLegSwingCtrl<T>::WBDCVM_TwoLegSwingCtrl(
     Ctrl::_contact_list.push_back(_hl_contact);
 
     _wbdc = new WBDC<T>(cheetah::dim_config, Ctrl::_contact_list, Ctrl::_task_list);
+    //_wbdc = new WBDC_Full<T>(cheetah::dim_config, Ctrl::_contact_list, Ctrl::_task_list);
     _wbdc_data = new WBDC_ExtraData<T>();
 
     for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
@@ -144,8 +145,11 @@ void WBDCVM_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
             //((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
                 //_des_jpos[cheetah::num_leg_joint * leg + jidx];
 
-            //((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
+                //((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
                 //_des_jvel[cheetah::num_leg_joint * leg + jidx];
+
+            ((LegControllerCommand<T>*)_cmd)[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+            ((LegControllerCommand<T>*)_cmd)[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
         }
     }
     Ctrl::_PostProcessing_Command();
@@ -203,8 +207,8 @@ void WBDCVM_TwoLegSwingCtrl<T>::_task_setup(){
 
 
     // Capture Point
-    //if(false){
-    if(true){
+    if(false){
+    //if(true){
         Vec3<T> global_body_vel;
         Vec3<T> local_body_vel;
         for(size_t i(0);i<3; ++i){
@@ -393,27 +397,27 @@ template <typename T>
 void WBDCVM_TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
     ParamHandler handler(_test_file_name);
     std::vector<T> tmp_vec;
-    handler.getVector<T>(category_name, "default_target_foot_location_1", tmp_vec);
+    _param_handler->getVector<T>(category_name, "default_target_foot_location_1", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _default_target_foot_loc_1[i] = tmp_vec[i];
     }
-    handler.getVector<T>(category_name, "default_target_foot_location_2", tmp_vec);
+    _param_handler->getVector<T>(category_name, "default_target_foot_location_2", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _default_target_foot_loc_2[i] = tmp_vec[i];
     }
-    handler.getValue<T>(category_name, "swing_height", _swing_height);
+    _param_handler->getValue<T>(category_name, "swing_height", _swing_height);
 
-    handler.getVector<T>(category_name, "landing_offset", tmp_vec);
+    _param_handler->getVector<T>(category_name, "landing_offset", tmp_vec);
     //pretty_print(tmp_vec, "landing offset");
     for(size_t i(0); i<3; ++i) _landing_offset[i] = tmp_vec[i];
 
-    handler.getVector<T>(category_name, "foot_Kp", tmp_vec);
+    _param_handler->getVector<T>(category_name, "foot_Kp", tmp_vec);
     for(size_t i(0); i<3; ++i) { 
         ((LinkPosTask<T>*)_cp_pos_task1)->_Kp[i] = tmp_vec[i]; 
         ((LinkPosTask<T>*)_cp_pos_task2)->_Kp[i] = tmp_vec[i]; 
     }
 
-    handler.getVector<T>(category_name, "foot_Kd", tmp_vec);
+    _param_handler->getVector<T>(category_name, "foot_Kd", tmp_vec);
     for(size_t i(0); i<3; ++i) { 
         ((LinkPosTask<T>*)_cp_pos_task1)->_Kd[i] = tmp_vec[i]; 
         ((LinkPosTask<T>*)_cp_pos_task2)->_Kd[i] = tmp_vec[i]; 
@@ -423,17 +427,16 @@ void WBDCVM_TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_
 
 template <typename T>
 void WBDCVM_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
-    _test_file_name = test_file;
-    ParamHandler handler(_test_file_name);
-    handler.getValue<T>("body_height", _target_body_height);
-    handler.getValue<T>("swing_time", _end_time);
+    _param_handler = new ParamHandler(test_file);
+    _param_handler->getValue<T>("body_height", _target_body_height);
+    _param_handler->getValue<T>("swing_time", _end_time);
 
     std::vector<T> tmp_vec;
-    handler.getVector<T>("body_posture_Kp", tmp_vec);
+    _param_handler->getVector<T>("body_posture_Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){ 
         ((BodyPostureTask<T>*)_body_posture_task)->_Kp[i] = tmp_vec[i]; 
     }
-    handler.getVector<T>("body_posture_Kd", tmp_vec);
+    _param_handler->getVector<T>("body_posture_Kd", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){ 
         ((BodyPostureTask<T>*)_body_posture_task)->_Kd[i] = tmp_vec[i]; 
     }
@@ -442,12 +445,17 @@ void WBDCVM_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
     _step_time += _end_time;
     
     T tmp_value;
-    handler.getValue<T>("transition_time", tmp_value);
+    _param_handler->getValue<T>("transition_time", tmp_value);
     _step_time += tmp_value;
     _step_time += tmp_value;
     
-    handler.getValue<T>("stance_time", tmp_value);
+    _param_handler->getValue<T>("stance_time", tmp_value);
     _step_time += tmp_value;
+    
+    // Joint level feedback gain
+    _param_handler->getVector<T>("Kp_joint", _Kp_joint);
+    _param_handler->getVector<T>("Kd_joint", _Kd_joint);
+
 }
 
 template class WBDCVM_TwoLegSwingCtrl<double>;

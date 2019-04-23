@@ -3,6 +3,7 @@
 
 #include <WBC_States/Controller.hpp>
 #include <Utilities/BSplineBasic.h>
+#include <ParamHandler/ParamHandler.hpp>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBLC;
@@ -85,6 +86,7 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
 
         DVec<T> Kp_;
         DVec<T> Kd_;
+        std::vector<T> _Kp_joint, _Kd_joint;
         
         DVec<T> des_jpos_;
         DVec<T> des_jvel_;
@@ -105,6 +107,7 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
         void _contact_setup();
         void _compute_torque_wblc(DVec<T> & gamma);
 
+        ParamHandler* _param_handler;
         StateProvider<T>* _sp;
         T _dir_command[2];
         std::string _test_file_name;

@@ -2,6 +2,7 @@
 #define PLANNED_TROT_TWO_CONTACT_TRANSITION_CHEETAH
 
 #include <WBC_States/Controller.hpp>
+#include <ParamHandler/ParamHandler.hpp>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBDC;
@@ -28,6 +29,7 @@ class WBDCVM_TwoContactTransCtrl: public Controller<T>{
         void _SetContact(const size_t & cp_idx, const T & upper_lim, 
                 const T & rf_weight, const T & rf_weight_z, const T & foot_weight);
 
+        std::vector<T> _Kp_joint, _Kd_joint;
         WBDCTrotTest<T> * _trot_test;
         size_t _cp1, _cp2;
         int _transit_dir; // 1: swing start, -1: swing end
@@ -60,6 +62,7 @@ class WBDCVM_TwoContactTransCtrl: public Controller<T>{
         void _contact_setup();
         void _compute_torque_wbdc(DVec<T> & gamma);
 
+        ParamHandler* _param_handler;
         StateProvider<T>* _sp;
         std::string _test_file_name;
 };

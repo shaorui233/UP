@@ -11,7 +11,6 @@
 
 #include <WBC/WBLC/KinWBC.hpp>
 #include <WBC/WBLC/WBLC.hpp>
-#include <ParamHandler/ParamHandler.hpp>
 
 template <typename T>
 FullContactCtrl<T>::FullContactCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
@@ -110,6 +109,9 @@ void FullContactCtrl<T>::OneStep(void* _cmd){
 
             ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
                 _des_jvel[cheetah::num_leg_joint * leg + jidx];
+
+            ((LegControllerCommand<T>*)_cmd)[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+            ((LegControllerCommand<T>*)_cmd)[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
         }
     }
     Ctrl::_PostProcessing_Command();
@@ -218,6 +220,10 @@ void FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
+    // Joint level feedback gain
+    _param_handler->getVector<T>("Kp_joint", _Kp_joint);
+    _param_handler->getVector<T>("Kd_joint", _Kd_joint);
+
 }
 
 template class FullContactCtrl<double>;

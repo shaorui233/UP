@@ -192,8 +192,6 @@ void WBDCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
             saveValue(_sp->_curr_time, _folder_name, "time");
             saveVector(_body_pos, _folder_name, "body_pos");
             saveVector(_body_vel, _folder_name, "body_vel");
-            //saveVector(Test<T>::_robot->_state.bodyVelocity, _folder_name, "full_body_vel");
-            saveVector(_body_acc, _folder_name, "body_acc");
 
             Vec3<T> body_ori_rpy = ori::quatToRPY(Test<T>::_robot->_state.bodyOrientation);
             saveVector(body_ori_rpy, _folder_name, "body_ori_rpy");
@@ -230,10 +228,10 @@ void WBDCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
             saveVector(Test<T>::_robot->_vGC[linkID::HR], _folder_name, "hr_vel");
             saveVector(Test<T>::_robot->_vGC[linkID::HL], _folder_name, "hl_vel");
 
-            saveVector((Test<T>::_copy_cmd)[0].tauFeedForward, _folder_name, "fr_tau");
-            saveVector((Test<T>::_copy_cmd)[1].tauFeedForward, _folder_name, "fl_tau");
-            saveVector((Test<T>::_copy_cmd)[2].tauFeedForward, _folder_name, "hr_tau");
-            saveVector((Test<T>::_copy_cmd)[3].tauFeedForward, _folder_name, "hl_tau");
+            //saveVector((Test<T>::_copy_cmd)[0].tauFeedForward, _folder_name, "fr_tau");
+            //saveVector((Test<T>::_copy_cmd)[1].tauFeedForward, _folder_name, "fl_tau");
+            //saveVector((Test<T>::_copy_cmd)[2].tauFeedForward, _folder_name, "hr_tau");
+            //saveVector((Test<T>::_copy_cmd)[3].tauFeedForward, _folder_name, "hl_tau");
         }
         ++count;
     }

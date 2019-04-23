@@ -42,7 +42,7 @@ JPosCtrl<T>::JPosCtrl(const FloatingBaseModel<T>* robot):Controller<T>(robot),
 
 template <typename T>
 JPosCtrl<T>::~JPosCtrl(){
-    delete _handler;
+    delete _param_handler;
     delete _wblc;
     delete _wblc_data;
 
@@ -159,14 +159,14 @@ bool JPosCtrl<T>::EndOfPhase(){
 
 template <typename T>
 void JPosCtrl<T>::CtrlInitialization(const std::string & category_name){
-    if(_handler){
+    if(_param_handler){
         std::string tmp_str;
-        _handler->getString(category_name, "motion_type", tmp_str);
+        _param_handler->getString(category_name, "motion_type", tmp_str);
         if(tmp_str == "swing"){
             _motion_type = MotionType::swing;
-            _handler->getVector<T>(category_name, "amplitude", _swing_amp);
-            _handler->getVector<T>(category_name, "frequency", _swing_freq);
-            _handler->getVector<T>(category_name, "phase", _swing_phase);
+            _param_handler->getVector<T>(category_name, "amplitude", _swing_amp);
+            _param_handler->getVector<T>(category_name, "frequency", _swing_freq);
+            _param_handler->getVector<T>(category_name, "phase", _swing_phase);
         }else if(tmp_str == "stay"){
             _motion_type = MotionType::stay;
         }else if(tmp_str == "move_to_target"){
@@ -174,7 +174,7 @@ void JPosCtrl<T>::CtrlInitialization(const std::string & category_name){
         }else{
             printf("[JPos Ctrl] Invalid Motion Type\n");
         }
-        _handler->getValue<T>(category_name, "move_time", _end_time);
+        _param_handler->getValue<T>(category_name, "move_time", _end_time);
     }else {
         printf("[JPosCtrl] Yaml file is not properly set\n");
     }
@@ -182,22 +182,25 @@ void JPosCtrl<T>::CtrlInitialization(const std::string & category_name){
 
 template <typename T>
 void JPosCtrl<T>::SetTestParameter(const std::string & test_file){
-    _handler = new ParamHandler(test_file);
+    _param_handler = new ParamHandler(test_file);
     _test_file_name = test_file;
 
     std::vector<T> tmp_vec;
-    _handler->getVector<T>("target_jpos", tmp_vec);
+    _param_handler->getVector<T>("target_jpos", tmp_vec);
     for(size_t i(0); i<cheetah::num_act_joint; ++i) _jpos_target[i] = tmp_vec[i];
 
     // Feedback Gain
-    _handler->getVector<T>("Kp", tmp_vec);
+    _param_handler->getVector<T>("Kp", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kp[i] = tmp_vec[i];
     }
-    _handler->getVector<T>("Kd", tmp_vec);
+    _param_handler->getVector<T>("Kd", tmp_vec);
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
+    // Joint level feedback gain
+    _param_handler->getVector<T>("Kp_joint", _Kp_joint);
+    _param_handler->getVector<T>("Kd_joint", _Kd_joint);
 }
 
 

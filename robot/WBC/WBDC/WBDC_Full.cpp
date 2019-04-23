@@ -1,13 +1,13 @@
-#include "WBDC.hpp"
+#include "WBDC_Full.hpp"
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
 #include <Utilities/Timer.h>
 
 template<typename T> 
-WBDC<T>::WBDC(size_t num_qdot, 
+WBDC_Full<T>::WBDC_Full(size_t num_qdot, 
         const std::vector<ContactSpec<T> * > & contact_list, 
         const std::vector<Task<T> * > & task_list): 
-    WBC<T>(num_qdot){
+    WBC<T>(num_qdot), _b_first_visit(true){
 
     _Sf = DMat<T>::Zero(6, WB::num_qdot_);
     _Sf.block(0,0, 6, 6).setIdentity();
@@ -25,7 +25,8 @@ WBDC<T>::WBDC(size_t num_qdot,
     for(size_t i(0);i<(task_list).size(); ++i){
         _task_list.push_back(task_list[i]);
     }
-    _dim_opt = _dim_first_task + _dim_rf; 
+    // xddot_contact, first_task, reaction force
+    _dim_opt = _dim_rf + _dim_first_task + _dim_rf; 
     _dim_eq_cstr = 6;
 
     // Matrix Setting
@@ -47,6 +48,11 @@ WBDC<T>::WBDC(size_t num_qdot,
     _Uf = DMat<T>(_dim_Uf, _dim_rf); _Uf.setZero();
     _Uf_ieq_vec = DVec<T>(_dim_Uf);
  
+    _Ja = DMat<T>(_dim_rf + _dim_first_task, WB::num_qdot_);
+    _JaDotQdot = DVec<T>(_dim_rf + _dim_first_task);
+    _xa_ddot = DVec<T>(_dim_rf + _dim_first_task); 
+
+
     for(size_t i(0); i<_dim_opt; ++i){
         for(size_t j(0); j<_dim_opt; ++j){
             G[i][j] = 0.;
@@ -57,11 +63,11 @@ WBDC<T>::WBDC(size_t num_qdot,
 }
 
 template<typename T> 
-void WBDC<T>::MakeTorque(
+void WBDC_Full<T>::MakeTorque(
         DVec<T> & cmd,
         void* extra_input){
 
-    if(!WB::b_updatesetting_) { printf("[Wanning] WBDC setting is not done\n"); }
+    if(!WB::b_updatesetting_) { printf("[Wanning] WBDC_Full setting is not done\n"); }
     if(extra_input) _data = static_cast<WBDC_ExtraData<T>* >(extra_input);
     _SetCost();
 
@@ -70,14 +76,9 @@ void WBDC<T>::MakeTorque(
     // Set inequality constraints
     _SetInEqualityConstraint();
 
-    DMat<T> JcBar;
-    WB::_WeightedInverse(_Jc, WB::Ainv_, JcBar);
-    DVec<T> qddot_pre = JcBar * (_data->_contact_pt_acc - _JcDotQdot);
-    DMat<T> Npre = _eye - JcBar * _Jc;
-
     // First Task Check
     Task<T>* task = _task_list[0];
-    DMat<T> Jt, JtBar, JtPre;
+    DMat<T> Jt, JaBar;
     DVec<T> JtDotQdot, xddot;
 
     if(!task->IsTaskSet()){ printf("1st task is not set!\n"); exit(0); }
@@ -85,15 +86,21 @@ void WBDC<T>::MakeTorque(
     task->getTaskJacobianDotQdot(JtDotQdot);
     task->getCommand(xddot);
 
-    JtPre = Jt * Npre;
-    WB::_WeightedInverse(JtPre, WB::Ainv_, JtBar);
+    _Ja.block(0,0, _dim_rf, WB::num_qdot_) = _Jc;
+    _Ja.block(_dim_rf,0, _dim_first_task, WB::num_qdot_) = Jt;
+    _JaDotQdot.head(_dim_rf) = _JcDotQdot;
+    _JaDotQdot.tail(_dim_first_task) = JtDotQdot;
+
+    WB::_WeightedInverse(_Ja, WB::Ainv_, JaBar);
+
+    _xa_ddot.head(_dim_rf) = _data->_contact_pt_acc;
+    _xa_ddot.tail(_dim_first_task) = xddot;
 
     // Optimization
     // Set equality constraints
-    _dyn_CE.block(0,0, _dim_eq_cstr, _dim_first_task) = _Sf * WB::A_ * JtBar;
-    _dyn_CE.block(0, _dim_first_task , _dim_eq_cstr, _dim_rf) = -_Sf * _Jc.transpose();
-    _dyn_ce0 = _Sf *(WB::A_ * ( qddot_pre + JtBar * (xddot - Jt* qddot_pre - JtDotQdot) ) 
-                   + WB::cori_ + WB::grav_);
+    _dyn_CE.block(0,0, _dim_eq_cstr, _dim_first_task + _dim_rf) = _Sf * WB::A_ * JaBar;
+    _dyn_CE.block(0, _dim_first_task + _dim_rf, _dim_eq_cstr, _dim_rf) = -_Sf * _Jc.transpose();
+    _dyn_ce0 = _Sf * (WB::A_ * JaBar * (_xa_ddot - _JaDotQdot) + WB::cori_ + WB::grav_);
     
     for(size_t i(0); i< _dim_eq_cstr; ++i){
         for(size_t j(0); j<_dim_opt; ++j){
@@ -105,14 +112,15 @@ void WBDC<T>::MakeTorque(
     T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
 
     (void)f;
-    DVec<T> delta(_dim_first_task);
-    for(size_t i(0); i<_dim_first_task; ++i) { delta[i] = z[i]; }
-    qddot_pre += JtBar * (xddot + delta -Jt*qddot_pre - JtDotQdot);
+    DVec<T> delta(_dim_rf + _dim_first_task);
+    for(size_t i(0); i<_dim_rf + _dim_first_task; ++i) { delta[i] = z[i]; }
+    DVec<T> qddot_pre = JaBar * (_xa_ddot + delta - _JaDotQdot);
 
     // First Qddot is found
     // Stack The last Task
     if(_task_list.size() > 1){
-        Npre *= (_eye - JtBar * JtPre);
+        DMat<T> JtBar, JtPre;
+        DMat<T> Npre = _eye - JaBar * _Ja;
 
         for(size_t i(1); i<_task_list.size(); ++i){
             task = _task_list[i];
@@ -125,7 +133,7 @@ void WBDC<T>::MakeTorque(
             JtPre = Jt * Npre;
             WB::_WeightedInverse(JtPre, WB::Ainv_, JtBar);
 
-            qddot_pre += JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
+            qddot_pre = qddot_pre + JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
             Npre = Npre * (_eye - JtBar * JtPre);
         }
     }
@@ -136,8 +144,10 @@ void WBDC<T>::MakeTorque(
         _data->_opt_result[i] = z[i];
     }
 
+    if(_b_first_visit){ _b_first_visit = false; }
     //std::cout << "f: " << f << std::endl;
     //std::cout << "x: " << z << std::endl;
+    //pretty_print(_xa_ddot, std::cout, "xa ddot");
     //std::cout << "cmd: "<<cmd<<std::endl;
     //pretty_print(_Sf, std::cout, "Sf");
     //pretty_print(qddot_pre, std::cout, "qddot_pre");
@@ -169,8 +179,8 @@ void WBDC<T>::MakeTorque(
 }
 
 template<typename T> 
-void WBDC<T>::_SetInEqualityConstraint(){
-    _dyn_CI.block(0, _dim_first_task, _dim_Uf, _dim_rf) = _Uf;
+void WBDC_Full<T>::_SetInEqualityConstraint(){
+    _dyn_CI.block(0, _dim_first_task + _dim_rf, _dim_Uf, _dim_rf) = _Uf;
     _dyn_ci0 = _Uf_ieq_vec;
 
     for(size_t i(0); i< _dim_Uf; ++i){
@@ -179,12 +189,12 @@ void WBDC<T>::_SetInEqualityConstraint(){
         }
         ci0[i] = -_dyn_ci0[i];
     }
-    // pretty_print(dyn_CI, std::cout, "WBDC: CI");
-    // pretty_print(dyn_ci0, std::cout, "WBDC: ci0");
+    // pretty_print(dyn_CI, std::cout, "WBDC_Full: CI");
+    // pretty_print(dyn_ci0, std::cout, "WBDC_Full: ci0");
 }
 
 template<typename T> 
-void WBDC<T>::_ContactBuilding(){
+void WBDC_Full<T>::_ContactBuilding(){
     DMat<T> Uf;
     DVec<T> Uf_ieq_vec;
     // Initial
@@ -230,17 +240,17 @@ void WBDC<T>::_ContactBuilding(){
         dim_accumul_rf += dim_new_rf;
         dim_accumul_uf += dim_new_uf;
     }
-     //pretty_print(_Jc, std::cout, "[WBDC] Jc");
-     //pretty_print(_JcDotQdot, std::cout, "[WBDC] JcDot Qdot");
-     //pretty_print(_Uf, std::cout, "[WBDC] Uf");
+     //pretty_print(_Jc, std::cout, "[WBDC_Full] Jc");
+     //pretty_print(_JcDotQdot, std::cout, "[WBDC_Full] JcDot Qdot");
+     //pretty_print(_Uf, std::cout, "[WBDC_Full] Uf");
 }
 
 template<typename T> 
-void WBDC<T>::_GetSolution(const DVec<T> & qddot, DVec<T> & cmd){
+void WBDC_Full<T>::_GetSolution(const DVec<T> & qddot, DVec<T> & cmd){
     _data->_Fr = DVec<T>(_dim_rf);
 
     // get Reaction forces
-    for(size_t i(0); i<_dim_rf; ++i) _data->_Fr[i] = z[i + _dim_first_task];
+    for(size_t i(0); i<_dim_rf; ++i) _data->_Fr[i] = z[i + _dim_rf + _dim_first_task];
     DVec<T> tot_tau = WB::A_ * qddot + WB::cori_ + WB::grav_ - _Jc.transpose() * _data->_Fr;
 
     _data->_qddot = qddot;
@@ -253,9 +263,13 @@ void WBDC<T>::_GetSolution(const DVec<T> & qddot, DVec<T> & cmd){
 }
 
 template<typename T> 
-void WBDC<T>::_SetCost(){
+void WBDC_Full<T>::_SetCost(){
     // Set Cost
     size_t idx_offset(0);
+    for (size_t i(0); i< _dim_rf; ++i){
+        G[i+idx_offset][i+idx_offset] = _data->_W_contact[i];
+    }
+    idx_offset += _dim_rf;
     for (size_t i(0); i< _dim_first_task; ++i){
         G[i+idx_offset][i+idx_offset] = _data->_W_task[i];
     }
@@ -271,7 +285,7 @@ void WBDC<T>::_SetCost(){
 
 
 template<typename T> 
-void WBDC<T>::UpdateSetting(const DMat<T> & A,
+void WBDC_Full<T>::UpdateSetting(const DMat<T> & A,
         const DMat<T> & Ainv,
         const DVec<T> & cori,
         const DVec<T> & grav,
@@ -286,7 +300,7 @@ void WBDC<T>::UpdateSetting(const DMat<T> & A,
 }
 
 template<typename T> 
-bool WBDC<T>::_CheckNullSpace(const DMat<T> & Npre){
+bool WBDC_Full<T>::_CheckNullSpace(const DMat<T> & Npre){
     DMat<T> M_check = _Sf * WB::A_ * Npre;
     Eigen::JacobiSVD<DMat<T>> svd(M_check, Eigen::ComputeThinU | Eigen::ComputeThinV);
     //pretty_print(svd.singularValues(), std::cout, "svd singular value");
@@ -304,5 +318,5 @@ bool WBDC<T>::_CheckNullSpace(const DMat<T> & Npre){
 }
 
 
-template class WBDC<double>;
-template class WBDC<float>;
+template class WBDC_Full<double>;
+template class WBDC_Full<float>;

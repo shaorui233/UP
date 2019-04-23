@@ -1,3 +1,3 @@
 # Safety
-roll_limit: 0.57
-pitch_limit: 0.42
+roll_limit: 1.4 # ~ 80 degree
+pitch_limit: 1.4
