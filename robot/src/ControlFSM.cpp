@@ -19,11 +19,13 @@
  * @param _desiredStateCommand gets the desired COM state trajectories
  */
 template <typename T>
-ControlFSM<T>::ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
+ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
+                          StateEstimatorContainer<T>* _stateEstimator,
                           LegController<T>* _legController,
                           GaitScheduler<T>* _gaitScheduler,
                           DesiredStateCommand<T>* _desiredStateCommand,
                           RobotControlParameters* controlParameters) {
+  data._quadruped = _quadruped;
   data._stateEstimator = _stateEstimator;
   data._legController = _legController;
   data._gaitScheduler = _gaitScheduler;
@@ -235,7 +237,7 @@ void ControlFSM<T>::printInfo(int opt) {
       printIter = 0;
     }
 
-    // Print robot info about the robot's status 
+    // Print robot info about the robot's status
     //data._gaitScheduler->printGaitInfo();
     //data._desiredStateCommand->printStateCommandInfo();
 
