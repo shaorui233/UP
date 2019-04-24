@@ -50,38 +50,51 @@ template <typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
   // Get the next state
   iter++;
-  if (iter >= 2058) {
+
+
+  // Switch FSM control mode
+  switch ((int)this->_data->controlParameters->control_mode) {
+  case K_BALANCE_STAND:
+    // Normal operation for state based transitions
+
+    // Need a working state estimator for this
+    /*if (velocity > v_max) {
+      // Notify the State of the upcoming next state
+      this->nextStateName = FSM_StateName::LOCOMOTION;
+
+      // Transition instantaneously to locomotion state on request
+      this->transitionDuration = 0.0;
+
+      // Set the next gait in the scheduler to
+      this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
+
+    }*/
+
+    // in place to show automatic non user requested transitions
+    if (iter >= 2058) {
+      this->nextStateName = FSM_StateName::LOCOMOTION;
+      this->_data->controlParameters->control_mode = K_LOCOMOTION;
+      this->transitionDuration = 0.0;
+      this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT; // Or get whatever is in main_control_settings
+      iter = 0;
+    }
+    break;
+
+  case K_LOCOMOTION:
+    // Requested change to balance stand
     this->nextStateName = FSM_StateName::LOCOMOTION;
+
+    // Transition instantaneously to locomotion state on request
     this->transitionDuration = 0.0;
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT; // Or get whatever is in main_control_settings
-    iter = 0;
+
+    // Set the next gait in the scheduler to
+    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+
   }
-
-  /* NEED MAIN CONTROL SETTINGS TO BE PASSED IN
-  if (this->data->main_control_settings.mode == K_LOCOMOTION) {
-    // Notify the State of the upcoming next state
-    this->nextStateName = FSM_StateName::LOCOMOTION;
-
-    // Transition instantaneously to locomotion state on request
-    this->transitionDuration = 0.0;
-
-    // Set the next gait in the scheduler to
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
-
-  }*/
-
-  /*
-    if (velocity > v_max) {
-    // Notify the State of the upcoming next state
-    this->nextStateName = FSM_StateName::LOCOMOTION;
-
-    // Transition instantaneously to locomotion state on request
-    this->transitionDuration = 0.0;
-
-    // Set the next gait in the scheduler to
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
-
-  }*/
 
   // Return the next state name to the FSM
   return this->nextStateName;

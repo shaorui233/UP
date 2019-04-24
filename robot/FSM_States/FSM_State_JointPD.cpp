@@ -30,6 +30,8 @@ void FSM_State_JointPD<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_JointPD<T>::run() {
+
+  // This is just a test, should be running whatever other code you want
   Vec3<T> qDes;
   qDes << 0, -1.052, 2.63;
   Vec3<T> qdDes;
@@ -54,11 +56,22 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
 
   iter++;
 
-  // Switch FSM control mode 
-  if (this->_data->controlParameters->control_mode == 2) {
-  	// Requested change to balance stand
-  	this->nextStateName = FSM_StateName::BALANCE_STAND;
+  // Switch FSM control mode
+  switch ((int)this->_data->controlParameters->control_mode) {
+  case K_JOINT_PD:
+    // Normal operation for state based transitions
+    break;
+
+  case K_BALANCE_STAND:
+    // Requested change to balance stand
+    this->nextStateName = FSM_StateName::BALANCE_STAND;
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+
   }
+
 
   // Get the next state
   return this->nextStateName;

@@ -37,7 +37,7 @@ template <typename T>
 void FSM_State_Locomotion<T>::run() {
   // Call the locomotion control logic for this iteration
   LocomotionControlStep();
-  
+
 }
 
 
@@ -51,11 +51,42 @@ template <typename T>
 FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   // Get the next state
   iter++;
-  if (iter >= 2058) {
+
+  // Switch FSM control mode
+  switch ((int)this->_data->controlParameters->control_mode) {
+  case K_LOCOMOTION:
+    // Normal operation for state based transitions
+
+    // Need a working state estimator for this
+    /*if (velocity < v_min) {
+      this->nextStateName = FSM_StateName::BALANCE_STAND;
+
+      // Transition over the duration of one period
+      this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
+
+      // Notify the gait scheduler that the robot is transitioning to stand
+      this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
+
+    }*/
+
+    // in place to show automatic non user requested transitions
+    if (iter >= 2058) {
+      this->nextStateName = FSM_StateName::BALANCE_STAND;
+      this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
+      this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
+      this->_data->controlParameters->control_mode = K_BALANCE_STAND;
+      iter = 0;
+    }
+    break;
+
+  case K_BALANCE_STAND:
+    // Requested change to balance stand
     this->nextStateName = FSM_StateName::BALANCE_STAND;
-    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
-    iter = 0;
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+
   }
 
   /*if (this->data->main_control_settings.mode == K_BALANCE_STAND) {
@@ -69,16 +100,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
 
   }*/
 
-  /*if (velocity < v_min) {
-    this->nextStateName = FSM_StateName::BALANCE_STAND;
 
-    // Transition over the duration of one period
-    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-
-    // Notify the gait scheduler that the robot is transitioning to stand
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
-
-  }*/
 
   // Return the next state name to the FSM
   return this->nextStateName;

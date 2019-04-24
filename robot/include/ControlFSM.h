@@ -46,7 +46,8 @@ struct FSM_StatesList {
 template <typename T>
 class ControlFSM {
 public:
-  ControlFSM(StateEstimatorContainer<T>* _stateEstimator,
+  ControlFSM(Quadruped<T>* _quadruped,
+             StateEstimatorContainer<T>* _stateEstimator,
              LegController<T>* _legController,
              GaitScheduler<T>* _gaitScheduler,
              DesiredStateCommand<T>* _desiredStateCommand,
