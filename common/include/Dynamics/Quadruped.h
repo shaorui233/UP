@@ -53,7 +53,7 @@ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   T _bodyLength, _bodyWidth, _bodyHeight, _bodyMass;
   T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
-  T _abadLinkLength, _hipLinkLength, _kneeLinkLenght;
+  T _abadLinkLength, _hipLinkLength, _kneeLinkLength;
   T _motorKT, _motorR, _batteryV;
   T _motorTauMax;
   T _jointDamping, _jointDryFriction;

@@ -41,7 +41,7 @@ Quadruped<T> buildCheetah3() {
   cheetah._kneeGearRatio = 8.846;
   cheetah._abadLinkLength = 0.045;
   cheetah._hipLinkLength  = 0.342;
-  cheetah._kneeLinkLenght = 0.345;
+  cheetah._kneeLinkLength = 0.345;
 
   cheetah._batteryV = 65;
   cheetah._motorKT = 0.266;

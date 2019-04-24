@@ -206,7 +206,7 @@ template<typename T>
 void computeLegJacobianAndPosition(Quadruped<T>& quad, Vec3<T>& q, Mat3<T>* J, Vec3<T>* p, int leg) {
   T l1 = quad._abadLinkLength;
   T l2 = quad._hipLinkLength;
-  T l3 = quad._kneeLinkLenght;
+  T l3 = quad._kneeLinkLength;
   T sideSign = quad.getSideSign(leg);
 
   T s1 = std::sin(q(0));

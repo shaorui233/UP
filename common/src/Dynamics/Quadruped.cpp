@@ -79,7 +79,7 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T> & model) {
     }
 
     // add foot
-    model.addGroundContactPoint(bodyID, Vec3<T>(0,0, -_kneeLinkLenght), true);
+    model.addGroundContactPoint(bodyID, Vec3<T>(0,0, -_kneeLinkLength), true);
 
     sideSign *= -1;
   }
@@ -157,7 +157,7 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
     }
 
     // add foot
-    model.addGroundContactPoint(bodyID, Vec3<T>(0,0, -_kneeLinkLenght), true);
+    model.addGroundContactPoint(bodyID, Vec3<T>(0,0, -_kneeLinkLength), true);
 
     sideSign *= -1;
   }
