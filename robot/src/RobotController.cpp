@@ -12,6 +12,7 @@
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 #include <WBC_States/BackFlip/BackFlipTest.hpp>
+#include <WBC_States/Bounding/BoundingTest.hpp>
 #include <Configuration.h>
 #include <ParamHandler.hpp>
 
@@ -20,7 +21,7 @@
 
 void RobotController::init() {
     printf("[RobotController] initialize\n");
-    //usleep(1000000);
+    
     if (robotType == RobotType::MINI_CHEETAH) {
         _quadruped = buildMiniCheetah<float>();
     } else {
@@ -59,6 +60,8 @@ void RobotController::init() {
         _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
     }else if(test_name == "wblc_trot"){
         _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
+    }else if(test_name == "bounding"){
+        _wbc_state = new BoundingTest<float>(&_model, robotType);
     }
     //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
     //_wbc_state = new OptPlayTest<float>(&_model, robotType);

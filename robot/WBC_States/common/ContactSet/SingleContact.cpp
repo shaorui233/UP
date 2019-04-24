@@ -6,14 +6,14 @@
 template <typename T>
 SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     ContactSpec<T>(3),
-    max_Fz_(700.),
-    contact_pt_(pt),
-    dim_U_(6)
+    _max_Fz(700.),
+    _contact_pt(pt),
+    _dim_U(6)
 {
     Contact::idx_Fz_ = 2;
     robot_sys_ = robot;
     Contact::Jc_ = DMat<T>(Contact::dim_contact_, cheetah::dim_config);
-    Contact::Uf_ = DMat<T>::Zero(dim_U_, Contact::dim_contact_);
+    Contact::Uf_ = DMat<T>::Zero(_dim_U, Contact::dim_contact_);
 
     T mu (0.5);
 
@@ -36,7 +36,7 @@ SingleContact<T>::~SingleContact(){  }
 
 template <typename T>
 bool SingleContact<T>::_UpdateJc(){
-    Contact::Jc_ = robot_sys_->_Jc[contact_pt_];
+    Contact::Jc_ = robot_sys_->_Jc[_contact_pt];
     
     //Quat<T> quat = robot_sys_->_state.bodyOrientation;
     //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
@@ -50,7 +50,8 @@ bool SingleContact<T>::_UpdateJc(){
 
 template <typename T>
 bool SingleContact<T>::_UpdateJcDotQdot(){
-    Contact::JcDotQdot_ = DVec<T>::Zero(Contact::dim_contact_);
+    //Contact::JcDotQdot_ = DVec<T>::Zero(Contact::dim_contact_);
+    Contact::JcDotQdot_ = robot_sys_->_Jcdqd[_contact_pt];
     return true;
 }
 
@@ -61,8 +62,8 @@ bool SingleContact<T>::_UpdateUf(){
 
 template <typename T>
 bool SingleContact<T>::_UpdateInequalityVector(){
-    Contact::ieq_vec_ = DVec<T>::Zero(dim_U_);
-    Contact::ieq_vec_[5] = -max_Fz_;
+    Contact::ieq_vec_ = DVec<T>::Zero(_dim_U);
+    Contact::ieq_vec_[5] = -_max_Fz;
     return true;
 }
 

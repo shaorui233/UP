@@ -515,6 +515,15 @@ void FloatingBaseModel<T>::forwardKinematics() {
   _kinematicsUpToDate = true;
 }
 
+template <typename T>
+void FloatingBaseModel<T>::getPositionVelocity(
+        const int & link_idx, const Vec3<T> & local_pos,
+        Vec3<T> & link_pos, Vec3<T> & link_vel) const {
+
+    Mat6<T> Xai = invertSXform(_Xa[link_idx]); // from link to absolute
+    link_pos = sXFormPoint(Xai, local_pos);
+    link_vel = spatialToLinearVelocity(Xai*_v[link_idx], link_pos);
+}
 
 /*!
  * Compute the contact Jacobians (3xn matrices) for the velocity

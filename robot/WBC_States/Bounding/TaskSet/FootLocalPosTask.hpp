@@ -1,18 +1,20 @@
-#ifndef BODY_ORIENTATION_TASK
-#define BODY_ORIENTATION_TASK
-// (Rx, Ry, Rz)
+#ifndef FOOT_LOCAL_POS_TASK
+#define FOOT_LOCAL_POS_TASK
+
+// (X, Y, Z)
 #include <WBC/Task.hpp>
 
 template <typename T> class FloatingBaseModel;
 
 template<typename T>
-class BodyOriTask: public Task<T>{
+class FootLocalPosTask: public Task<T>{
 public:
-  BodyOriTask(const FloatingBaseModel<T>*);
-  virtual ~BodyOriTask();
+  FootLocalPosTask(const FloatingBaseModel<T>*, int link_idx, int local_frame_idx);
+  virtual ~FootLocalPosTask();
 
   DVec<T> _Kp_kin;
   DVec<T> _Kp, _Kd;
+
 protected:
   // Update op_cmd_
   virtual bool _UpdateCommand(void* pos_des,
@@ -24,9 +26,9 @@ protected:
   virtual bool _UpdateTaskJDotQdot();
   virtual bool _AdditionalUpdate(){ return true; }
 
-  int link_idx_;
-  bool virtual_depend_; 
   const FloatingBaseModel<T>* _robot_sys;
+  int _link_idx;
+  int _local_frame_idx;
 };
 
 #endif

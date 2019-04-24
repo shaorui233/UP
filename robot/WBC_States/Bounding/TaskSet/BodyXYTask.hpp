@@ -1,15 +1,16 @@
-#ifndef BODY_ORIENTATION_TASK
-#define BODY_ORIENTATION_TASK
-// (Rx, Ry, Rz)
+#ifndef BODY_XY_POS_TASK
+#define BODY_XY_POS_TASK
+
+// (X, Y, Z)
 #include <WBC/Task.hpp>
 
 template <typename T> class FloatingBaseModel;
 
-template<typename T>
-class BodyOriTask: public Task<T>{
+template <typename T>
+class BodyXYTask: public Task<T>{
 public:
-  BodyOriTask(const FloatingBaseModel<T>*);
-  virtual ~BodyOriTask();
+  BodyXYTask(const FloatingBaseModel<T>*);
+  virtual ~BodyXYTask();
 
   DVec<T> _Kp_kin;
   DVec<T> _Kp, _Kd;
@@ -24,8 +25,6 @@ protected:
   virtual bool _UpdateTaskJDotQdot();
   virtual bool _AdditionalUpdate(){ return true; }
 
-  int link_idx_;
-  bool virtual_depend_; 
   const FloatingBaseModel<T>* _robot_sys;
 };
 

@@ -9,5 +9,5 @@ include_directories("./../")
 
 add_library (${STATE_NAME}_state SHARED ${headers} ${sources} )
 target_link_libraries (${STATE_NAME}_state biomimetics)
-target_link_libraries (${STATE_NAME}_state WBLC WBDC dynacore_param_handler)
+target_link_libraries (${STATE_NAME}_state WBLC WBDC WBIC dynacore_param_handler)
 

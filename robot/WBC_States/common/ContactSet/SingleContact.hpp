@@ -10,11 +10,11 @@ public:
   SingleContact(const FloatingBaseModel<T>* robot, int contact_pt);
   virtual ~SingleContact();
 
-  void setMaxFz(T max_fz){ max_Fz_ = max_fz; }
+  void setMaxFz(T max_fz){ _max_Fz = max_fz; }
 protected:
-  T max_Fz_;
-  int contact_pt_;
-  int dim_U_;
+  T _max_Fz;
+  int _contact_pt;
+  int _dim_U;
 
   virtual bool _UpdateJc();
   virtual bool _UpdateJcDotQdot();
