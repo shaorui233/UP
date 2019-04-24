@@ -13,6 +13,7 @@ SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     Contact::idx_Fz_ = 2;
     robot_sys_ = robot;
     Contact::Jc_ = DMat<T>(Contact::dim_contact_, cheetah::dim_config);
+    Contact::JcDotQdot_ = DVec<T>::Zero(Contact::dim_contact_);
     Contact::Uf_ = DMat<T>::Zero(_dim_U, Contact::dim_contact_);
 
     T mu (0.5);
@@ -50,7 +51,6 @@ bool SingleContact<T>::_UpdateJc(){
 
 template <typename T>
 bool SingleContact<T>::_UpdateJcDotQdot(){
-    //Contact::JcDotQdot_ = DVec<T>::Zero(Contact::dim_contact_);
     Contact::JcDotQdot_ = robot_sys_->_Jcdqd[_contact_pt];
     return true;
 }

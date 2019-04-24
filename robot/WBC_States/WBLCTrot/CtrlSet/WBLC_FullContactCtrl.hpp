@@ -52,7 +52,6 @@ class WBLC_FullContactCtrl: public Controller<T>{
 
         T target_body_height_;
         T ini_body_height_;
-        Vec3<T> ini_body_pos_;
 
         void _task_setup();
         void _contact_setup();

@@ -63,7 +63,7 @@ void RobotController::init() {
   } else if (test_name == "bounding") {
     _wbc_state = new BoundingTest<float>(&_model, robotType);
   }
-   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
+  //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new OptPlayTest<float>(&_model, robotType);
   //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);

@@ -32,7 +32,6 @@ WBLC_FullContactCtrl<T>::WBLC_FullContactCtrl(
     Ctrl::_task_list.push_back(_body_ori_task);
     Ctrl::_task_list.push_back(_body_pos_task);
 
-   
     fr_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::FR);
     fl_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::FL);
     hr_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::HR);
@@ -130,9 +129,17 @@ void WBLC_FullContactCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
         + _Kp.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
         + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
+    //pretty_print(_Kp, std::cout, "Kp");
+    //pretty_print(_Kd, std::cout, "Kd");
+    //pretty_print(des_jacc_cmd, std::cout, "jacc_cmd");
+    //pretty_print(_des_jacc, std::cout, "jacc_ff");
+    //pretty_print(_des_jpos, std::cout, "jpos_cmd");
+    //pretty_print(_des_jvel, std::cout, "jvel_cmd");
+    //pretty_print(Ctrl::_robot_sys->_state.q, std::cout, "q");
+    //pretty_print(Ctrl::_robot_sys->_state.qd, std::cout, "qd");
+ 
     wblc_data_->_des_jacc_cmd = des_jacc_cmd;
     wblc_->MakeTorque(gamma, wblc_data_);
-    //pretty_print(gamma, std::cout, "gamma");
 }
 
 template <typename T>
@@ -185,7 +192,6 @@ void WBLC_FullContactCtrl<T>::_contact_setup(){
 template <typename T>
 void WBLC_FullContactCtrl<T>::FirstVisit(){
     _ctrl_start_time = _sp->_curr_time;
-    ini_body_pos_ = Ctrl::_robot_sys->_state.bodyPosition;
 }
 
 template <typename T>
@@ -202,7 +208,6 @@ bool WBLC_FullContactCtrl<T>::EndOfPhase(){
 template <typename T>
 void WBLC_FullContactCtrl<T>::CtrlInitialization(const std::string & category_name){
     (void)category_name;
-    ini_body_pos_ = Ctrl::_robot_sys->_state.bodyPosition;
 }
 
 template <typename T>
@@ -222,7 +227,7 @@ void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     for(size_t i(0); i<tmp_vec.size(); ++i){
         _Kd[i] = tmp_vec[i];
     }
-    // Joint level feedback gain
+   // Joint level feedback gain
     _param_handler->getVector<T>("Kp_joint", _Kp_joint);
     _param_handler->getVector<T>("Kd_joint", _Kd_joint);
     // Feedback gain for kinematic tasks
@@ -239,6 +244,8 @@ void WBLC_FullContactCtrl<T>::SetTestParameter(const std::string & test_file){
     _param_handler->getVector<T>("tau_lim", tmp_vec);
     wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);
     wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[1]);
+
+    //pretty_print(wblc_data_->tau_min_, std::cout, "tau min");
 }
 
 template class WBLC_FullContactCtrl<double>;

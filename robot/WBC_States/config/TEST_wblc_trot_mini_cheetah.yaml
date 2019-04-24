@@ -9,7 +9,6 @@ stance_time: 0.004
 #transition_time: 0.01
 #stance_time: 0.01
 
-
 step_time_ratio: 0.7
 
 body_height: .25

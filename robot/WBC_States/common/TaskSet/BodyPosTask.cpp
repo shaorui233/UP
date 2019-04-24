@@ -13,6 +13,7 @@ BodyPosTask<T>::BodyPosTask(const FloatingBaseModel<T>* robot):
     TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
     TK::Jt_.block(0, 3, 3, 3).setIdentity();
     TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
+
     _Kp_kin = DVec<T>::Constant(TK::dim_task_, 1.);
 }
 

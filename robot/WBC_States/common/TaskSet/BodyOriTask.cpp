@@ -16,6 +16,7 @@ BodyOriTask<T>::BodyOriTask(const FloatingBaseModel<T>* robot):
     TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
     TK::Jt_.block(0,0,3,3).setIdentity();
     TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
+
     _Kp_kin = DVec<T>::Constant(TK::dim_task_, 1.);
     _Kp = DVec<T>::Constant(TK::dim_task_, 50.);
     _Kd = DVec<T>::Constant(TK::dim_task_, 3.);
@@ -36,7 +37,7 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
     link_ori_inv[1]= -link_ori[1];
     link_ori_inv[2]= -link_ori[2];
     link_ori_inv[3]= -link_ori[3];
-    link_ori_inv /= link_ori.norm();
+    //link_ori_inv /= link_ori.norm();
 
     //Quat<T> ori_err = ori::quatProduct(*ori_cmd, link_ori_inv);
     
@@ -77,9 +78,6 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
 
 template <typename T>
 bool BodyOriTask<T>::_UpdateTaskJacobian(){
-    //Quat<T> quat = _robot_sys->_state.bodyOrientation;
-    //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
-    //TK::Jt_.block(0,0, 3,3) = Rot.transpose();
     return true;
 }
 
