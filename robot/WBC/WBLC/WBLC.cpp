@@ -108,7 +108,7 @@ void WBLC<T>::MakeTorque(
   //std::cout << "x: " << z << std::endl;
   //std::cout << "cmd: "<<cmd<<std::endl;
 
-  if(f > 1.e8){
+  //if(f > 1.e8){
     //std::cout << "f: " << f << std::endl;
     //std::cout << "x: " << z << std::endl;
     //std::cout << "cmd: "<<cmd<<std::endl;
@@ -127,8 +127,8 @@ void WBLC<T>::MakeTorque(
     //std::cout<<CI<<std::endl;
     //printf("ci0:\n");
     //std::cout<<ci0<<std::endl;
-    exit(0);
-  }
+    //exit(0);
+  //}
 }
 
 template<typename T>
