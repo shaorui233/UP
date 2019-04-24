@@ -77,6 +77,7 @@ public:
 
   // Notify the FSM if the state needs to check for rotation safety
   bool checkSafeOrientation = true;
+  bool checkPDesFoot = true;
 
   //
   Mat34<T> jointTorques;

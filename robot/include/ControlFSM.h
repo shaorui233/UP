@@ -22,6 +22,7 @@ enum class FSM_OperatingMode {
   NORMAL,
   TRANSITIONING,
   ESTOP,
+  EDAMP
 };
 
 
@@ -60,7 +61,10 @@ public:
   void runFSM();
 
   //
-  FSM_OperatingMode safetyCheck();
+  FSM_OperatingMode safetyPreCheck();
+
+  //
+  FSM_OperatingMode safetyPostCheck();
 
   // Gets the next FSM_State from the list of created states when requested
   FSM_State<T>* getNextState(FSM_StateName stateName);

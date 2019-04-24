@@ -153,10 +153,10 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
 
   // Test to make sure we can control the robot
   for (int leg = 0; leg < 4; leg++) {
-    this->groundReactionForces.col(leg) << 0.0, 0.0, -110.36;
+    this->groundReactionForces.col(leg) << 0.0, 0.0, 0;//-110.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
 
-    this->footstepLocations.col(leg) << 0.0, 0.0, -0.65;
+    this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength/2;
   }
   Vec3<T> vDes;
   vDes << 0, 0, 0;
