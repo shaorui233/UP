@@ -355,10 +355,16 @@ int FloatingBaseModel<T>::addGroundContactPoint(int bodyID, const Vec3 <T> &loca
  */
 template<typename T>
 void FloatingBaseModel<T>::addGroundContactBoxPoints(int bodyId, const Vec3<T> &dims) {
-  addGroundContactPoint(bodyId, Vec3<T>( dims(0),  dims(1),  dims(2))/2);
-  addGroundContactPoint(bodyId, Vec3<T>(-dims(0),  dims(1),  dims(2))/2);
-  addGroundContactPoint(bodyId, Vec3<T>( dims(0), -dims(1),  dims(2))/2);
-  addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1),  dims(2))/2);
+  //addGroundContactPoint(bodyId, Vec3<T>( dims(0),  dims(1),  dims(2))/2);
+  //addGroundContactPoint(bodyId, Vec3<T>(-dims(0),  dims(1),  dims(2))/2);
+  //addGroundContactPoint(bodyId, Vec3<T>( dims(0), -dims(1),  dims(2))/2);
+  //addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1),  dims(2))/2);
+
+  addGroundContactPoint(bodyId, Vec3<T>( dims(0),  dims(1),  0.)/2);
+  addGroundContactPoint(bodyId, Vec3<T>(-dims(0),  dims(1),  0.)/2);
+  addGroundContactPoint(bodyId, Vec3<T>( dims(0), -dims(1),  0.)/2);
+  addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1),  0.)/2);
+
   addGroundContactPoint(bodyId, Vec3<T>( dims(0),  dims(1), -dims(2))/2);
   addGroundContactPoint(bodyId, Vec3<T>(-dims(0),  dims(1), -dims(2))/2);
   addGroundContactPoint(bodyId, Vec3<T>( dims(0), -dims(1), -dims(2))/2);
@@ -515,15 +521,15 @@ void FloatingBaseModel<T>::forwardKinematics() {
   _kinematicsUpToDate = true;
 }
 
-template <typename T>
-void FloatingBaseModel<T>::getPositionVelocity(
-        const int & link_idx, const Vec3<T> & local_pos,
-        Vec3<T> & link_pos, Vec3<T> & link_vel) const {
+//template <typename T>
+//void FloatingBaseModel<T>::getPositionVelocity(
+        //const int & link_idx, const Vec3<T> & local_pos,
+        //Vec3<T> & link_pos, Vec3<T> & link_vel) const {
 
-    Mat6<T> Xai = invertSXform(_Xa[link_idx]); // from link to absolute
-    link_pos = sXFormPoint(Xai, local_pos);
-    link_vel = spatialToLinearVelocity(Xai*_v[link_idx], link_pos);
-}
+    //Mat6<T> Xai = invertSXform(_Xa[link_idx]); // from link to absolute
+    //link_pos = sXFormPoint(Xai, local_pos);
+    //link_vel = spatialToLinearVelocity(Xai*_v[link_idx], link_pos);
+//}
 
 /*!
  * Compute the contact Jacobians (3xn matrices) for the velocity

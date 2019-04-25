@@ -41,6 +41,9 @@ public:
   DVec<T> _coriolis;
 
 protected:
+  std::vector<Task<T>*> _task_list;
+  std::vector<ContactSpec<T>*> _contact_list;
+
   void _DynConsistent_Inverse(const DMat<T> & J, DMat<T> & Jinv){
       DMat<T> Jtmp(J * _Ainv * J.transpose());
       Jinv = _Ainv * J.transpose() * Jtmp.inverse();
@@ -59,9 +62,6 @@ protected:
   }
 
   const FloatingBaseModel<T>* _robot_sys;
-
-  std::vector<Task<T>*> _task_list;
-  std::vector<ContactSpec<T>*> _contact_list;
 
   T _state_machine_time;
 };

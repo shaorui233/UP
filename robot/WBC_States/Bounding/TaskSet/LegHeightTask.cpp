@@ -30,15 +30,18 @@ bool LegHeightTask<T>::_UpdateCommand(void* pos_des,
     Vec3<T> link_pos = _robot_sys->_pGC[_link_idx];
 
     Vec3<T> local_pos, local_vel;
-    Vec3<T> offset; offset.setZero();
-    _robot_sys->getPositionVelocity(_local_frame_idx, offset, local_pos, local_vel);
+    local_pos = _robot_sys->_pGC[_local_frame_idx];
+    local_vel = _robot_sys->_vGC[_local_frame_idx];
+    //Vec3<T> offset; offset.setZero();
+    //_robot_sys->getPositionVelocity(_local_frame_idx, offset, local_pos, local_vel);
 
+    T leg_length = link_pos[2] - local_pos[2];
     // Z
-    TK::pos_err_[0] = _Kp_kin[0] * ((*pos_cmd)[0] - (link_pos[2]-local_pos[2]));
+    TK::pos_err_[0] = _Kp_kin[0] * ((*pos_cmd)[0] - leg_length);
     TK::vel_des_[0] = vel_des[0];
     TK::acc_des_[0] = acc_des[0];
 
-    TK::op_cmd_[0] = _Kp[0] * TK::pos_err_[0]
+    TK::op_cmd_[0] = _Kp[0] * ((*pos_cmd)[0] - leg_length)
         + _Kd[0] * (TK::vel_des_[0] - (_robot_sys->_vGC[_link_idx][2] - local_vel[2]))
         + TK::acc_des_[0];
  
@@ -60,8 +63,11 @@ bool LegHeightTask<T>::_UpdateCommand(void* pos_des,
 template <typename T>
 bool LegHeightTask<T>::_UpdateTaskJacobian(){
         
-    TK::Jt_ = (_robot_sys->_Jc[_link_idx]).block(2, 0, 0, cheetah::dim_config);
-    TK::Jt_.block(0,0, 1, 6) = DMat<T>::Zero(1,6);
+    TK::Jt_ = 
+      (_robot_sys->_Jc[_link_idx]).block(2, 0, 1, cheetah::dim_config)
+      -(_robot_sys->_Jc[_local_frame_idx]).block(2, 0, 1, cheetah::dim_config);
+    //pretty_print(_robot_sys->_Jc[_link_idx], std::cout, "Jc link idx");
+    //pretty_print(_robot_sys->_Jc[_local_frame_idx], std::cout, "Jc local");
     
     //TK::Jt_.block(0,3, 3,3) = Rot;
     //pretty_print(TK::Jt_, std::cout, "Jt");

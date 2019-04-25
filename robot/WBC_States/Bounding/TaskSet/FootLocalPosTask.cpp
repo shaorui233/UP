@@ -31,8 +31,10 @@ bool FootLocalPosTask<T>::_UpdateCommand(void* pos_des,
     Vec3<T> link_pos, local_pos, local_vel;
 
     link_pos = _robot_sys->_pGC[_link_idx];
-    Vec3<T> offset; offset.setZero();
-    _robot_sys->getPositionVelocity(_local_frame_idx, offset, local_pos, local_vel);
+    local_pos = _robot_sys->_pGC[_local_frame_idx];
+    local_vel = _robot_sys->_vGC[_local_frame_idx];
+    //Vec3<T> offset; offset.setZero();
+    //_robot_sys->getPositionVelocity(_local_frame_idx, offset, local_pos, local_vel);
 
     // X, Y
     for(size_t i(0); i<TK::dim_task_; ++i){
@@ -62,8 +64,7 @@ bool FootLocalPosTask<T>::_UpdateCommand(void* pos_des,
 
 template <typename T>
 bool FootLocalPosTask<T>::_UpdateTaskJacobian(){
-    TK::Jt_ = _robot_sys->_Jc[_link_idx];
-    TK::Jt_.block(0,0, 3, 6) = DMat<T>::Zero(3,6);
+    TK::Jt_ = _robot_sys->_Jc[_link_idx] - _robot_sys->_Jc[_local_frame_idx];
     return true;
 }
 

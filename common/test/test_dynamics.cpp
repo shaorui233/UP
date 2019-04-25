@@ -440,9 +440,11 @@ TEST(Dynamics, simulatorFootPosVelCheetah3) {
   sim.setAllExternalForces(forces);
   sim.step(0.0, tau, 5e5, 5e3);
 
-  Vec3<double> bodypRef1ML(6.25, 6.8271, 8.155);
+  //Vec3<double> bodypRef1ML(6.25, 6.8271, 8.155);
+  Vec3<double> bodypRef1ML(6.260735, 6.812413, 8.056675);
   Vec3<double> footpRefML(5.1594, 7.3559, 7.674);
-  Vec3<double> bodyvRef1ML(5.1989, 5.4008, 5.1234);
+  //Vec3<double> bodyvRef1ML(5.1989, 5.4008, 5.1234);
+  Vec3<double> bodyvRef1ML(5.028498, 5.540016, 5.083884);
   Vec3<double> footvRefML(-9.3258, -0.1926, 26.3323);
 
   // I add the body points in a different order, so comparing them is kind of annoying.

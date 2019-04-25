@@ -13,6 +13,7 @@ public:
   virtual ~BodyPosTask();
 
   DVec<T> _Kp_kin;
+  DVec<T> _Kp, _Kd;
 protected:
   // Update op_cmd_
   virtual bool _UpdateCommand(void* pos_des,

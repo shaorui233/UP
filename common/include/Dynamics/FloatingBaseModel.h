@@ -244,9 +244,9 @@ public:
   const DVec<T> &  getGravityForce() const { return _G; }
   const DVec<T> &  getCoriolisForce() const { return _Cqd; }
 
-  void getPositionVelocity(
-          const int & link_idx, const Vec3<T> & local_pos,
-          Vec3<T> & link_pos, Vec3<T> & link_vel) const ;
+  //void getPositionVelocity(
+          //const int & link_idx, const Vec3<T> & local_pos,
+          //Vec3<T> & link_pos, Vec3<T> & link_vel) const ;
  
   /// BEGIN ALGORITHM SUPPORT VARIABLES
   FBModelState<T> _state;

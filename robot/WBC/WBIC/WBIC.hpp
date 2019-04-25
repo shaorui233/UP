@@ -20,9 +20,6 @@ class WBIC_ExtraData{
         DVec<T> _W_floating;
         DVec<T> _W_rf;
         
-        std::vector<ContactSpec<T> *> _contact_list;
-        std::vector<Task<T> *> _task_list;
-
         WBIC_ExtraData(){}
         ~WBIC_ExtraData(){}
 };
@@ -30,7 +27,9 @@ class WBIC_ExtraData{
 template<typename T>
 class WBIC: public WBC<T>{
     public:
-        WBIC(size_t num_qdot);
+        WBIC(size_t num_qdot, 
+            const std::vector<ContactSpec<T>* > * contact_list,
+            const std::vector<Task<T> * > * task_list);
         virtual ~WBIC(){}
 
         virtual void UpdateSetting(const DMat<T> & A,
@@ -44,6 +43,9 @@ class WBIC: public WBC<T>{
                 void* extra_input = NULL);
 
     private:
+        const std::vector<ContactSpec<T> *> * _contact_list;
+        const std::vector<Task<T> *> * _task_list;
+
         void _SetEqualityConstraint(const DVec<T> & qddot);
         void _SetInEqualityConstraint();
         void _ContactBuilding();

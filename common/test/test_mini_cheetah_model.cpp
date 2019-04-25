@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
 
+#include "Utilities/Utilities_print.h"
+
 using namespace spatial;
 
 /*!
@@ -311,3 +313,80 @@ TEST(MiniCheetah, hipLocationConvention) {
     EXPECT_TRUE(almostEqual(hipLocations[i], hipLocationRef[i], .0001));
   }
 }
+
+TEST(MiniCheetah, ContactPositionVelocity) {
+  FloatingBaseModel<double> cheetahModel = buildMiniCheetah<double>().buildModel();
+  DynamicsSimulator<double> sim(cheetahModel);
+
+  RotMat<double> rBody = 
+    coordinateRotation(CoordinateAxis::X, 0.0) 
+    * coordinateRotation(CoordinateAxis::Z, 0.0) *
+    coordinateRotation(CoordinateAxis::Y, 0.0);
+
+  SVec<double> bodyVel;
+  bodyVel << 0., 0., 0., 1.0, 0., 0.;
+  FBModelState<double> x;
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tau(12);
+  for (size_t i = 0; i < 12; i++) {
+    q[i] = i + 1;
+    dq[i] = (i + 1) * 2;
+    tau[i] = (i + 1) * -30.;
+  }
+
+  // set state
+  x.bodyOrientation = rotationMatrixToQuaternion(rBody.transpose());
+  x.bodyVelocity = bodyVel;
+  x.bodyPosition = Vec3<double>(6, 7, 8);
+  x.q = q;
+  x.qd = dq;
+
+  // generate external forces
+  vectorAligned<SVec<double>> forces(18);
+  for(size_t i = 0; i < 18; i++) {
+    for(size_t j = 0; j < 6; j++) {
+      forces[i][j] = i + j + 1;
+    }
+  }
+
+  // fwd kin is included in this
+  cheetahModel.setState(x);
+  cheetahModel.forwardKinematics(); // compute forward kinematics
+
+  double length(0.19);
+  double width(0.049);
+
+  Vec3<double> FR_abd_ref(
+      x.bodyPosition[0] + length, 
+      x.bodyPosition[1] - width, 
+      x.bodyPosition[2]);
+
+  Vec3<double> FL_abd_ref(
+      x.bodyPosition[0] + length, 
+      x.bodyPosition[1] + width, 
+      x.bodyPosition[2]);
+
+  Vec3<double> HR_abd_ref(
+      x.bodyPosition[0] - length, 
+      x.bodyPosition[1] - width, 
+      x.bodyPosition[2]);
+
+  Vec3<double> HL_abd_ref(
+      x.bodyPosition[0] - length, 
+      x.bodyPosition[1] + width, 
+      x.bodyPosition[2]);
+
+  //for(size_t i(0); i<8; ++i){
+    //printf("%lu th\n", i);
+    //pretty_print(cheetahModel._pGC.at(i), std::cout, "cp pos");
+  //}
+
+  // I add the body points in a different order, so comparing them is kind of annoying.
+  // this just one foot point.
+  EXPECT_TRUE(almostEqual(FR_abd_ref, cheetahModel._pGC.at(linkID::FR_abd), .0005));
+  EXPECT_TRUE(almostEqual(FL_abd_ref, cheetahModel._pGC.at(linkID::FL_abd), .0005));
+  EXPECT_TRUE(almostEqual(HR_abd_ref, cheetahModel._pGC.at(linkID::HR_abd), .0005));
+  EXPECT_TRUE(almostEqual(HL_abd_ref, cheetahModel._pGC.at(linkID::HL_abd), .0005));
+}
+

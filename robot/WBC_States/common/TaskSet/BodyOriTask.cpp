@@ -57,7 +57,7 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des,
         TK::acc_des_[i] = acc_des[i];
 
         TK::op_cmd_[i] = 
-            _Kp[i] * TK::pos_err_[i]
+            _Kp[i] * ori_err_so3[i]
             + _Kd[i] * (TK::vel_des_[i] - curr_vel[i])
             + TK::acc_des_[i];
     }

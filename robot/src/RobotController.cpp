@@ -164,7 +164,11 @@ void RobotController::run() {
     _data->ori_command[1] = driverCommand->rightStickAnalog[1];
     _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
+    //Timer timer;
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
+
+    //if(count_ini%100 ==0)
+    //std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
   }
   // === End of WBC state command computation  =========== //
 
