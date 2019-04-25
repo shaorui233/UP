@@ -16,6 +16,13 @@
 template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND") {
+  // Set the pre controls safety checks
+  this->checkSafeOrientation = true;
+
+  // Post control safety checks
+  this->checkPDesFoot = true;
+  this->checkForceFeedForward = true;
+
   // Initialize GRF to 0s
   this->groundReactionForces = Mat34<T>::Zero();
 }
@@ -156,7 +163,7 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
     this->groundReactionForces.col(leg) << 0.0, 0.0, 0;//-110.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
 
-    this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength/2;
+    this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength / 2;
   }
   Vec3<T> vDes;
   vDes << 0, 0, 0;

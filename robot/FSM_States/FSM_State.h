@@ -75,9 +75,12 @@ public:
   T transitionDuration;		// transition duration time
   T tStartTransition; 		// time transition starts
 
-  // Notify the FSM if the state needs to check for rotation safety
-  bool checkSafeOrientation = true;
-  bool checkPDesFoot = true;
+  // Pre controls safety checks
+  bool checkSafeOrientation = false;
+
+  // Post control safety checks
+  bool checkPDesFoot = false;
+  bool checkForceFeedForward = false;
 
   //
   Mat34<T> jointTorques;

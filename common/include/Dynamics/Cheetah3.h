@@ -32,6 +32,8 @@ using namespace spatial;
 template <typename T>
 Quadruped<T> buildCheetah3() {
   Quadruped<T> cheetah;
+  cheetah._robotType = RobotType::CHEETAH_3;
+
   cheetah._bodyMass = 26.60;
   cheetah._bodyLength = .6;
   cheetah._bodyWidth = .256;

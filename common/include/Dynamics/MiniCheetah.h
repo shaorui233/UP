@@ -19,6 +19,8 @@
 template<typename T>
 Quadruped<T> buildMiniCheetah() {
   Quadruped<T> cheetah;
+  cheetah._robotType = RobotType::MINI_CHEETAH;
+
   cheetah._bodyMass = 3.3;
   cheetah._bodyLength = 0.19 * 2;
   cheetah._bodyWidth = 0.049 * 2;
