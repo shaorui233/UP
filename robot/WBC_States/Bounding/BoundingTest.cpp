@@ -63,6 +63,8 @@ void BoundingTest<T>::_TestInitialization(){
 template <typename T>
 int BoundingTest<T>::_NextPhase(const int & phase){
   int next_phase = phase + 1;
+  _sp->_num_contact = 0;
+
   if (next_phase == BoundingPhase::NUM_BOUNDING_PHASE) {
     next_phase = BoundingPhase::bounding;
   }

@@ -4,16 +4,19 @@
 body_height: 0.25
 
 # Timing Parameters (sec)
-body_lifting_time: 1.0
+body_lifting_time: 0.2
 bounding_time: 10000.
-swing_time: 0.15
-default_stance_time: 0.1
+#swing_time: 0.22
+#default_stance_time: 0.13
 
-leg_height: 0.25
+swing_time: 0.11
+default_stance_time: 0.07
 
+
+leg_height: 0.24
 
 CTRL_move_to_target_height:
-  max_rf_z: 50
+  max_rf_z: 100
   min_rf_z: 3
 
 CTRL_bounding_initiate:
@@ -22,26 +25,45 @@ CTRL_bounding:
   stride_length: 0.25
 
 # WBIC Feedback gain
-Kp_ori: [50, 50, 50]
-Kd_ori: [3, 3, 3]
+Kp_ori: [100, 0, 0]
+Kd_ori: [3.0, .0, .0]
+
+Kp_ryrz: [10, 30]
+Kd_ryrz: [0.1, 1.0]
+
+Kp_roll: 30
+Kd_roll: 5
 
 #Kp_ori: [150, 150, 150]
 #Kd_ori: [20, 20, 20]
 
+Kp_leg_height: 200
+Kd_leg_height: 10
 
-Kp_leg_height: 50
-Kd_leg_height: 3
+Kp_xy_body: [50, 50]
+Kd_xy_body: [8, 8]
 
-Kp_xy_body: [0, 20]
-Kd_xy_body: [4, 2]
+Kp_abd: [250, 250, 200]
+Kd_abd: [5.5, 5.5, 5.5]
 
-Kd_foot: [30, 30, 30]
-Kd_foot: [3, 3, 3]
+Kp_abd_joint: 370
+Kd_abd_joint: 5
+
+#Kp_foot: [30, 30, 30]
+#Kd_foot: [3, 3, 3]
+
+Kp_foot: [550, 550, 550]
+Kd_foot: [35, 35, 35]
+
 
 # Joint Feedback gain
-Kp_joint: [5.0, 5.0, 5.0]
-Kd_joint: [0.5, 0.5, 0.5]
+#Kp_joint: [5.0, 5.0, 5.0]
+#Kd_joint: [0.5, 0.5, 0.5]
+
+Kp_joint: [0.0, 5.0, 5.0]
+Kd_joint: [0.0, 0.5, 0.5]
 
 
-#save_file: false
-save_file: true
+
+save_file: false
+#save_file: true

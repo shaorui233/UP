@@ -44,6 +44,11 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _body_rpy = ori::quatToRPY(_state.bodyOrientation);
 
     _state.bodyPosition.setZero();
+    // TEST
+    _state.bodyPosition[0] = data->global_body_pos[0];
+    _state.bodyPosition[1] = data->global_body_pos[1];
+    _state.bodyPosition[2] = data->global_body_pos[2];
+    
     _state.bodyVelocity.setZero();
     _state.bodyVelocity[0] = data->ang_vel[0];
     _state.bodyVelocity[1] = data->ang_vel[1];
@@ -74,13 +79,14 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     for(size_t i(0); i<3; ++i)
         _sp->_ori_command[i] = data->ori_command[i];
 
-    _state.bodyPosition = -ave_foot;
+
+    // TEST
+    //_state.bodyPosition = -ave_foot;
     _state.bodyPosition += _sp->_local_frame_global_pos;
  
-    Quat<T> quat = _state.bodyOrientation;
-    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
-  
-    _state.bodyVelocity.tail(3) = -Rot * ave_foot_vel;
+    //Quat<T> quat = _state.bodyOrientation;
+    //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    //_state.bodyVelocity.tail(3) = -Rot * ave_foot_vel;
 
     _sp->_Q[3] = _state.bodyPosition[0];
     _sp->_Q[4] = _state.bodyPosition[1];

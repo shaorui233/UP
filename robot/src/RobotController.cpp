@@ -117,7 +117,8 @@ void RobotController::run() {
   // Commenting out WBC for now to test Locomotion control
   Mat3<float> kpMat;
   Mat3<float> kdMat;
-  if (!_jpos_initializer->IsInitialized(_legController)) {
+  //if (!_jpos_initializer->IsInitialized(_legController)) {
+  if (false) {
     kpMat <<
           5, 0, 0,
           0, 5, 0,
@@ -144,9 +145,9 @@ void RobotController::run() {
     }
     for (int i(0); i < 3; ++i) {
       _data->ang_vel[i] = _stateEstimator->getResult().omegaBody[i];
-      //_data->global_body_pos[i] = cheaterState->position[i];
+      _data->global_body_pos[i] = cheaterState->position[i];
     }
-    //_data->global_body_pos[2] += 0.5;// because ground is -0.5
+    _data->global_body_pos[2] += 0.5;// because ground is -0.5
 
     for (int leg(0); leg < 4; ++leg) {
       for (int jidx(0); jidx < 3; ++jidx) {

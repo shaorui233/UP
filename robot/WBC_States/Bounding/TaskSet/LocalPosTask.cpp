@@ -1,4 +1,4 @@
-#include "FootLocalPosTask.hpp"
+#include "LocalPosTask.hpp"
 // (X, Y, Z)
 #include <Configuration.h>
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
@@ -7,7 +7,7 @@
 
 
 template <typename T>
-FootLocalPosTask<T>::FootLocalPosTask(
+LocalPosTask<T>::LocalPosTask(
         const FloatingBaseModel<T>* robot, int link_idx, int local_frame_idx):
     Task<T>(3),
     _robot_sys(robot), _link_idx(link_idx), _local_frame_idx(local_frame_idx)
@@ -21,10 +21,10 @@ FootLocalPosTask<T>::FootLocalPosTask(
 }
 
 template <typename T>
-FootLocalPosTask<T>::~FootLocalPosTask(){}
+LocalPosTask<T>::~LocalPosTask(){}
 
 template <typename T>
-bool FootLocalPosTask<T>::_UpdateCommand(void* pos_des,
+bool LocalPosTask<T>::_UpdateCommand(void* pos_des,
         const DVec<T> & vel_des,
         const DVec<T> & acc_des){
     Vec3<T>* pos_cmd = (Vec3<T>*)pos_des;
@@ -54,6 +54,8 @@ bool FootLocalPosTask<T>::_UpdateCommand(void* pos_des,
     //pretty_print(acc_des, std::cout, "acc_des");
     //pretty_print(TK::pos_err_, std::cout, "pos_err_");
     //pretty_print(*pos_cmd, std::cout, "pos cmd");
+    //pretty_print(link_pos, std::cout, "link pos");
+    //pretty_print(local_pos, std::cout, "local pos");
     //pretty_print(TK::op_cmd_, std::cout, "op cmd");
     // TEST
     //TK::op_cmd_.setZero();
@@ -63,16 +65,16 @@ bool FootLocalPosTask<T>::_UpdateCommand(void* pos_des,
 }
 
 template <typename T>
-bool FootLocalPosTask<T>::_UpdateTaskJacobian(){
+bool LocalPosTask<T>::_UpdateTaskJacobian(){
     TK::Jt_ = _robot_sys->_Jc[_link_idx] - _robot_sys->_Jc[_local_frame_idx];
     return true;
 }
 
 template <typename T>
-bool FootLocalPosTask<T>::_UpdateTaskJDotQdot(){
+bool LocalPosTask<T>::_UpdateTaskJDotQdot(){
     //TK::JtDotQdot_ = _robot_sys->_Jcdqd[_link_idx];
     return true;
 }
 
-template class FootLocalPosTask<double>;
-template class FootLocalPosTask<float>;
+template class LocalPosTask<double>;
+template class LocalPosTask<float>;

@@ -7,6 +7,9 @@
 #include <WBC_States/common/TaskSet/BodyPosTask.hpp>
 #include <WBC_States/Bounding/TaskSet/BodyXYTask.hpp>
 #include <WBC_States/Bounding/TaskSet/LegHeightTask.hpp>
+#include <WBC_States/Bounding/TaskSet/LocalPosTask.hpp>
+#include <WBC_States/Bounding/TaskSet/SelectedJointTask.hpp>
+#include <WBC_States/Bounding/TaskSet/LocalRollTask.hpp>
 
 #include <WBC/WBIC/WBIC.hpp>
 #include <ParamHandler/ParamHandler.hpp>
@@ -21,13 +24,23 @@ BoundingInitiateCtrl<T>::BoundingInitiateCtrl(
   _dim_contact(0),
   _ctrl_start_time(0.)
 {
+  std::vector<int> joint_list(4);
+  joint_list[0] = 0;
+  joint_list[1] = 3;
+  joint_list[2] = 6;
+  joint_list[3] = 9;
+
+  _abd_joint_task = new SelectedJointTask<T>(Ctrl::_robot_sys, joint_list);
   _body_ori_task = new BodyOriTask<T>(Ctrl::_robot_sys);
-  _body_xy_task = new BodyXYTask<T>(Ctrl::_robot_sys);
+  _local_roll_task = new LocalRollTask<T>(Ctrl::_robot_sys);
+  //_body_xy_task = new BodyXYTask<T>(Ctrl::_robot_sys);
   _body_pos_task = new BodyPosTask<T>(Ctrl::_robot_sys);
 
   Ctrl::_task_list.clear();
-  Ctrl::_task_list.push_back(_body_ori_task);
-  Ctrl::_task_list.push_back(_body_xy_task);
+  Ctrl::_task_list.push_back(_local_roll_task);
+  //Ctrl::_task_list.push_back(_abd_joint_task);
+  //Ctrl::_task_list.push_back(_body_ori_task);
+  //Ctrl::_task_list.push_back(_body_xy_task);
   //Ctrl::_task_list.push_back(_body_pos_task);
 
   _fr_leg_height_task = new LegHeightTask<T>(Ctrl::_robot_sys, linkID::FR, linkID::FR_abd);
@@ -39,6 +52,17 @@ BoundingInitiateCtrl<T>::BoundingInitiateCtrl(
   Ctrl::_task_list.push_back(_fl_leg_height_task);
   Ctrl::_task_list.push_back(_hr_leg_height_task);
   Ctrl::_task_list.push_back(_hl_leg_height_task);
+
+
+  //_fr_abduction_task = new LocalPosTask<T>(Ctrl::_robot_sys, linkID::FR_abd, linkID::FR);
+  //_fl_abduction_task = new LocalPosTask<T>(Ctrl::_robot_sys, linkID::FL_abd, linkID::FL);
+  //_hr_abduction_task = new LocalPosTask<T>(Ctrl::_robot_sys, linkID::HR_abd, linkID::HR);
+  //_hl_abduction_task = new LocalPosTask<T>(Ctrl::_robot_sys, linkID::HL_abd, linkID::HL);
+
+  //Ctrl::_task_list.push_back(_fr_abduction_task);
+  //Ctrl::_task_list.push_back(_fl_abduction_task);
+  //Ctrl::_task_list.push_back(_hr_abduction_task);
+  //Ctrl::_task_list.push_back(_hl_abduction_task);
 
   _fr_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::FR);
   _fl_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::FL);
@@ -58,7 +82,7 @@ BoundingInitiateCtrl<T>::BoundingInitiateCtrl(
   _wbic_data = new WBIC_ExtraData<T>();
 
 
-  _wbic_data->_W_floating = DVec<T>::Constant(6, 100.);
+  _wbic_data->_W_floating = DVec<T>::Constant(6, 1.);
   _wbic_data->_W_rf = DVec<T>::Constant(_dim_contact, 1.);
   _wbic_data->_Fr_des = DVec<T>::Zero(_dim_contact);
   _wbic_data->_Fr_des[2] = 20;
@@ -116,22 +140,43 @@ void BoundingInitiateCtrl<T>::_task_setup(){
   _body_ori_task->UpdateTask(&(quat_des), vel_des, acc_des);
 
   // (X, Y)
-  DVec<T> pos_des(2); pos_des.setZero();
-  vel_des.resize(2); vel_des.setZero();
-  acc_des.resize(2); acc_des.setZero();
-  _body_xy_task->UpdateTask(&(pos_des), vel_des, acc_des);
+  //DVec<T> pos_des(2); pos_des.setZero();
+  //vel_des.resize(2); vel_des.setZero();
+  //acc_des.resize(2); acc_des.setZero();
+  //_body_xy_task->UpdateTask(&(pos_des), vel_des, acc_des);
+
+  // Abduction
+  //Vec3<T> abd_pos_des; abd_pos_des.setZero();
+  //abd_pos_des[2] = _target_leg_height;
+
+  //_fr_abduction_task->UpdateTask(&(_ini_fr_abduction_pos), vel_des, acc_des);
+  //abd_pos_des[1] = -0.18;
+  //_fl_abduction_task->UpdateTask(&(abd_pos_des), vel_des, acc_des);
+  //abd_pos_des[1] = 0.18;
+  //_hr_abduction_task->UpdateTask(&(abd_pos_des), vel_des, acc_des);
+  //abd_pos_des[1] = -0.18;
+  //_hl_abduction_task->UpdateTask(&(abd_pos_des), vel_des, acc_des);
+
+  
+  DVec<T> jpos(4); jpos.setZero();
+  DVec<T> jvel(4); jvel.setZero();
+  DVec<T> jacc(4); jacc.setZero();
+  _abd_joint_task->UpdateTask(&(jpos), jvel, jacc);
+  
 
   // Foot height
-  pos_des.resize(1);
+  T foot_height(-_target_leg_height);
   vel_des.resize(1); vel_des.setZero();
   acc_des.resize(1); acc_des.setZero();
 
-  pos_des[0] = -_target_leg_height;
-  _fr_leg_height_task->UpdateTask(&(pos_des), vel_des, acc_des);
-  _fl_leg_height_task->UpdateTask(&(pos_des), vel_des, acc_des);
-  _hr_leg_height_task->UpdateTask(&(pos_des), vel_des, acc_des);
-  _hl_leg_height_task->UpdateTask(&(pos_des), vel_des, acc_des);
+  _fr_leg_height_task->UpdateTask(&(foot_height), vel_des, acc_des);
+  _fl_leg_height_task->UpdateTask(&(foot_height), vel_des, acc_des);
+  _hr_leg_height_task->UpdateTask(&(foot_height), vel_des, acc_des);
+  _hl_leg_height_task->UpdateTask(&(foot_height), vel_des, acc_des);
 
+  _wbic_data->_Fr_des[2] = 2. * _z_impulse.getValue(Ctrl::_state_machine_time);
+  _wbic_data->_Fr_des[5] = 2. * _z_impulse.getValue(Ctrl::_state_machine_time);
+ 
   // TEST: Body pos
   Vec3<T> body_pos_des;body_pos_des.setZero();
   body_pos_des[2] = _target_leg_height;
@@ -139,6 +184,13 @@ void BoundingInitiateCtrl<T>::_task_setup(){
   acc_des.resize(3); acc_des.setZero();
 
   _body_pos_task->UpdateTask(&(body_pos_des), vel_des, acc_des);
+ 
+  // Local Roll
+  T roll_cmd(0.);
+  vel_des.resize(1); vel_des.setZero();
+  acc_des.resize(1); acc_des.setZero();
+  _local_roll_task->UpdateTask(&roll_cmd, vel_des, acc_des);
+
 }
 
 template <typename T>
@@ -152,6 +204,17 @@ void BoundingInitiateCtrl<T>::_contact_setup(){
 
 template <typename T>
 void BoundingInitiateCtrl<T>::FirstVisit(){
+  //pretty_print(Ctrl::_robot_sys->getMassMatrix(), std::cout, "Mass");
+  T total_mass = Ctrl::_robot_sys->getMassMatrix()(5,5);
+  T apex = total_mass * 9.81 * _end_time/(2.0*0.7*_stance_time);
+
+  printf("apex: %f\n", apex);
+  _z_impulse.setCurve(apex, _stance_time);
+
+  _ini_fr_abduction_pos =
+    Ctrl::_robot_sys->_pGC[linkID::FR_abd] -
+    Ctrl::_robot_sys->_pGC[linkID::FR];
+
   _ctrl_start_time = _sp->_curr_time;
 }
 
@@ -182,14 +245,14 @@ void BoundingInitiateCtrl<T>::SetTestParameter(const std::string & test_file){
   _param_handler->getValue<T>("default_stance_time", _stance_time);
   _end_time = (_swing_time + _stance_time)/2.;
 
-  _param_handler->getVector<T>("Kp_xy_body", tmp_vec);
-  for(size_t i(0); i<tmp_vec.size(); ++i){ 
-    ((BodyXYTask<T>*)_body_xy_task)->_Kp[i] = tmp_vec[i]; 
-  }
-  _param_handler->getVector<T>("Kd_xy_body", tmp_vec);
-  for(size_t i(0); i<tmp_vec.size(); ++i){ 
-    ((BodyXYTask<T>*)_body_xy_task)->_Kd[i] = tmp_vec[i]; 
-  }
+  //_param_handler->getVector<T>("Kp_xy_body", tmp_vec);
+  //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((BodyXYTask<T>*)_body_xy_task)->_Kp[i] = tmp_vec[i]; 
+  //}
+  //_param_handler->getVector<T>("Kd_xy_body", tmp_vec);
+  //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((BodyXYTask<T>*)_body_xy_task)->_Kd[i] = tmp_vec[i]; 
+  //}
 
   _param_handler->getVector<T>("Kp_ori", tmp_vec);
   for(size_t i(0); i<tmp_vec.size(); ++i){ 
@@ -212,6 +275,35 @@ void BoundingInitiateCtrl<T>::SetTestParameter(const std::string & test_file){
   ((LegHeightTask<T>*)_fl_leg_height_task)->_Kd[0] = tmp_value;
   ((LegHeightTask<T>*)_hr_leg_height_task)->_Kd[0] = tmp_value;
   ((LegHeightTask<T>*)_hl_leg_height_task)->_Kd[0] = tmp_value;
+
+  //_param_handler->getVector<T>("Kp_abd", tmp_vec);
+  //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_fr_abduction_task)->_Kp[i] = tmp_vec[i]; 
+  //}
+  //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_fl_abduction_task)->_Kp[i] = tmp_vec[i]; 
+  //}
+   //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_hr_abduction_task)->_Kp[i] = tmp_vec[i]; 
+  //}
+   //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_hl_abduction_task)->_Kp[i] = tmp_vec[i]; 
+  //}
+
+  //_param_handler->getVector<T>("Kd_abd", tmp_vec);
+  //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_fr_abduction_task)->_Kd[i] = tmp_vec[i]; 
+  //}
+  //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_fl_abduction_task)->_Kd[i] = tmp_vec[i]; 
+  //}
+   //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_hr_abduction_task)->_Kd[i] = tmp_vec[i]; 
+  //}
+   //for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    //((LocalPosTask<T>*)_hl_abduction_task)->_Kd[i] = tmp_vec[i]; 
+  //}
+
 
   // Joint level feedback gain
   if(!_param_handler->getVector<T>("Kp_joint", _Kp_joint)){

@@ -26,7 +26,7 @@ template <typename T>
 bool LegHeightTask<T>::_UpdateCommand(void* pos_des,
         const DVec<T> & vel_des,
         const DVec<T> & acc_des){
-    DVec<T>* pos_cmd = (DVec<T>*)pos_des;
+    T* pos_cmd = (T*)pos_des;
     Vec3<T> link_pos = _robot_sys->_pGC[_link_idx];
 
     Vec3<T> local_pos, local_vel;
@@ -37,11 +37,11 @@ bool LegHeightTask<T>::_UpdateCommand(void* pos_des,
 
     T leg_length = link_pos[2] - local_pos[2];
     // Z
-    TK::pos_err_[0] = _Kp_kin[0] * ((*pos_cmd)[0] - leg_length);
+    TK::pos_err_[0] = _Kp_kin[0] * ((*pos_cmd) - leg_length);
     TK::vel_des_[0] = vel_des[0];
     TK::acc_des_[0] = acc_des[0];
 
-    TK::op_cmd_[0] = _Kp[0] * ((*pos_cmd)[0] - leg_length)
+    TK::op_cmd_[0] = _Kp[0] * ((*pos_cmd) - leg_length)
         + _Kd[0] * (TK::vel_des_[0] - (_robot_sys->_vGC[_link_idx][2] - local_vel[2]))
         + TK::acc_des_[0];
  

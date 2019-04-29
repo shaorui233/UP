@@ -11,8 +11,8 @@ class BezierCurve{
         T _coeff[NUM_CTR_PT];
         T _end_time;
         BezierCurve(){
-            for(size_t j(0); j<NUM_CTR_PT; ++j){
-                for(size_t i(0); i<DIM; ++i){
+            for(int j(0); j<NUM_CTR_PT; ++j){
+                for(int i(0); i<DIM; ++i){
                     _CtrlPt[j][i] = 0.;
                 }
                 _coeff[j] = 0.;
@@ -25,8 +25,8 @@ class BezierCurve{
         bool SetParam(T** ctrl_pt, T fin_time){
             _end_time = fin_time;
             T n_fact = _factorial(NUM_CTR_PT-1);
-            for(size_t j(0); j<NUM_CTR_PT; ++j){
-                for(size_t i(0); i<DIM; ++i){
+            for(int j(0); j<NUM_CTR_PT; ++j){
+                for(int i(0); i<DIM; ++i){
                     _CtrlPt[j][i] = ctrl_pt[j][i];
                 }
                 _coeff[j] = n_fact/(_factorial(j) * _factorial((NUM_CTR_PT-1)-j));
@@ -36,16 +36,16 @@ class BezierCurve{
 
         bool getCurvePoint(T u, T* ret){
             if(u > _end_time){
-                for(size_t i(0); i<DIM; ++i){ ret[i] = _CtrlPt[NUM_CTR_PT -1][i]; }
+                for(int i(0); i<DIM; ++i){ ret[i] = _CtrlPt[NUM_CTR_PT -1][i]; }
                 return true;
             }else if( u<0. ){
-                for(size_t i(0); i<DIM; ++i){ ret[i] = _CtrlPt[0][i]; }
+                for(int i(0); i<DIM; ++i){ ret[i] = _CtrlPt[0][i]; }
                 return true;
             }else{
                 u/=_end_time;
-                for(size_t i(0); i<DIM; ++i){
+                for(int i(0); i<DIM; ++i){
                     ret[i] = 0.;
-                    for(size_t j(0); j<NUM_CTR_PT; ++j){
+                    for(int j(0); j<NUM_CTR_PT; ++j){
                         ret[i] += _coeff[j]*pow(u,j) * pow(1-u, (NUM_CTR_PT-1)-j) * _CtrlPt[j][i];
                     }
                 }
@@ -55,18 +55,18 @@ class BezierCurve{
 
         bool getCurveVelocity(T u, T* ret){
             if(u > _end_time){
-                for(size_t i(0); i<DIM; ++i){ ret[i] = 0.; }
+                for(int i(0); i<DIM; ++i){ ret[i] = 0.; }
                 return true;
             }else if( u<0. ){
-                for(size_t i(0); i<DIM; ++i){ ret[i] = 0.; }
+                for(int i(0); i<DIM; ++i){ ret[i] = 0.; }
                 return true;
             }else{
                 u/=_end_time;
-                for(size_t i(0); i<DIM; ++i){
+                for(int i(0); i<DIM; ++i){
                     ret[i] = 0.;
                     ret[i] += _coeff[0]*
                         (-(NUM_CTR_PT-1) * pow(1-u, (NUM_CTR_PT-1)-1) ) * _CtrlPt[0][i];
-                    for(size_t j(1); j<NUM_CTR_PT-1; ++j){
+                    for(int j(1); j<NUM_CTR_PT-1; ++j){
                         ret[i] += _coeff[j]*
                             (j*pow(u,j-1) * pow(1-u, (NUM_CTR_PT-1)-j)  -
                              (NUM_CTR_PT-1-j) * pow(u, j) * pow(1-u, (NUM_CTR_PT-1)-j-1))
