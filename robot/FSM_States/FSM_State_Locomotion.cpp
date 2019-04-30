@@ -17,6 +17,15 @@
 template <typename T>
 FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION") {
+  // Set the pre controls safety checks
+  this->checkSafeOrientation = true;
+
+  // Post control safety checks
+  this->checkPDesFoot = true;
+  this->checkForceFeedForward = true;
+
+  // Set the post controls safety checks
+
   // Initialize GRF and footstep locations to 0s
   this->groundReactionForces = Mat34<T>::Zero();
   this->footstepLocations = Mat34<T>::Zero();
@@ -165,10 +174,10 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
 
   // Test to make sure we can control the robot these will be calculated by the controllers
   for (int leg = 0; leg < 4; leg++) {
-    this->groundReactionForces.col(leg) << 0.0, 0.0, -220.36;
+    this->groundReactionForces.col(leg) << 0.0, 0.0, 0;//-220.36;
     //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
 
-    this->footstepLocations.col(leg) << 0.0, 0.0, -0.65;
+    this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength / 2;
   }
   Vec3<T> vDes;
   vDes << 0, 0, 0;
@@ -196,7 +205,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
 
       // Swing leg trajectory
       // TODO
-      this->footstepLocations.col(leg) << 0.1, 0, -0.35;
+      this->footstepLocations.col(leg) << this->_data->_quadruped->_maxLegLength / 7, 0, -this->_data->_quadruped->_maxLegLength / 2;
       this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
 
       // Feedforward torques for swing leg tracking

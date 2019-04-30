@@ -158,7 +158,7 @@ _tau(12) {
     // init ti board
     for(int leg = 0; leg < 4; leg++) {
       _tiBoards[leg].init(Quadruped<float>::getSideSign(leg));
-      _tiBoards[leg].set_link_lengths(_quadruped._abadLinkLength, _quadruped._hipLinkLength, _quadruped._kneeLinkLenght);
+      _tiBoards[leg].set_link_lengths(_quadruped._abadLinkLength, _quadruped._hipLinkLength, _quadruped._kneeLinkLength);
       _tiBoards[leg].reset_ti_board_command();
       _tiBoards[leg].reset_ti_board_data();
       _tiBoards[leg].run_ti_board_iteration();

@@ -13,10 +13,12 @@
  * data and stores it in a struct. Initializes the FSM with a starting
  * state and operating mode.
  *
+ * @param _quadruped the quadruped information
  * @param _stateEstimator contains the estimated states
  * @param _legController interface to the leg controllers
  * @param _gaitScheduler controls scheduled foot contact modes
  * @param _desiredStateCommand gets the desired COM state trajectories
+ * @param controlParameters passes in the control parameters from the GUI
  */
 template <typename T>
 ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
@@ -25,6 +27,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
                           GaitScheduler<T>* _gaitScheduler,
                           DesiredStateCommand<T>* _desiredStateCommand,
                           RobotControlParameters* controlParameters) {
+  // Add the pointers to the ControlFSMData struct
   data._quadruped = _quadruped;
   data._stateEstimator = _stateEstimator;
   data._legController = _legController;
@@ -40,14 +43,15 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
   statesList.locomotion = new FSM_State_Locomotion<T>(&data);
 
-  // Initialize the FSM with an FSM State
+  // Initialize the FSM with the Passive FSM State
   initialize();
 
 }
 
 
 /**
- * Initialize the Control FSM with the default settings.
+ * Initialize the Control FSM with the default settings. SHould be set to
+ * Passive state and Normal operation mode.
  */
 template <typename T>
 void ControlFSM<T>::initialize() {
@@ -74,7 +78,7 @@ void ControlFSM<T>::initialize() {
 template <typename T>
 void ControlFSM<T>::runFSM() {
   // Check the robot state for safe operation
-  operatingMode = safetyCheck();
+  operatingMode = safetyPreCheck();
 
   // Run the robot control code if operating mode is not unsafe
   if (operatingMode != FSM_OperatingMode::ESTOP) {
@@ -84,7 +88,7 @@ void ControlFSM<T>::runFSM() {
       // Check the current state for any transition
       nextStateName = currentState->checkTransition();
 
-      // Detect a requested transition
+      // Detect a commanded transition
       if (nextStateName != currentState->stateName) {
 
         // Set the FSM operating mode to transitioning
@@ -136,7 +140,8 @@ void ControlFSM<T>::runFSM() {
     nextStateName = currentState->stateName;
   }
 
-  // Safety check and modify commands function here?
+  // Check the robot state for safe operation
+  operatingMode = safetyPostCheck();
 
   // Print the current state of the FSM
   printInfo(0);
@@ -152,7 +157,7 @@ void ControlFSM<T>::runFSM() {
  * @return the appropriate operating mode
  */
 template <typename T>
-FSM_OperatingMode ControlFSM<T>::safetyCheck() {
+FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
 
   // Check for safe orientation if the current state requires it
   if (currentState->checkSafeOrientation) {
@@ -168,9 +173,141 @@ FSM_OperatingMode ControlFSM<T>::safetyCheck() {
 
 
 /**
- * Returns the approptiate next FSM State when requested.
+ * Checks the robot state for safe operation commands after calculating the
+ * control iteration. Prints out which command is unsafe. Each state has
+ * the option to enable checks for commands that it cares about.
  *
- * @param  next requested enumerated state name
+ * Should this EDamp / EStop or just continue?
+ * Should break each separate check into its own function for clarity
+ *
+ * @return the appropriate operating mode
+ */
+template <typename T>
+FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
+
+  // Check for safe orientation if the current state requires it
+  if (currentState->checkPDesFoot) {
+    T maxAngle = 1.0472;  // 60 degrees (should be changed)
+    T maxPDes = data._quadruped->_maxLegLength * sin(maxAngle);
+
+    // Check all of the legs
+    for (int leg = 0; leg < 4; leg++) {
+      // Keep the foot from going too far from the body in +x
+      if (data._legController->commands[leg].pDes(0) > maxPDes) {
+        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 0 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].pDes(0) << " | modified: " << maxPDes << std::endl;
+        data._legController->commands[leg].pDes(0) = maxPDes;
+      }
+
+      // Keep the foot from going too far from the body in -x
+      if (data._legController->commands[leg].pDes(0) < -maxPDes) {
+        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 0 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].pDes(0) << " | modified: " << -maxPDes << std::endl;
+        data._legController->commands[leg].pDes(0) = -maxPDes;
+      }
+
+      // Keep the foot from going too far from the body in +y
+      if (data._legController->commands[leg].pDes(1) > maxPDes) {
+        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 1 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].pDes(1) << " | modified: " << maxPDes << std::endl;
+        data._legController->commands[leg].pDes(1) = maxPDes;
+      }
+
+      // Keep the foot from going too far from the body in -y
+      if (data._legController->commands[leg].pDes(1) < -maxPDes) {
+        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 1 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].pDes(1) << " | modified: " << -maxPDes << std::endl;
+        data._legController->commands[leg].pDes(1) = -maxPDes;
+      }
+
+      // Keep the leg under the motor module (don't raise above body or crash into module)
+      if (data._legController->commands[leg].pDes(2) > -data._quadruped->_maxLegLength / 4) {
+        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 2 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].pDes(2) << " | modified: " << -data._quadruped->_maxLegLength / 4 << std::endl;
+        data._legController->commands[leg].pDes(2) = -data._quadruped->_maxLegLength / 4;
+      }
+
+      // Keep the foot within the kinematic limits
+      if (data._legController->commands[leg].pDes(2) < -data._quadruped->_maxLegLength) {
+        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 2 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].pDes(2) << " | modified: " << -data._quadruped->_maxLegLength << std::endl;
+        data._legController->commands[leg].pDes(2) = -data._quadruped->_maxLegLength;
+      }
+    }
+
+  }
+
+  if (currentState->checkForceFeedForward) {
+    T maxLateralForce = 0;
+    T maxVerticalForce = 0;
+
+    // Maximum force limits for each robot
+    if (data._quadruped->_robotType == RobotType::CHEETAH_3) {
+      maxLateralForce = 1800;
+      maxVerticalForce = 1800;
+
+    } else if (data._quadruped->_robotType == RobotType::MINI_CHEETAH) {
+      maxLateralForce = 350;
+      maxVerticalForce = 350;
+
+    }
+
+    // Check all of the legs
+    for (int leg = 0; leg < 4; leg++) {
+      // Limit the lateral forces in +x body frame
+      if (data._legController->commands[leg].forceFeedForward(0) > maxLateralForce) {
+        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 0 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(0) << " | modified: " << maxLateralForce << std::endl;
+        data._legController->commands[leg].forceFeedForward(0) = maxLateralForce;
+      }
+
+      // Limit the lateral forces in -x body frame
+      if (data._legController->commands[leg].forceFeedForward(0) < -maxLateralForce) {
+        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 0 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(0) << " | modified: " << -maxLateralForce << std::endl;
+        data._legController->commands[leg].forceFeedForward(0) = -maxLateralForce;
+      }
+
+      // Limit the lateral forces in +y body frame
+      if (data._legController->commands[leg].forceFeedForward(1) > maxLateralForce) {
+        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 1 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(1) << " | modified: " << maxLateralForce << std::endl;
+        data._legController->commands[leg].forceFeedForward(1) = maxLateralForce;
+      }
+
+      // Limit the lateral forces in -y body frame
+      if (data._legController->commands[leg].forceFeedForward(1) < -maxLateralForce) {
+        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 1 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(1) << " | modified: " << -maxLateralForce << std::endl;
+        data._legController->commands[leg].forceFeedForward(1) = -maxLateralForce;
+      }
+
+      // Limit the vertical forces in +z body frame
+      if (data._legController->commands[leg].forceFeedForward(2) < -maxVerticalForce) {
+        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 2 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(2) << " | modified: " << -maxVerticalForce << std::endl;
+        data._legController->commands[leg].forceFeedForward(2) = -maxVerticalForce;
+      }
+
+      // Limit the vertical forces in -z body frame
+      if (data._legController->commands[leg].forceFeedForward(2) > -maxVerticalForce) {
+        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 2 << "\n";
+        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(2) << " | modified: " << maxVerticalForce << std::endl;
+        data._legController->commands[leg].forceFeedForward(2) = -maxVerticalForce;
+      }
+    }
+  }
+
+// Default is to return the current operating mode
+  return operatingMode;
+
+}
+
+
+/**
+ * Returns the approptiate next FSM State when commanded.
+ *
+ * @param  next commanded enumerated state name
  * @return next FSM state
  */
 template <typename T>
@@ -216,7 +353,7 @@ void ControlFSM<T>::printInfo(int opt) {
     // Increment printing iteration
     printIter++;
 
-    // Print at requested frequency
+    // Print at commanded frequency
     if (printIter == printNum) {
       std::cout << "[CONTROL FSM] Printing FSM Info...\n";
       std::cout << "---------------------------------------------------------\n";

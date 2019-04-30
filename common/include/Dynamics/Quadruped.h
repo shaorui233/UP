@@ -56,9 +56,10 @@ template<typename T>
 class Quadruped {
 public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  RobotType _robotType;
   T _bodyLength, _bodyWidth, _bodyHeight, _bodyMass;
   T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
-  T _abadLinkLength, _hipLinkLength, _kneeLinkLenght;
+  T _abadLinkLength, _hipLinkLength, _kneeLinkLength, _maxLegLength;
   T _motorKT, _motorR, _batteryV;
   T _motorTauMax;
   T _jointDamping, _jointDryFriction;

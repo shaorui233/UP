@@ -32,6 +32,8 @@ using namespace spatial;
 template <typename T>
 Quadruped<T> buildCheetah3() {
   Quadruped<T> cheetah;
+  cheetah._robotType = RobotType::CHEETAH_3;
+
   cheetah._bodyMass = 26.60;
   cheetah._bodyLength = .6;
   cheetah._bodyWidth = .256;
@@ -41,7 +43,8 @@ Quadruped<T> buildCheetah3() {
   cheetah._kneeGearRatio = 8.846;
   cheetah._abadLinkLength = 0.045;
   cheetah._hipLinkLength  = 0.342;
-  cheetah._kneeLinkLenght = 0.345;
+  cheetah._kneeLinkLength = 0.345;
+  cheetah._maxLegLength = 0.687;
 
   cheetah._batteryV = 65;
   cheetah._motorKT = 0.266;
