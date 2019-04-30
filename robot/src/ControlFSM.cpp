@@ -43,6 +43,8 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
   statesList.locomotion = new FSM_State_Locomotion<T>(&data);
 
+  safetyChecker = new SafetyChecker<T>(&data);
+
   // Initialize the FSM with the Passive FSM State
   initialize();
 
@@ -141,7 +143,9 @@ void ControlFSM<T>::runFSM() {
   }
 
   // Check the robot state for safe operation
-  operatingMode = safetyPostCheck();
+  if (!safetyChecker->safetyPostCheck()) {
+    return;
+  }
 
   // Print the current state of the FSM
   printInfo(0);
@@ -185,7 +189,7 @@ FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
 template <typename T>
 FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
 
-  // Check for safe orientation if the current state requires it
+  // Check for safe desired foot positions
   if (currentState->checkPDesFoot) {
     T maxAngle = 1.0472;  // 60 degrees (should be changed)
     T maxPDes = data._quadruped->_maxLegLength * sin(maxAngle);
@@ -237,7 +241,9 @@ FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
 
   }
 
+  // Check for safe desired feedforward forces
   if (currentState->checkForceFeedForward) {
+    // Initialize maximum vertical and lateral forces
     T maxLateralForce = 0;
     T maxVerticalForce = 0;
 
@@ -249,7 +255,6 @@ FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
     } else if (data._quadruped->_robotType == RobotType::MINI_CHEETAH) {
       maxLateralForce = 350;
       maxVerticalForce = 350;
-
     }
 
     // Check all of the legs
@@ -283,14 +288,14 @@ FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
       }
 
       // Limit the vertical forces in +z body frame
-      if (data._legController->commands[leg].forceFeedForward(2) < -maxVerticalForce) {
+      if (data._legController->commands[leg].forceFeedForward(2) > maxVerticalForce) {
         std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 2 << "\n";
         std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(2) << " | modified: " << -maxVerticalForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(2) = -maxVerticalForce;
+        data._legController->commands[leg].forceFeedForward(2) = maxVerticalForce;
       }
 
       // Limit the vertical forces in -z body frame
-      if (data._legController->commands[leg].forceFeedForward(2) > -maxVerticalForce) {
+      if (data._legController->commands[leg].forceFeedForward(2) < -maxVerticalForce) {
         std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 2 << "\n";
         std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(2) << " | modified: " << maxVerticalForce << std::endl;
         data._legController->commands[leg].forceFeedForward(2) = -maxVerticalForce;
@@ -298,7 +303,7 @@ FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
     }
   }
 
-// Default is to return the current operating mode
+  // Default is to return the current operating mode
   return operatingMode;
 
 }

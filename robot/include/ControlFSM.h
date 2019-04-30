@@ -6,6 +6,9 @@
 // Contains all of the control related data
 #include "ControlFSMData.h"
 
+// Checks the robot state and commands for safety
+#include "SafetyChecker.h"
+
 // FSM States
 #include "../FSM_States/FSM_State.h"
 #include "../FSM_States/FSM_State_Passive.h"
@@ -40,7 +43,6 @@ struct FSM_StatesList {
 };
 
 
-
 /**
  * Control FSM handles the FSM states from a higher level
  */
@@ -60,7 +62,7 @@ public:
   // Runs the FSM logic and handles the state transitions and normal runs
   void runFSM();
 
-  //
+  // This will be removed and put into the SafetyChecker class
   FSM_OperatingMode safetyPreCheck();
 
   //
@@ -86,6 +88,9 @@ public:
 
   // The name of the next FSM State
   FSM_StateName nextStateName;
+
+  // Checks all of the inputs and commands for safety
+  SafetyChecker<T>* safetyChecker;
 
 private:
   // Operating mode of the FSM

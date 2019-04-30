@@ -82,7 +82,7 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
       this->nextStateName = FSM_StateName::LOCOMOTION;
       this->_data->controlParameters->control_mode = K_LOCOMOTION;
       this->transitionDuration = 0.0;
-      this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT; // Or get whatever is in main_control_settings
+      this->_data->_gaitScheduler->gaitData._nextGait = GaitType::AMBLE;//TROT; // Or get whatever is in main_control_settings
       iter = 0;
     }
     break;

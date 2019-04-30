@@ -79,7 +79,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
     }*/
 
     // in place to show automatic non user requested transitions
-    if (iter >= 2058) {
+    if (iter >= 1) { //2058) {
       this->nextStateName = FSM_StateName::BALANCE_STAND;
       this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
       this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
@@ -205,7 +205,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
 
       // Swing leg trajectory
       // TODO
-      this->footstepLocations.col(leg) << this->_data->_quadruped->_maxLegLength / 7, 0, -this->_data->_quadruped->_maxLegLength / 2;
+      this->footstepLocations.col(leg) << (this->_data->_quadruped->_maxLegLength / 7)*sin(this->_data->_gaitScheduler->gaitData.phaseSwing(leg) * 3.14), 0, -this->_data->_quadruped->_maxLegLength / 2;
       this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
 
       // Feedforward torques for swing leg tracking
