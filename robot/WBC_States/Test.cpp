@@ -45,10 +45,10 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
 
     _state.bodyPosition.setZero();
     // TEST
-    _state.bodyPosition[0] = data->global_body_pos[0];
-    _state.bodyPosition[1] = data->global_body_pos[1];
-    _state.bodyPosition[2] = data->global_body_pos[2];
-    
+    //_state.bodyPosition[0] = data->global_body_pos[0];
+    //_state.bodyPosition[1] = data->global_body_pos[1];
+    //_state.bodyPosition[2] = data->global_body_pos[2];
+   //END TEST 
     _state.bodyVelocity.setZero();
     _state.bodyVelocity[0] = data->ang_vel[0];
     _state.bodyVelocity[1] = data->ang_vel[1];
@@ -63,12 +63,12 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     ave_foot_vel.setZero();
 
     // Simulation) Update global location
-    for(size_t i(0); i<3; ++i) _sp->_global_body_pos[i] = data->global_body_pos[i];
-    _sp->_global_fr_loc = _robot->_pGC[linkID::FR] + _sp->_global_body_pos;
-    _sp->_global_fl_loc = _robot->_pGC[linkID::FL] + _sp->_global_body_pos;
-    _sp->_global_hr_loc = _robot->_pGC[linkID::HR] + _sp->_global_body_pos;
-    _sp->_global_hl_loc = _robot->_pGC[linkID::HL] + _sp->_global_body_pos;
-
+    //for(size_t i(0); i<3; ++i) _sp->_global_body_pos[i] = data->global_body_pos[i];
+    //_sp->_global_fr_loc = _robot->_pGC[linkID::FR] + _sp->_global_body_pos;
+    //_sp->_global_fl_loc = _robot->_pGC[linkID::FL] + _sp->_global_body_pos;
+    //_sp->_global_hr_loc = _robot->_pGC[linkID::HR] + _sp->_global_body_pos;
+    //_sp->_global_hl_loc = _robot->_pGC[linkID::HL] + _sp->_global_body_pos;
+// END Simulation
     for(size_t i(0); i<_sp->_num_contact; ++i){
         ave_foot += (1./_sp->_num_contact) * _robot->_pGC[_sp->_contact_pt[i]];
         ave_foot_vel += (1./_sp->_num_contact) * _robot->_vGC[_sp->_contact_pt[i]];
@@ -80,21 +80,20 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
         _sp->_ori_command[i] = data->ori_command[i];
 
 
-    // TEST
-    //_state.bodyPosition = -ave_foot;
+    _state.bodyPosition = -ave_foot;
     _state.bodyPosition += _sp->_local_frame_global_pos;
  
-    //Quat<T> quat = _state.bodyOrientation;
-    //Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
-    //_state.bodyVelocity.tail(3) = -Rot * ave_foot_vel;
+    Quat<T> quat = _state.bodyOrientation;
+    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    _state.bodyVelocity.tail(3) = -Rot * ave_foot_vel;
 
     _sp->_Q[3] = _state.bodyPosition[0];
     _sp->_Q[4] = _state.bodyPosition[1];
     _sp->_Q[5] = _state.bodyPosition[2];
  
-    //for(size_t i(0); i<6; ++i){
-        //_sp->_Qdot[i] = _state.bodyVelocity[i];
-    //}
+    for(size_t i(0); i<6; ++i){
+        _sp->_Qdot[i] = _state.bodyVelocity[i];
+    }
   
     // Update with new body position
     _robot->setState(_state);

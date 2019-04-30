@@ -5,6 +5,7 @@
 
 #include <WBC_States/Bounding/CtrlSet/BoundingInitiateCtrl.hpp>
 #include <WBC_States/Bounding/CtrlSet/BoundingCtrl.hpp>
+#include <WBC_States/Bounding/CtrlSet/KinBoundingCtrl.hpp>
 
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 #include <ParamHandler/ParamHandler.hpp>
@@ -29,7 +30,8 @@ BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot, const RobotType & typ
 
   _body_up_ctrl = new FullContactTransCtrl<T>(robot);
   _bounding_ini = new BoundingInitiateCtrl<T>(robot);
-  _bounding = new BoundingCtrl<T>(this, robot);
+  //_bounding = new BoundingCtrl<T>(this, robot);
+  _bounding = new KinBoundingCtrl<T>(this, robot);
 
   Test<T>::_state_list.push_back(_body_up_ctrl);
   Test<T>::_state_list.push_back(_bounding_ini);
@@ -63,6 +65,10 @@ void BoundingTest<T>::_TestInitialization(){
 template <typename T>
 int BoundingTest<T>::_NextPhase(const int & phase){
   int next_phase = phase + 1;
+  // TEST
+  if(next_phase == 1){
+    next_phase = 2;
+  }
   _sp->_num_contact = 0;
 
   if (next_phase == BoundingPhase::NUM_BOUNDING_PHASE) {

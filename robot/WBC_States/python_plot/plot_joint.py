@@ -19,34 +19,19 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     file_path = os.getcwd() + "/../sim_data/"
 
     ## read files
-    vm_q = \
-            np.genfromtxt(file_path+'vm_q.txt', delimiter=None, dtype=(float))
-    vm_qdot = \
-            np.genfromtxt(file_path+'vm_qdot.txt', delimiter=None, dtype=(float))
-    data_config = \
-            np.genfromtxt(file_path+'config.txt', delimiter=None, dtype=(float))
-    data_qdot = \
-            np.genfromtxt(file_path+'qdot.txt', delimiter=None, dtype=(float))
+    jpos_cmd = np.genfromtxt(file_path+'jpos_cmd.txt', delimiter=None, dtype=(float))
+    jvel_cmd = np.genfromtxt(file_path+'jvel_cmd.txt', delimiter=None, dtype=(float))
+    jacc_cmd = np.genfromtxt(file_path+'jacc_cmd.txt', delimiter=None, dtype=(float))
 
-    data_x = np.genfromtxt(file_path+'time.txt', delimiter='\n', dtype=(float))
+    config = np.genfromtxt(file_path+'config.txt', delimiter=None, dtype=(float))
+    qdot = np.genfromtxt(file_path+'qdot.txt', delimiter=None, dtype=(float))
 
-    ## Check
-    check_t = np.genfromtxt(file_path+'check_time.txt', delimiter='\n', dtype=(float))
-    check_v = np.genfromtxt(file_path+'check_vel.txt', delimiter=None, dtype=(float))
-    # lin_info = np.genfromtxt(file_path+'body_lin_info.txt', delimiter=None, dtype=(float))
+    x = np.genfromtxt(file_path+'time.txt', delimiter='\n', dtype=(float))
 
     st_idx = 0
-    end_idx = len(data_x)
-    data_x = data_x[st_idx:end_idx]
-    # PHASE MARKER #
-    data_phse = np.genfromtxt(file_path+'phase.txt', delimiter=None, dtype=(float))
-    # get phase.txt data #
-    phseChange = []
-    for i in range(0,len(data_x)-1):
-            if data_phse[i] != data_phse[i+1]:
-                phseChange.append(i - st_idx)
-            else:
-                pass
+    end_idx = len(x)- 10
+    x = x[st_idx:end_idx]
+
     axes = plt.gca()
 
     ## plot position
@@ -55,14 +40,9 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     fig.canvas.set_window_title('front leg pos')
     for i in range(6):
         ax1 = plt.subplot(6, 1, i+1)
-        plt.plot(data_x, vm_q[st_idx:end_idx,i+6], "b-")
-        plt.plot(data_x, data_config[st_idx:end_idx,i+6], "r-")
+        plt.plot(x, jpos_cmd[st_idx:end_idx,i], "r-")
+        plt.plot(x, config[st_idx:end_idx,i+6], "b-")
         plt.grid(True)
-        for j in phseChange:
-            # phase line
-            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
-            # phase number
-            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
     plt.xlabel('time (sec)')
     ## increment figure number and index
     figure_number += 1
@@ -77,14 +57,9 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     fig.canvas.set_window_title('hind leg pos')
     for i in range(6):
         ax1 = plt.subplot(6, 1, i+1)
-        plt.plot(data_x, vm_q[st_idx:end_idx,i+12], "b-")
-        plt.plot(data_x, data_config[st_idx:end_idx,i+12], "r-")
+        plt.plot(x, jpos_cmd[st_idx:end_idx,i+6], "r-")
+        plt.plot(x, config[st_idx:end_idx,i+12], "b-")
         plt.grid(True)
-        for j in phseChange:
-            # phase line
-            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
-            # phase number
-            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
     plt.xlabel('time (sec)')
     ## increment figure number and index
     figure_number += 1
@@ -99,14 +74,9 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     fig.canvas.set_window_title('front leg vel')
     for i in range(6):
         ax1 = plt.subplot(6, 1, i+1)
-        plt.plot(data_x, vm_qdot[st_idx:end_idx,i+6], "b-")
-        plt.plot(data_x, data_qdot[st_idx:end_idx,i+6], "r-")
+        plt.plot(x, jvel_cmd[st_idx:end_idx,i], "r-")
+        plt.plot(x, qdot[st_idx:end_idx,i+6], "b-")
         plt.grid(True)
-        for j in phseChange:
-            # phase line
-            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
-            # phase number
-            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
     plt.xlabel('time (sec)')
     ## increment figure number and index
     figure_number += 1
@@ -121,14 +91,9 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     fig.canvas.set_window_title('hind leg vel')
     for i in range(6):
         ax1 = plt.subplot(6, 1, i+1)
-        plt.plot(data_x, vm_qdot[st_idx:end_idx,i+12], "b-")
-        plt.plot(data_x, data_qdot[st_idx:end_idx,i+12], "r-")
+        plt.plot(x, jvel_cmd[st_idx:end_idx,i+6], "r-")
+        plt.plot(x, qdot[st_idx:end_idx,i+12], "b-")
         plt.grid(True)
-        for j in phseChange:
-            # phase line
-            plt.axvline(x=data_x[j],color='indigo',linestyle='-')
-            # phase number
-            plt.text(data_x[j],ax1.get_ylim()[1],'%d'%(data_phse[j]),color='indigo')
     plt.xlabel('time (sec)')
     ## increment figure number and index
     figure_number += 1

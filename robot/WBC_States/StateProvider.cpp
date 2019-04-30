@@ -11,7 +11,7 @@ StateProvider<T>::StateProvider():
     _Q(cheetah::num_q),
     _Qdot(cheetah::dim_config),
     _num_contact(2),
-    _curr_time(0.),
+    _curr_time(0.0),
     _num_step(-1)
 {
     _contact_pt[0] = linkID::FL;

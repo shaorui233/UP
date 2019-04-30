@@ -71,7 +71,7 @@ def create_figures(subfigure_width=480, subfigure_height=600, starting_figure_no
     for i in range(3):
         ax1 = plt.subplot(3, 1, i+1)
         plt.plot(data_x, fl_Fr_des[st_idx:end_idx,i], "r-")
-        plt.plot(data_x, fr_Fr_result[st_idx:end_idx,i], "b-")
+        plt.plot(data_x, fl_Fr_result[st_idx:end_idx,i], "b-")
         plt.plot(data_x, scale * front_contact[st_idx:end_idx], "c-")
         plt.plot(data_x, scale * hind_contact[st_idx:end_idx], "k-")
         plt.grid(True)

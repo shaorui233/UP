@@ -37,7 +37,18 @@ BoundingCtrl<T>::BoundingCtrl(
   _Fr_des(12),
   _Fr_result(12)
 {
-  // Start from front swing & hind stance
+  _fr_foot_vel.setZero();
+  _fr_foot_acc.setZero();
+
+  _fl_foot_vel.setZero();
+  _fl_foot_acc.setZero();
+
+  _hr_foot_vel.setZero();
+  _hr_foot_acc.setZero();
+
+  _hl_foot_vel.setZero();
+  _hl_foot_acc.setZero();
+   // Start from front swing & hind stance
   _b_front_swing = true;
   _b_hind_swing = false;
 
@@ -81,9 +92,9 @@ BoundingCtrl<T>::BoundingCtrl(
 
   _wbic_data->_W_floating = DVec<T>::Constant(6, 50.);
   //_wbic_data->_W_floating[1] = 1.0;
-  //_wbic_data->_W_floating[3] = 1.0;
-  //_wbic_data->_W_floating[4] = 1.0;
-  //_wbic_data->_W_floating[5] = 1.0;
+  _wbic_data->_W_floating[3] = 1.0;
+  _wbic_data->_W_floating[4] = 1.0;
+  _wbic_data->_W_floating[5] = 1.0;
   _sp = StateProvider<T>::getStateProvider();
 
   _folder_name = "/robot/WBC_States/sim_data/";
@@ -177,8 +188,8 @@ void BoundingCtrl<T>::_setupTaskAndContactList(){
 
     //Ctrl::_task_list.push_back(_fr_abduction_task);
     //Ctrl::_task_list.push_back(_fl_abduction_task);
-    //Ctrl::_task_list.push_back(_fr_leg_height_task);
-    //Ctrl::_task_list.push_back(_fl_leg_height_task);
+    Ctrl::_task_list.push_back(_fr_leg_height_task);
+    Ctrl::_task_list.push_back(_fl_leg_height_task);
    }
 
   if(_b_hind_swing){
@@ -190,8 +201,8 @@ void BoundingCtrl<T>::_setupTaskAndContactList(){
 
     //Ctrl::_task_list.push_back(_hr_abduction_task);
     //Ctrl::_task_list.push_back(_hl_abduction_task);
-    //Ctrl::_task_list.push_back(_hr_leg_height_task);
-    //Ctrl::_task_list.push_back(_hl_leg_height_task);
+    Ctrl::_task_list.push_back(_hr_leg_height_task);
+    Ctrl::_task_list.push_back(_hl_leg_height_task);
    }
 }
 
@@ -214,8 +225,9 @@ void BoundingCtrl<T>::OneStep(void* _cmd){
   //Ctrl::_task_list.push_back(_abd_joint_task);
   //Ctrl::_task_list.push_back(_body_ori_task);
   if((!_b_front_swing) || (!_b_hind_swing)){
-    Ctrl::_task_list.push_back(_local_roll_task);
-    Ctrl::_task_list.push_back(_body_ryrz_task);
+  Ctrl::_task_list.push_back(_body_ori_task);
+    //Ctrl::_task_list.push_back(_local_roll_task);
+    //Ctrl::_task_list.push_back(_body_ryrz_task);
   }
   //Ctrl::_task_list.push_back(_body_xy_task);
  

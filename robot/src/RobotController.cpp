@@ -44,7 +44,7 @@ void RobotController::init() {
   //_contactEstimator->initialize();
 
   // Initializes the Control FSM with all the required data
-  _controlFSM = new ControlFSM<float>(&_quadruped, _stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
+  //_controlFSM = new ControlFSM<float>(&_quadruped, _stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
 
   // For WBC state
   ParamHandler handler(THIS_COM"robot/WBC_States/config/ROBOT_test_setup.yaml");
@@ -79,7 +79,9 @@ void RobotController::init() {
  * to run each of their respective steps.
  */
 void RobotController::run() {
+  //printf("1\n");
   setupStep();
+  //printf("2\n");
 
   // send back joint positions
   for (int leg = 0; leg < 4; leg++) {
@@ -88,9 +90,11 @@ void RobotController::run() {
     }
   }
 
+  //printf("3\n");
   cheetahMainVisualization->p.setZero();
   _stateEstimator->run(cheetahMainVisualization);
 
+  //printf("4\n");
   //testDebugVisualization();
   //StepLocationVisualization();
   //BodyPathVisualization();
@@ -110,6 +114,7 @@ void RobotController::run() {
   }
   _legController->setMaxTorqueCheetah3(208.5);
 
+  //printf("5\n");
   // for debugging the visualizations from robot code
 
 
@@ -117,8 +122,9 @@ void RobotController::run() {
   // Commenting out WBC for now to test Locomotion control
   Mat3<float> kpMat;
   Mat3<float> kdMat;
-  //if (!_jpos_initializer->IsInitialized(_legController)) {
-  if (false) {
+  if (!_jpos_initializer->IsInitialized(_legController)) {
+  //printf("6\n");
+  //if (false) {
     kpMat <<
           5, 0, 0,
           0, 5, 0,
@@ -134,8 +140,10 @@ void RobotController::run() {
       _legController->commands[leg].kdJoint = kdMat;
 
     }
+  //printf("7\n");
   } else {
 
+  //printf("8\n");
     Vec3<float> rpy = _stateEstimator->getResult().rpy;
     rpy[2] -= _ini_yaw;
     Quat<float> quat_ori = ori::rpyToQuat(rpy);
@@ -145,9 +153,10 @@ void RobotController::run() {
     }
     for (int i(0); i < 3; ++i) {
       _data->ang_vel[i] = _stateEstimator->getResult().omegaBody[i];
-      _data->global_body_pos[i] = cheaterState->position[i];
+      //_data->global_body_pos[i] = cheaterState->position[i];
     }
-    _data->global_body_pos[2] += 0.5;// because ground is -0.5
+    //_data->global_body_pos[2] += 0.5;// because ground is -0.5
+  //printf("9\n");
 
     for (int leg(0); leg < 4; ++leg) {
       for (int jidx(0); jidx < 3; ++jidx) {
@@ -165,9 +174,11 @@ void RobotController::run() {
     _data->ori_command[1] = driverCommand->rightStickAnalog[1];
     _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
+  //printf("10\n");
     //Timer timer;
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
 
+  //printf("11\n");
     //if(count_ini%100 ==0)
     //std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
   }
@@ -186,6 +197,7 @@ void RobotController::run() {
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
+  //printf("end\n\n");
 }
 
 

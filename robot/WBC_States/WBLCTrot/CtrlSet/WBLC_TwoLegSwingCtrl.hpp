@@ -76,7 +76,7 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
         ContactSpec<T>* hr_contact_;
         ContactSpec<T>* hl_contact_;
 
-        KinWBC<T>* kin_wbc_;
+        KinWBC<T>* _kin_wbc;
         WBLC<T>* wblc_;
         WBLC_ExtraData<T>* wblc_data_;
         std::vector<ContactSpec<T>* > _kin_contact_list;
@@ -88,9 +88,9 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
         DVec<T> Kd_;
         std::vector<T> _Kp_joint, _Kd_joint;
         
-        DVec<T> des_jpos_;
-        DVec<T> des_jvel_;
-        DVec<T> des_jacc_;
+        DVec<T> _des_jpos;
+        DVec<T> _des_jvel;
+        DVec<T> _des_jacc;
 
         T _end_time;
         T _target_body_height;

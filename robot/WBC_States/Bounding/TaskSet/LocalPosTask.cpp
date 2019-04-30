@@ -33,23 +33,18 @@ bool LocalPosTask<T>::_UpdateCommand(void* pos_des,
     link_pos = _robot_sys->_pGC[_link_idx];
     local_pos = _robot_sys->_pGC[_local_frame_idx];
     local_vel = _robot_sys->_vGC[_local_frame_idx];
-    //Vec3<T> offset; offset.setZero();
-    //_robot_sys->getPositionVelocity(_local_frame_idx, offset, local_pos, local_vel);
 
-    // X, Y
+    // X, Y, Z
     for(size_t i(0); i<TK::dim_task_; ++i){
         TK::pos_err_[i] = (*pos_cmd)[i] - (link_pos[i] - local_pos[i]);
         TK::vel_des_[i] = vel_des[i];
         TK::acc_des_[i] = acc_des[i];
-    }
-    
-    // Op acceleration command
-    for(size_t i(0); i<TK::dim_task_; ++i){
+
         TK::op_cmd_[i] = _Kp[i] * TK::pos_err_[i]
             + _Kd[i] * (TK::vel_des_[i] - (_robot_sys->_vGC[_link_idx][i] - local_vel[i]))
             + TK::acc_des_[i];
     }
-
+    
     //printf("[Link Pos Task]\n");
     //pretty_print(acc_des, std::cout, "acc_des");
     //pretty_print(TK::pos_err_, std::cout, "pos_err_");
@@ -67,12 +62,14 @@ bool LocalPosTask<T>::_UpdateCommand(void* pos_des,
 template <typename T>
 bool LocalPosTask<T>::_UpdateTaskJacobian(){
     TK::Jt_ = _robot_sys->_Jc[_link_idx] - _robot_sys->_Jc[_local_frame_idx];
+    // TEST
+    //TK::Jt_.block(0,0, 3,3) = DMat<T>::Zero(3,3);
     return true;
 }
 
 template <typename T>
 bool LocalPosTask<T>::_UpdateTaskJDotQdot(){
-    //TK::JtDotQdot_ = _robot_sys->_Jcdqd[_link_idx];
+    TK::JtDotQdot_ = _robot_sys->_Jcdqd[_link_idx] - _robot_sys->_Jcdqd[_local_frame_idx];
     return true;
 }
 

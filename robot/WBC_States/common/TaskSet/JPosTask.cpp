@@ -13,6 +13,9 @@ JPosTask<T>::JPosTask(const FloatingBaseModel<T>* robot):
     TK::Jt_ = DMat<T>::Zero(cheetah::num_act_joint, cheetah::dim_config);
     (TK::Jt_.block(0, 6, cheetah::num_act_joint, cheetah::num_act_joint)).setIdentity();
     TK::JtDotQdot_ = DVec<T>::Zero(cheetah::num_act_joint);
+
+    _Kp = DVec<T>::Constant(cheetah::num_act_joint, 50.);
+    _Kd = DVec<T>::Constant(cheetah::num_act_joint, 5.);
 }
 
 template <typename T>
@@ -28,10 +31,15 @@ bool JPosTask<T>::_UpdateCommand(void* pos_des,
       TK::pos_err_[i] = (*pos_cmd)[i] - robot_sys_->_state.q[i];
       TK::vel_des_[i] = vel_des[i];
       TK::acc_des_[i] = acc_des[i];
+
+      TK::op_cmd_[i] = 
+        _Kp[i] * TK::pos_err_[i] + 
+        _Kd[i] * (vel_des[i] - robot_sys_->_state.qd[i]) +
+        acc_des[i];
   }
-   //dynacore::pretty_print(acc_des, std::cout, "acc_des");
-   //dynacore::pretty_print(op_cmd_, std::cout, "op cmd");
-   //dynacore::pretty_print(*pos_cmd, std::cout, "pos cmd");
+   //pretty_print(acc_des, std::cout, "acc_des");
+   //pretty_print(op_cmd_, std::cout, "op cmd");
+   //pretty_print(*pos_cmd, std::cout, "pos cmd");
 
   return true;
 }

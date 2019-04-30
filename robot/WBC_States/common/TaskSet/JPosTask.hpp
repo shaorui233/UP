@@ -11,6 +11,7 @@ public:
   JPosTask(const FloatingBaseModel<T>*);
   virtual ~JPosTask();
 
+  DVec<T> _Kp, _Kd;
 protected:
   // Update op_cmd_
   virtual bool _UpdateCommand(void* pos_des,
