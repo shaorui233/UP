@@ -17,10 +17,12 @@ template <typename T>
 WBLCTrotTest<T>::WBLCTrotTest(FloatingBaseModel<T>* robot, const RobotType & type):
   Test<T>(robot, type)
 {
-
   _body_pos.setZero();
   _body_vel.setZero();
   _body_acc.setZero();
+
+  _body_ori_rpy.setZero();
+  _body_ang_vel.setZero(); 
 
   Test<T>::_phase = WBLCTrotPhase::lift_up;
   Test<T>::_state_list.clear();

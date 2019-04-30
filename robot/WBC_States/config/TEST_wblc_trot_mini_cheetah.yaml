@@ -72,8 +72,7 @@ Kd_joint: [1.5, 1.5, 1.5]
 #Kp_joint: [25.0, 25.0, 25.0]
 #Kd_joint: [1.5, 1.5, 1.5]
 
-
-
 tau_lim: [-100., 100.]
 
+#save_file: true
 save_file: false
