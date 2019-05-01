@@ -103,7 +103,7 @@ void BoundingTest<T>::_SettingParameter(){
 template <typename T>
 void BoundingTest<T>::_UpdateTestOneStep(){
 
-  T scale(0.5);
+  T scale(2.0);
   _body_ang_vel[2] = _sp->_ori_command[2];
   _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
 

@@ -7,8 +7,6 @@
 #include <Utilities/Utilities_print.h>
 #include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
-#include <WBC_States/OptPlay/OptPlayTest.hpp>
-#include <WBC_States/PlannedTrot/PlannedTrotTest.hpp>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 #include <WBC_States/BackFlip/BackFlipTest.hpp>
@@ -30,8 +28,8 @@ void RobotController::init() {
 
   _legController = new LegController<float>(_quadruped);
   _stateEstimator = new StateEstimatorContainer<float>(
-    cheaterState, kvhImuData, vectorNavData,
-    _legController->datas, &_stateEstimate, controlParameters);
+      cheaterState, kvhImuData, vectorNavData,
+      _legController->datas, &_stateEstimate, controlParameters);
   initializeStateEstimator(false);
 
   // Initialize a new GaitScheduler object
@@ -64,8 +62,6 @@ void RobotController::init() {
     _wbc_state = new BoundingTest<float>(&_model, robotType);
   }
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
-  //_wbc_state = new OptPlayTest<float>(&_model, robotType);
-  //_wbc_state = new PlannedTrotTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);
 
   _jpos_initializer = new JPosInitializer<float>(4.);
@@ -79,9 +75,7 @@ void RobotController::init() {
  * to run each of their respective steps.
  */
 void RobotController::run() {
-  //printf("1\n");
   setupStep();
-  //printf("2\n");
 
   // send back joint positions
   for (int leg = 0; leg < 4; leg++) {
@@ -90,11 +84,10 @@ void RobotController::run() {
     }
   }
 
-  //printf("3\n");
   cheetahMainVisualization->p.setZero();
   _stateEstimator->run(cheetahMainVisualization);
 
-  //printf("4\n");
+  // for debugging the visualizations from robot code
   //testDebugVisualization();
   //StepLocationVisualization();
   //BodyPathVisualization();
@@ -114,49 +107,47 @@ void RobotController::run() {
   }
   _legController->setMaxTorqueCheetah3(208.5);
 
-  //printf("5\n");
-  // for debugging the visualizations from robot code
-
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
   Mat3<float> kpMat;
   Mat3<float> kdMat;
-  if (!_jpos_initializer->IsInitialized(_legController)) {
-  //printf("6\n");
-  //if (false) {
+  //if (!_jpos_initializer->IsInitialized(_legController)) {
+  if (false) {  // TEST
     kpMat <<
-          5, 0, 0,
-          0, 5, 0,
-          0, 0, 5;
+      5, 0, 0,
+      0, 5, 0,
+      0, 0, 5;
 
     kdMat <<
-          0.1, 0, 0,
-               0, 0.1, 0,
-               0, 0, 0.1;
+      0.1, 0, 0,
+      0, 0.1, 0,
+      0, 0, 0.1;
     _ini_yaw = _stateEstimator->getResult().rpy[2];
     for (int leg = 0; leg < 4; leg++) {
       _legController->commands[leg].kpJoint = kpMat;
       _legController->commands[leg].kdJoint = kdMat;
 
     }
-  //printf("7\n");
   } else {
 
-  //printf("8\n");
     Vec3<float> rpy = _stateEstimator->getResult().rpy;
     rpy[2] -= _ini_yaw;
     Quat<float> quat_ori = ori::rpyToQuat(rpy);
 
-    for (size_t i(0); i < 4; ++i) {
-      _data->body_ori[i] = quat_ori[i];
-    }
+    // Quaternion (Orientation setting
+    for (size_t i(0); i < 4; ++i) { _data->body_ori[i] = quat_ori[i]; }
+    // Angular velocity
     for (int i(0); i < 3; ++i) {
       _data->ang_vel[i] = _stateEstimator->getResult().omegaBody[i];
-      //_data->global_body_pos[i] = cheaterState->position[i];
     }
-    //_data->global_body_pos[2] += 0.5;// because ground is -0.5
-  //printf("9\n");
+
+    if(_cheaterModeEnabled){
+      _data->global_body_pos[0] = cheaterState->position[0];
+      _data->global_body_pos[1] = cheaterState->position[1];
+      _data->global_body_pos[2] = cheaterState->position[2] + 0.5; // ground is -0.5
+      _data->cheater_mode = true;
+    }
 
     for (int leg(0); leg < 4; ++leg) {
       for (int jidx(0); jidx < 3; ++jidx) {
@@ -174,13 +165,9 @@ void RobotController::run() {
     _data->ori_command[1] = driverCommand->rightStickAnalog[1];
     _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
-  //printf("10\n");
     //Timer timer;
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
-
-  //printf("11\n");
-    //if(count_ini%100 ==0)
-    //std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
+    //if(count_ini%100 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
   }
   // === End of WBC state command computation  =========== //
 
@@ -425,11 +412,11 @@ void RobotController::footstepHeuristicPlacement() {
 
       // Footstep heuristic composed of several parts in the world frame
       footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*      // Ground projection
-                                 (_stateEstimate.position +                             //
-                                  rBody * posHip +                                      // Foot under hips
-                                  timeStance / 2 * velDes +                             // Raibert Heuristic
-                                  timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
-                                  (_stateEstimate.vBody - velDes));
+        (_stateEstimate.position +                             //
+         rBody * posHip +                                      // Foot under hips
+         timeStance / 2 * velDes +                             // Raibert Heuristic
+         timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
+         (_stateEstimate.vBody - velDes));
     }
   }
 
@@ -481,11 +468,11 @@ void RobotController::StepLocationVisualization() {
     cone.direction << 0, 0 , 0.05;
     //cone.direction += .2f * j *Vec3<float>(sinf(.4f * j * t + j * .2f), cosf(.4f * j * t + j * .2f), 0);
     cone.point_position <<
-                        _extra_data->loc_x[j],
-                                    _extra_data->loc_y[j],
-                                    (_extra_data->loc_z[j] - 0.5);  // Ground is -0.5
-    cone.color << .6 , .2 ,  .4, .6;
-    visualizationData->cones[j] = cone;
+      _extra_data->loc_x[j],
+      _extra_data->loc_y[j],
+      (_extra_data->loc_z[j] - 0.5);  // Ground is -0.5
+      cone.color << .6 , .2 ,  .4, .6;
+      visualizationData->cones[j] = cone;
   }
 }
 void RobotController::BodyPathVisualization() {
@@ -495,9 +482,9 @@ void RobotController::BodyPathVisualization() {
   for (size_t j = 0 ; j < path.num_points ; j++)
   {
     path.position[j] <<
-                     _extra_data->path_x[j],
-                                 _extra_data->path_y[j],
-                                 _extra_data->path_z[j] - 0.5; //Ground is -0.5
+      _extra_data->path_x[j],
+      _extra_data->path_y[j],
+      _extra_data->path_z[j] - 0.5; //Ground is -0.5
   }
   //pretty_print(_extra_data->path_x, "path x", path.num_points);
   //pretty_print(_extra_data->path_y, "path y", path.num_points);
@@ -514,7 +501,7 @@ void RobotController::BodyPathArrowVisualization() {
   double yaw;
   for (int i(0); i < _extra_data->num_middle_pt; ++i) {
     visualizationData->arrows[i].base_position <<
-        _extra_data->mid_x[i], _extra_data->mid_y[i], _extra_data->mid_z[i] - 0.5 ;
+      _extra_data->mid_x[i], _extra_data->mid_y[i], _extra_data->mid_z[i] - 0.5 ;
     //visualizationData->arrows[i].direction <<
     //_extra_data->mid_ori_roll[i],
     //_extra_data->mid_ori_pitch[i],
@@ -529,7 +516,7 @@ void RobotController::BodyPathArrowVisualization() {
     visualizationData->arrows[i].shaft_width = 0.01;
 
     visualizationData->arrows[i].color <<
-                                       0.8, 0.3, 0.1, 1;
+      0.8, 0.3, 0.1, 1;
   }
 }
 

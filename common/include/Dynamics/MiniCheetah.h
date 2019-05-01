@@ -84,7 +84,7 @@ Quadruped<T> buildMiniCheetah() {
 
   Mat3<T> bodyRotationalInertia;
   bodyRotationalInertia << 11253, 0, 0,
-                        0, 362030, 0,
+                        0, 36203, 0,
                         0, 0, 42673;
   bodyRotationalInertia = bodyRotationalInertia * 1e-6;
   Vec3<T> bodyCOM(0, 0, 0);

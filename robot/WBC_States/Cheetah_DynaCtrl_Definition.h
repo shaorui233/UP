@@ -19,6 +19,8 @@ class Cheetah_Data{
         T ori_command[3];
 
         T global_body_pos[3];
+
+        bool cheater_mode;
 };
 
 template <typename T>
