@@ -116,6 +116,8 @@ void ControlFSM<T>::runFSM() {
 
       // Run the state transition
       if (currentState->transition()) { // (transitionData.transitionComplete) {
+        // Check the robot state for safe operation
+        safetyPostCheck();
 
         // Exit the current state cleanly
         currentState->onExit();
@@ -132,19 +134,21 @@ void ControlFSM<T>::runFSM() {
         // Return the FSM to normal operation mode
         operatingMode = FSM_OperatingMode::NORMAL;
 
-      }
+      } else {
 
+        // Check the robot state for safe operation
+        safetyPostCheck();
+      }
+    } else {
+
+      // Check the robot state for safe operation
+      safetyPostCheck();
     }
 
   } else {
     currentState = statesList.passive;
     currentState->onEnter();
     nextStateName = currentState->stateName;
-  }
-
-  // Check the robot state for safe operation
-  if (!safetyChecker->safetyPostCheck()) {
-    return;
   }
 
   // Print the current state of the FSM
@@ -165,9 +169,7 @@ FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
 
   // Check for safe orientation if the current state requires it
   if (currentState->checkSafeOrientation) {
-    /*if (roll >= 1.3 || pitch >= 1.3) {
-      return FSM_OperatingMode::ESTOP;
-    }*/
+    safetyChecker->checkSafeOrientation();
   }
 
   // Default is to return the current operating mode
@@ -191,116 +193,12 @@ FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
 
   // Check for safe desired foot positions
   if (currentState->checkPDesFoot) {
-    T maxAngle = 1.0472;  // 60 degrees (should be changed)
-    T maxPDes = data._quadruped->_maxLegLength * sin(maxAngle);
-
-    // Check all of the legs
-    for (int leg = 0; leg < 4; leg++) {
-      // Keep the foot from going too far from the body in +x
-      if (data._legController->commands[leg].pDes(0) > maxPDes) {
-        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 0 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].pDes(0) << " | modified: " << maxPDes << std::endl;
-        data._legController->commands[leg].pDes(0) = maxPDes;
-      }
-
-      // Keep the foot from going too far from the body in -x
-      if (data._legController->commands[leg].pDes(0) < -maxPDes) {
-        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 0 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].pDes(0) << " | modified: " << -maxPDes << std::endl;
-        data._legController->commands[leg].pDes(0) = -maxPDes;
-      }
-
-      // Keep the foot from going too far from the body in +y
-      if (data._legController->commands[leg].pDes(1) > maxPDes) {
-        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 1 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].pDes(1) << " | modified: " << maxPDes << std::endl;
-        data._legController->commands[leg].pDes(1) = maxPDes;
-      }
-
-      // Keep the foot from going too far from the body in -y
-      if (data._legController->commands[leg].pDes(1) < -maxPDes) {
-        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 1 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].pDes(1) << " | modified: " << -maxPDes << std::endl;
-        data._legController->commands[leg].pDes(1) = -maxPDes;
-      }
-
-      // Keep the leg under the motor module (don't raise above body or crash into module)
-      if (data._legController->commands[leg].pDes(2) > -data._quadruped->_maxLegLength / 4) {
-        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 2 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].pDes(2) << " | modified: " << -data._quadruped->_maxLegLength / 4 << std::endl;
-        data._legController->commands[leg].pDes(2) = -data._quadruped->_maxLegLength / 4;
-      }
-
-      // Keep the foot within the kinematic limits
-      if (data._legController->commands[leg].pDes(2) < -data._quadruped->_maxLegLength) {
-        std::cout << "[CONTROL FSM] Safety: PDes leg: " << leg << " | coordinate: " << 2 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].pDes(2) << " | modified: " << -data._quadruped->_maxLegLength << std::endl;
-        data._legController->commands[leg].pDes(2) = -data._quadruped->_maxLegLength;
-      }
-    }
-
+    safetyChecker->checkPDesFoot();
   }
 
   // Check for safe desired feedforward forces
   if (currentState->checkForceFeedForward) {
-    // Initialize maximum vertical and lateral forces
-    T maxLateralForce = 0;
-    T maxVerticalForce = 0;
-
-    // Maximum force limits for each robot
-    if (data._quadruped->_robotType == RobotType::CHEETAH_3) {
-      maxLateralForce = 1800;
-      maxVerticalForce = 1800;
-
-    } else if (data._quadruped->_robotType == RobotType::MINI_CHEETAH) {
-      maxLateralForce = 350;
-      maxVerticalForce = 350;
-    }
-
-    // Check all of the legs
-    for (int leg = 0; leg < 4; leg++) {
-      // Limit the lateral forces in +x body frame
-      if (data._legController->commands[leg].forceFeedForward(0) > maxLateralForce) {
-        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 0 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(0) << " | modified: " << maxLateralForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(0) = maxLateralForce;
-      }
-
-      // Limit the lateral forces in -x body frame
-      if (data._legController->commands[leg].forceFeedForward(0) < -maxLateralForce) {
-        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 0 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(0) << " | modified: " << -maxLateralForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(0) = -maxLateralForce;
-      }
-
-      // Limit the lateral forces in +y body frame
-      if (data._legController->commands[leg].forceFeedForward(1) > maxLateralForce) {
-        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 1 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(1) << " | modified: " << maxLateralForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(1) = maxLateralForce;
-      }
-
-      // Limit the lateral forces in -y body frame
-      if (data._legController->commands[leg].forceFeedForward(1) < -maxLateralForce) {
-        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 1 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(1) << " | modified: " << -maxLateralForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(1) = -maxLateralForce;
-      }
-
-      // Limit the vertical forces in +z body frame
-      if (data._legController->commands[leg].forceFeedForward(2) > maxVerticalForce) {
-        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 2 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(2) << " | modified: " << -maxVerticalForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(2) = maxVerticalForce;
-      }
-
-      // Limit the vertical forces in -z body frame
-      if (data._legController->commands[leg].forceFeedForward(2) < -maxVerticalForce) {
-        std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 2 << "\n";
-        std::cout << "   commanded: " << data._legController->commands[leg].forceFeedForward(2) << " | modified: " << maxVerticalForce << std::endl;
-        data._legController->commands[leg].forceFeedForward(2) = -maxVerticalForce;
-      }
-    }
+    safetyChecker->checkForceFeedForward();
   }
 
   // Default is to return the current operating mode
