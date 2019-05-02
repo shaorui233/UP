@@ -36,12 +36,13 @@ TEST(MiniCheetah, miniCheetahModel1) {
 
   // this is kind of stupid, but a reasonable sanity check for inertias
   Mat6<double> inertiaSumRef;
-  inertiaSumRef << 0.0272, 0, 0.0001, 0, 0.0663, 0,
-          0, 0.3758, 0.0000, -0.0663, 0, 0,
-          0.0001, 0.0000, 0.0497, 0, 0, 0,
-          0, -0.0663, 0, 8.4170, 0, 0,
-          0.0663, 0, 0, 0, 8.4170, 0,
-          0, 0, 0, 0, 0, 8.4170;
+  inertiaSumRef << 
+    0.0272,      0, 0.0001,       0, 0.0663, 0,
+         0, 0.3758,    0.0, -0.0663,      0, 0,
+    0.0001, 0.0000, 0.0497, 0, 0, 0,
+    0, -0.0663, 0, 8.4170, 0, 0,
+    0.0663, 0, 0, 0, 8.4170, 0,
+    0, 0, 0, 0, 0, 8.4170;
 
   Mat6<double> inertiaSum = Mat6<double>::Zero();
 
@@ -389,4 +390,42 @@ TEST(MiniCheetah, ContactPositionVelocity) {
   EXPECT_TRUE(almostEqual(HR_abd_ref, cheetahModel._pGC.at(linkID::HR_abd), .0005));
   EXPECT_TRUE(almostEqual(HL_abd_ref, cheetahModel._pGC.at(linkID::HL_abd), .0005));
 }
+
+TEST(MiniCheetah, InertiaProperty) {
+  FloatingBaseModel<double> cheetahModel = buildMiniCheetah<double>().buildModel();
+
+  SVec<double> bodyVel;
+  FBModelState<double> x;
+  DVec<double> q(12);
+  DVec<double> dq(12);
+  DVec<double> tau(12);
+
+  for (size_t i = 0; i < 12; i++) {
+    q[i] = 0.;
+    dq[i] = 0.;
+    tau[i] = 0.;
+  }
+  q[1] = -M_PI/2.;
+  q[4] = -M_PI/2.;
+  q[7] = M_PI/2.;
+  q[10] = M_PI/2.;
+
+
+  Vec3<double> rpy_ori; rpy_ori.setZero();
+  // set state
+  x.bodyOrientation = ori::rpyToQuat(rpy_ori);
+  x.bodyVelocity.setZero();
+  x.bodyPosition.setZero();
+  x.q = q;
+  x.qd = dq;
+
+  cheetahModel.setState(x);
+  cheetahModel.massMatrix();
+
+  DMat<double> H = cheetahModel.getMassMatrix();
+
+  //pretty_print(H, std::cout, "H");
+  //exit(0);
+}
+
 

@@ -39,6 +39,7 @@ class KinBoundingCtrl: public Controller<T>{
         bool _b_hind_contact;
 
         T _aerial_duration;
+        T _front_swing_time;
 
         T _front_previous_stance;
         T _front_previous_swing;
@@ -63,6 +64,9 @@ class KinBoundingCtrl: public Controller<T>{
         T _front_time;
         T _hind_time;
 
+
+        Task<T>* _local_head_pos_task;
+        Task<T>* _local_tail_pos_task;
 
         Task<T>* _jpos_task;
         Task<T>* _local_roll_task;
@@ -114,6 +118,20 @@ class KinBoundingCtrl: public Controller<T>{
         ImpulseCurve<T> _front_z_impulse;
         ImpulseCurve<T> _hind_z_impulse;
 
+        Vec3<T> _ini_front_body;
+        Vec3<T> _ini_hind_body;
+
+        Vec3<T> _ini_fr;
+        Vec3<T> _ini_fl;
+        Vec3<T> _ini_hr;
+        Vec3<T> _ini_hl;
+
+        Vec3<T> _fin_fr;
+        Vec3<T> _fin_fl;
+        Vec3<T> _fin_hr;
+        Vec3<T> _fin_hl;
+
+
         void _body_task_setup();
         void _leg_task_setup();
         void _contact_update();
@@ -121,6 +139,7 @@ class KinBoundingCtrl: public Controller<T>{
 
         void _StatusCheck();
         void _setupTaskAndContactList();
+        void _ContactUpdate();
 
         DVec<T> _Fr_des;
         DVec<T> _Fr_result;
