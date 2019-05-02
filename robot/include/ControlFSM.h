@@ -80,11 +80,13 @@ public:
   // FSM state information
   FSM_StatesList<T> statesList;		// holds all of the FSM States
   FSM_State<T>* currentState;		// current FSM state
-  FSM_State<T>* nextState;			// next FSM state 
+  FSM_State<T>* nextState;			// next FSM state
   FSM_StateName nextStateName;		// next FSM state name
 
   // Checks all of the inputs and commands for safety
   SafetyChecker<T>* safetyChecker;
+
+  TransitionData<T> transitionData;
 
 private:
   // Operating mode of the FSM

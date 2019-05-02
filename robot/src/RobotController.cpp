@@ -28,8 +28,8 @@ void RobotController::init() {
 
   _legController = new LegController<float>(_quadruped);
   _stateEstimator = new StateEstimatorContainer<float>(
-      cheaterState, kvhImuData, vectorNavData,
-      _legController->datas, &_stateEstimate, controlParameters);
+    cheaterState, kvhImuData, vectorNavData,
+    _legController->datas, &_stateEstimate, controlParameters);
   initializeStateEstimator(false);
 
   // Initialize a new GaitScheduler object
@@ -52,6 +52,7 @@ void RobotController::init() {
     exit(0);
   }
   _model = _quadruped.buildModel();
+  /*
   if (test_name == "body_ctrl") {
     _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
   } else if (test_name == "wbdc_trot") {
@@ -60,7 +61,7 @@ void RobotController::init() {
     _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
   } else if (test_name == "bounding") {
     _wbc_state = new BoundingTest<float>(&_model, robotType);
-  }
+  }*/
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);
 
@@ -110,6 +111,7 @@ void RobotController::run() {
 
   // ======= WBC state command computation  =============== //
   // Commenting out WBC for now to test Locomotion control
+  /*
   Mat3<float> kpMat;
   Mat3<float> kdMat;
   //if (!_jpos_initializer->IsInitialized(_legController)) {
@@ -170,8 +172,8 @@ void RobotController::run() {
     //if(count_ini%100 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
   }
   // === End of WBC state command computation  =========== //
+  */
 
-  /*
   // Find the current gait schedule
   _gaitScheduler->step();
 
@@ -180,7 +182,7 @@ void RobotController::run() {
 
   // Run the Control FSM code
   _controlFSM->runFSM();
-  */
+
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
@@ -412,11 +414,11 @@ void RobotController::footstepHeuristicPlacement() {
 
       // Footstep heuristic composed of several parts in the world frame
       footstepLocations.col(leg) << projectionMatrix.transpose()*projectionMatrix*      // Ground projection
-        (_stateEstimate.position +                             //
-         rBody * posHip +                                      // Foot under hips
-         timeStance / 2 * velDes +                             // Raibert Heuristic
-         timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
-         (_stateEstimate.vBody - velDes));
+                                 (_stateEstimate.position +                             //
+                                  rBody * posHip +                                      // Foot under hips
+                                  timeStance / 2 * velDes +                             // Raibert Heuristic
+                                  timeStance / 2 * (angVelDes.cross(rBody * posHip)) +  // Turning Raibert Heuristic
+                                  (_stateEstimate.vBody - velDes));
     }
   }
 
@@ -468,11 +470,11 @@ void RobotController::StepLocationVisualization() {
     cone.direction << 0, 0 , 0.05;
     //cone.direction += .2f * j *Vec3<float>(sinf(.4f * j * t + j * .2f), cosf(.4f * j * t + j * .2f), 0);
     cone.point_position <<
-      _extra_data->loc_x[j],
-      _extra_data->loc_y[j],
-      (_extra_data->loc_z[j] - 0.5);  // Ground is -0.5
-      cone.color << .6 , .2 ,  .4, .6;
-      visualizationData->cones[j] = cone;
+                        _extra_data->loc_x[j],
+                                    _extra_data->loc_y[j],
+                                    (_extra_data->loc_z[j] - 0.5);  // Ground is -0.5
+    cone.color << .6 , .2 ,  .4, .6;
+    visualizationData->cones[j] = cone;
   }
 }
 void RobotController::BodyPathVisualization() {
@@ -482,9 +484,9 @@ void RobotController::BodyPathVisualization() {
   for (size_t j = 0 ; j < path.num_points ; j++)
   {
     path.position[j] <<
-      _extra_data->path_x[j],
-      _extra_data->path_y[j],
-      _extra_data->path_z[j] - 0.5; //Ground is -0.5
+                     _extra_data->path_x[j],
+                                 _extra_data->path_y[j],
+                                 _extra_data->path_z[j] - 0.5; //Ground is -0.5
   }
   //pretty_print(_extra_data->path_x, "path x", path.num_points);
   //pretty_print(_extra_data->path_y, "path y", path.num_points);
@@ -501,7 +503,7 @@ void RobotController::BodyPathArrowVisualization() {
   double yaw;
   for (int i(0); i < _extra_data->num_middle_pt; ++i) {
     visualizationData->arrows[i].base_position <<
-      _extra_data->mid_x[i], _extra_data->mid_y[i], _extra_data->mid_z[i] - 0.5 ;
+        _extra_data->mid_x[i], _extra_data->mid_y[i], _extra_data->mid_z[i] - 0.5 ;
     //visualizationData->arrows[i].direction <<
     //_extra_data->mid_ori_roll[i],
     //_extra_data->mid_ori_pitch[i],
@@ -516,7 +518,7 @@ void RobotController::BodyPathArrowVisualization() {
     visualizationData->arrows[i].shaft_width = 0.01;
 
     visualizationData->arrows[i].color <<
-      0.8, 0.3, 0.1, 1;
+                                       0.8, 0.3, 0.1, 1;
   }
 }
 

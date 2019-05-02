@@ -19,6 +19,7 @@ FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData,
   _data(_controlFSMData),
   stateName(stateNameIn),
   stateString(stateStringIn) {
+  transitionData.zero();
   std::cout << "[FSM_State] Initialized FSM state: " <<  stateStringIn << std::endl;
 }
 
@@ -132,6 +133,7 @@ void FSM_State<T>::footstepHeuristicPlacement(int leg) {
 }
 */
 
+
 /*
  * Gait independent formulation for choosing appropriate GRF and step locations
  * as well as converting them to leg controller understandable values.
@@ -139,48 +141,50 @@ void FSM_State<T>::footstepHeuristicPlacement(int leg) {
 template <typename T>
 void FSM_State<T>::runControls() {
   // This option should be set from the user interface or autonomously eventually
-  //int CONTROLLER_OPTION = 0;
+  int CONTROLLER_OPTION = 0;
 
   // Reset the forces and steps to 0
-  groundReactionForces = Mat34<float>::Zero();
-  footstepLocations = Mat34<float>::Zero();
-  /*
-    // Choose the controller to run for picking step locations and balance forces
-    if (CONTROLLER_OPTION == 0) {
-      // Test to make sure we can control the robot
-      for (int leg = 0; leg < 4; leg++) {
-        groundReactionForces.col(leg) << 0.0, 0.0, -110.36;
-        groundReactionForces.col(leg) = _stateEstimate.rBody * groundReactionForces.col(leg);
+  footFeedForwardForces = Mat34<T>::Zero();
+  footstepLocations = Mat34<T>::Zero();
 
-        footstepLocations.col(leg) << 0.3, 0.1, 0.45;
-      }
-    } else if (CONTROLLER_OPTION == 1) {
-      // QP Balance Controller
-      runBalanceController();
+  // Choose the controller to run for picking step locations and balance forces
+  if (CONTROLLER_OPTION == 0) {
+    // Test to make sure we can control the robot
+    // Test to make sure we can control the robot these will be calculated by the controllers
+    for (int leg = 0; leg < 4; leg++) {
+      footFeedForwardForces.col(leg) << 0.0, 0.0, 0;//-220.36;
+      //footFeedForwardForces.col(leg) = stateEstimate.rBody * footFeedForwardForces.col(leg);
 
-      // Swing foot landing positions are calculated with heuristics
-      footstepHeuristicPlacement();
-
-    } else if (CONTROLLER_OPTION == 2) {
-      // WBC
-      runWholeBodyController();
-
-    } else if (CONTROLLER_OPTION == 3) {
-      // cMPC
-      runConvexModelPredictiveController();
-
-      // Swing foot landing positions are calculated with heuristics
-      footstepHeuristicPlacement();
-
-    } else if (CONTROLLER_OPTION == 4) {
-      // RPC
-      runRegularizedPredictiveController();
-
-    } else {
-      groundReactionForces = Mat34<float>::Zero();
-      footstepLocations = Mat34<float>::Zero();
+      footstepLocations.col(leg) << 0.0, 0.0, -_data->_quadruped->_maxLegLength / 2;
     }
-  */
+    /*else if (CONTROLLER_OPTION == 1) {
+        // QP Balance Controller
+        runBalanceController();
+
+        // Swing foot landing positions are calculated with heuristics
+        footstepHeuristicPlacement();
+
+      } else if (CONTROLLER_OPTION == 2) {
+        // WBC
+        runWholeBodyController();
+
+      } else if (CONTROLLER_OPTION == 3) {
+        // cMPC
+        runConvexModelPredictiveController();
+
+        // Swing foot landing positions are calculated with heuristics
+        footstepHeuristicPlacement();
+
+      } else if (CONTROLLER_OPTION == 4) {
+        // RPC
+        runRegularizedPredictiveController();
+
+      }*/
+  } else {
+    footFeedForwardForces = Mat34<float>::Zero();
+    footstepLocations = Mat34<float>::Zero();
+  }
+
 
 }
 

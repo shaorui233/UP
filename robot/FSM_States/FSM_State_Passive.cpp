@@ -20,7 +20,11 @@ FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData):
 
 template <typename T>
 void FSM_State_Passive<T>::onEnter() {
-  // Nothing to initialize
+  // Default is to not transition
+  this->nextStateName = this->stateName;
+
+  // Reset the transition data
+  this->transitionData.zero();
 
 }
 
@@ -31,7 +35,22 @@ void FSM_State_Passive<T>::onEnter() {
 template <typename T>
 void FSM_State_Passive<T>::run() {
   // Do nothing, all commands should begin as zeros
+  testTransition();
 }
+
+
+/**
+ * Handles the actual transition for the robot between states.
+ * Returns true when the transition is completed.
+ *
+ * @return true if transition is complete
+ */
+template <typename T>
+TransitionData<T> FSM_State_Passive<T>::testTransition() {
+  this->transitionData.done = true;
+  return this->transitionData;
+}
+
 
 
 /**
@@ -57,22 +76,9 @@ FSM_StateName FSM_State_Passive<T>::checkTransition() {
     break;
 
   default:
-    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_PASSIVE << " to " << this->_data->controlParameters->control_mode << std::endl;
 
   }
-
-  /*
-  if (this->_data->controlParameters->control_mode == K_JOINT_PD) {
-    // Requested switch to joint PD control
-    this->nextStateName = FSM_StateName::JOINT_PD;
-
-  } else if (this->_data->controlParameters->control_mode == K_PASSIVE) {
-
-
-  } else {
-    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
-  }
-  */
 
   // Get the next state
   return this->nextStateName;
@@ -86,9 +92,12 @@ FSM_StateName FSM_State_Passive<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-bool FSM_State_Passive<T>::transition() {
-  // Get the next state
-  return true;
+TransitionData<T> FSM_State_Passive<T>::transition() {
+  // Finish Transition
+  this->transitionData.done = true;
+
+  // Return the transition data to the FSM
+  return this->transitionData;
 }
 
 

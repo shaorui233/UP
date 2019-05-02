@@ -22,7 +22,7 @@ public:
   FSM_StateName checkTransition();
 
   // Manages state specific transitions
-  bool transition();
+  TransitionData<T> transition();
 
   // Behavior to be carried out when exiting a state
   void onExit();

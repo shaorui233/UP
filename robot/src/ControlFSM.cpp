@@ -107,15 +107,17 @@ void ControlFSM<T>::runFSM() {
         currentState->run();
 
       }
-
     }
 
     // Run the transition code while transition is occuring
     if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
-      // transitionData = currentState->transition();
+      transitionData = currentState->transition();
+
+      // Check the robot state for safe operation
+      //safetyPostCheck();
 
       // Run the state transition
-      if (currentState->transition()) { // (transitionData.transitionComplete) {
+      if (transitionData.done) {
         // Check the robot state for safe operation
         safetyPostCheck();
 
