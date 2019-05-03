@@ -4,7 +4,7 @@
 
 /*!
  * check whether the contact happens or not
- * cp_frame let you know which direction is normal and which directions are 
+ * cp_frame let you know which direction is normal (z) and which directions are 
  * x and y. The frame is basically contact coordinate w.r.t global. 
  */
 template<typename T>
@@ -12,9 +12,6 @@ bool CollisionBox<T>::ContactDetection(
         const Vec3<T> & cp_pos, T& penetration, Mat3<T> & cp_frame){
     Vec3<T> center2cp_local = _orientation.transpose() * (cp_pos - _position);
 
-    //std::cout<<"cp pos: "<<cp_pos<<std::endl;
-    //std::cout<<"pos: "<<_position<<std::endl;
-    //std::cout<<"ori: "<<_orientation<<std::endl;
     bool inside_box(true);
     T err[3] = {0};
     for(size_t i(0); i<3; ++i){

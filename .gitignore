@@ -12,6 +12,7 @@ lcm-types/wincontrollerlcm
 lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
+lcm-types/python/*
 optimization_data
 sim_data
 test_data

@@ -2,7 +2,7 @@
 #include "Utilities/Utilities_print.h"
 /*!
  * check whether the contact happens or not
- * cp_frame let you know which direction is normal and which directions are 
+ * cp_frame let you know which direction is normal (z) and which directions are 
  * x and y. The frame is basically contact coordinate w.r.t global. 
  */
 template<typename T>
@@ -48,8 +48,6 @@ bool CollisionMesh<T>::ContactDetection(
             Vec3<T> local_diff = cp_frame.transpose() * (cp_pos_in_height_map - middle_pt);
 
             if(local_diff[2] < 0.){
-                //pretty_print(cp_frame, std::cout, "cp_frame");
-                //pretty_print(local_diff, std::cout, "local_diff");
                 penetration = local_diff[2];
                 return true;
             }

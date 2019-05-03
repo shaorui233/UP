@@ -23,7 +23,6 @@ size_t ContactConstraint<T>::_CheckContact(){
                 // Contact Happens
                 _cp_pos_list.push_back(_model->_pGC[i]);
                 _cp_local_force_list.push_back(Vec3<T>::Zero());
-                //_cp_local_force_list.push_back(_cp_local_force_list_pre[i]);
                 _cp_frame_list.push_back(cp_frame);
                 _cp_penetration_list.push_back(penetration);
 

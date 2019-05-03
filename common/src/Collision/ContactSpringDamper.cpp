@@ -26,14 +26,6 @@ void ContactSpringDamper<T>::UpdateExternalForces(T K, T D, T dt){
    }
 }
 
-/*!
- * Run the ground contact model for a single collision plane on a list of ground contact points
- * The ground is allowed to deform in the tangential direction, but not the normal direction.
- * The ground also "remembers" its deformation between separate contact events. (however it does spring back pretty quickly)
- * @param K Ground stiffness
- * @param D Ground damping
- * @param dt Timestep (used for deflection)
- */
 template <typename T>
 void ContactSpringDamper<T>::_groundContactWithOffset(T K, T D) {
 
