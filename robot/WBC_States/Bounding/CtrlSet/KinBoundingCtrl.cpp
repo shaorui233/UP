@@ -21,10 +21,15 @@
 #include <WBC_States/Bounding/BoundingTest.hpp>
 #include <Utilities/save_file.h>
 
+
 template <typename T>
 KinBoundingCtrl<T>::KinBoundingCtrl(
     BoundingTest<T>* bounding_test, const FloatingBaseModel<T>* robot):Controller<T>(robot),
   _bounding_test(bounding_test),
+  _K_time(0.5),
+  _front_foot_offset(0.02),
+  _hind_foot_offset(-0.05),
+  _swing_height(0.05),
   _end_time(1000.0),
   _dim_contact(0),
   _ctrl_start_time(0.),
@@ -40,7 +45,8 @@ KinBoundingCtrl<T>::KinBoundingCtrl(
   _Fr_result(12),
   _des_jpos(cheetah::num_act_joint),
   _des_jvel(cheetah::num_act_joint),
-  _des_jacc(cheetah::num_act_joint)
+  _des_jacc(cheetah::num_act_joint),
+  _wbcLCM(getLcmUrl(255))
 {
   // Start from front swing & hind stance
   _b_first_stance = true;
@@ -120,38 +126,74 @@ void KinBoundingCtrl<T>::_ContactUpdate(){
   }else {
     _b_hind_contact = false;
   }
+
+  if(_b_front_swing){ _b_front_contact_est = false; }
+  else { _b_front_contact_est = true; }
+
+  if(_b_hind_swing) { _b_hind_contact_est = false; }
+  else { _b_hind_contact_est = true; }
+
+  
+  T vel_threshold(1.1);
+  DVec<T> qdot_pre = _qdot_pre_queue.front();
+  T fr_vel_diff = _sp->_Qdot[6 + 2] - qdot_pre[6 + 2];
+  T fl_vel_diff = _sp->_Qdot[6 + 5] - qdot_pre[6 + 5];
+  T front_knee_vel_diff = std::max((fr_vel_diff), (fl_vel_diff));
+
+  if(_b_front_swing && (_front_time > 0.6*_swing_time)){
+      if(front_knee_vel_diff > vel_threshold || (_front_time > 1.5*_swing_time) ){ 
+        _b_front_contact_est = true; 
+      }
+  }
+
+  T hr_vel_diff = _sp->_Qdot[6 + 8] - qdot_pre[6 + 8];
+  T hl_vel_diff = _sp->_Qdot[6 + 11] - qdot_pre[6 + 11];
+  T hind_knee_vel_diff = std::max((hr_vel_diff), (hl_vel_diff));
+
+  if(_b_hind_swing && (_hind_time > 0.6*_swing_time)){
+      if((hind_knee_vel_diff > vel_threshold) || (_hind_time > 1.5*_swing_time)){ 
+        _b_hind_contact_est = true; 
+      }
+  }
 }
 
 template <typename T>
 void KinBoundingCtrl<T>::_StatusCheck(){
   _ContactUpdate();
 
-  //T K_time(0.3);
+  static int count(0);
+  T adjust_time(0.);
   if(_b_front_swing && (_front_time > 0.5 * _swing_time)){
     // Check Contact && TEST
     //if(_b_front_contact){
-    if(_front_time > _front_swing_time){
+    if(_b_front_contact_est){
+      //if(_front_time > _front_swing_time){
       _b_front_swing = false;
       _front_start_time = _sp->_curr_time;
 
-      //_front_previous_swing = _front_time;
-      //_front_current_stance = 
-        //_stance_time -
-        //K_time* (_hind_previous_stance + _aerial_duration - 0.5*_default_gait_period);
+      _front_previous_swing = _front_time;
+      adjust_time = _K_time* (_hind_previous_stance + _aerial_duration - 0.5*_default_gait_period);
+      adjust_time = coerce<T>(adjust_time, 0, 0.07); 
+      _front_current_stance = _stance_time - adjust_time;
 
       //printf("front, hind swing: %d, %d\n", _b_front_swing, _b_hind_swing);
       //printf("front time, hind time: %f, %f\n", _front_time, _hind_time); 
       //printf("front stance start (aerial, stance): %f, %f\n", 
       //_aerial_duration, _front_current_stance);
-      
+
       _front_time = 0.;
 
-      //T apex = 
-        //_total_mass * 9.81 * (_swing_time + _front_current_stance)/
-        //(2. * 2.0*0.7*_front_current_stance);
+      T apex = 
+        _total_mass * 9.81 * (_swing_time + _front_current_stance)/
+        (2. * 2.0*0.7*_front_current_stance);
 
-      //_front_z_impulse.setCurve(apex, _front_current_stance);
-      //_front_previous_stance = _front_current_stance;
+      //if(count == 30){ // jump
+      //apex *=4.7;
+      //}
+
+      _front_z_impulse.setCurve(apex, _front_current_stance);
+      _front_previous_stance = _front_current_stance;
+
 
       _ini_front_body = 
         0.5*Ctrl::_robot_sys->_pGC[linkID::FR_abd] 
@@ -160,20 +202,23 @@ void KinBoundingCtrl<T>::_StatusCheck(){
         - 0.5*Ctrl::_robot_sys->_pGC[linkID::FL];
 
       _front_swing_time = _swing_time - 2.*Test<T>::dt;
+
+      ++count;
     }
   }
 
   if(_b_hind_swing && (_hind_time > 0.5 * _swing_time)){
     // Check Contact && TEST
     //if(_b_hind_contact){
-    if(_hind_time > _swing_time - 2.*Test<T>::dt){ // Switch to stance
+    if(_b_hind_contact_est){
+    //if(_hind_time > _swing_time - 2.*Test<T>::dt){ // Switch to stance
       _b_hind_swing = false;
       _hind_start_time = _sp->_curr_time;
       
-      //_hind_previous_swing = _hind_time;
-      //_hind_current_stance = 
-        //_stance_time - 
-        //K_time* (_front_previous_stance + _aerial_duration - 0.5*_default_gait_period);
+      _hind_previous_swing = _hind_time;
+      adjust_time = _K_time* (_front_previous_stance + _aerial_duration - 0.5*_default_gait_period);
+      adjust_time = coerce<T>(adjust_time, 0, 0.05); 
+      _hind_current_stance = _stance_time - adjust_time;
 
       //printf("front, hind swing: %d, %d\n", _b_front_swing, _b_hind_swing);
       //printf("front time, hind time: %f, %f\n", _front_time, _hind_time); 
@@ -182,26 +227,32 @@ void KinBoundingCtrl<T>::_StatusCheck(){
 
       _hind_time = 0.;
 
-      //T apex = 
-        //_total_mass * 9.81 * (_swing_time + _hind_current_stance)/
-        //(2. * 2.0*0.7*_hind_current_stance);
+      T apex = 
+        _total_mass * 9.81 * (_swing_time + _hind_current_stance)/
+        (2. * 2.0*0.7*_hind_current_stance);
+      
+      //if(count == 31){ // jump
+        //apex *=9.;
+      //}
 
-      //_hind_z_impulse.setCurve(apex, _hind_current_stance);
-      //_hind_previous_stance = _hind_current_stance;
+      _hind_z_impulse.setCurve(apex, _hind_current_stance);
+      _hind_previous_stance = _hind_current_stance;
+
 
       _ini_hind_body = 
         0.5*Ctrl::_robot_sys->_pGC[linkID::FR_abd] 
         + 0.5*Ctrl::_robot_sys->_pGC[linkID::FL_abd]
         - 0.5*Ctrl::_robot_sys->_pGC[linkID::FR]
         - 0.5*Ctrl::_robot_sys->_pGC[linkID::FL];
+
+      ++count;
     }
   }
 
-  T scale(1.5);
-  T offset_front(0.03);
-  T offset_hind(-0.03);
+  T scale(1.9);
+  
   // If stance time is over switch to swing
-  if((!_b_front_swing) && (_front_time > (_front_current_stance - 2.*Test<T>::dt))){
+  if((!_b_front_swing) && (_front_time > (_front_current_stance - Test<T>::dt))){
     _b_front_swing = true;
 
     _ini_fr = Ctrl::_robot_sys->_pGC[linkID::FR] - Ctrl::_robot_sys->_pGC[linkID::FR_abd];
@@ -210,22 +261,17 @@ void KinBoundingCtrl<T>::_StatusCheck(){
     _fin_fr = _bounding_test->_body_vel * _stance_time/2. * scale;
     _fin_fl = _bounding_test->_body_vel * _stance_time/2. * scale;
 
-    _ini_fr[0] += offset_front;
-    _ini_fl[0] += offset_front;
+    _ini_fr[0] += _front_foot_offset;
+    _ini_fl[0] += _front_foot_offset;
 
-    _fin_fr[0] += offset_front;
-    _fin_fl[0] += offset_front;
-     //pretty_print(_bounding_test->_body_vel, std::cout, "body vel cmd ");
-    //pretty_print(_ini_fr, std::cout, "ini fr");
-    //pretty_print(_ini_fl, std::cout, "ini fl");
-    //pretty_print(_fin_fr, std::cout, "fin fr");
-    //pretty_print(_fin_fl, std::cout, "fin fl");
+    _fin_fr[0] += _front_foot_offset;
+    _fin_fl[0] += _front_foot_offset;
 
     _front_start_time = _sp->_curr_time;
     _front_time = 0.;
   }
   // If stance time is over switch to swing
-  if((!_b_hind_swing) && (_hind_time > (_hind_current_stance - 2.*Test<T>::dt))){
+  if((!_b_hind_swing) && (_hind_time > (_hind_current_stance - Test<T>::dt))){
     _b_hind_swing = true;
 
     _ini_hr = Ctrl::_robot_sys->_pGC[linkID::HR] - Ctrl::_robot_sys->_pGC[linkID::HR_abd];
@@ -234,10 +280,10 @@ void KinBoundingCtrl<T>::_StatusCheck(){
     _fin_hr = _bounding_test->_body_vel * _stance_time/2. * scale;
     _fin_hl = _bounding_test->_body_vel * _stance_time/2. * scale;
 
-    _ini_hr[0] += offset_hind;
-    _ini_hl[0] += offset_hind;
-    _fin_hr[0] += offset_hind;
-    _fin_hl[0] += offset_hind;
+    _ini_hr[0] += _hind_foot_offset;
+    _ini_hl[0] += _hind_foot_offset;
+    _fin_hr[0] += _hind_foot_offset;
+    _fin_hl[0] += _hind_foot_offset;
  
     _hind_start_time = _sp->_curr_time;
     _hind_time = 0.;
@@ -329,7 +375,43 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd){
     }
   }
 
+  _qdot_pre_queue.push(_sp->_Qdot);
+  if(_qdot_pre_queue.size() > 4) _qdot_pre_queue.pop();
+  //printf("queue: %lu\n", _qdot_pre_queue.size() );
   Ctrl::_PostProcessing_Command();
+  
+  // LCM
+  _wbc_data_lcm.contact_est[0] = _b_front_contact_est;
+  _wbc_data_lcm.contact_est[1] = _b_hind_contact_est;
+
+  for(size_t i(0); i<3; ++i){
+    if((!_b_front_swing) && (!_b_hind_swing)){
+      _wbc_data_lcm.fr_Fr_des[i] = _wbic_data->_Fr_des[i];
+      _wbc_data_lcm.fl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+      _wbc_data_lcm.hr_Fr_des[i] = _wbic_data->_Fr_des[i+6];
+      _wbc_data_lcm.hl_Fr_des[i] = _wbic_data->_Fr_des[i+9];
+
+      _wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
+      _wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i+3];
+      _wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i+6];
+      _wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i+9];
+    }
+    else if((!_b_front_swing)){
+      _wbc_data_lcm.fr_Fr_des[i] = _wbic_data->_Fr_des[i];
+      _wbc_data_lcm.fl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+
+      _wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
+      _wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i+3];
+    }
+    else if((!_b_hind_swing)){
+      _wbc_data_lcm.hr_Fr_des[i] = _wbic_data->_Fr_des[i];
+      _wbc_data_lcm.hl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+
+      _wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i];
+      _wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i+3];
+     }
+  }
+  _wbcLCM.publish("wbc_lcm_data", &_wbc_data_lcm);
 
   // File Save (Please disable when doing hardware tests)
   if(false){
@@ -337,6 +419,9 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd){
     saveValue(Ctrl::_state_machine_time, _folder_name, "time");
     saveValue(_b_hind_contact, _folder_name, "hind_contact");
     saveValue(_b_front_contact, _folder_name, "front_contact");
+
+    saveValue(_b_front_contact_est, _folder_name,"front_contact_est");
+    saveValue(_b_hind_contact_est, _folder_name,"hind_contact_est");
 
     saveVector(_fr_foot_pos, _folder_name, "fr_foot_pos_cmd");
     saveVector(_fr_foot_vel, _folder_name, "fr_foot_vel_cmd");
@@ -440,7 +525,7 @@ void KinBoundingCtrl<T>::_body_task_setup(){
 template<typename T>
 void KinBoundingCtrl<T>::_leg_task_setup(){
   // for Z (height)
-  T amp(0.05/2.);
+  T amp(_swing_height/2.);
   T omega ( 2.*M_PI /_swing_time);
   T t;
 
@@ -484,12 +569,6 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
     _fl_foot_local_task->UpdateTask(&(_fl_foot_pos), _fl_foot_vel, _fl_foot_acc);
   }else{ // Front Leg Stance
 
-    //DVec<T> leg_vel_des(1); leg_vel_des.setZero();
-    //DVec<T> leg_acc_des(1); leg_acc_des.setZero();
-
-    //_fr_leg_height_task->UpdateTask(&(leg_height), leg_vel_des, leg_acc_des);
-    //_fl_leg_height_task->UpdateTask(&(leg_height), leg_vel_des, leg_acc_des);
-
     _wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
 
     _wbic_data->_Fr_des = DVec<T>::Zero(6);
@@ -530,12 +609,6 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
     _hl_foot_local_task->UpdateTask(&(_hl_foot_pos), _hl_foot_vel, _hl_foot_acc);
 
   }else{
-    //DVec<T> leg_vel_des(1); leg_vel_des.setZero();
-    //DVec<T> leg_acc_des(1); leg_acc_des.setZero();
-
-    //_hr_leg_height_task->UpdateTask(&(leg_height), leg_vel_des, leg_acc_des);
-    //_hl_leg_height_task->UpdateTask(&(leg_height), leg_vel_des, leg_acc_des);
-
 
     if(_b_front_swing){ // Hind stance only
       _wbic_data->_Fr_des = DVec<T>::Zero(6);
@@ -578,6 +651,7 @@ void KinBoundingCtrl<T>::_contact_update(){
 
 template <typename T>
 void KinBoundingCtrl<T>::FirstVisit(){
+  _qdot_pre_queue.push(_sp->_Qdot);
   _total_mass = Ctrl::_robot_sys->getMassMatrix()(5,5);
   T apex = _total_mass * 9.81 * (_swing_time + _stance_time)/(2. * 2.0*0.7*_stance_time);
 
@@ -647,7 +721,12 @@ bool KinBoundingCtrl<T>::EndOfPhase(){
 
 template <typename T>
 void KinBoundingCtrl<T>::CtrlInitialization(const std::string & category_name){
-  (void)category_name;
+  _param_handler->getValue<T>(category_name, "K_time", _K_time);
+
+  _param_handler->getValue<T>(category_name, "front_foot_offset", _front_foot_offset);
+  _param_handler->getValue<T>(category_name, "hind_foot_offset", _hind_foot_offset);
+  
+  _param_handler->getValue<T>(category_name, "swing_height", _swing_height);
 }
 
 template <typename T>

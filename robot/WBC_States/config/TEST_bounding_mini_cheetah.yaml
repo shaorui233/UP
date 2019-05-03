@@ -4,7 +4,7 @@
 body_height: 0.25
 
 # Timing Parameters (sec)
-body_lifting_time: .2
+body_lifting_time: 1.5
 bounding_time: 10000.
 #swing_time: 0.22
 #default_stance_time: 0.13
@@ -13,7 +13,7 @@ swing_time: 0.16
 default_stance_time: 0.15
 
 
-leg_height: 0.25
+leg_height: 0.27
 
 CTRL_move_to_target_height:
   max_rf_z: 100
@@ -23,6 +23,10 @@ CTRL_bounding_initiate:
 
 CTRL_bounding:
   stride_length: 0.25
+  K_time: 0.5
+  front_foot_offset: 0.02
+  hind_foot_offset: -0.02
+  swing_height: 0.04
 
 # WBIC Feedback gain
 #Kp_ori: [100, 0, 0]
@@ -71,15 +75,26 @@ Kd_joint: [1.5, 1.5, 1.5]
 #Kp_joint: [0.0, 5.0, 5.0]
 #Kd_joint: [0.0, 0.5, 0.5]
 
-Kp: [200., 200., 200., 
-  200., 200., 200., 
-  200., 200., 200., 
-  200., 200., 200.]
+#Kp: [200., 200., 200., 
+  #200., 200., 200., 
+  #200., 200., 200., 
+  #200., 200., 200.]
 
-Kd: [10., 10., 10., 
-  10., 10., 10., 
-  10., 10., 10., 
-  10., 10., 10.]
+#Kd: [10., 10., 10., 
+  #10., 10., 10., 
+  #10., 10., 10., 
+  #10., 10., 10.]
+
+Kp: [130., 130., 130., 
+  130., 130., 130., 
+  130., 130., 130., 
+  130., 130., 130.]
+
+Kd: [6., 6., 6., 
+  6., 6., 6., 
+  6., 6., 6., 
+  6., 6., 6.]
+
 
 
 save_file: false

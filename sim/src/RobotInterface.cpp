@@ -35,8 +35,8 @@ _lcm(getLcmUrl(255))
   _gfx->_drawList.updateCheckerboard(0, floorID);
   _gfx->_drawList.buildDrawList();
 
-  _lcm.subscribe("interface-response", &RobotInterface::handleControlParameter, this);
-  _lcm.subscribe("main-cheetah-visualization", &RobotInterface::handleVisualizationData, this);
+  _lcm.subscribe("interface_response", &RobotInterface::handleControlParameter, this);
+  _lcm.subscribe("main_cheetah_visualization", &RobotInterface::handleVisualizationData, this);
 
   printf("[RobotInterface] Init dynamics\n");
   _quadruped = robotType == RobotType::MINI_CHEETAH ? buildMiniCheetah<double>() : buildCheetah3<double>();
@@ -104,7 +104,7 @@ void RobotInterface::sendControlParameter(const std::string &name, ControlParame
     printf("set %s to %s (%d)\n", name.c_str(), controlParameterValueToString(value, kind).c_str(), iteration);
 
     // send
-    _lcm.publish("interface-request", &_parameter_request_lcmt);
+    _lcm.publish("interface_request", &_parameter_request_lcmt);
 
     // wait for response with timeout
     _waitingForLcmResponse = true;

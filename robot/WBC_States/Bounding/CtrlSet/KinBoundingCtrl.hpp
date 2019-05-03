@@ -4,6 +4,9 @@
 #include <WBC_States/Controller.hpp>
 #include <ParamHandler/ParamHandler.hpp>
 #include "ImpulseCurve.hpp"
+#include <lcm-cpp.hpp>
+#include "wbc_test_data_t.hpp"
+#include <queue>
 
 template <typename T> class ContactSpec;
 template <typename T> class KinWBC;
@@ -37,6 +40,16 @@ class KinBoundingCtrl: public Controller<T>{
 
         bool _b_front_contact;
         bool _b_hind_contact;
+
+        bool _b_front_contact_est;
+        bool _b_hind_contact_est;
+
+        std::queue< DVec<T> > _qdot_pre_queue;
+
+        T _K_time;
+        T _front_foot_offset;
+        T _hind_foot_offset;
+        T _swing_height;
 
         T _aerial_duration;
         T _front_swing_time;
@@ -156,6 +169,8 @@ class KinBoundingCtrl: public Controller<T>{
         std::string _folder_name;
         ParamHandler* _param_handler;
         StateProvider<T>* _sp;
+        lcm::LCM _wbcLCM;
+        wbc_test_data_t _wbc_data_lcm;
 };
 
 #endif

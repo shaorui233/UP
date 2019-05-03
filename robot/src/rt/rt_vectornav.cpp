@@ -208,7 +208,7 @@ void vectornav_handler(void* userData, VnUartPacket *packet, size_t running_inde
       g_vn_data->accelerometer[i] = a.c[i];
     }
 
-    vectornav_lcm->publish("hw-vectornav", &vectornav_lcm_data);
+    vectornav_lcm->publish("hw_vectornav", &vectornav_lcm_data);
 
 #ifdef PRINT_VECTORNAV_DEBUG
     char strConversions[50];

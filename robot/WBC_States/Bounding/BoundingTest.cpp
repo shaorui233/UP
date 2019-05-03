@@ -112,6 +112,7 @@ void BoundingTest<T>::_UpdateTestOneStep(){
   input_vel[0] = scale*_sp->_dir_command[0];
   input_vel[1] = -0.5*scale*_sp->_dir_command[1];
   _body_vel = Rot.transpose() * input_vel;
+  //_body_vel[0] = 1.3;
   //_body_pos += _body_vel*Test<T>::dt;
 }
 

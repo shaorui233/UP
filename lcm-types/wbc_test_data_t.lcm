@@ -1,0 +1,14 @@
+struct wbc_test_data_t 
+{
+    int32_t contact_est[2];
+
+    float fr_Fr_des[3];
+    float fl_Fr_des[3];
+    float hr_Fr_des[3];
+    float hl_Fr_des[3];
+
+    float fr_Fr[3];
+    float fl_Fr[3];
+    float hr_Fr[3];
+    float hl_Fr[3];
+}

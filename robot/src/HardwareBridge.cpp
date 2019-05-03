@@ -35,7 +35,7 @@ void HardwareBridge::initCommon() {
 
   printf("[HardwareBridge] Subscribe LCM\n");
   _interfaceLCM.subscribe("interface", &HardwareBridge::handleGamepadLCM, this);
-  _interfaceLCM.subscribe("interface-request", &HardwareBridge::handleControlParameter, this);
+  _interfaceLCM.subscribe("interface_request", &HardwareBridge::handleControlParameter, this);
 
   printf("[HardwareBridge] Start interface LCM handler\n");
   _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);
@@ -158,7 +158,7 @@ void HardwareBridge::handleControlParameter(const lcm::ReceiveBuffer* rbuf,
 //    }
       break;
   }
-  _interfaceLCM.publish("interface-response", &_parameter_response_lcmt);
+  _interfaceLCM.publish("interface_response", &_parameter_response_lcmt);
 }
 
 MiniCheetahHardwareBridge::MiniCheetahHardwareBridge() :_spiLcm(getLcmUrl(255))
@@ -242,8 +242,8 @@ void MiniCheetahHardwareBridge::runSpi() {
   spi_driver_run();
   memcpy(&_spiData, data, sizeof(spi_data_t));
 
-  _spiLcm.publish("spi-data", data);
-  _spiLcm.publish("spi-command", cmd);
+  _spiLcm.publish("spi_data", data);
+  _spiLcm.publish("spi_command", cmd);
 }
 
 void HardwareBridge::publishVisualizationLCM() {
@@ -261,6 +261,6 @@ void HardwareBridge::publishVisualizationLCM() {
     visualization_data.q[i] = _mainCheetahVisualization.q[i];
   }
 
-  _visualizationLCM.publish("main-cheetah-visualization", &visualization_data);
+  _visualizationLCM.publish("main_cheetah_visualization", &visualization_data);
 }
 
