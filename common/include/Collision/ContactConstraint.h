@@ -44,7 +44,7 @@ class ContactConstraint{
      * @param state : full state of a floating system full state
      * @return state : update velocity
      */
-     virtual void UpdateQdot(FBM delState<T> & state) = 0;
+     virtual void UpdateQdot(FBModelState<T> & state) = 0;
 
     /*!
      * For visualization

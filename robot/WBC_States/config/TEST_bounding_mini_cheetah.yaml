@@ -4,7 +4,7 @@
 body_height: 0.25
 
 # Timing Parameters (sec)
-body_lifting_time: 1.5
+body_lifting_time: 0.2
 bounding_time: 10000.
 #swing_time: 0.22
 #default_stance_time: 0.13

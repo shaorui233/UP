@@ -112,8 +112,8 @@ void RobotController::run() {
   // Commenting out WBC for now to test Locomotion control
   Mat3<float> kpMat;
   Mat3<float> kdMat;
-  if (!_jpos_initializer->IsInitialized(_legController)) {
-  //if (false) {  // TEST
+  //if (!_jpos_initializer->IsInitialized(_legController)) {
+  if (false) {  // TEST
     kpMat <<
       5, 0, 0,
       0, 5, 0,

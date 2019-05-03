@@ -69,16 +69,10 @@ _tau(12) {
   _robotControllerState.q = zero12;
   _robotControllerState.qd = zero12;
   FBModelState<double> x0;
-  //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .4));
-  //x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Y, .0));
   x0.bodyOrientation = rotationMatrixToQuaternion(ori::coordinateRotation(CoordinateAxis::Z, 0.));
-  //x0.bodyPosition = Vec3<double>(0,0,-0.0);
   // Mini Cheetah
   x0.bodyPosition.setZero(); 
-  //x0.bodyPosition = Vec3<double>(0,0,-0.40);
-  SVec<double> v0 = SVec<double>::Zero();
-  //v0[3] = 10;
-  x0.bodyVelocity = v0;
+  x0.bodyVelocity.setZero();
   x0.q = zero12;
   x0.qd = zero12;
 
@@ -103,42 +97,42 @@ _tau(12) {
   //x0.q[11] = 2.4;
 
   // Initial (Mini Cheetah stand)
-  //x0.bodyPosition[2] = -0.185;
+  x0.bodyPosition[2] = -0.185;
   // Cheetah 3
   //x0.bodyPosition[2] = -0.075;
-  //x0.q[0] = -0.03;
-  //x0.q[1] = -0.79;
-  //x0.q[2] = 1.715;
+  x0.q[0] = -0.03;
+  x0.q[1] = -0.79;
+  x0.q[2] = 1.715;
 
-  //x0.q[3] = 0.03;
-  //x0.q[4] = -0.79;
-  //x0.q[5] = 1.715;
+  x0.q[3] = 0.03;
+  x0.q[4] = -0.79;
+  x0.q[5] = 1.715;
 
-  //x0.q[6] = -0.03;
-  //x0.q[7] = -0.72; 
-  //x0.q[8] = 1.715;
+  x0.q[6] = -0.03;
+  x0.q[7] = -0.72; 
+  x0.q[8] = 1.715;
 
-  //x0.q[9] = 0.03;
-  //x0.q[10] = -0.72;
-  //x0.q[11] = 1.715;
+  x0.q[9] = 0.03;
+  x0.q[10] = -0.72;
+  x0.q[11] = 1.715;
 
   // Cheetah lies on the ground
-  x0.bodyPosition[2] = -0.45;
-  x0.q[0] = -0.7;
-  x0.q[1] = 1.;
-  x0.q[2] = 2.715;
+  //x0.bodyPosition[2] = -0.45;
+  //x0.q[0] = -0.7;
+  //x0.q[1] = 1.;
+  //x0.q[2] = 2.715;
 
-  x0.q[3] = 0.7;
-  x0.q[4] = 1.;
-  x0.q[5] = 2.715;
+  //x0.q[3] = 0.7;
+  //x0.q[4] = 1.;
+  //x0.q[5] = 2.715;
 
-  x0.q[6] = -0.7;
-  x0.q[7] = -1.0; 
-  x0.q[8] = -2.715;
+  //x0.q[6] = -0.7;
+  //x0.q[7] = -1.0; 
+  //x0.q[8] = -2.715;
 
-  x0.q[9] = 0.7;
-  x0.q[10] = -1.0;
-  x0.q[11] = -2.715;
+  //x0.q[9] = 0.7;
+  //x0.q[10] = -1.0;
+  //x0.q[11] = -2.715;
 
   setRobotState(x0);
   _robotDataSimulator->setState(x0);
