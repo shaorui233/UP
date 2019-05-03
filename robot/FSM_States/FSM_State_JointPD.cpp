@@ -21,7 +21,11 @@ FSM_State_JointPD<T>::FSM_State_JointPD(ControlFSMData<T>* _controlFSMData):
 
 template <typename T>
 void FSM_State_JointPD<T>::onEnter() {
-  // Nothing to initialize
+  // Default is to not transition
+  this->nextStateName = this->stateName;
+
+  // Reset the transition data
+  this->transitionData.zero();
 }
 
 
@@ -68,10 +72,9 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
     break;
 
   default:
-    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_JOINT_PD << " to " << this->_data->controlParameters->control_mode << std::endl;
 
   }
-
 
   // Get the next state
   return this->nextStateName;
@@ -85,9 +88,12 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-bool FSM_State_JointPD<T>::transition() {
-  // Get the next state
-  return true;
+TransitionData<T> FSM_State_JointPD<T>::transition() {
+  // Finish transition
+  this->transitionData.done = true;
+
+  // Return the transition data to the FSM
+  return this->transitionData;
 }
 
 

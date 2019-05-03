@@ -42,7 +42,7 @@ void RobotController::init() {
   //_contactEstimator->initialize();
 
   // Initializes the Control FSM with all the required data
-  //_controlFSM = new ControlFSM<float>(&_quadruped, _stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
+  _controlFSM = new ControlFSM<float>(&_quadruped, _stateEstimator, _legController, _gaitScheduler, _desiredStateCommand, controlParameters);
 
   // For WBC state
   ParamHandler handler(THIS_COM"robot/WBC_States/config/ROBOT_test_setup.yaml");

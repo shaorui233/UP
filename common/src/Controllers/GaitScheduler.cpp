@@ -192,6 +192,20 @@ void GaitScheduler<T>::step() {
 
 /**
  * Creates the gait structure from the important defining parameters of each gait
+ *
+ * To create a standard gait you should only need to define the following:
+ *
+ *   gaitData.periodTimeNominal
+ *   gaitData.switchingPhaseNominal
+ *   gaitData.phaseOffset
+ *
+ * The rest can be set to:
+ *
+ *   gaitData.gaitEnabled << 1, 1, 1, 1;
+ *   gaitData.initialPhase = 0.0;
+ *   gaitData.phaseScale << 1.0, 1.0, 1.0, 1.0;
+ *
+ * These add flexibility to be used for very irregular gaits and transitions.
  */
 template <typename T>
 void GaitScheduler<T>::createGait() {

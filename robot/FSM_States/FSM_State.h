@@ -5,6 +5,7 @@
 
 #include "Controllers/GaitScheduler.h"
 #include "../include/ControlFSMData.h"
+#include "../include/TransitionData.h"
 //#include "../include/TransitionData.h" // this will be implemented later
 
 #define K_PASSIVE 0
@@ -51,7 +52,7 @@ public:
   virtual FSM_StateName checkTransition() { return FSM_StateName::INVALID; }
 
   // Runs the transition behaviors and returns true when done transitioning
-  virtual bool transition() { return false; }
+  virtual TransitionData<T> transition() { return transitionData; }
 
   // Behavior to be carried out when exiting a state
   virtual void onExit() { }
@@ -69,40 +70,31 @@ public:
   FSM_StateName stateName;		// enumerated name of the current state
   FSM_StateName nextStateName;	// enumerated name of the next state
   std::string stateString;		// state name string
-  int controlMode; 				// FSM state control mode
 
   // Transition parameters
   T transitionDuration;		// transition duration time
   T tStartTransition; 		// time transition starts
+  TransitionData<T> transitionData;
 
   // Pre controls safety checks
-  bool checkSafeOrientation = false;
+  bool checkSafeOrientation = false;	// check roll and pitch
 
   // Post control safety checks
-  bool checkPDesFoot = false;
-  bool checkForceFeedForward = false;
+  bool checkPDesFoot = false;			// do not command footsetps too far
+  bool checkForceFeedForward = false;	// do not command huge forces
+  bool checkLegSingularity = false;		// do not let leg
 
-  //
-  Mat34<T> jointTorques;
-  Mat34<T> groundReactionForces;	// Ground reaction forces for the stance feet to be calculated by the controllers
-  Mat34<T> jointPositions;
-  Mat34<T> jointVelocities;
-  Mat34<T> footPositions;
-  Mat34<T> footVelocities;
-  Mat34<T> footstepLocations;		// Next footstep location for the swing feet
+  // Leg controller command placeholders for the whole robot (3x4 matrices)
+  Mat34<T> jointFeedForwardTorques;		// feed forward joint torques
+  Mat34<T> jointPositions;				// joint angle positions
+  Mat34<T> jointVelocities;				// joint angular velocities
+  Mat34<T> footFeedForwardForces;		// feedforward forces at the feet
+  Mat34<T> footPositions;				// cartesian foot positions
+  Mat34<T> footVelocities;				// cartesian foot velocities
 
-  /*
-  tauFeedForward = Vec3<T>::Zero();
-  forceFeedForward = Vec3<T>::Zero();
-  qDes = Vec3<T>::Zero();
-  qdDes = Vec3<T>::Zero();
-  pDes = Vec3<T>::Zero();
-  vDes = Vec3<T>::Zero();
-  kpCartesian = Mat3<T>::Zero();
-  kdCartesian = Mat3<T>::Zero();
-  kpJoint = Mat3<T>::Zero();
-  kdJoint = Mat3<T>::Zero();
-  */
+  // Footstep locations for next step
+  Mat34<T> footstepLocations;
+
 private:
 
   // Create the cartesian P gain matrix

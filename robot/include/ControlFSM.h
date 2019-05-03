@@ -77,20 +77,16 @@ public:
   // Contains all of the control related data
   ControlFSMData<T> data;
 
-  // Holds all of the FSM States
-  FSM_StatesList<T> statesList;
-
-  // The current FSM State of the robot
-  FSM_State<T>* currentState;
-
-  // The next FSM State that the robot will transition to
-  FSM_State<T>* nextState;
-
-  // The name of the next FSM State
-  FSM_StateName nextStateName;
+  // FSM state information
+  FSM_StatesList<T> statesList;		// holds all of the FSM States
+  FSM_State<T>* currentState;		// current FSM state
+  FSM_State<T>* nextState;			// next FSM state
+  FSM_StateName nextStateName;		// next FSM state name
 
   // Checks all of the inputs and commands for safety
   SafetyChecker<T>* safetyChecker;
+
+  TransitionData<T> transitionData;
 
 private:
   // Operating mode of the FSM

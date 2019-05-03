@@ -24,6 +24,9 @@ template <typename T>
 void FSM_State_ImpedanceControl<T>::onEnter() {
   // Default is to not transition
   this->nextStateName = this->stateName;
+
+  // Reset the transition data
+  this->transitionData.zero();
 }
 
 
@@ -56,7 +59,7 @@ FSM_StateName FSM_State_ImpedanceControl<T>::checkTransition() {
     this->nextStateName = FSM_StateName::BALANCE_STAND;
 
     // Transition instantaneously to locomotion state on request
-    this->transitionDuration = 0.0;
+    this->transitionData.tDuration = 0.0;
 
     // Set the next gait in the scheduler to
     this->_data->_gaitScheduler->gaitData._nextGait = GaitType::STAND;
@@ -79,8 +82,11 @@ FSM_StateName FSM_State_ImpedanceControl<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-bool FSM_State_ImpedanceControl<T>::transition() {
-  return true;
+TransitionData<T> FSM_State_ImpedanceControl<T>::transition() {
+  this->transitionData.done = true;
+  
+  // Return the transition data to the FSM
+  return this->transitionData;
 }
 
 

@@ -27,7 +27,7 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData
   // Set the post controls safety checks
 
   // Initialize GRF and footstep locations to 0s
-  this->groundReactionForces = Mat34<T>::Zero();
+  this->footFeedForwardForces = Mat34<T>::Zero();
   this->footstepLocations = Mat34<T>::Zero();
 }
 
@@ -36,6 +36,9 @@ template <typename T>
 void FSM_State_Locomotion<T>::onEnter() {
   // Default is to not transition
   this->nextStateName = this->stateName;
+
+  // Reset the transition data
+  this->transitionData.zero();
 }
 
 
@@ -66,7 +69,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   case K_LOCOMOTION:
     // Normal operation for state based transitions
 
-    // Need a working state estimator for this
+    // Need a working state estimator for automatic state based transition
     /*if (velocity < v_min) {
       this->nextStateName = FSM_StateName::BALANCE_STAND;
 
@@ -80,36 +83,36 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
 
     // in place to show automatic non user requested transitions
     if (iter >= 1) { //2058) {
+      // Set the next state to be BALANCE_STAND
       this->nextStateName = FSM_StateName::BALANCE_STAND;
+
+      // Transition time is 1 gait period
       this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
+
+      // Signal the gait scheduler that we are transitioning to standing
       this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
+
+      // Notify the control parameters of the mode switch
       this->_data->controlParameters->control_mode = K_BALANCE_STAND;
+
+      // Reset iteration counter
       iter = 0;
     }
     break;
 
   case K_BALANCE_STAND:
-    // Requested change to balance stand
+    // Requested change to BALANCE_STAND
     this->nextStateName = FSM_StateName::BALANCE_STAND;
+
+    // Transition time is immediate
+    this->transitionDuration = 0.0;
+
     break;
 
   default:
-    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_LOCOMOTION << " to " << this->_data->controlParameters->control_mode << std::endl;
 
   }
-
-  /*if (this->data->main_control_settings.mode == K_BALANCE_STAND) {
-    this->nextStateName = FSM_StateName::BALANCE_STAND;
-
-    // Transition over the duration of one period
-    this->transitionDuration = this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-
-    // Notify the gait scheduler that the robot is transitioning to stand
-    this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TRANSITION_TO_STAND;
-
-  }*/
-
-
 
   // Return the next state name to the FSM
   return this->nextStateName;
@@ -124,7 +127,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-bool FSM_State_Locomotion<T>::transition() {
+TransitionData<T> FSM_State_Locomotion<T>::transition() {
 
   if (this->nextStateName == FSM_StateName::BALANCE_STAND) {
     // Call the locomotion control logic for this iteration
@@ -132,15 +135,16 @@ bool FSM_State_Locomotion<T>::transition() {
 
     iter++;
     if (iter >= this->transitionDuration * 1000) {
-      return true;
+      this->transitionData.done = true;
     } else {
-      return false;
+      this->transitionData.done = false;
     }
   } else {
 
   }
 
-  return true;
+  // Return the transition data to the FSM
+  return this->transitionData;
 }
 
 
@@ -152,6 +156,7 @@ void FSM_State_Locomotion<T>::onExit() {
   // Nothing to clean up when exiting
   iter = 0;
 }
+
 
 /**
  * Calculate the commands for the leg controllers for each of the feet by
@@ -166,23 +171,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   //estimateContact();
 
   // Run the balancing controllers to get GRF and next step locations
-  //runControls();
-
-  // Reset the forces and steps to 0
-  this->groundReactionForces = Mat34<T>::Zero();
-  this->footstepLocations = Mat34<T>::Zero();
-
-  // Test to make sure we can control the robot these will be calculated by the controllers
-  for (int leg = 0; leg < 4; leg++) {
-    this->groundReactionForces.col(leg) << 0.0, 0.0, 0;//-220.36;
-    //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
-
-    this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength / 2;
-  }
-  Vec3<T> vDes;
-  vDes << 0, 0, 0;
-
-  //std::cout << groundReactionForces << std::endl;
+  this->runControls();
 
   // Calculate appropriate control actions for each leg to be sent out
   for (int leg = 0; leg < 4; leg++) {
@@ -190,23 +179,22 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     // The actual contact logic should come from the contact estimator later rather than schedule
     if (this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
       // Leg is in contact
-      //std::cout << "[CONTROL] Leg " << leg << " is in stance" << std::endl;
 
       // Impedance control for the stance leg
-      //stanceLegImpedanceControl(leg);
-      this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
+      StanceLegImpedanceControl(leg);
 
       // Stance leg Ground Reaction Force command
-      this->_data->_legController->commands[leg].forceFeedForward = this->groundReactionForces.col(leg);
+      this->_data->_legController->commands[leg].forceFeedForward = this->footFeedForwardForces.col(leg);
 
     } else if (!this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
       // Leg is not in contact
-      //std::cout << "[CONTROL] Leg " << leg << " is in swing" << std::endl;
 
       // Swing leg trajectory
       // TODO
       this->footstepLocations.col(leg) << (this->_data->_quadruped->_maxLegLength / 7)*sin(this->_data->_gaitScheduler->gaitData.phaseSwing(leg) * 3.14), 0, -this->_data->_quadruped->_maxLegLength / 2;
-      this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
+
+      // Swing leg impedance control
+      this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg));
 
       // Feedforward torques for swing leg tracking
       // TODO
@@ -218,8 +206,25 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
     // Singularity barrier calculation (maybe an overall safety checks function?)
     // TODO
   }
-  //this->_data->_gaitScheduler->printGaitInfo();
 }
+
+
+/**
+ * Stance leg logic for impedance control. Prevent leg slipping and
+ * bouncing, as well as tracking the foot velocity during high speeds.
+ */
+template <typename T>
+void FSM_State_Locomotion<T>::StanceLegImpedanceControl(int leg) {
+
+  // Match foot velocity relative to the body
+  Vec3<T> vDes;
+  vDes << 0, 0, 0;
+
+  // Impedance control for the stance leg
+  this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
+
+}
+
 
 //template class FSM_State_Locomotion<double>;
 template class FSM_State_Locomotion<float>;

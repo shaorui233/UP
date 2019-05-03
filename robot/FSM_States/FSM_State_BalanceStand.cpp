@@ -24,15 +24,20 @@ FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSM
   this->checkForceFeedForward = true;
 
   // Initialize GRF to 0s
-  this->groundReactionForces = Mat34<T>::Zero();
+  this->footFeedForwardForces = Mat34<T>::Zero();
 }
 
 
 template <typename T>
 void FSM_State_BalanceStand<T>::onEnter() {
+  this->transitionDuration = 0.0;
   // Default is to not transition
   this->nextStateName = this->stateName;
-  this->transitionDuration = 0.0;
+
+  // Reset the transition data
+  this->transitionData.zero();
+
+  // Always set the gait to be standing in this state
   this->_data->_gaitScheduler->gaitData._nextGait = GaitType::STAND;
 }
 
@@ -99,7 +104,7 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
     break;
 
   default:
-    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << 0 << " to " << this->_data->controlParameters->control_mode << std::endl;
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_BALANCE_STAND << " to " << this->_data->controlParameters->control_mode << std::endl;
 
   }
 
@@ -116,7 +121,7 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-bool FSM_State_BalanceStand<T>::transition() {
+TransitionData<T> FSM_State_BalanceStand<T>::transition() {
 
   if (this->nextStateName == FSM_StateName::LOCOMOTION) {
 
@@ -124,14 +129,14 @@ bool FSM_State_BalanceStand<T>::transition() {
 
     iter++;
     if (iter >= this->transitionDuration * 1000) {
-      return true;
+      this->transitionData.done = true;
     } else {
-      return false;
+      this->transitionData.done = false;
     }
   }
 
-
-  return true;
+  // Return the transition data to the FSM
+  return this->transitionData;
 }
 
 
@@ -156,19 +161,19 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
   //runControls();
 
   // Reset the forces and steps to 0
-  this->groundReactionForces = Mat34<T>::Zero();
+  this->footFeedForwardForces = Mat34<T>::Zero();
 
   // Test to make sure we can control the robot
   for (int leg = 0; leg < 4; leg++) {
-    this->groundReactionForces.col(leg) << 0.0, 0.0, 0;//-110.36;
-    //groundReactionForces.col(leg) = stateEstimate.rBody * groundReactionForces.col(leg);
+    this->footFeedForwardForces.col(leg) << 0.0, 0.0, 0;//-110.36;
+    //footFeedForwardForces.col(leg) = stateEstimate.rBody * footFeedForwardForces.col(leg);
 
     this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength / 2;
   }
   Vec3<T> vDes;
   vDes << 0, 0, 0;
 
-  //std::cout << groundReactionForces << std::endl;
+  //std::cout << footFeedForwardForces << std::endl;
 
   // All legs are force commanded to be on the ground
   for (int leg = 0; leg < 4; leg++) {
@@ -176,7 +181,7 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
     this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
 
 
-    this->_data->_legController->commands[leg].forceFeedForward = this->groundReactionForces.col(leg);
+    this->_data->_legController->commands[leg].forceFeedForward = this->footFeedForwardForces.col(leg);
 
     // Singularity barrier calculation (maybe an overall safety checks function?)
     // TODO
