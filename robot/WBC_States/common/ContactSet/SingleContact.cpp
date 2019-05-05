@@ -6,7 +6,7 @@
 template <typename T>
 SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     ContactSpec<T>(3),
-    _max_Fz(700.),
+    _max_Fz(1500.),
     _contact_pt(pt),
     _dim_U(6)
 {
