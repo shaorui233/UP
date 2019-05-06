@@ -100,7 +100,7 @@ class WBLC_TwoLegSwingCtrl: public Controller<T>{
         
         T max_rf_z_;
         T min_rf_z_;
-        int dim_contact_;
+        int _dim_contact;
         T ctrl_start_time_;
 
         void _task_setup();

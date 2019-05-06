@@ -163,9 +163,8 @@ void KinBoundingCtrl<T>::_StatusCheck(){
     _stance_time = fabs(_step_length_lim/_bounding_test->_body_vel[0]);
     _gait_period = _stance_time + _swing_time;
 
-    printf("vel cmd, step_length_lim, stance time: %f, %f, %f\n",
-        _bounding_test->_body_vel[0], _step_length_lim, _stance_time);
-    //exit(0);
+    //printf("vel cmd, step_length_lim, stance time: %f, %f, %f\n",
+        //_bounding_test->_body_vel[0], _step_length_lim, _stance_time);
   }
 
   T adjust_time(0.);
@@ -363,7 +362,6 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd){
 
   _qdot_pre_queue.push(_sp->_Qdot);
   if(_qdot_pre_queue.size() > 4) _qdot_pre_queue.pop();
-  //printf("queue: %lu\n", _qdot_pre_queue.size() );
   Ctrl::_PostProcessing_Command();
 
   // LCM

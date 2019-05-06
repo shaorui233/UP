@@ -117,7 +117,10 @@ int WBLCTrotTest<T>::_NextPhase(const int & phase){
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
 
     landing_loc_ave[2] = 0.; // Flat terrain
-    _body_pos -= landing_loc_ave;
+    //_body_pos -= landing_loc_ave;
+    _body_pos.setZero();
+    _body_pos[2] = _target_body_height;
+
     _sp->_contact_pt[0] = linkID::FR;
     _sp->_contact_pt[1] = linkID::HL;
     _sp->_num_contact = 2;
@@ -136,7 +139,10 @@ int WBLCTrotTest<T>::_NextPhase(const int & phase){
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HR];
 
     landing_loc_ave[2] = 0.; // Flat terrain
-    _body_pos -= landing_loc_ave;
+    //_body_pos -= landing_loc_ave;
+    _body_pos.setZero();
+    _body_pos[2] = _target_body_height;
+
     _sp->_contact_pt[0] = linkID::FL;
     _sp->_contact_pt[1] = linkID::HR;
     _sp->_num_contact = 2;
@@ -227,6 +233,71 @@ void WBLCTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
     }
     ++count;
   }
+
+  // LCM 
+  //for(size_t i(0); i<cheetah::num_act_joint; ++i){
+    //_wbc_data_lcm.jpos_cmd[i] = _des_jpos[i];    
+    //_wbc_data_lcm.jvel_cmd[i] = _des_jvel[i];    
+    //_wbc_data_lcm.jacc_cmd[i] = _des_jacc[i];    
+  //}
+
+  //_wbc_data_lcm.body_ori[3] = Ctrl::_robot_sys->_state.bodyOrientation[3];
+  //for(size_t i(0); i<3; ++i){
+    //_wbc_data_lcm.body_ori[i] = Ctrl::_robot_sys->_state.bodyOrientation[i];
+    //_wbc_data_lcm.body_ang_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i];
+
+    //_wbc_data_lcm.fr_foot_pos_cmd[i] = _fr_foot_pos[i];
+    //_wbc_data_lcm.fl_foot_pos_cmd[i] = _fl_foot_pos[i];
+    //_wbc_data_lcm.hr_foot_pos_cmd[i] = _hr_foot_pos[i];
+    //_wbc_data_lcm.hl_foot_pos_cmd[i] = _hl_foot_pos[i];
+
+    //_wbc_data_lcm.fr_foot_vel_cmd[i] = _fr_foot_vel[i];
+    //_wbc_data_lcm.fl_foot_vel_cmd[i] = _fl_foot_vel[i];
+    //_wbc_data_lcm.hr_foot_vel_cmd[i] = _hr_foot_vel[i];
+    //_wbc_data_lcm.hl_foot_vel_cmd[i] = _hl_foot_vel[i];
+
+    //_wbc_data_lcm.fr_foot_local_pos[i] = _fr_foot_pos[i] - _fr_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.fl_foot_local_pos[i] = _fl_foot_pos[i] - _fl_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.hr_foot_local_pos[i] = _hr_foot_pos[i] - _hr_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.hl_foot_local_pos[i] = _hl_foot_pos[i] - _hl_foot_local_task->getPosError()[i];
+
+    //_wbc_data_lcm.fr_foot_local_vel[i] = 
+      //(Ctrl::_robot_sys->_vGC[linkID::FR])[i] - (Ctrl::_robot_sys->_vGC[linkID::FR_abd])[i];
+    //_wbc_data_lcm.fl_foot_local_vel[i] = 
+      //(Ctrl::_robot_sys->_vGC[linkID::FL])[i] - (Ctrl::_robot_sys->_vGC[linkID::FL_abd])[i];
+    //_wbc_data_lcm.hr_foot_local_vel[i] = 
+      //(Ctrl::_robot_sys->_vGC[linkID::HR])[i] - (Ctrl::_robot_sys->_vGC[linkID::HR_abd])[i];
+    //_wbc_data_lcm.hl_foot_local_vel[i] = 
+      //(Ctrl::_robot_sys->_vGC[linkID::HL])[i] - (Ctrl::_robot_sys->_vGC[linkID::HL_abd])[i];
+
+    //if((!_b_front_swing) && (!_b_hind_swing)){
+      //_wbc_data_lcm.fr_Fr_des[i] = _wbic_data->_Fr_des[i];
+      //_wbc_data_lcm.fl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+      //_wbc_data_lcm.hr_Fr_des[i] = _wbic_data->_Fr_des[i+6];
+      //_wbc_data_lcm.hl_Fr_des[i] = _wbic_data->_Fr_des[i+9];
+
+      //_wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
+      //_wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i+3];
+      //_wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i+6];
+      //_wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i+9];
+    //}
+    //else if((!_b_front_swing)){
+      //_wbc_data_lcm.fr_Fr_des[i] = _wbic_data->_Fr_des[i];
+      //_wbc_data_lcm.fl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+
+      //_wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
+      //_wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i+3];
+    //}
+    //else if((!_b_hind_swing)){
+      //_wbc_data_lcm.hr_Fr_des[i] = _wbic_data->_Fr_des[i];
+      //_wbc_data_lcm.hl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+
+      //_wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i];
+      //_wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i+3];
+    //}
+  //}
+  //_wbcLCM.publish("wbc_lcm_data", &_wbc_data_lcm);
+
 }
 
 template class WBLCTrotTest<double>;

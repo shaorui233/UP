@@ -24,7 +24,7 @@ WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const Floa
   _des_jvel(cheetah::num_act_joint),
   _des_jacc(cheetah::num_act_joint),
   _end_time(100.),
-  dim_contact_(0),
+  _dim_contact(0),
   ctrl_start_time_(0.)
 {
   _body_pos_task = new BodyPosTask<T>(Ctrl::_robot_sys);
@@ -68,14 +68,13 @@ WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const Floa
   wblc_data_ = new WBLC_ExtraData<T>();
 
   for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
-    dim_contact_ += Ctrl::_contact_list[i]->getDim();
+    _dim_contact += Ctrl::_contact_list[i]->getDim();
   }
 
   wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
   wblc_data_->W_qddot_.head(6) = DVec<T>::Constant(6, Weight::qddot_relax_virtual);
-  wblc_data_->W_rf_ = DVec<T>::Constant(dim_contact_, Weight::tan_small);
-  wblc_data_->W_xddot_ = DVec<T>::Constant(dim_contact_, Weight::foot_big);
-
+  wblc_data_->W_rf_ = DVec<T>::Constant(_dim_contact, Weight::tan_small);
+  wblc_data_->W_xddot_ = DVec<T>::Constant(_dim_contact, Weight::foot_big);
 
   int idx_offset(0);
   for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
@@ -177,11 +176,10 @@ template <typename T>
 void WBLC_TwoLegSwingCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
   // WBLC
   wblc_->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
-  DVec<T> des_jacc_cmd = _des_jacc 
+  wblc_data_->_des_jacc_cmd = _des_jacc 
     + Kp_.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
     + Kd_.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
-  wblc_data_->_des_jacc_cmd = des_jacc_cmd;
   wblc_->MakeTorque(gamma, wblc_data_);
 
   //pretty_print(wblc_data_->Fr_, std::cout, "Fr");
@@ -250,7 +248,6 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
 
     }
   }
-
 
   _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
   _cp_pos_task2->UpdateTask(&(_foot_pos_des2), _foot_vel_des2, _foot_acc_des2);

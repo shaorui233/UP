@@ -1,4 +1,4 @@
 #test_name: "wbdc_trot" # Cheater mode must be off
-#test_name: "wblc_trot" # Cheater mode must be off
-test_name: "bounding" 
+test_name: "wblc_trot" # Cheater mode must be off
+#test_name: "bounding" 
 #test_name: "body_ctrl"

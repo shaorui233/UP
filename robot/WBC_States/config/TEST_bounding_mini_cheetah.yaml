@@ -4,7 +4,7 @@
 body_height: 0.25
 
 # Timing Parameters (sec)
-body_lifting_time: .2
+body_lifting_time: 1.2
 bounding_time: 10000.
 #swing_time: 0.22
 #default_stance_time: 0.13
@@ -12,7 +12,7 @@ bounding_time: 10000.
 swing_time: 0.18
 default_stance_time: 0.15
 
-leg_height: 0.26
+leg_height: 0.28
 
 CTRL_move_to_target_height:
   max_rf_z: 100
@@ -29,7 +29,7 @@ CTRL_bounding:
   front_jump_amp: 3.0
   hind_jump_amp: 8.5
   contact_vel_threshold: 2.5
-  total_mass: 9.2
+  total_mass: 9.0
   step_length_limit: 0.3
 
 

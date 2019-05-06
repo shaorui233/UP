@@ -1,9 +1,13 @@
 # Initialization
 
 ## Mini Cheetah
-swing_time: 0.09
+swing_time: 0.14
 transition_time: 0.003
 stance_time: 0.004
+ 
+# Timing Parameters (sec)
+body_lifting_time: 1.5
+
 
 #swing_time: 0.12
 #transition_time: 0.01
@@ -11,7 +15,7 @@ stance_time: 0.004
 
 step_time_ratio: 0.7
 
-body_height: .25
+body_height: .28
 #body_height: .3
 CTRL_move_to_target_height:
     max_rf_z: 100
@@ -20,23 +24,20 @@ CTRL_move_to_target_height:
 CTRL_fix_stance:
 
 CTRL_frhl_swing:
-    default_target_foot_location_1: [0.18, -0.09, 0.0] # Front Right
-    default_target_foot_location_2: [-0.18, 0.09, 0.0] # Hind Left
+    default_target_foot_location_1: [0.18, -0.08, 0.0] # Front Right
+    default_target_foot_location_2: [-0.18, 0.08, 0.0] # Hind Left
     swing_height: 0.05
     landing_offset: [0, 0, 0]
 
 CTRL_flhr_swing:
-    default_target_foot_location_1: [0.18, 0.09,  0.0] # Front Left
-    default_target_foot_location_2: [-0.18, -0.09, 0.0] # Hind Right
+    default_target_foot_location_1: [0.18, 0.08,  0.0] # Front Left
+    default_target_foot_location_2: [-0.18, -0.08, 0.0] # Hind Right
     swing_height: 0.05
     landing_offset: [0, 0, 0]
 
 CTRL_two_leg_trans:
     max_rf_z: 100
     min_rf_z: 0
-
-# Timing Parameters (sec)
-body_lifting_time: 1.5
 
 #Kp_body_pos_kin: [0.5, 0.5, 1.0]
 #Kp_body_ori_kin: [1.5, 1.5, 1.0]
@@ -45,29 +46,29 @@ Kp_body_pos_kin: [1.0, 1.0, 1.0]
 Kp_body_ori_kin: [1.0, 1.0, 1.0]
 
 ## Low gain set
-Kp: [ 40, 40, 40, 
-      40, 40, 40, 
-      40, 40, 40, 
-      40, 40, 40 ]
+#Kp: [ 40, 40, 40, 
+      #40, 40, 40, 
+      #40, 40, 40, 
+      #40, 40, 40 ]
 
-Kd: [ 0.5, 0.5, 0.5, 
-      0.5, 0.5, 0.5, 
-      0.5, 0.5, 0.5, 
-      0.5, 0.5, 0.5 ]
+#Kd: [ 0.5, 0.5, 0.5, 
+      #0.5, 0.5, 0.5, 
+      #0.5, 0.5, 0.5, 
+      #0.5, 0.5, 0.5 ]
 
 Kp_joint: [5.0, 5.0, 5.0]
 Kd_joint: [1.5, 1.5, 1.5]
 
 ## High gain set
-#Kp: [ 100, 100, 100, 
-      #100, 100, 100, 
-      #100, 100, 100, 
-      #100, 100, 100 ]
+Kp: [ 80, 80, 80, 
+      80, 80, 80, 
+      80, 80, 80, 
+      80, 80, 80 ]
 
-#Kd: [ 3., 3., 3., 
-      #3., 3., 3., 
-      #3., 3., 3., 
-      #3., 3., 3. ]
+Kd: [ 2., 2., 2., 
+      2., 2., 2., 
+      2., 2., 2., 
+      2., 2., 2. ]
      
 #Kp_joint: [25.0, 25.0, 25.0]
 #Kd_joint: [1.5, 1.5, 1.5]

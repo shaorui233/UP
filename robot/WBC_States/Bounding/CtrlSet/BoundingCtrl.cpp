@@ -238,9 +238,7 @@ void BoundingCtrl<T>::OneStep(void* _cmd){
   _body_task_setup();
   _leg_task_setup();
 
-  //printf("wbic\n");
   _compute_torque_wbic(gamma);
-  //printf("wbic done\n");
 
   for(size_t leg(0); leg<cheetah::num_leg; ++leg){
     for(size_t jidx(0); jidx<cheetah::num_leg_joint; ++jidx){
@@ -486,7 +484,7 @@ void BoundingCtrl<T>::FirstVisit(){
   T total_mass = Ctrl::_robot_sys->getMassMatrix()(5,5);
   T apex = total_mass * 9.81 * (_swing_time + _stance_time)/(2. * 2.0*0.7*_stance_time);
 
-  printf("Bounding apex: %f\n", apex);
+  //printf("Bounding apex: %f\n", apex);
   _z_impulse.setCurve(apex, _stance_time);
 
   _fr_abduction_pos =

@@ -1,6 +1,9 @@
 #include "WBLC.hpp"
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
+#include <Utilities/Timer.h>
+
+#define _WBLC_TORQUE_LIMIT_ false
 
 template<typename T> 
 WBLC<T>::WBLC(size_t num_qdot, const std::vector<ContactSpec<T>*> & contact_list)
@@ -14,9 +17,14 @@ WBLC<T>::WBLC(size_t num_qdot, const std::vector<ContactSpec<T>*> & contact_list
       dim_Uf_ += (_contact_list)[i]->getDimRFConstraint();
     }
     // Dimension Setting
-    dim_opt_ = WB::num_qdot_ + 2 * dim_rf_; // (delta_qddot, Fr, xddot_c)
     dim_eq_cstr_ = 6 + dim_rf_;
+#if (_WBLC_TORQUE_LIMIT_)
+    dim_opt_ = WB::num_qdot_ + 2 * dim_rf_; // (delta_qddot, Fr, xddot_c)
     dim_ieq_cstr_ = 2*WB::num_act_joint_ + dim_Uf_; // torque limit, friction cone
+#else
+    dim_opt_ = 6 + 2 * dim_rf_; // (delta_qddot, Fr, xddot_c)
+    dim_ieq_cstr_ = dim_Uf_; // torque limit, friction cone
+#endif
     //dim_ieq_cstr_ = dim_Uf_; // torque limit, friction cone
     //printf("dim: opt, eq, ieq = %lu, %lu, %lu\n", dim_opt_, dim_eq_cstr_, dim_ieq_cstr_);
 
@@ -70,6 +78,7 @@ void WBLC<T>::MakeTorque(
   if(!WB::b_updatesetting_) { printf("[Wanning] WBLC setting is not done\n"); }
   if(extra_input) data_ = static_cast<WBLC_ExtraData<T>*>(extra_input);
 
+  qddot_.setZero();
   for(size_t i(0); i<WB::num_act_joint_; ++i){
     //(void)des_jacc_cmd[i];
     qddot_[i + 6] = data_->_des_jacc_cmd[i];
@@ -85,7 +94,21 @@ void WBLC<T>::MakeTorque(
 
   _OptimizationPreparation(Aeq_, beq_, Cieq_, dieq_);
 
+  //Timer timer;
   T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
+
+  //static bool initial(true);
+  //if(initial){
+    for(size_t i(0); i<dim_opt_; ++i){
+      for(size_t j(0); j<dim_opt_; ++j){
+        g0[i] = G[i][j]*z[j];
+      }
+    }
+    //initial = false;
+  //}
+ //static int count_ini(0);
+  //++count_ini;
+  //if(count_ini%100 ==0) std::cout<< "wblc optimization computation: " << timer.getMs()<<std::endl;
 
   (void)f;
   _GetSolution(cmd);
@@ -136,6 +159,7 @@ void WBLC<T>::_Build_Inequality_Constraint(){
 
   size_t row_idx(0);
 
+#if (_WBLC_TORQUE_LIMIT_)
   Cieq_.block(row_idx, WB::num_qdot_, Uf_.rows(), dim_rf_) = Uf_;
   dieq_.head(Uf_.rows()) = Fr_ieq_;
   row_idx += Uf_.rows();
@@ -150,23 +174,38 @@ void WBLC<T>::_Build_Inequality_Constraint(){
   Cieq_.block(row_idx, WB::num_qdot_, WB::num_act_joint_, dim_rf_) = WB::Sa_ * Jc_.transpose();
   dieq_.segment(row_idx, WB::num_act_joint_) 
     = -data_->tau_max_ + WB::Sa_ * (WB::cori_ + WB::grav_ + WB::A_ * qddot_);
-
+#else
+  Cieq_.block(row_idx, 6, Uf_.rows(), dim_rf_) = Uf_;
+  dieq_.head(Uf_.rows()) = Fr_ieq_;
+  row_idx += Uf_.rows();
+#endif
   //pretty_print(Cieq_, std::cout, "C ieq");
   //pretty_print(dieq_, std::cout, "d ieq");
 }
 
 template<typename T>
 void WBLC<T>::_Build_Equality_Constraint(){
+#if(_WBLC_TORQUE_LIMIT_)
   // passive joint
   Aeq_.block(0, 0, 6, WB::num_qdot_) = WB::Sv_ * WB::A_;
   Aeq_.block(0, WB::num_qdot_, 6, dim_rf_) = -WB::Sv_ * Jc_.transpose();
   beq_.head(6) = -WB::Sv_ * (WB::A_ * qddot_ + WB::cori_ + WB::grav_);
 
-  // xddot
+  // contact xddot
   Aeq_.block(6, 0, dim_rf_, WB::num_qdot_) = Jc_;
   Aeq_.bottomRightCorner(dim_rf_, dim_rf_) = -DMat<T>::Identity(dim_rf_, dim_rf_);
   beq_.tail(dim_rf_) = -Jc_ * qddot_ - JcDotQdot_;
+#else
+  // passive joint
+  Aeq_.block(0, 0, 6, 6) = WB::A_.block(0,0, 6,6);
+  Aeq_.block(0, 6, 6, dim_rf_) = -WB::Sv_ * Jc_.transpose();
+  beq_.head(6) = -WB::Sv_ * (WB::A_ * qddot_ + WB::cori_ + WB::grav_);
 
+  // contact xddot
+  Aeq_.block(6, 0, dim_rf_, 6) = Jc_.block(0, 0, dim_rf_, 6);
+  Aeq_.bottomRightCorner(dim_rf_, dim_rf_) = -DMat<T>::Identity(dim_rf_, dim_rf_);
+  beq_.tail(dim_rf_) = -Jc_ * qddot_ - JcDotQdot_;
+#endif
 
   //pretty_print(WB::Sv_, std::cout, "Sv");
   //pretty_print(WB::A_, std::cout, "A");
@@ -229,12 +268,19 @@ void WBLC<T>::_OptimizationPreparation(
     const DVec<T> & beq,
     const DMat<T> & Cieq,
     const DVec<T> & dieq){
-
   // Set Cost
+
+#if(_WBLC_TORQUE_LIMIT_)
   for (size_t i(0); i < WB::num_qdot_; ++i){
     G[i][i] = data_->W_qddot_[i];
   }
   size_t idx_offset = WB::num_qdot_;
+#else
+  for (size_t i(0); i < 6; ++i){
+    G[i][i] = data_->W_qddot_[i];
+  }
+  size_t idx_offset = 6;
+#endif
   for (size_t i(0); i < dim_rf_; ++i){
     G[i + idx_offset][i + idx_offset] = data_->W_rf_[i];
   }
@@ -278,16 +324,18 @@ void WBLC<T>::_OptimizationPreparation(
 
 template<typename T>
 void WBLC<T>::_GetSolution(DVec<T> & cmd){
-
-  DVec<T> delta_qddot(WB::num_qdot_);
-  for(size_t i(0); i<WB::num_qdot_; ++i) delta_qddot[i] = z[i];
   data_->Fr_ = DVec<T>(dim_rf_);
+#if (_WBLC_TORQUE_LIMIT_)
+  for(size_t i(0); i<WB::num_qdot_; ++i) qddot_[i] += z[i];
   for(size_t i(0); i<dim_rf_; ++i) data_->Fr_[i] = z[i + WB::num_qdot_];
-
+#else
+  for(size_t i(0); i<6; ++i) qddot_[i] += z[i];
+  for(size_t i(0); i<dim_rf_; ++i) data_->Fr_[i] = z[i + 6];
+#endif
   DVec<T> tau = 
-    WB::A_ * (qddot_ + delta_qddot) + WB::cori_ + WB::grav_ - Jc_.transpose() * data_->Fr_;
+    WB::A_ * qddot_ + WB::cori_ + WB::grav_ - Jc_.transpose() * data_->Fr_;
 
-  data_->qddot_ = qddot_ + delta_qddot;
+  data_->qddot_ = qddot_;
   //cmd = WB::Sa_ * tau;
   cmd = tau.tail(WB::num_act_joint_);
   //pretty_print(qddot_, std::cout, "qddot_");
