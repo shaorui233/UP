@@ -60,7 +60,6 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
   _state.bodyVelocity[1] = data->ang_vel[1];
   _state.bodyVelocity[2] = data->ang_vel[2];
 
-
   // Body position update
   if(data->cheater_mode){
     _state.bodyPosition[0] = data->global_body_pos[0];

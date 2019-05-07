@@ -6,7 +6,7 @@ transition_time: 0.003
 stance_time: 0.004
  
 # Timing Parameters (sec)
-body_lifting_time: 1.5
+body_lifting_time: .5
 
 
 #swing_time: 0.12

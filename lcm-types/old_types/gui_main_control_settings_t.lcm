@@ -27,7 +27,7 @@ struct gui_main_control_settings_t
 	double alexa_mode;
 	double rc_configured;
 	double bonus_knee_torque;
-    double variable[3];
+  double variable[3];
 
 	double want_cheater_mode;
 }

@@ -236,8 +236,8 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
     for(size_t i(0);i<3; ++i){
       local_body_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i+3];// Local
     }
-    Quat<T> quat = Ctrl::_robot_sys->_state.bodyOrientation;
-    Mat3<T> Rot_curr = ori::quaternionToRotationMatrix(quat);
+    Mat3<T> Rot_curr = 
+      ori::quaternionToRotationMatrix(Ctrl::_robot_sys->_state.bodyOrientation);
     global_body_vel = Rot_curr.transpose()*local_body_vel;
 
     for(size_t i(0); i<2; ++i){
