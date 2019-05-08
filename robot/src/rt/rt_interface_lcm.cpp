@@ -1,7 +1,7 @@
 #include <rt/rt_interface_lcm.h>
 #include <pthread.h>
 
-static lcm::LCM *lcm;
+static lcm::LCM *g_lcm;
 
 #include <rt/rt_sbus.h>
 
@@ -26,243 +26,47 @@ int get_iterations_since_last_lcm() {
   return iterations_since_last_lcm;
 }
 
-
 // Controller Settings
-#include              <interfacelcm_gui_main_control_settings_t.h>
+#include <gui_main_control_settings_t.hpp>
+//volatile gui_main_control_settings_t main_control_settings;
+gui_main_control_settings_t main_control_settings;
 
-volatile interfacelcm_gui_main_control_settings_t main_control_settings;
-
-
-#include              <interfacelcm_gui_controller_balance_settings_t.h>
-
-volatile interfacelcm_gui_controller_balance_settings_t controller_balance_settings;
-
-
-#include              <interfacelcm_gui_controller_swing_leg_settings_t.h>
-
-volatile interfacelcm_gui_controller_swing_leg_settings_t controller_swing_leg_settings;
-
-
-// State Estimator Settings
-#include <interfacelcm_gui_state_estimator_settings_t.h>
-
-volatile interfacelcm_gui_state_estimator_settings_t state_estimator_settings;
-
-
-// Contact Detection Settings
-#include <interfacelcm_gui_contact_detection_settings_t.h>
-
-volatile interfacelcm_gui_contact_detection_settings_t contact_detection_settings;
-
-
-// Contact Detection Settings
-#include <interfacelcm_gui_gait_settings_t.h>
-
-volatile interfacelcm_gui_gait_settings_t gait_settings;
-
-
-// Xbee settings
-#include <cheetahlcm_xbee_command_t.h>
-
-volatile cheetahlcm_xbee_command_t xbee_command;
-
-
-#include <interfacelcm_rc_channels_t.h>
-
-volatile interfacelcm_rc_channels_t rc_channels;
-
-#include <interfacelcm_gui_controller_mpc_settings_t.h>
-
-volatile interfacelcm_gui_controller_mpc_settings_t controller_mpc_settings;
+#include <rc_channels_t.hpp>
+//volatile rc_channels_t rc_channels;
+rc_channels_t rc_channels;
 
 /* ------------------------- HANDLERS ------------------------- */
 
 // Controller Settings
 
-/**
- * @brief      Handler for main control settings from MATLAB interface. Never call this yourself, leave it to LCM
- *
- * @param[in]  rbuf     The receive buffer
- * @param[in]  channel  The name of the LCM Channel
- * @param[in]  msg      Pointer to the LCM message
- * @param      user     Unused
- */
-static void main_control_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel,
-                                          const interfacelcm_gui_main_control_settings_t *msg, void *user) {
+void Handler::main_control_settings_handler(const lcm::ReceiveBuffer* rbuf, 
+                                          const std::string & channel,
+                                          const gui_main_control_settings_t *msg) {
+  (void)rbuf;
+  (void)channel;
+
   iterations_since_last_lcm = 0;
   pthread_mutex_lock(&lcm_get_set_mutex);
   main_control_settings = *msg;
   pthread_mutex_unlock(&lcm_get_set_mutex);
 }
 
-/**
- * @brief      Handler for balance control settings from MATLAB interface. Never call this yourself, leave it to LCM.
- *
- * @param[in]  rbuf     The receive buffer
- * @param[in]  channel  The name of the LCM Channel
- * @param[in]  msg      Pointer to the LCM message
- * @param      user     Unused
- */
-static void controller_balance_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel,
-                                                const interfacelcm_gui_controller_balance_settings_t *msg, void *user) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  controller_balance_settings = *msg;
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
 
-/**
- * @brief      Handler for swing leg control settings from MATLAB interface. Never call this yourself, leave it to LCM.
- *
- * @param[in]  rbuf     The receive buffer
- * @param[in]  channel  The name of the LCM Channel
- * @param[in]  msg      Pointer to the LCM message
- * @param      user     Unused
- */
-static void controller_swing_leg_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel,
-                                                  const interfacelcm_gui_controller_swing_leg_settings_t *msg,
-                                                  void *user) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  controller_swing_leg_settings = *msg;
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
+void Handler::rc_channels_handler(const lcm::ReceiveBuffer* rbuf, 
+                                const std::string & channel,
+                                const rc_channels_t *msg) {
+  (void)rbuf;
+  (void)channel;
 
-static void controller_mpc_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel,
-                                            const interfacelcm_gui_controller_mpc_settings_t *msg, void *user) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  controller_mpc_settings = *msg;
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-/**
- * @brief      Handler for state estimator settings from the MATLAB interface. Never call this yourself, leave it to LCM.
- *
- * @param[in]  rbuf     The receive buffer
- * @param[in]  channel  The name of the LCM Channel
- * @param[in]  msg      Pointer to the LCM message
- * @param      user     Unused
- */
-static void state_estimator_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel,
-                                             const interfacelcm_gui_state_estimator_settings_t *msg, void *user) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  state_estimator_settings = *msg;
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-/**
- * @brief      Handler for contact_detection settings from the MATLAB interface. Never call this yourself, leave it to LCM.
- *
- * @param[in]  rbuf     The receive buffer
- * @param[in]  channel  The name of the LCM Channel
- * @param[in]  msg      Pointer to the LCM message
- * @param      user     Unused
- */
-static void contact_detection_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel,
-                                               const interfacelcm_gui_contact_detection_settings_t *msg, void *user) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  contact_detection_settings = *msg;
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-/**
- * @brief      Handler for gait settings from the MATLAB interface. Never call this yourself, leave it to LCM.
- *
- * @param[in]  rbuf     The receive buffer
- * @param[in]  channel  The name of the LCM Channel
- * @param[in]  msg      Pointer to the LCM message
- * @param      user     Unused
- */
-static void
-gait_settings_handler(const lcm_recv_buf_t *rbuf, const char *channel, const interfacelcm_gui_gait_settings_t *msg,
-                      void *user) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  gait_settings = *msg;
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-static void rc_channels_handler(const lcm_recv_buf_t *rbuf, const char *channel, const interfacelcm_rc_channels_t *msg,
-                                void *user) {
   pthread_mutex_lock(&lcm_get_set_mutex);
   rc_channels = *msg;
   pthread_mutex_unlock(&lcm_get_set_mutex);
 }
-
-/* ------------------------- MATLAB Interface ------------------------- */
-
-/**
- * @brief      Wrapper for MATLAB access to the main control settings
- *
- * @param      settings  Pointer to the settings struct from matlab
- */
 void get_main_control_settings(void *settings) {
   pthread_mutex_lock(&lcm_get_set_mutex);
   v_memcpy(settings, &main_control_settings, sizeof(main_control_settings));
   pthread_mutex_unlock(&lcm_get_set_mutex);
 }
-
-/**
- * @brief      Wrapper for MATLAB access to the balance control settings
- *
- * @param      settings  Pointer to the settings struct from matlab
- */
-void get_controller_balance_settings(void *settings) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &controller_balance_settings, sizeof(controller_balance_settings));
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-/**
- * @brief      Wrapper for MATLAB access to the swing leg control settings
- *
- * @param      settings  Pointer to the settings struct from matlab
- */
-void get_controller_swing_leg_settings(void *settings) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &controller_swing_leg_settings, sizeof(controller_swing_leg_settings));
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-void get_controller_mpc_settings(void *settings) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &controller_mpc_settings, sizeof(controller_mpc_settings));
-  //printf("got q1: %f\n",controller_mpc_settings.Q[0]);
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-
-/**
- * @brief      Wrapper for MATLAB access to the balance control settings
- *
- * @param      settings  Pointer to the settings struct from matlab
- */
-void get_state_estimator_settings(void *settings) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &state_estimator_settings, sizeof(state_estimator_settings));
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-
-/**
- * @brief      Wrapper for MATLAB access to the contact_detection settings
- *
- * @param      settings  Pointer to the settings struct from matlab
- */
-void get_contact_detection_settings(void *settings) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &contact_detection_settings, sizeof(contact_detection_settings));
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
-/**
- * @brief      Wrapper for MATLAB access to the gait settings
- *
- * @param      settings  Pointer to the settings struct from matlab
- */
-void get_gait_settings(void *settings) {
-  pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &gait_settings, sizeof(gait_settings));
-  pthread_mutex_unlock(&lcm_get_set_mutex);
-}
-
 
 void get_rc_channels(void *settings) {
   pthread_mutex_lock(&lcm_get_set_mutex);
@@ -317,6 +121,19 @@ void sbus_packet_complete() {
         main_control_settings.p_des[0] = 0;
         main_control_settings.p_des[1] = 0;
         main_control_settings.p_des[2] = 0.21 + ((float) ch1 - 1000) * .0001f;
+  //printf("[rt] p des: %f, %f, %f \n", 
+      //main_control_settings.p_des[0],
+      //main_control_settings.p_des[1],
+      //main_control_settings.p_des[2]);
+  //printf("[rt] v des: %f, %f, %f \n", 
+      //main_control_settings.v_des[0],
+      //main_control_settings.v_des[1],
+      //main_control_settings.v_des[2]);
+   //printf("[rt] rpy des: %f, %f, %f \n", 
+      //main_control_settings.rpy_des[0],
+      //main_control_settings.rpy_des[1],
+      //main_control_settings.rpy_des[2]);
+
       }
         // For all other gaits, control the velocities
       else {
@@ -343,7 +160,6 @@ void sbus_packet_complete() {
     }
 
   }
-
   // Use the joysticks for orientation and height control in standing mode
 
 
@@ -359,35 +175,18 @@ void sbus_packet_complete() {
  */
 void init_interface_lcm(lcm::LCM *main_lcm) {
   printf("[RT Interface LCM] Initializing...\n");
-  lcm = main_lcm;
+  g_lcm = main_lcm;
 
+  Handler handlerObj;
 
-  interfacelcm_gui_main_control_settings_t_subscribe(lcm, "INTERFACE_gui_main_control_settings",
-                                                     &main_control_settings_handler, NULL);
-  interfacelcm_gui_controller_balance_settings_t_subscribe(lcm, "INTERFACE_gui_controller_balance_settings",
-                                                           &controller_balance_settings_handler, NULL);
-  interfacelcm_gui_controller_swing_leg_settings_t_subscribe(lcm, "INTERFACE_gui_controller_swing_leg_settings",
-                                                             &controller_swing_leg_settings_handler, NULL);
-  interfacelcm_gui_state_estimator_settings_t_subscribe(lcm, "INTERFACE_gui_state_estimator_settings",
-                                                        &state_estimator_settings_handler, NULL);
-  interfacelcm_gui_contact_detection_settings_t_subscribe(lcm, "INTERFACE_gui_contact_detection_settings",
-                                                          &contact_detection_settings_handler, NULL);
-  interfacelcm_gui_gait_settings_t_subscribe(lcm, "INTERFACE_gui_gait_settings", &gait_settings_handler, NULL);
-  interfacelcm_rc_channels_t_subscribe(lcm, "INTERFACE_rc_channels", &rc_channels_handler, NULL);
-  interfacelcm_gui_controller_mpc_settings_t_subscribe(lcm, "INTERFACE_gui_controller_mpc_settings",
-                                                       &controller_mpc_settings_handler, NULL);
-
+  g_lcm->subscribe("INTERFACE_gui_main_control_settings", 
+      &Handler::main_control_settings_handler, &handlerObj);
+  g_lcm->subscribe("INTERFACE_rc_channels", &Handler::rc_channels_handler, &handlerObj);
 
   main_control_settings.enable = 1;
 
-  state_estimator_settings.process_noise_pimu = 1e-6;
-  state_estimator_settings.process_noise_vimu = 1e-3;
-  state_estimator_settings.process_noise_pfoot = .2;
-  state_estimator_settings.sensor_noise_pimu_rel_foot = 3e-2;
-  state_estimator_settings.sensor_noise_vimu_rel_foot = .1;
-  state_estimator_settings.sensor_noise_zfoot = 3e-2;
   printf("[RT Interface LCM] Done\n");
-
+  
   //printf("Initial PFOOT SETTINGS %lf\n", state_estimator_settings.process_noise_pfoot);
 }
 

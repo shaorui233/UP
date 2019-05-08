@@ -5,6 +5,9 @@
 
 #include "SimulationBridge.h"
 #include "Controllers/LegController.h"
+#include "rt/rt_sbus.h"
+#include "rt/rt_interface_lcm.h"
+#include <gui_main_control_settings_t.hpp>
 
 
 void SimulationBridge::run() {
@@ -144,6 +147,7 @@ void SimulationBridge::runRobotControl() {
     _fakeTaskManager = new PeriodicTaskManager;
 
     _robotController = new RobotController(_fakeTaskManager, 0, "robot-task");
+    //_robotController = new RobotController(&taskManager, 0, "robot-task");
 
     _robotController->driverCommand = &_sharedMemory().simToRobot.gamepadCommand;
     _robotController->spiData       = &_sharedMemory().simToRobot.spiData;
@@ -160,8 +164,40 @@ void SimulationBridge::runRobotControl() {
 
     _robotController->init();
     _firstControllerRun = false;
+
+    _port = init_sbus(true); // Simulation
+    //PeriodicMemberFunction<SimulationBridge> sbusTask(
+        //&taskManager, .005, "rc_controller", &SimulationBridge::run_sbus, this);
+    //sbusTask.start();
+
   }
 
+  run_sbus();
+  //usleep(5000);
+  //gui_main_control_settings_t main_control_settings;
+  //get_main_control_settings(&main_control_settings);
 
-  _robotController->run();
+  //printf("p des: %f, %f, %f \n", 
+      //main_control_settings.p_des[0],
+      //main_control_settings.p_des[1],
+      //main_control_settings.p_des[2]);
+  //printf("v des: %f, %f, %f \n", 
+      //main_control_settings.v_des[0],
+      //main_control_settings.v_des[1],
+      //main_control_settings.v_des[2]);
+   //printf("rpy des: %f, %f, %f \n", 
+      //main_control_settings.rpy_des[0],
+      //main_control_settings.rpy_des[1],
+      //main_control_settings.rpy_des[2]);
+   _robotController->run();
+}
+
+
+void SimulationBridge::run_sbus(){
+  if(_port > 0){
+    int x = receive_sbus(_port);
+    if(x) {
+      sbus_packet_complete();
+    }
+  }
 }

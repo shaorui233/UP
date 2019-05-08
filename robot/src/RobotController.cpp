@@ -17,6 +17,10 @@
 #include <Utilities/Timer.h>
 #include <unistd.h>
 
+#include "rt/rt_interface_lcm.h"
+#include <gui_main_control_settings_t.hpp>
+
+
 void RobotController::init() {
   printf("[RobotController] initialize\n");
 
@@ -164,6 +168,15 @@ void RobotController::run() {
 
     _data->ori_command[1] = driverCommand->rightStickAnalog[1];
     _data->ori_command[2] = driverCommand->rightStickAnalog[0];
+
+
+    // TEST RC controller
+    gui_main_control_settings_t main_control_settings;
+    get_main_control_settings(&main_control_settings);
+    _data->ori_command[0] = main_control_settings.rpy_des[0];
+    _data->ori_command[1] = main_control_settings.rpy_des[1];
+    _data->ori_command[2] = main_control_settings.rpy_des[2];
+
 
     //Timer timer;
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);

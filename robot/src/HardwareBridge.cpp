@@ -5,6 +5,8 @@
 #include "HardwareBridge.h"
 #include "rt/rt_vectornav.h"
 #include "rt/rt_spi.h"
+#include "rt/rt_sbus.h"
+#include "rt/rt_interface_lcm.h"
 
 /*!
  * If an error occurs during initialization, before motors are enabled, print error and exit.
@@ -208,9 +210,24 @@ void MiniCheetahHardwareBridge::run() {
       &taskManager, .0167, "lcm-vis", &MiniCheetahHardwareBridge::publishVisualizationLCM, this);
   visualizationLCMTask.start();
 
+  // rc controller
+  _port = init_sbus(false); //Not Simulation
+  PeriodicMemberFunction<HardwareBridge> sbusTask(
+      &taskManager, .005, "rc_controller", &HardwareBridge::run_sbus, this);
+  sbusTask.start();
+
   for(;;) {
     usleep(1000000);
     //printf("joy %f\n", _robotController->driverCommand->leftStickAnalog[0]);
+  }
+}
+
+void HardwareBridge::run_sbus(){
+  if(_port > 0){
+    int x = receive_sbus(_port);
+    if(x) {
+      sbus_packet_complete();
+    }
   }
 }
 

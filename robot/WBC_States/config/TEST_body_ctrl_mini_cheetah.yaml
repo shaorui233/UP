@@ -7,7 +7,7 @@ CTRL_move_to_target_height:
     min_rf_z: 3
 
 # Timing Parameters (sec)
-body_lifting_time: 1.0
+body_lifting_time: 0.7
 stance_time: 10000.
 
 CTRL_stance:

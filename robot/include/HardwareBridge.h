@@ -35,6 +35,8 @@ public:
                               const control_parameter_request_lcmt* msg);
 
   void publishVisualizationLCM();
+  void run_sbus();
+
 protected:
   PeriodicTaskManager taskManager;
   PrintTaskStatus     statusTask;
@@ -55,6 +57,7 @@ protected:
   std::thread _interfaceLcmThread;
   volatile bool _interfaceLcmQuit = false;
 
+  int _port;
 };
 
 class MiniCheetahHardwareBridge : public HardwareBridge {
@@ -66,14 +69,9 @@ public:
   void abort(const std::string& reason);
   void abort(const char* reason);
 
-
 private:
   VectorNavData _vectorNavData;
   lcm::LCM _spiLcm;
-
-
-
-
 };
 
 #endif //PROJECT_HARDWAREBRIDGE_H
