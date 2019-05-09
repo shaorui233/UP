@@ -104,6 +104,7 @@ void KinBoundingCtrl<T>::CtrlInitialization(const std::string & category_name){
 
   _param_handler->getValue<T>(category_name, "total_mass", _total_mass);
   _param_handler->getValue<T>(category_name, "step_length_limit", _step_length_lim);
+  _param_handler->getValue<T>(category_name, "step_width", _step_width);
 }
 
 template <typename T>
@@ -125,6 +126,26 @@ void KinBoundingCtrl<T>::SetTestParameter(const std::string & test_file){
   _param_handler->getVector<T>("Kd_ryrz", tmp_vec);
   for(size_t i(0); i<tmp_vec.size(); ++i){ 
     ((BodyRyRzTask<T>*)_body_ryrz_task)->_Kd[i] = tmp_vec[i]; 
+  }
+
+  // Head Pos
+  _param_handler->getVector<T>("Kp_head", tmp_vec);
+  for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    ((LocalHeadPosTask<T>*)_local_head_pos_task)->_Kp[i] = tmp_vec[i]; 
+  }
+  _param_handler->getVector<T>("Kd_head", tmp_vec);
+  for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    ((LocalHeadPosTask<T>*)_local_head_pos_task)->_Kd[i] = tmp_vec[i]; 
+  }
+  
+  // Tail Pos
+  _param_handler->getVector<T>("Kp_tail", tmp_vec);
+  for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    ((LocalTailPosTask<T>*)_local_tail_pos_task)->_Kp[i] = tmp_vec[i]; 
+  }
+  _param_handler->getVector<T>("Kd_tail", tmp_vec);
+  for(size_t i(0); i<tmp_vec.size(); ++i){ 
+    ((LocalTailPosTask<T>*)_local_tail_pos_task)->_Kd[i] = tmp_vec[i]; 
   }
 
   _param_handler->getVector<T>("Kp", tmp_vec);

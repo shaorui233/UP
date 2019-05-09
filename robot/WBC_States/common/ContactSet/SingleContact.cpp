@@ -16,7 +16,7 @@ SingleContact<T>::SingleContact(const FloatingBaseModel<T>* robot, int pt):
     Contact::JcDotQdot_ = DVec<T>::Zero(Contact::dim_contact_);
     Contact::Uf_ = DMat<T>::Zero(_dim_U, Contact::dim_contact_);
 
-    T mu (0.5);
+    T mu (0.3);
 
 
     Contact::Uf_(0, 2) = 1.;

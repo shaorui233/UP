@@ -91,8 +91,8 @@ void sbus_packet_complete() {
   int ch11 = read_sbus_channel(10);
   int ch13 = read_sbus_channel(12);
 
-
-  float v_scale = 2.0f * (((float) (ch7 - 172)) / 1811.0f) + 1.0f;    //velocity scales between 1.0 and 3.0
+  //velocity scales between 1.0 and 3.0
+  float v_scale = 2.0f * (((float) (ch7 - 172)) / 1811.0f) + 1.0f;
   // Ignore commands if switched
   if (ch11 != 1811) {
 
@@ -145,6 +145,15 @@ void sbus_packet_complete() {
         main_control_settings.omega_des[0] = 0;
         main_control_settings.omega_des[1] = 0;
         main_control_settings.omega_des[2] = -v_scale * ((float) ch2 - 1000) * .003f;
+  //printf("[rt] v des: %f, %f, %f \n", 
+      //main_control_settings.v_des[0],
+      //main_control_settings.v_des[1],
+      //main_control_settings.v_des[2]);
+  //printf("[rt] omega des: %f, %f, %f \n", 
+      //main_control_settings.omega_des[0],
+      //main_control_settings.omega_des[1],
+      //main_control_settings.omega_des[2]);
+
       }
     }
       // For standing modes (mpc or balance qp) control orientations

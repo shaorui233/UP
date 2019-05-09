@@ -16,8 +16,8 @@ LocalPosTask<T>::LocalPosTask(
     TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
     
     _Kp_kin = DVec<T>::Constant(TK::dim_task_, 1.);
-    _Kp = DVec<T>::Constant(TK::dim_task_, 50.);
-    _Kd = DVec<T>::Constant(TK::dim_task_, 3.);
+    _Kp = DVec<T>::Constant(TK::dim_task_, 20.);
+    _Kd = DVec<T>::Constant(TK::dim_task_, 1.);
 }
 
 template <typename T>

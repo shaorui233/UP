@@ -57,7 +57,7 @@ class KinBoundingCtrl: public Controller<T>{
     T _front_jump_amp;
     T _hind_jump_amp;
     T _jump_disable_time;
-
+    T _step_width;
     
     T _contact_vel_threshold;
     T _K_time;

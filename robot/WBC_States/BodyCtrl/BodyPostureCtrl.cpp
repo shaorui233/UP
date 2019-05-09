@@ -156,10 +156,17 @@ void BodyPostureCtrl<T>::_task_setup(){
     Quat<T> des_quat; des_quat.setZero();
 
     for(size_t i(0); i<3; ++i) {
-        _ori_cmd_filter[i]->input(_sp->_ori_command[i]);
-        _target_ori_command[i] += _ori_cmd_filter[i]->output()*Test<T>::dt;
-    }
+        //_ori_cmd_filter[i]->input(_sp->_ori_command[i]);
+        //_target_ori_command[i] += _ori_cmd_filter[i]->output()*Test<T>::dt;
 
+        _target_ori_command[i] = _sp->_ori_command[i];
+     }
+
+    //static int count(0);
+    //count++;
+    //if(count%500 ==0){
+      //pretty_print(_target_ori_command, std::cout, "target ori");
+    //}
     //Mat3<T> Rot = rpyToRotMat(_target_ori_command);
     //Eigen::Quaternion<T> eigen_quat(Rot.transpose());
     //des_quat[0] = eigen_quat.w();

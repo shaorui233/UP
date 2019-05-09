@@ -29,6 +29,7 @@ KinBoundingCtrl<T>::KinBoundingCtrl(
   _front_jump_amp(1.0),
   _hind_jump_amp(1.0),
   _jump_disable_time(0.),
+  _step_width(0.05),
   _contact_vel_threshold(3.0),
   _K_time(0.5),
   _front_foot_offset(0.02),
@@ -97,6 +98,7 @@ KinBoundingCtrl<T>::KinBoundingCtrl(
 
   _wbic_data = new WBIC_ExtraData<T>();
   _wbic_data->_W_floating = DVec<T>::Constant(6, 5.);
+  //_wbic_data->_W_floating = DVec<T>::Constant(6, 25.);
   //_wbic_data->_W_floating[1] = 0.1;
   //_wbic_data->_W_floating[5] = 0.1;
   _sp = StateProvider<T>::getStateProvider();
@@ -277,9 +279,14 @@ void KinBoundingCtrl<T>::_setupTaskAndContactList(){
   if(_b_front_swing){
     _kin_task_list.push_back(_fl_foot_local_task);
     _kin_task_list.push_back(_fr_foot_local_task);
-  }else{
-    _kin_task_list.push_back(_local_head_pos_task);
 
+    Ctrl::_task_list.push_back(_fl_foot_local_task);
+    Ctrl::_task_list.push_back(_fr_foot_local_task);
+   }else{
+    _kin_task_list.push_back(_local_head_pos_task);
+    //Ctrl::_task_list.push_back(_local_head_pos_task);
+
+    // Contact
     Ctrl::_contact_list.push_back(_fr_contact);
     Ctrl::_contact_list.push_back(_fl_contact);
 
@@ -290,9 +297,14 @@ void KinBoundingCtrl<T>::_setupTaskAndContactList(){
   if(_b_hind_swing){
     _kin_task_list.push_back(_hr_foot_local_task);
     _kin_task_list.push_back(_hl_foot_local_task);
-  }else{
-    _kin_task_list.push_back(_local_tail_pos_task);
 
+    Ctrl::_task_list.push_back(_hr_foot_local_task);
+    Ctrl::_task_list.push_back(_hl_foot_local_task);
+   }else{
+    _kin_task_list.push_back(_local_tail_pos_task);
+    //Ctrl::_task_list.push_back(_local_tail_pos_task);
+
+    // Contact
     Ctrl::_contact_list.push_back(_hr_contact);
     Ctrl::_contact_list.push_back(_hl_contact);
 
@@ -331,6 +343,7 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd){
     _kin_task_list.push_back(_local_roll_task);
     _kin_task_list.push_back(_body_ryrz_task);
 
+    Ctrl::_task_list.push_back(_local_roll_task);
     Ctrl::_task_list.push_back(_body_ryrz_task);
   }else{
     _aerial_duration += Test<T>::dt;
@@ -376,6 +389,7 @@ void KinBoundingCtrl<T>::_compute_torque_wbic(DVec<T> & gamma){
       _kin_task_list, _kin_contact_list, 
       _des_jpos, _des_jvel, _des_jacc);
 
+  //Ctrl::_task_list.push_back(_jpos_task);
   _jpos_task->UpdateTask(&(_des_jpos), _des_jvel, _des_jacc);
 
   // WBIC
@@ -405,13 +419,21 @@ void KinBoundingCtrl<T>::_body_task_setup(){
   acc_des.resize(3); acc_des.setZero();
 
   if(!_b_front_swing){ // Stance
-    pos_des[0] = _ini_front_body[0] + _bounding_test->_body_vel[0]*_front_time;
-    vel_des[0] = _bounding_test->_body_vel[0];
+    //for(size_t i(0); i<2; ++i){
+      //pos_des[i] = _ini_front_body[i] + _bounding_test->_body_vel[i]*_front_time;
+      //vel_des[i] = _bounding_test->_body_vel[i];
+    //}
+      vel_des[0] = _bounding_test->_body_vel[0];
+      vel_des[1] = _bounding_test->_body_vel[1];
     _local_head_pos_task->UpdateTask(&pos_des, vel_des, acc_des);
   }
   if(!_b_hind_swing){ // Stance
-    pos_des[0] = _ini_hind_body[0] + _bounding_test->_body_vel[0]*_hind_time;
-    vel_des[0] = _bounding_test->_body_vel[0];
+    //for(size_t i(0); i<2; ++i){
+      //pos_des[i] = _ini_hind_body[i] + _bounding_test->_body_vel[i]*_hind_time;
+      //vel_des[i] = _bounding_test->_body_vel[i];
+    //}
+      vel_des[0] = _bounding_test->_body_vel[0];
+      vel_des[1] = _bounding_test->_body_vel[1];
     _local_tail_pos_task->UpdateTask(&pos_des, vel_des, acc_des);
   }
 }
@@ -442,7 +464,9 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
     _fr_foot_vel[0] = smooth_change_vel(_ini_fr[0], _fin_fr[0], _swing_time, t);
     _fr_foot_acc[0] = smooth_change_acc(_ini_fr[0], _fin_fr[0], _swing_time, t);
     // FR Y
-    _fr_foot_pos[1] = -0.05;
+    _fr_foot_pos[1] = smooth_change(_ini_fr[1], -_step_width, _swing_time, t);
+    _fr_foot_vel[1] = smooth_change_vel(_ini_fr[1], -_step_width, _swing_time, t);
+    _fr_foot_acc[1] = smooth_change_acc(_ini_fr[1], -_step_width, _swing_time, t);
     // FR Z
     _fr_foot_pos[2] = -_target_leg_height + amp * (1.-cos(omega*t));  
     _fr_foot_vel[2] = amp * omega * sin(omega*t);  
@@ -453,7 +477,9 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
     _fl_foot_vel[0] = smooth_change_vel(_ini_fl[0], _fin_fl[0], _swing_time, t);
     _fl_foot_acc[0] = smooth_change_acc(_ini_fl[0], _fin_fl[0], _swing_time, t);
     // FL Y
-    _fl_foot_pos[1] = 0.05;
+    _fl_foot_pos[1] = smooth_change(_ini_fl[1], _step_width, _swing_time, t);
+    _fl_foot_vel[1] = smooth_change_vel(_ini_fl[1], _step_width, _swing_time, t);
+    _fl_foot_acc[1] = smooth_change_acc(_ini_fl[1], _step_width, _swing_time, t);
     // FL Z
     _fl_foot_pos[2] = -_target_leg_height + amp * (1.-cos(omega*t));  
     _fl_foot_vel[2] = amp * omega * sin(omega*t);  
@@ -482,7 +508,9 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
     _hr_foot_vel[0] = smooth_change_vel(_ini_hr[0], _fin_hr[0], _swing_time, t);
     _hr_foot_acc[0] = smooth_change_acc(_ini_hr[0], _fin_hr[0], _swing_time, t);
     // HR Y
-    _hr_foot_pos[1] = -0.05;
+    _hr_foot_pos[1] = smooth_change(_ini_hr[1], -_step_width, _swing_time, t);
+    _hr_foot_vel[1] = smooth_change_vel(_ini_hr[1], -_step_width, _swing_time, t);
+    _hr_foot_acc[1] = smooth_change_acc(_ini_hr[1], -_step_width, _swing_time, t);
     // HR Z
     _hr_foot_pos[2] = -_target_leg_height + amp * (1.-cos(omega*t));  
     _hr_foot_vel[2] = amp * omega * sin(omega*t);  
@@ -493,7 +521,9 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
     _hl_foot_vel[0] = smooth_change_vel(_ini_hl[0], _fin_hl[0], _swing_time, t);
     _hl_foot_acc[0] = smooth_change_acc(_ini_hl[0], _fin_hl[0], _swing_time, t);
     // HL Y
-    _hl_foot_pos[1] = 0.05;
+    _hl_foot_pos[1] = smooth_change(_ini_hl[1], _step_width, _swing_time, t);
+    _hl_foot_vel[1] = smooth_change_vel(_ini_hl[1], _step_width, _swing_time, t);
+    _hl_foot_acc[1] = smooth_change_acc(_ini_hl[1], _step_width, _swing_time, t);
     // HL Z
     _hl_foot_pos[2] = -_target_leg_height + amp * (1.-cos(omega*t));  
     _hl_foot_vel[2] = amp * omega * sin(omega*t);  

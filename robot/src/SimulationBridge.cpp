@@ -165,39 +165,22 @@ void SimulationBridge::runRobotControl() {
     _robotController->init();
     _firstControllerRun = false;
 
-    _port = init_sbus(true); // Simulation
-    //PeriodicMemberFunction<SimulationBridge> sbusTask(
-        //&taskManager, .005, "rc_controller", &SimulationBridge::run_sbus, this);
-    //sbusTask.start();
-
+    sbus_thread = new std::thread(&SimulationBridge::run_sbus, this);
   }
-
-  run_sbus();
-  //usleep(5000);
-  //gui_main_control_settings_t main_control_settings;
-  //get_main_control_settings(&main_control_settings);
-
-  //printf("p des: %f, %f, %f \n", 
-      //main_control_settings.p_des[0],
-      //main_control_settings.p_des[1],
-      //main_control_settings.p_des[2]);
-  //printf("v des: %f, %f, %f \n", 
-      //main_control_settings.v_des[0],
-      //main_control_settings.v_des[1],
-      //main_control_settings.v_des[2]);
-   //printf("rpy des: %f, %f, %f \n", 
-      //main_control_settings.rpy_des[0],
-      //main_control_settings.rpy_des[1],
-      //main_control_settings.rpy_des[2]);
    _robotController->run();
 }
 
 
 void SimulationBridge::run_sbus(){
-  if(_port > 0){
-    int x = receive_sbus(_port);
-    if(x) {
-      sbus_packet_complete();
+  printf("[run_sbus] starting...\n");
+  int port = init_sbus(true); // Simulation
+  while(true){
+    if(port > 0){
+      int x = receive_sbus(port);
+      if(x) {
+        sbus_packet_complete();
+      }
     }
+    usleep(5000);
   }
 }

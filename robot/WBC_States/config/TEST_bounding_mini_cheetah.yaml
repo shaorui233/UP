@@ -21,29 +21,37 @@ CTRL_move_to_target_height:
 CTRL_bounding_initiate:
 
 CTRL_bounding:
-  stride_length: 0.25
-  K_time: 0.6
-  front_foot_offset: 0.01
+  K_time: 0.3
+  front_foot_offset: 0.02
   hind_foot_offset: -0.04
-  swing_height: 0.1
+  step_width: 0.07
+  swing_height: 0.09
   front_jump_amp: 3.0
   hind_jump_amp: 8.5
   contact_vel_threshold: 2.5
-  total_mass: 9.0
+  total_mass: 9.5
   step_length_limit: 0.3
 
 
 # WBIC Feedback gain
-Kp_ryrz: [5., 5.]
+Kp_ryrz: [5., 25.]
 Kd_ryrz: [0.5, 0.5]
 
-Kp_roll: 30
-Kd_roll: 5
+Kp_roll: 10
+Kd_roll: 0.5
   
 # Joint Feedback gain
-Kp_joint: [13., 15., 15.]
-Kd_joint: [1.5, 1.5, 1.5]
-  
+Kp_joint: [8., 8., 8.]
+Kd_joint: [1.0, 1.0, 1.0]
+
+# Local Head Pos Feedback gain
+Kp_head: [10., 10., 10.]
+Kd_head: [1.0, 1.0, 1.0]
+
+# Local Tail Pos Feedback gain
+Kp_tail: [10., 10., 10.]
+Kd_tail: [1.0, 1.0, 1.0]
+   
 #Kp: [200., 200., 200., 
   #200., 200., 200., 
   #200., 200., 200., 
@@ -54,15 +62,16 @@ Kd_joint: [1.5, 1.5, 1.5]
   #10., 10., 10., 
   #10., 10., 10.]
 
-Kp: [130., 130., 130., 
-  130., 130., 130., 
-  130., 150., 150., 
-  130., 150., 150.]
+Kp: [
+  110., 110., 110., 
+  110., 110., 110., 
+  110., 110., 110., 
+  110., 110., 110.]
 
-Kd: [6., 6., 6., 
-  6., 6., 6., 
-  6., 10., 10., 
-  6., 10., 10.]
+Kd: [3., 3., 3., 
+  3., 3., 3., 
+  3., 3., 3., 
+  3., 3., 3.]
 
 save_file: false
 #save_file: true

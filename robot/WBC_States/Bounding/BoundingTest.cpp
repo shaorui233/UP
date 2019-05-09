@@ -103,15 +103,16 @@ void BoundingTest<T>::_SettingParameter(){
 template <typename T>
 void BoundingTest<T>::_UpdateTestOneStep(){
 
-  T scale(5.0);
+  T scale(5.0/3.0);
   _body_ang_vel[2] = _sp->_ori_command[2];
   _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
 
-  Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
   Vec3<T> input_vel; input_vel.setZero();
   input_vel[0] = scale*_sp->_dir_command[0];
-  input_vel[1] = -0.5*scale*_sp->_dir_command[1];
-  _body_vel = Rot.transpose() * input_vel;
+  input_vel[1] = 0.5*scale*_sp->_dir_command[1];
+  //Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
+  //_body_vel = Rot.transpose() * input_vel;
+  _body_vel = input_vel;
   //_body_vel[0] = 1.3;
   //_body_pos += _body_vel*Test<T>::dt;
 }

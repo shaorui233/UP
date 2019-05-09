@@ -181,14 +181,14 @@ void WBLCTrotTest<T>::_SettingParameter(){
 
 template <typename T>
 void WBLCTrotTest<T>::_UpdateTestOneStep(){
-  T scale(2.0);
+  T scale(1.0);
   if(Test<T>::_phase == WBLCTrotPhase::frhl_swing || 
       Test<T>::_phase == WBLCTrotPhase::flhr_swing){
     _body_ang_vel.setZero();
     _filtered_input_vel[0]->input(_input_vel[0]);
     _filtered_input_vel[1]->input(_input_vel[1]);
   }else{
-    _body_ang_vel[2] = 4.*_sp->_ori_command[2];
+    _body_ang_vel[2] = 2.*_sp->_ori_command[2];
     _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
 
 
@@ -201,6 +201,9 @@ void WBLCTrotTest<T>::_UpdateTestOneStep(){
     _body_vel = Rot.transpose() * _input_vel;
   }
   _body_pos += _body_vel*Test<T>::dt;
+  //T body_height_adj = 0.05 * sqrt(_body_vel[0]*_body_vel[0] + _body_vel[1]*_body_vel[1]);
+  //body_height_adj = coerce<T>(body_height_adj, 0., 0.2);
+  //_body_pos[2] = _target_body_height + body_height_adj;
   //_body_pos = Test<T>::_robot->_state.bodyPosition;
 
 }

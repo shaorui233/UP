@@ -116,8 +116,8 @@ void RobotController::run() {
   // Commenting out WBC for now to test Locomotion control
   Mat3<float> kpMat;
   Mat3<float> kdMat;
-  //if (!_jpos_initializer->IsInitialized(_legController)) {
-  if (false) {  // TEST
+  if (!_jpos_initializer->IsInitialized(_legController)) {
+  //if (false) {  // TEST
     kpMat <<
       5, 0, 0,
       0, 5, 0,
@@ -170,14 +170,20 @@ void RobotController::run() {
     _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
 
-    // TEST RC controller
+    // RC controller
     gui_main_control_settings_t main_control_settings;
     get_main_control_settings(&main_control_settings);
-    _data->ori_command[0] = main_control_settings.rpy_des[0];
-    _data->ori_command[1] = main_control_settings.rpy_des[1];
-    _data->ori_command[2] = main_control_settings.rpy_des[2];
 
-
+    if(main_control_settings.variable[0] == 4){ // Body Posture Control
+      _data->ori_command[0] = main_control_settings.rpy_des[0];
+      _data->ori_command[1] = main_control_settings.rpy_des[1];
+      _data->ori_command[2] = main_control_settings.rpy_des[2];
+    }else{
+      _data->dir_command[0] = main_control_settings.v_des[0];
+      _data->dir_command[1] = main_control_settings.v_des[1];
+      _data->ori_command[2] = main_control_settings.omega_des[2];
+    }
+   
     //Timer timer;
     _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
     //if(count_ini%500 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;

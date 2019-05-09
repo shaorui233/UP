@@ -1,7 +1,7 @@
 ground-plane:
     type: "infinite-plane"
     mu: 0.7
-    restitution: 0
+    restitution: 0.7
     height: -0.5
     graphicsSize: [20,20] # how large the plane appears
     checkers: [40,40]     # how many checkers are on the plane

@@ -6,7 +6,7 @@ transition_time: 0.003
 stance_time: 0.004
  
 # Timing Parameters (sec)
-body_lifting_time: .5
+body_lifting_time: .7
 
 
 #swing_time: 0.12
@@ -15,7 +15,7 @@ body_lifting_time: .5
 
 step_time_ratio: 0.7
 
-body_height: .28
+body_height: .25
 #body_height: .3
 CTRL_move_to_target_height:
     max_rf_z: 100
@@ -26,13 +26,13 @@ CTRL_fix_stance:
 CTRL_frhl_swing:
     default_target_foot_location_1: [0.18, -0.08, 0.0] # Front Right
     default_target_foot_location_2: [-0.18, 0.08, 0.0] # Hind Left
-    swing_height: 0.05
+    swing_height: 0.04
     landing_offset: [0, 0, 0]
 
 CTRL_flhr_swing:
     default_target_foot_location_1: [0.18, 0.08,  0.0] # Front Left
     default_target_foot_location_2: [-0.18, -0.08, 0.0] # Hind Right
-    swing_height: 0.05
+    swing_height: 0.04
     landing_offset: [0, 0, 0]
 
 CTRL_two_leg_trans:
