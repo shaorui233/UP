@@ -184,6 +184,7 @@ void KinBoundingCtrl<T>::_StatusCheck(){
       T apex = 
         _total_mass * 9.81 * (_swing_time + _front_current_stance)/
         (2. * 2.0*0.7*_front_current_stance);
+      apex *= _impact_amp;
 
       if(_b_jump){ // jump
         apex *= _front_jump_amp;
@@ -218,7 +219,10 @@ void KinBoundingCtrl<T>::_StatusCheck(){
       _hind_current_stance = _stance_time - adjust_time;
 
       T apex =_total_mass * 9.81 * (_swing_time + _hind_current_stance)/(2.*2.0*0.7*_hind_current_stance);
+      apex *= _impact_amp;
 
+      Vec3<T> rpy = ori::quatToRPY(Ctrl::_robot_sys->_state.bodyOrientation);
+      apex *= (1. - _K_pitch * rpy[1]);
       if(_b_jump && _b_front_jump){ // jump
         apex *= _hind_jump_amp;
         _b_jump = false;

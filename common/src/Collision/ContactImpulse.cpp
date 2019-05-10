@@ -95,7 +95,7 @@ void ContactImpulse<T>::_UpdateVelocity(DVec<T> & qdot){
 
 
   // Update Velocity & Find Impulse Force
-  for(size_t iter(0); iter<10; ++iter){
+  for(size_t iter(0); iter<_iter_lim; ++iter){
     _iter_sum = 0;
     // Normal (Z) *********************************************************
     _UpdateQdotOneDirection(2, Jc_list, lambda_list_z, AinvB_list_z, 
@@ -146,7 +146,7 @@ void ContactImpulse<T>::_UpdateQdotOneDirection(
 
 
   T dforce, pre_force, cp_vel, dforce_sum;
-  for(size_t iter(0); iter< 10; ++iter){
+  for(size_t iter(0); iter< _iter_lim; ++iter){
     dforce_sum = 0;
     for(size_t i(0); i<CC::_nContact; ++i){
       cp_vel =  (Jc_list[i].block(idx,0, 1, _nDof) * qdot)(0,0);

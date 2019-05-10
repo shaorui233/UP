@@ -188,6 +188,11 @@ void WBLCTrotTest<T>::_UpdateTestOneStep(){
     _filtered_input_vel[0]->input(_input_vel[0]);
     _filtered_input_vel[1]->input(_input_vel[1]);
   }else{
+    //printf("command: %f, %f, %f \n", _sp->_dir_command[0], _sp->_dir_command[1], _body_ang_vel[2]);
+    //if(fabs(_sp->_dir_command[0])<0.05) _sp->_dir_command[0] = 0.;
+    //if(fabs(_sp->_dir_command[1])<0.03) _sp->_dir_command[1] = 0.;
+    //if(fabs(_sp->_ori_command[2])<0.06) _sp->_ori_command[2] = 0.;
+
     _body_ang_vel[2] = 2.*_sp->_ori_command[2];
     _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
 

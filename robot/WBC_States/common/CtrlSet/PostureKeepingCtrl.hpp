@@ -1,7 +1,8 @@
-#ifndef WBLC_TROT_FULL_CONTACT_BODY_CTRL
-#define WBLC_TROT_FULL_CONTACT_BODY_CTRL
+#ifndef POSTURE_KEEPING_CTRL
+#define POSTURE_KEEPING_CTRL 
 
 #include <WBC_States/Controller.hpp>
+#include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 #include <ParamHandler/ParamHandler.hpp>
 
 template <typename T> class ContactSpec;
@@ -9,13 +10,13 @@ template <typename T> class WBLC;
 template <typename T> class WBLC_ExtraData;
 template <typename T> class KinWBC;
 template <typename T> class StateProvider;
-template <typename T> class WBLCTrotTest;
+
 
 template <typename T>
-class WBLC_FullContactCtrl: public Controller<T>{
+class PostureKeepingCtrl: public Controller<T>{
     public:
-        WBLC_FullContactCtrl(WBLCTrotTest<T> *, const FloatingBaseModel<T>* );
-        virtual ~WBLC_FullContactCtrl();
+        PostureKeepingCtrl(const FloatingBaseModel<T>* );
+        virtual ~PostureKeepingCtrl();
 
         virtual void OneStep(void* _cmd);
         virtual void FirstVisit();
@@ -25,41 +26,35 @@ class WBLC_FullContactCtrl: public Controller<T>{
         virtual void CtrlInitialization(const std::string & category_name);
         virtual void SetTestParameter(const std::string & test_file);
 
+        void SetJPosTarget(const DVec<T> & jpos_target){
+            _jpos_target = jpos_target;
+        }
     protected:
-        WBLCTrotTest<T>* _trot_test;
         DVec<T> _Kp, _Kd;
-        std::vector<T> _Kp_joint;
-        std::vector<T> _Kd_joint;
+        std::vector<T> _Kp_joint, _Kd_joint;
+
+        bool _b_target_set;
 
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 
         DVec<T> _des_jacc;
 
-        bool _b_set_height_target;
+        DVec<T> _jpos_ini;
+        DVec<T> _jpos_target;
+
         T _end_time;
         int _dim_contact;
-
-        Task<T>* _body_pos_task;
-        Task<T>* _body_ori_task;
-
-        KinWBC<T>* kin_wbc_;
-        ContactSpec<T>* fr_contact_;
-        ContactSpec<T>* fl_contact_;
-        ContactSpec<T>* hr_contact_;
-        ContactSpec<T>* hl_contact_;
-        WBLC<T>* wblc_;
-        WBLC_ExtraData<T>* wblc_data_;
-
-        T target_body_height_;
-        Vec3<T> _ini_rpy;
-        T ini_body_height_;
+        T _ctrl_start_time;
+        
+        ContactSpec<T>* _contact;
+        WBLC<T>* _wblc;
+        WBLC_ExtraData<T>* _wblc_data;
 
         void _task_setup();
         void _contact_setup();
         void _compute_torque_wblc(DVec<T> & gamma);
 
-        T _ctrl_start_time;
-        ParamHandler* _param_handler;
+        ParamHandler* _param_handler = NULL;
         StateProvider<T>* _sp;
 };
 

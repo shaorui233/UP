@@ -26,6 +26,7 @@ template <typename T>
 void Test<T>::GetCommand(const Cheetah_Data<T>* data, 
     LegControllerCommand<T> * command, Cheetah_Extra_Data<T> * ext_data){
   // Command update
+  _sp->_mode = data->mode;
   _sp->_dir_command[0] = data->dir_command[0];
   _sp->_dir_command[1] = data->dir_command[1];
 

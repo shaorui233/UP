@@ -121,19 +121,6 @@ void sbus_packet_complete() {
         main_control_settings.p_des[0] = 0;
         main_control_settings.p_des[1] = 0;
         main_control_settings.p_des[2] = 0.21 + ((float) ch1 - 1000) * .0001f;
-  //printf("[rt] p des: %f, %f, %f \n", 
-      //main_control_settings.p_des[0],
-      //main_control_settings.p_des[1],
-      //main_control_settings.p_des[2]);
-  //printf("[rt] v des: %f, %f, %f \n", 
-      //main_control_settings.v_des[0],
-      //main_control_settings.v_des[1],
-      //main_control_settings.v_des[2]);
-   //printf("[rt] rpy des: %f, %f, %f \n", 
-      //main_control_settings.rpy_des[0],
-      //main_control_settings.rpy_des[1],
-      //main_control_settings.rpy_des[2]);
-
       }
         // For all other gaits, control the velocities
       else {
@@ -145,15 +132,6 @@ void sbus_packet_complete() {
         main_control_settings.omega_des[0] = 0;
         main_control_settings.omega_des[1] = 0;
         main_control_settings.omega_des[2] = -v_scale * ((float) ch2 - 1000) * .003f;
-  //printf("[rt] v des: %f, %f, %f \n", 
-      //main_control_settings.v_des[0],
-      //main_control_settings.v_des[1],
-      //main_control_settings.v_des[2]);
-  //printf("[rt] omega des: %f, %f, %f \n", 
-      //main_control_settings.omega_des[0],
-      //main_control_settings.omega_des[1],
-      //main_control_settings.omega_des[2]);
-
       }
     }
       // For standing modes (mpc or balance qp) control orientations
@@ -167,7 +145,6 @@ void sbus_packet_complete() {
       main_control_settings.p_des[2] = 0.21 + ((float) ch1 - 1000) * .0001f;
 
     }
-
   }
   // Use the joysticks for orientation and height control in standing mode
 

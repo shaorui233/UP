@@ -93,6 +93,8 @@ void KinBoundingCtrl<T>::_contact_update(){
 template <typename T>
 void KinBoundingCtrl<T>::CtrlInitialization(const std::string & category_name){
   _param_handler->getValue<T>(category_name, "K_time", _K_time);
+  _param_handler->getValue<T>(category_name, "K_pitch", _K_pitch);
+  _param_handler->getValue<T>(category_name, "impact_amp", _impact_amp);
 
   _param_handler->getValue<T>(category_name, "front_foot_offset", _front_foot_offset);
   _param_handler->getValue<T>(category_name, "hind_foot_offset", _hind_foot_offset);
@@ -176,7 +178,7 @@ void KinBoundingCtrl<T>::LastVisit(){}
 
 template <typename T>
 bool KinBoundingCtrl<T>::EndOfPhase(){
-  if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt)){
+  if(_sp->_mode == 12){ 
     return true;
   }
   return false;

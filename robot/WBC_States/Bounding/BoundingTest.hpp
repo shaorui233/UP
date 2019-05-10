@@ -8,7 +8,7 @@ template <typename T> class StateProvider;
 
 namespace BoundingPhase{
     constexpr int lift_up = 0;
-    constexpr int initiate_bounding = 1;
+    constexpr int posture_keeping = 1;
     constexpr int bounding = 2;
     constexpr int NUM_BOUNDING_PHASE = 3;
 };
@@ -40,6 +40,7 @@ class BoundingTest: public Test<T>{
 
         Controller<T>* _body_up_ctrl;
         Controller<T>* _bounding_ini;
+        Controller<T>* _posture_keeping;
         Controller<T>* _bounding;
 
         StateProvider<T>* _sp;

@@ -61,6 +61,8 @@ class KinBoundingCtrl: public Controller<T>{
     
     T _contact_vel_threshold;
     T _K_time;
+    T _K_pitch;
+    T _impact_amp;
     T _front_foot_offset;
     T _hind_foot_offset;
     T _swing_height;

@@ -2,6 +2,7 @@
 
 #include <WBC_States/StateProvider.hpp>
 #include <WBC_States/common/CtrlSet/FullContactTransCtrl.hpp>
+#include <WBC_States/common/CtrlSet/PostureKeepingCtrl.hpp>
 
 #include <WBC_States/Bounding/CtrlSet/BoundingInitiateCtrl.hpp>
 #include <WBC_States/Bounding/CtrlSet/BoundingCtrl.hpp>
@@ -30,11 +31,12 @@ BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot, const RobotType & typ
 
   _body_up_ctrl = new FullContactTransCtrl<T>(robot);
   _bounding_ini = new BoundingInitiateCtrl<T>(robot);
+  _posture_keeping = new PostureKeepingCtrl<T>(robot);
   //_bounding = new BoundingCtrl<T>(this, robot);
   _bounding = new KinBoundingCtrl<T>(this, robot);
 
   Test<T>::_state_list.push_back(_body_up_ctrl);
-  Test<T>::_state_list.push_back(_bounding_ini);
+  Test<T>::_state_list.push_back(_posture_keeping);
   Test<T>::_state_list.push_back(_bounding);
 
   _sp = StateProvider<T>::getStateProvider();
@@ -59,20 +61,17 @@ void BoundingTest<T>::_TestInitialization(){
   // Yaml file name
   _body_up_ctrl->CtrlInitialization("CTRL_move_to_target_height");
   _bounding_ini->CtrlInitialization("CTRL_bounding_initiate");
+  _posture_keeping->CtrlInitialization("CTRL_keep_posture");
   _bounding->CtrlInitialization("CTRL_bounding");
 }
 
 template <typename T>
 int BoundingTest<T>::_NextPhase(const int & phase){
   int next_phase = phase + 1;
-  // TEST
-  if(next_phase == 1){
-    next_phase = 2;
-  }
   _sp->_num_contact = 0;
 
   if (next_phase == BoundingPhase::NUM_BOUNDING_PHASE) {
-    next_phase = BoundingPhase::bounding;
+    next_phase = BoundingPhase::posture_keeping;
   }
   printf("next phase: %i\n", next_phase);
   return next_phase;

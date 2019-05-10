@@ -10,6 +10,7 @@ class StateProvider{
         static StateProvider<T>* getStateProvider();
         ~StateProvider(){}
 
+        int _mode; 
         DVec<T> _Q;
         DVec<T> _Qdot;
 

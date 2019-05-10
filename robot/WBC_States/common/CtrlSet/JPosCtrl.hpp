@@ -1,5 +1,5 @@
-#ifndef JPOS_CTRL_VALKYRIE
-#define JPOS_CTRL_VALKYRIE
+#ifndef JPOS_CTRL
+#define JPOS_CTRL
 
 #include <WBC_States/Controller.hpp>
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>

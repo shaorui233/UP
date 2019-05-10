@@ -13,7 +13,7 @@
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 
 
-  template <typename T>
+template <typename T>
 WBLC_FullContactCtrl<T>::WBLC_FullContactCtrl(
     WBLCTrotTest<T>* trot_test, const FloatingBaseModel<T>* robot):Controller<T>(robot),
   _trot_test(trot_test),
@@ -150,21 +150,26 @@ void WBLC_FullContactCtrl<T>::_task_setup(){
 
   // Calculate IK for a desired height and orientation.
   Vec3<T> pos_des; pos_des.setZero();
+  pos_des[2] = _trot_test->_body_pos[2];
   DVec<T> vel_des(3); vel_des.setZero();
   DVec<T> acc_des(3); acc_des.setZero();
   Vec3<T> rpy_des; rpy_des.setZero(); 
+  rpy_des[2] = _ini_rpy[2];
   DVec<T> ang_vel_des(_body_ori_task->getDim()); ang_vel_des.setZero();
 
-  for(size_t i(0); i<3; ++i){
-    pos_des[i] = _trot_test->_body_pos[i];
-    vel_des[i] = _trot_test->_body_vel[i];
-    acc_des[i] = _trot_test->_body_acc[i];
+  if(_sp->_mode == 11){
+    for(size_t i(0); i<3; ++i){
+      pos_des[i] = _trot_test->_body_pos[i];
+      vel_des[i] = _trot_test->_body_vel[i];
+      acc_des[i] = _trot_test->_body_acc[i];
 
-    rpy_des[i] = _trot_test->_body_ori_rpy[i];
-    // TODO : Frame must coincide. Currently, it's not
-    ang_vel_des[i] = _trot_test->_body_ang_vel[i];
+      rpy_des[i] = _trot_test->_body_ori_rpy[i];
+      // TODO : Frame must coincide. Currently, it's not
+      ang_vel_des[i] = _trot_test->_body_ang_vel[i];
+    }
+  }else{
+    _trot_test->_body_ori_rpy[2] = _ini_rpy[2];
   }
-
   _body_pos_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
   // Set Desired Orientation
@@ -192,6 +197,7 @@ void WBLC_FullContactCtrl<T>::_contact_setup(){
 template <typename T>
 void WBLC_FullContactCtrl<T>::FirstVisit(){
   _ctrl_start_time = _sp->_curr_time;
+  _ini_rpy = _trot_test->_body_ori_rpy;
 }
 
 template <typename T>
@@ -199,7 +205,7 @@ void WBLC_FullContactCtrl<T>::LastVisit(){}
 
 template <typename T>
 bool WBLC_FullContactCtrl<T>::EndOfPhase(){
-  if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt)){
+  if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt) && (_sp->_mode == 11)){
     return true;
   }
   return false;
