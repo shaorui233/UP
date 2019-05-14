@@ -39,7 +39,6 @@ class BoundingTest: public Test<T>{
         void _SettingParameter();
 
         Controller<T>* _body_up_ctrl;
-        Controller<T>* _bounding_ini;
         Controller<T>* _posture_keeping;
         Controller<T>* _bounding;
 

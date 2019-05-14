@@ -86,6 +86,7 @@ class WBLC: public WBC<T>{
         void _BuildContactMtxVect();
         DMat<T> Uf_;
         DVec<T> Fr_ieq_;
+        DVec<T> Fr_des_;
         DMat<T> Jc_;
         DVec<T> JcDotQdot_;
         

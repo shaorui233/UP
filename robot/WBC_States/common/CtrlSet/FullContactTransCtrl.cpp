@@ -120,12 +120,11 @@ template <typename T>
 void FullContactTransCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
   // WBLC
   _wblc->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
-  DVec<T> des_jacc_cmd = _des_jacc 
+  _wblc_data->_des_jacc_cmd = _des_jacc 
     + _Kp.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
     + _Kd.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
 
-  _wblc_data->_des_jacc_cmd = des_jacc_cmd;
-  _wblc->MakeTorque( gamma, _wblc_data);
+  _wblc->MakeTorque(gamma, _wblc_data);
   //pretty_print(_wblc_data->Fr_, std::cout, "fr full contact");
 }
 

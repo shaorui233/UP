@@ -4,7 +4,7 @@
 body_height: 0.25
 
 # Timing Parameters (sec)
-body_lifting_time: 1.2
+body_lifting_time: 0.8
 bounding_time: 10000.
 #swing_time: 0.22
 #default_stance_time: 0.13
@@ -42,7 +42,7 @@ CTRL_keep_posture:
 CTRL_bounding:
   K_time: 0.4
   K_pitch: 0.9
-  impact_amp: 1.2
+  impact_amp: 1.0
   front_foot_offset: 0.017
   hind_foot_offset: -0.04
   step_width: 0.07

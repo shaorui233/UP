@@ -126,7 +126,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
   }
   (void)ext_data;
   //_copy_cmd = command;
-  //_UpdateExtraData(ext_data);
+  _UpdateExtraData(ext_data);
 
   ++_count;
   _sp->_curr_time += cheetah::servo_rate;

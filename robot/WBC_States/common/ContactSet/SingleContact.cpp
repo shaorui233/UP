@@ -52,6 +52,7 @@ bool SingleContact<T>::_UpdateJc(){
 template <typename T>
 bool SingleContact<T>::_UpdateJcDotQdot(){
     Contact::JcDotQdot_ = robot_sys_->_Jcdqd[_contact_pt];
+    //pretty_print(Contact::JcDotQdot_, std::cout, "JcDotQdot");
     return true;
 }
 

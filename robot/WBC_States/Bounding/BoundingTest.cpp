@@ -4,8 +4,6 @@
 #include <WBC_States/common/CtrlSet/FullContactTransCtrl.hpp>
 #include <WBC_States/common/CtrlSet/PostureKeepingCtrl.hpp>
 
-#include <WBC_States/Bounding/CtrlSet/BoundingInitiateCtrl.hpp>
-#include <WBC_States/Bounding/CtrlSet/BoundingCtrl.hpp>
 #include <WBC_States/Bounding/CtrlSet/KinBoundingCtrl.hpp>
 
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
@@ -30,9 +28,7 @@ BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot, const RobotType & typ
   Test<T>::_state_list.clear();
 
   _body_up_ctrl = new FullContactTransCtrl<T>(robot);
-  _bounding_ini = new BoundingInitiateCtrl<T>(robot);
   _posture_keeping = new PostureKeepingCtrl<T>(robot);
-  //_bounding = new BoundingCtrl<T>(this, robot);
   _bounding = new KinBoundingCtrl<T>(this, robot);
 
   Test<T>::_state_list.push_back(_body_up_ctrl);
@@ -60,7 +56,6 @@ template <typename T>
 void BoundingTest<T>::_TestInitialization(){
   // Yaml file name
   _body_up_ctrl->CtrlInitialization("CTRL_move_to_target_height");
-  _bounding_ini->CtrlInitialization("CTRL_bounding_initiate");
   _posture_keeping->CtrlInitialization("CTRL_keep_posture");
   _bounding->CtrlInitialization("CTRL_bounding");
 }
@@ -102,7 +97,8 @@ void BoundingTest<T>::_SettingParameter(){
 template <typename T>
 void BoundingTest<T>::_UpdateTestOneStep(){
 
-  T scale(5.0/3.0);
+  //T scale(5.0/3.0);
+  T scale(1.0);
   _body_ang_vel[2] = _sp->_ori_command[2];
   _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
 
@@ -114,6 +110,7 @@ void BoundingTest<T>::_UpdateTestOneStep(){
   _body_vel = input_vel;
   //_body_vel[0] = 1.3;
   //_body_pos += _body_vel*Test<T>::dt;
+  //printf("input vel: %f, %f\n", input_vel[0], input_vel[1]);
 }
 
 template <typename T>

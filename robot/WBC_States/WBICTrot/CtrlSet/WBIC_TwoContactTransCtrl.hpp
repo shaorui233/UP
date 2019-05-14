@@ -1,23 +1,23 @@
-#ifndef WBLC_TROT_TWO_CONTACT_TRANSITION_CHEETAH
-#define WBLC_TROT_TWO_CONTACT_TRANSITION_CHEETAH
+#ifndef WBIC_TROT_TWO_CONTACT_TRANSITION_CHEETAH
+#define WBIC_TROT_TWO_CONTACT_TRANSITION_CHEETAH
 
 #include <WBC_States/Controller.hpp>
 #include <ParamHandler/ParamHandler.hpp>
 
 template <typename T> class ContactSpec;
-template <typename T> class WBLC;
-template <typename T> class WBLC_ExtraData;
+template <typename T> class WBIC;
+template <typename T> class WBIC_ExtraData;
 template <typename T> class KinWBC;
 template <typename T> class StateProvider;
-template <typename T> class WBLCTrotTest;
+template <typename T> class WBICTrotTest;
 
 
 template <typename T>
-class WBLC_TwoContactTransCtrl: public Controller<T>{
+class WBIC_TwoContactTransCtrl: public Controller<T>{
     public:
-        WBLC_TwoContactTransCtrl(WBLCTrotTest<T> * test, const FloatingBaseModel<T>* robot, 
+        WBIC_TwoContactTransCtrl(WBICTrotTest<T> * test, const FloatingBaseModel<T>* robot, 
                 size_t cp1, size_t cp2, int transit_dir);
-        virtual ~WBLC_TwoContactTransCtrl();
+        virtual ~WBIC_TwoContactTransCtrl();
 
         virtual void OneStep(void* _cmd);
         virtual void FirstVisit();
@@ -28,14 +28,12 @@ class WBLC_TwoContactTransCtrl: public Controller<T>{
         virtual void SetTestParameter(const std::string & test_file);
 
     protected:
-        void _SetContact(const size_t & cp_idx, const T & upper_lim, 
-                const T & rf_weight, const T & rf_weight_z, const T & foot_weight);
+        void _SetContact(const size_t & cp_idx, const T & upper_lim);
 
-        WBLCTrotTest<T> * _trot_test;
+        WBICTrotTest<T> * _trot_test;
         size_t _cp1, _cp2;
         int _transit_dir; // 1: swing start, -1: swing end
 
-        T _stiffness_gain_adjust;
         Task<T>* _body_pos_task;
         Task<T>* _body_ori_task;
 
@@ -45,20 +43,15 @@ class WBLC_TwoContactTransCtrl: public Controller<T>{
         ContactSpec<T>* hl_contact_;
 
         KinWBC<T>* kin_wbc_;
-        WBLC<T>* wblc_;
-        WBLC_ExtraData<T>* wblc_data_;
+        WBIC<T>* wbic_;
+        WBIC_ExtraData<T>* wbic_data_;
 
         DVec<T> base_pos_ini_;
         Vec3<T> ini_base_pos_;
 
-        DVec<T> Kp_;
-        DVec<T> Kd_;
         std::vector<T> _Kp_joint, _Kd_joint;
         
         DVec<T> ini_jpos_;
-        DVec<T> des_jpos_;
-        DVec<T> des_jvel_;
-        DVec<T> des_jacc_;
 
         bool b_set_height_target_;
         T end_time_;
@@ -73,7 +66,7 @@ class WBLC_TwoContactTransCtrl: public Controller<T>{
 
         void _task_setup();
         void _contact_setup();
-        void _compute_torque_wblc(DVec<T> & gamma);
+        void _compute_torque_wbic(DVec<T> & gamma);
 
         ParamHandler* _param_handler;
         StateProvider<T>* _sp;

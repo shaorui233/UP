@@ -16,7 +16,6 @@ class WBIC_ExtraData{
         DVec<T> _Fr;
 
         // Input
-        DVec<T> _Fr_des;
         DVec<T> _W_floating;
         DVec<T> _W_rf;
         
@@ -91,12 +90,11 @@ class WBIC: public WBC<T>{
 
         DMat<T> _Jc;
         DVec<T> _JcDotQdot;
+        DVec<T> _Fr_des;
 
         DMat<T> _B;
         DVec<T> _c;
         DVec<T> task_cmd_;
-
-        DMat<T> _Sf; //floating base
 };
 
 #endif

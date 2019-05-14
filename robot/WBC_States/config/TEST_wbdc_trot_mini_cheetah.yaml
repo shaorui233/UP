@@ -45,7 +45,7 @@ CTRL_two_leg_trans:
 
 
 # Timing Parameters (sec)
-body_lifting_time: 1.5
+body_lifting_time: 0.7
 save_file: false
 
 Kp: [ 100, 100, 100, 

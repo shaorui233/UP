@@ -1,4 +1,4 @@
-#include "WBLC_TwoLegSwingCtrl.hpp"
+#include "WBIC_TwoLegSwingCtrl.hpp"
 
 #include <WBC_States/StateProvider.hpp>
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
@@ -8,29 +8,24 @@
 #include <WBC_States/common/TaskSet/BodyPosTask.hpp>
 
 #include <WBC/WBLC/KinWBC.hpp>
-#include <WBC/WBLC/WBLC.hpp>
+#include <WBC/WBIC/WBIC.hpp>
 #include <Utilities/utilities.h>
-#include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
+#include <WBC_States/WBICTrot/WBICTrotTest.hpp>
 
 template <typename T>
-WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const FloatingBaseModel<T>* robot, 
+WBIC_TwoLegSwingCtrl<T>::WBIC_TwoLegSwingCtrl(WBICTrotTest<T> * test, const FloatingBaseModel<T>* robot, 
     size_t cp1, size_t cp2):
   Controller<T>(robot),
   _trot_test(test),
   _cp1(cp1), _cp2(cp2),
-  Kp_(cheetah::num_act_joint),
-  Kd_(cheetah::num_act_joint),
-  _des_jpos(cheetah::num_act_joint),
-  _des_jvel(cheetah::num_act_joint),
-  _des_jacc(cheetah::num_act_joint),
   _end_time(100.),
   _dim_contact(0),
   ctrl_start_time_(0.)
 {
   _body_pos_task = new BodyPosTask<T>(Ctrl::_robot_sys);
   _body_ori_task = new BodyOriTask<T>(Ctrl::_robot_sys);
-  Ctrl::_task_list.push_back(_body_ori_task);
   Ctrl::_task_list.push_back(_body_pos_task);
+  Ctrl::_task_list.push_back(_body_ori_task);
 
   _cp_pos_task1 = new LinkPosTask<T>(Ctrl::_robot_sys, _cp1, false);
   _cp_pos_task2 = new LinkPosTask<T>(Ctrl::_robot_sys, _cp2, false);
@@ -52,41 +47,17 @@ WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const Floa
   hr_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::HR);
   hl_contact_ = new SingleContact<T>(Ctrl::_robot_sys, linkID::HL);
 
-  Ctrl::_contact_list.push_back(fr_contact_);
-  Ctrl::_contact_list.push_back(fl_contact_);
-  Ctrl::_contact_list.push_back(hr_contact_);
-  Ctrl::_contact_list.push_back(hl_contact_);
-
-  _kin_wbc = new KinWBC<T>(cheetah::dim_config);
-  wblc_ = new WBLC<T>(cheetah::dim_config, Ctrl::_contact_list);
-  wblc_data_ = new WBLC_ExtraData<T>();
+  if(_cp1 == linkID::FR && _cp2 == linkID::HL){
+    Ctrl::_contact_list.push_back(fl_contact_);
+    Ctrl::_contact_list.push_back(hr_contact_);
+  }else{
+    Ctrl::_contact_list.push_back(fr_contact_);
+    Ctrl::_contact_list.push_back(hl_contact_);
+  }
 
   for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
     _dim_contact += Ctrl::_contact_list[i]->getDim();
   }
-
-  wblc_data_->W_qddot_ = DVec<T>::Constant(cheetah::dim_config, Weight::qddot_relax);
-  wblc_data_->W_qddot_.head(6) = DVec<T>::Constant(6, Weight::qddot_relax_virtual);
-  //wblc_data_->W_qddot_[0] = 1300.;
-  //wblc_data_->W_qddot_[1] = 1300.;
-  wblc_data_->W_qddot_[5] = 100.;
-  wblc_data_->W_rf_ = DVec<T>::Constant(_dim_contact, Weight::tan_small);
-  wblc_data_->W_xddot_ = DVec<T>::Constant(_dim_contact, Weight::foot_big);
-
-  int idx_offset(0);
-  for(size_t i(0); i<Ctrl::_contact_list.size(); ++i){
-    //wblc_data_->W_rf_[idx_offset + Ctrl::_contact_list[i]->getFzIndex()]= Weight::nor_small;
-    idx_offset += Ctrl::_contact_list[i]->getDim();
-  }
-
-  // torque limit default setting
-  wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, -150.);
-  wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, 150.);
-
-  _kin_contact_list.push_back(fr_contact_);
-  _kin_contact_list.push_back(fl_contact_);
-  _kin_contact_list.push_back(hr_contact_);
-  _kin_contact_list.push_back(hl_contact_);
 
   DVec<T> Fr_des(3); Fr_des.setZero();
   Fr_des[2] = 9.*9.81/2.;
@@ -96,53 +67,36 @@ WBLC_TwoLegSwingCtrl<T>::WBLC_TwoLegSwingCtrl(WBLCTrotTest<T> * test, const Floa
     ++iter;
   }
 
-  DVec<T> Fr_zero(3); Fr_zero.setZero();
-  if(_cp1 == linkID::HL || _cp2 == linkID::HL){
-    _SetContact(3, 0.0001, Weight::tan_big, Weight::nor_big, Weight::foot_small);
-    _kin_contact_list.erase(_kin_contact_list.begin() + 3);
-    hl_contact_->setRFDesired(Fr_zero);
-  }
-  if(_cp1 == linkID::HR || _cp2 == linkID::HR){
-    _SetContact(2, 0.0001, Weight::tan_big, Weight::nor_big, Weight::foot_small);
-    _kin_contact_list.erase(_kin_contact_list.begin() + 2);
-    hr_contact_->setRFDesired(Fr_zero);
-  }
-  if(_cp1 == linkID::FL || _cp2 == linkID::FL){
-    _SetContact(1, 0.0001, Weight::tan_big, Weight::nor_big, Weight::foot_small);
-    _kin_contact_list.erase(_kin_contact_list.begin() + 1);
-    fl_contact_->setRFDesired(Fr_zero);
-  }
-  if(_cp1 == linkID::FR || _cp2 == linkID::FR){
-    _SetContact(0, 0.0001, Weight::tan_big, Weight::nor_big, Weight::foot_small);
-    _kin_contact_list.erase(_kin_contact_list.begin());
-    fr_contact_->setRFDesired(Fr_zero);
-  }
+  _kin_wbc = new KinWBC<T>(cheetah::dim_config);
+  wbic_ = new WBIC<T>(cheetah::dim_config, &(Ctrl::_contact_list), &(Ctrl::_task_list));
+  wbic_data_ = new WBIC_ExtraData<T>();
+  wbic_data_->_W_floating = DVec<T>::Constant(6, 1000.);
+  wbic_data_->_W_rf = DVec<T>::Constant(_dim_contact, 1.);
+
+  //if(_cp1 == linkID::HL || _cp2 == linkID::HL){
+  //Ctrl::_contact_list.erase(Ctrl::_contact_list.begin() + 3);
+  //}
+  //if(_cp1 == linkID::HR || _cp2 == linkID::HR){
+  //Ctrl::_contact_list.erase(Ctrl::_contact_list.begin() + 2);
+  //}
+  //if(_cp1 == linkID::FL || _cp2 == linkID::FL){
+  //Ctrl::_contact_list.erase(Ctrl::_contact_list.begin() + 1);
+  //}
+  //if(_cp1 == linkID::FR || _cp2 == linkID::FR){
+  //Ctrl::_contact_list.erase(Ctrl::_contact_list.begin());
+  //}
 
   _sp = StateProvider<T>::getStateProvider();
 
-  _dir_command[0] = 0.;
-  _dir_command[1] = 0.;
-  printf("[WBLC_Two Leg Swing Ctrl] Constructed\n");
-}
-
-template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::_SetContact(const size_t & cp_idx, 
-    const T & upper_lim, const T & rf_weight, const T & rf_weight_z, const T & foot_weight){
-
-  ((SingleContact<T>*)Ctrl::_contact_list[cp_idx])->setMaxFz(upper_lim);
-  for(size_t i(0); i<3; ++i){
-    wblc_data_->W_rf_[i + 3*cp_idx] = rf_weight;
-    wblc_data_->W_xddot_[i + 3*cp_idx] = foot_weight;
-  }
-  wblc_data_->W_rf_[2 + 3*cp_idx] = rf_weight_z;
+  printf("[WBIC_Two Leg Swing Ctrl] Constructed\n");
 }
 
 
 template <typename T>
-WBLC_TwoLegSwingCtrl<T>::~WBLC_TwoLegSwingCtrl(){
-  delete wblc_;
+WBIC_TwoLegSwingCtrl<T>::~WBIC_TwoLegSwingCtrl(){
+  delete wbic_;
   delete _kin_wbc;
-  delete wblc_data_;
+  delete wbic_data_;
 
   typename std::vector<Task<T>*>::iterator iter = Ctrl::_task_list.begin();
   while(iter < Ctrl::_task_list.end()){
@@ -160,18 +114,15 @@ WBLC_TwoLegSwingCtrl<T>::~WBLC_TwoLegSwingCtrl(){
 }
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
+void WBIC_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
   Ctrl::_PreProcessing_Command();
-
-  _stiffness_gain_adjust = 1. + (_trot_test->_body_vel).norm()/2. ;
-  _stiffness_gain_adjust = coerce<T>(_stiffness_gain_adjust, 1.0, 1.5);
 
   Ctrl::_state_machine_time = _sp->_curr_time - ctrl_start_time_;
 
   DVec<T> gamma;
   _contact_setup();
   _task_setup();
-  _compute_torque_wblc(gamma);
+  _compute_torque_wbic(gamma);
 
   for(size_t leg(0); leg<cheetah::num_leg; ++leg){
     for(size_t jidx(0); jidx<cheetah::num_leg_joint; ++jidx){
@@ -179,10 +130,10 @@ void WBLC_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
         = gamma[cheetah::num_leg_joint * leg + jidx];
 
       ((LegControllerCommand<T>*)_cmd)[leg].qDes[jidx] = 
-        _des_jpos[cheetah::num_leg_joint * leg + jidx];
+        _trot_test->_des_jpos[cheetah::num_leg_joint * leg + jidx];
 
       ((LegControllerCommand<T>*)_cmd)[leg].qdDes[jidx] = 
-        _des_jvel[cheetah::num_leg_joint * leg + jidx];
+        _trot_test->_des_jvel[cheetah::num_leg_joint * leg + jidx];
 
       ((LegControllerCommand<T>*)_cmd)[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
       ((LegControllerCommand<T>*)_cmd)[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
@@ -192,23 +143,17 @@ void WBLC_TwoLegSwingCtrl<T>::OneStep(void* _cmd){
 }
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::_compute_torque_wblc(DVec<T> & gamma){
-  // WBLC
-  wblc_->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
-  wblc_data_->_des_jacc_cmd = _des_jacc 
-    + Kp_.cwiseProduct(_des_jpos - Ctrl::_robot_sys->_state.q)
-    + Kd_.cwiseProduct(_des_jvel - Ctrl::_robot_sys->_state.qd);
-
-  wblc_->MakeTorque(gamma, wblc_data_);
-
-  //pretty_print(wblc_data_->Fr_, std::cout, "Fr");
+void WBIC_TwoLegSwingCtrl<T>::_compute_torque_wbic(DVec<T> & gamma){
+  // WBIC
+  wbic_->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
+  wbic_->MakeTorque(gamma, wbic_data_);
 }
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
-  _des_jpos.setZero();
-  _des_jvel.setZero();
-  _des_jacc.setZero();
+void WBIC_TwoLegSwingCtrl<T>::_task_setup(){
+  _trot_test->_des_jpos.setZero();
+  _trot_test->_des_jvel.setZero();
+  _trot_test->_des_jacc.setZero();
 
   // Calculate IK for a desired height and orientation.
   Vec3<T> pos_des; pos_des.setZero();
@@ -221,11 +166,10 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
     pos_des[i] = _trot_test->_body_pos[i];
     vel_des[i] = _trot_test->_body_vel[i];
     acc_des[i] = _trot_test->_body_acc[i];
-
-    rpy_des[i] = _trot_test->_body_ori_rpy[i];
-    // TODO : Frame must coincide. Currently, it's not
-    ang_vel_des[i] = _trot_test->_body_ang_vel[i];
   }
+  // Yaw control only
+  rpy_des[2] = _trot_test->_body_ori_rpy[2];
+  ang_vel_des[2] = _trot_test->_body_ang_vel[2];
 
   _body_pos_task->UpdateTask(&(pos_des), vel_des, acc_des);
 
@@ -242,11 +186,30 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
   _GetSinusoidalSwingTrajectory(_foot_pos_ini2, _target_loc2, Ctrl::_state_machine_time, 
       _foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
 
-  //_GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_1,
-  //_foot_pos_des1, _foot_vel_des1, _foot_acc_des1);
-  //_GetBsplineSwingTrajectory(Ctrl::_state_machine_time, _foot_traj_2, 
-  //_foot_pos_des2, _foot_vel_des2, _foot_acc_des2);
+  //Mat3<T> Rot = rpyToRotMat(_trot_test->_body_ori_rpy);
+  //_foot_vel_des1.setZero(); _foot_acc_des1.setZero();
+  //computeFootLoc(Rot.transpose(), _default_target_foot_loc_1, _step_time, 
+      //pos_des, vel_des, 
+      //_trot_test->_body_ang_vel, _foot_pos_des1);
 
+  //_foot_vel_des2.setZero(); _foot_acc_des2.setZero();
+  //computeFootLoc(Rot.transpose(), _default_target_foot_loc_2, _step_time, 
+      //pos_des, vel_des, 
+      //_trot_test->_body_ang_vel, _foot_pos_des2);
+  
+  // for Z (height)
+  //T amp(_swing_height/2.);
+  //T omega ( 2.*M_PI /_end_time );
+
+//T t = Ctrl::_state_machine_time;
+  //_foot_pos_des1[2] = _foot_pos_ini1[2] + amp * (1-cos(omega * t));
+  //_foot_vel_des1[2] = amp * omega * sin(omega * t);
+  //_foot_acc_des1[2] = amp * omega * omega * cos(omega * t);
+ 
+  //_foot_pos_des2[2] = _foot_pos_ini2[2] + amp * (1-cos(omega * t));
+  //_foot_vel_des2[2] = amp * omega * sin(omega * t);
+  //_foot_acc_des2[2] = amp * omega * omega * cos(omega * t);
+ 
   // Capture Point
   //if(false){
   if(true){
@@ -267,21 +230,57 @@ void WBLC_TwoLegSwingCtrl<T>::_task_setup(){
 
     }
   }
+  
+  //Vec3<T> step_size = _foot_pos_des1 - _default_target_foot_loc_1;
+  //for(size_t i(0); i<2; ++i){
+    //if(step_size[i] > _step_size_max[i]){
+      //step_size[i] = _step_size_max[i];
+      //_foot_vel_des1[i] = 0.;
+      //_foot_acc_des1[i] = 0.;
+    //}
+    //if(step_size[i] < _step_size_min[i]){
+      //step_size[i] = _step_size_min[i];
+      //_foot_vel_des1[i] = 0.;
+      //_foot_acc_des1[i] = 0.;
+    //}
+  //}
+  //_foot_pos_des1 = _default_target_foot_loc_1 + step_size;
+
+    //step_size = _foot_pos_des2 - _default_target_foot_loc_2;
+  //for(size_t i(0); i<2; ++i){
+    //if(step_size[i] > _step_size_max[i]){
+      //step_size[i] = _step_size_max[i];
+      //_foot_vel_des2[i] = 0.;
+      //_foot_acc_des2[i] = 0.;
+    //}
+    //if(step_size[i] < _step_size_min[i]){
+      //step_size[i] = _step_size_min[i];
+      //_foot_vel_des2[i] = 0.;
+      //_foot_acc_des2[i] = 0.;
+    //}
+  //}
+  //_foot_pos_des2 = _default_target_foot_loc_2 + step_size;
+//pretty_print(_step_size_min, std::cout, "min");
+  //pretty_print(_step_size_max, std::cout, "max");
+  //pretty_print(step_size, std::cout, "step size");
+  //pretty_print(_foot_pos_des1, std::cout, "foot_pos_des1");
 
   _cp_pos_task1->UpdateTask(&(_foot_pos_des1), _foot_vel_des1, _foot_acc_des1);
   _cp_pos_task2->UpdateTask(&(_foot_pos_des2), _foot_vel_des2, _foot_acc_des2);
 
-  _kin_wbc->FindConfiguration(_sp->_Q, 
-      Ctrl::_task_list, _kin_contact_list, 
-      _des_jpos, _des_jvel, _des_jacc);
 
-  //pretty_print(_des_jpos, std::cout, "des_jpos");
-  //pretty_print(_des_jvel, std::cout, "des_jvel");
-  //pretty_print(_des_jacc, std::cout, "des_jacc");
+
+  _kin_wbc->FindConfiguration(_sp->_Q, 
+      Ctrl::_task_list, Ctrl::_contact_list, 
+      _trot_test->_des_jpos, _trot_test->_des_jvel, _trot_test->_des_jacc);
+
+  //pretty_print(_trot_test->_des_jpos, std::cout, "des_jpos");
+  //pretty_print(_trot_test->_des_jvel, std::cout, "des_jvel");
+  //pretty_print(_trot_test->_des_jacc, std::cout, "des_jacc");
 }
 
 template<typename T>
-void WBLC_TwoLegSwingCtrl<T>::_GetSinusoidalSwingTrajectory(
+void WBIC_TwoLegSwingCtrl<T>::_GetSinusoidalSwingTrajectory(
     const Vec3<T> & ini, const Vec3<T> & fin, const T & t, 
     Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des){
 
@@ -297,10 +296,14 @@ void WBLC_TwoLegSwingCtrl<T>::_GetSinusoidalSwingTrajectory(
   pos_des[2] = ini[2] + amp * (1-cos(omega * t));
   vel_des[2] = amp * omega * sin(omega * t);
   acc_des[2] = amp * omega * omega * cos(omega * t);
+  // TEST
+  //acc_des[0] = 0.;
+  //acc_des[1] = 0.;
+  //acc_des[2] = 0.;
 }
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::_contact_setup(){
+void WBIC_TwoLegSwingCtrl<T>::_contact_setup(){
   typename std::vector<ContactSpec<T> *>::iterator iter = Ctrl::_contact_list.begin();
   while(iter < Ctrl::_contact_list.end()){
     (*iter)->UpdateContactSpec();
@@ -309,7 +312,7 @@ void WBLC_TwoLegSwingCtrl<T>::_contact_setup(){
 }
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::FirstVisit(){
+void WBIC_TwoLegSwingCtrl<T>::FirstVisit(){
   ctrl_start_time_ = _sp->_curr_time;
   _ini_body_pos = Ctrl::_robot_sys->_state.bodyPosition;
 
@@ -320,12 +323,8 @@ void WBLC_TwoLegSwingCtrl<T>::FirstVisit(){
   _target_loc2 = _trot_test->_hind_foot_loc;
 
   Vec3<T> cmd_vel = _trot_test->_body_vel;
-  // TEST
-  //SVec<T> curr_body_vel = Ctrl::_robot_sys->_state.bodyVelocity;
-  //cmd_vel = curr_body_vel.tail(3);
-  //Vec3<T> next_body_pos = _ini_body_pos + cmd_vel*_step_time; 
   Vec3<T> next_body_pos = _ini_body_pos + cmd_vel*_end_time; 
-  //Vec3<T> next_body_pos = _trot_test->_body_pos + cmd_vel*_step_time; 
+
   Mat3<T> Rot = rpyToRotMat(_trot_test->_body_ori_rpy);
   computeFootLoc(Rot.transpose(), _default_target_foot_loc_1, _step_time, next_body_pos, 
       cmd_vel, 
@@ -337,7 +336,6 @@ void WBLC_TwoLegSwingCtrl<T>::FirstVisit(){
 
   _target_loc1 += _landing_offset;
   _target_loc2 += _landing_offset;
-
 
   //_SetBspline(_foot_pos_ini1, _target_loc1, _foot_traj_1);
   //_SetBspline(_foot_pos_ini2, _target_loc2, _foot_traj_2);
@@ -351,70 +349,13 @@ void WBLC_TwoLegSwingCtrl<T>::FirstVisit(){
   //pretty_print(_target_loc2, std::cout, "target loc 2");
 }
 
-template<typename T>
-void WBLC_TwoLegSwingCtrl<T>::_SetBspline(const Vec3<T> & st_pos, const Vec3<T> & des_pos, 
-    BS_Basic<T, 3, 3, 1, 2, 2> & spline){
-  // Trajectory Setup
-  T init[9];
-  T fin[9];
-  T** middle_pt = new T*[1];
-  middle_pt[0] = new T[3];
-  Vec3<T> middle_pos;
-
-  middle_pos = (st_pos + des_pos)/2.;
-  middle_pos[2] = _swing_height + std::max(st_pos[2], des_pos[2]);
-
-  // Initial and final position & velocity & acceleration
-  for(int i(0); i<3; ++i){
-    // Initial
-    init[i] = st_pos[i];
-    init[i+3] = 0.;
-    init[i+6] = 0.;
-    // Final
-    fin[i] = des_pos[i];
-    fin[i+3] = 0.;
-    fin[i+6] = 0.;
-    // Middle
-    middle_pt[0][i] = middle_pos[i];
-  }
-  // TEST
-  //fin[5] = -0.05;
-  fin[8] = 5.;
-  spline.SetParam(init, fin, middle_pt, _end_time);
-
-  delete [] *middle_pt;
-  delete [] middle_pt;    
-}
-
-template<typename T>
-void WBLC_TwoLegSwingCtrl<T>::_GetBsplineSwingTrajectory(const T & t, 
-    BS_Basic<T, 3, 3, 1, 2, 2> & spline,
-    Vec3<T> & pos_des, DVec<T> & vel_des, DVec<T> & acc_des){
-
-  T pos[3];
-  T vel[3];
-  T acc[3];
-
-  spline.getCurvePoint(t, pos);
-  spline.getCurveDerPoint(t, 1, vel);
-  spline.getCurveDerPoint(t, 2, acc);
-
-  for(int i(0); i<3; ++i){
-    pos_des[i] = pos[i];
-    vel_des[i] = vel[i];
-    acc_des[i] = acc[i];
-  }
-}
-
-
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::LastVisit(){
-  _trot_test->_jpos_des_pre = _des_jpos;
-  // printf("[LegSwingBody] End\n");
+void WBIC_TwoLegSwingCtrl<T>::LastVisit(){
+  _trot_test->_jpos_des_pre = _trot_test->_des_jpos;
 }
 
 template <typename T>
-bool WBLC_TwoLegSwingCtrl<T>::EndOfPhase(){
+bool WBIC_TwoLegSwingCtrl<T>::EndOfPhase(){
   if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt)){
     return true;
   }
@@ -422,7 +363,7 @@ bool WBLC_TwoLegSwingCtrl<T>::EndOfPhase(){
 }
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
+void WBIC_TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_name){
   std::vector<T> tmp_vec;
   _param_handler->getVector<T>(category_name, "default_target_foot_location_1", tmp_vec);
   for(size_t i(0); i<tmp_vec.size(); ++i){
@@ -438,37 +379,57 @@ void WBLC_TwoLegSwingCtrl<T>::CtrlInitialization(const std::string & category_na
   _param_handler->getVector<T>(category_name, "landing_offset", tmp_vec);
   //pretty_print(tmp_vec, "landing offset");
   for(size_t i(0); i<3; ++i) _landing_offset[i] = tmp_vec[i];
+
+  _param_handler->getVector<T>(category_name, "Kp_foot", tmp_vec);
+  for(size_t i(0); i<3; ++i){
+    ((LinkPosTask<T>*)_cp_pos_task1)->_Kp[i] = tmp_vec[i];
+    ((LinkPosTask<T>*)_cp_pos_task2)->_Kp[i] = tmp_vec[i];
+  }
+  _param_handler->getVector<T>(category_name, "Kd_foot", tmp_vec);
+  for(size_t i(0); i<3; ++i){
+    ((LinkPosTask<T>*)_cp_pos_task1)->_Kd[i] = tmp_vec[i];
+    ((LinkPosTask<T>*)_cp_pos_task2)->_Kd[i] = tmp_vec[i];
+  }
+
+  _param_handler->getVector<T>(category_name, "foot_step_min", tmp_vec);
+  for(size_t i(0); i<2; ++i){ _step_size_min[i] = tmp_vec[i]; }
+  _param_handler->getVector<T>(category_name, "foot_step_max", tmp_vec);
+  for(size_t i(0); i<2; ++i){ _step_size_max[i] = tmp_vec[i]; }
 }
 
 
 template <typename T>
-void WBLC_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
+void WBIC_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
   _param_handler = new ParamHandler(test_file);
   _param_handler->getValue<T>("body_height", _target_body_height);
   _param_handler->getValue<T>("swing_time", _end_time);
 
-  // Feedback Gain
-  std::vector<T> tmp_vec;
-  _param_handler->getVector<T>("Kp", tmp_vec);
-  for(size_t i(0); i<tmp_vec.size(); ++i){
-    Kp_[i] = tmp_vec[i];
-  }
-  _param_handler->getVector<T>("Kd", tmp_vec);
-  for(size_t i(0); i<tmp_vec.size(); ++i){
-    Kd_[i] = tmp_vec[i];
-  }
   // Joint level feedback gain
   _param_handler->getVector<T>("Kp_joint", _Kp_joint);
   _param_handler->getVector<T>("Kd_joint", _Kd_joint);
 
+  std::vector<T> tmp_vec;
+  std::vector<T> tmp_Kp;
+  std::vector<T> tmp_Kd;
+
   // Feedback gain for kinematic tasks
   _param_handler->getVector<T>("Kp_body_pos_kin", tmp_vec);
+  _param_handler->getVector<T>("Kp_body_pos", tmp_Kp);
+  _param_handler->getVector<T>("Kd_body_pos", tmp_Kd);
   for(size_t i(0); i<_body_pos_task->getDim(); ++i){
     ((BodyPosTask<T>*)_body_pos_task)->_Kp_kin[i] = tmp_vec[i];
+    ((BodyPosTask<T>*)_body_pos_task)->_Kp[i] = tmp_Kp[i];
+    ((BodyPosTask<T>*)_body_pos_task)->_Kd[i] = tmp_Kd[i];
   }
+
+  // Orientation (Kin, Kp, Kd) 
   _param_handler->getVector<T>("Kp_body_ori_kin", tmp_vec);
+  _param_handler->getVector<T>("Kp_body_ori", tmp_Kp);
+  _param_handler->getVector<T>("Kd_body_ori", tmp_Kd);
   for(size_t i(0); i<_body_ori_task->getDim(); ++i){
     ((BodyOriTask<T>*)_body_ori_task)->_Kp_kin[i] = tmp_vec[i];
+    ((BodyOriTask<T>*)_body_ori_task)->_Kp[i] = tmp_Kp[i];
+    ((BodyOriTask<T>*)_body_ori_task)->_Kd[i] = tmp_Kd[i];
   }
 
   _step_time = 0.;
@@ -484,15 +445,10 @@ void WBLC_TwoLegSwingCtrl<T>::SetTestParameter(const std::string & test_file){
 
   _param_handler->getValue<T>("step_time_ratio", tmp_value);
   _step_time *= tmp_value;
-  // torque limit default setting
-  _param_handler->getVector<T>("tau_lim", tmp_vec);
-  wblc_data_->tau_min_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[0]);
-  wblc_data_->tau_max_ = DVec<T>::Constant(cheetah::num_act_joint, tmp_vec[1]);
-
 }
 
 template<typename T>
-void WBLC_TwoLegSwingCtrl<T>::computeFootLoc(const Mat3<T> & Rot, const Vec3<T> & shoulder, 
+void WBIC_TwoLegSwingCtrl<T>::computeFootLoc(const Mat3<T> & Rot, const Vec3<T> & shoulder, 
     const T& step_time, 
     const Vec3<T> & body_pos, const Vec3<T> & body_vel, 
     const Vec3<T> & body_ang_vel, Vec3<T> & foot_loc){
@@ -503,5 +459,5 @@ void WBLC_TwoLegSwingCtrl<T>::computeFootLoc(const Mat3<T> & Rot, const Vec3<T> 
   foot_loc[2] = 0.;
 }
 
-template class WBLC_TwoLegSwingCtrl<double>;
-template class WBLC_TwoLegSwingCtrl<float>;
+template class WBIC_TwoLegSwingCtrl<double>;
+template class WBIC_TwoLegSwingCtrl<float>;

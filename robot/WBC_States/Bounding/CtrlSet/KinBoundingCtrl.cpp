@@ -48,7 +48,6 @@ KinBoundingCtrl<T>::KinBoundingCtrl(
   _hl_foot_vel(3),
   _hl_foot_acc(3),
   _total_mass(9.),
-  _Fr_des(12),
   _Fr_result(12),
   _des_jpos(cheetah::num_act_joint),
   _des_jvel(cheetah::num_act_joint),
@@ -98,15 +97,12 @@ KinBoundingCtrl<T>::KinBoundingCtrl(
 
   _wbic_data = new WBIC_ExtraData<T>();
   _wbic_data->_W_floating = DVec<T>::Constant(6, 5.);
-  //_wbic_data->_W_floating = DVec<T>::Constant(6, 25.);
-  //_wbic_data->_W_floating[1] = 0.1;
-  //_wbic_data->_W_floating[5] = 0.1;
+  //_wbic_data->_W_floating = DVec<T>::Constant(6, 0.01);
   _sp = StateProvider<T>::getStateProvider();
 
   _folder_name = "/robot/WBC_States/sim_data/";
   create_folder(_folder_name);
 
-  _Fr_des.setZero();
   _Fr_result.setZero();
   printf("[Kinematics Bounding Control] Constructed\n");
 }
@@ -322,9 +318,9 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd){
   Ctrl::_PreProcessing_Command();
 
   _jump_disable_time -= Test<T>::dt;
-  if( (fabs(_sp->_ori_command[0]) > 0.001) && (_jump_disable_time < 0.) ){
-    _b_jump = true;
-  }
+  //if( (fabs(_sp->_ori_command[0]) > 0.001) && (_jump_disable_time < 0.) ){
+    //_b_jump = true;
+  //}
   // Initialize all
   Ctrl::_contact_list.clear();
   Ctrl::_task_list.clear();
@@ -359,7 +355,6 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd){
   _contact_update();
   _body_task_setup();
   _leg_task_setup();
-
   _compute_torque_wbic(gamma);
 
   for(size_t leg(0); leg<cheetah::num_leg; ++leg){
@@ -392,9 +387,6 @@ void KinBoundingCtrl<T>::_compute_torque_wbic(DVec<T> & gamma){
   _kin_wbc->FindConfiguration(_sp->_Q, 
       _kin_task_list, _kin_contact_list, 
       _des_jpos, _des_jvel, _des_jacc);
-
-  //Ctrl::_task_list.push_back(_jpos_task);
-  _jpos_task->UpdateTask(&(_des_jpos), _des_jvel, _des_jacc);
 
   // WBIC
   _wbic->UpdateSetting(Ctrl::_A, Ctrl::_Ainv, Ctrl::_coriolis, Ctrl::_grav);
@@ -459,6 +451,8 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
   DVec<T> vel_des(3); vel_des.setZero();
   DVec<T> acc_des(3); acc_des.setZero();
 
+  DVec<T> Fr_des(3); Fr_des.setZero();
+
   if(_b_front_swing){
     t = _front_time;
     if(_front_time > _swing_time - 2. * Test<T>::dt){ t = 0.; }
@@ -495,12 +489,12 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
 
     _wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
 
-    _wbic_data->_Fr_des = DVec<T>::Zero(6);
     _wbic_data->_W_rf[2] = 50.0;
     _wbic_data->_W_rf[5] = 50.0;
 
-    _wbic_data->_Fr_des[2] = _front_z_impulse.getValue(_front_time);
-    _wbic_data->_Fr_des[5] = _front_z_impulse.getValue(_front_time);
+    Fr_des[2] = _front_z_impulse.getValue(_front_time);
+    _fr_contact->setRFDesired(Fr_des);
+    _fl_contact->setRFDesired(Fr_des);
   }
 
   if(_b_hind_swing){
@@ -539,25 +533,27 @@ void KinBoundingCtrl<T>::_leg_task_setup(){
   }else{
 
     if(_b_front_swing){ // Hind stance only
-      _wbic_data->_Fr_des = DVec<T>::Zero(6);
       _wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
       _wbic_data->_W_rf[2] = 50.0;
       _wbic_data->_W_rf[5] = 50.0;
 
-      _wbic_data->_Fr_des[2] = _hind_z_impulse.getValue(_hind_time);
-      _wbic_data->_Fr_des[5] = _hind_z_impulse.getValue(_hind_time);
+      Fr_des[2] = _hind_z_impulse.getValue(_hind_time);
+      _hr_contact->setRFDesired(Fr_des);
+      _hl_contact->setRFDesired(Fr_des);
     }else{ // Front and Hind stance
-      _wbic_data->_Fr_des = DVec<T>::Zero(12);
       _wbic_data->_W_rf = DVec<T>::Constant(12, 1.0);
       _wbic_data->_W_rf[2] = 50.0;
       _wbic_data->_W_rf[5] = 50.0;
       _wbic_data->_W_rf[8] = 50.0;
       _wbic_data->_W_rf[11] = 50.0;
 
-      _wbic_data->_Fr_des[2] = _front_z_impulse.getValue(_front_time);
-      _wbic_data->_Fr_des[5] = _front_z_impulse.getValue(_front_time);
-      _wbic_data->_Fr_des[8] = _hind_z_impulse.getValue(_hind_time);
-      _wbic_data->_Fr_des[11] = _hind_z_impulse.getValue(_hind_time);
+      Fr_des[2] = _front_z_impulse.getValue(_front_time);
+      _fr_contact->setRFDesired(Fr_des);
+      _fl_contact->setRFDesired(Fr_des);
+
+      Fr_des[2] = _hind_z_impulse.getValue(_hind_time);
+      _hr_contact->setRFDesired(Fr_des);
+      _hl_contact->setRFDesired(Fr_des);
     }
   }
 }

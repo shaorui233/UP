@@ -55,7 +55,10 @@ bool BodyPosTask<T>::_UpdateCommand(void* pos_des,
     //printf("[Body Pos Task]\n");
     //pretty_print(acc_des, std::cout, "acc_des");
     //pretty_print(TK::pos_err_, std::cout, "pos_err_");
+    //pretty_print(curr_vel, std::cout, "curr_vel");
     //pretty_print(*pos_cmd, std::cout, "pos cmd");
+    //pretty_print(TK::op_cmd_, std::cout, "op cmd");
+    //pretty_print(TK::vel_des_, std::cout, "vel des");
     //pretty_print(TK::Jt_, std::cout, "Jt");
 
     return true;

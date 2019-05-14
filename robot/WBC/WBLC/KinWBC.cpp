@@ -20,7 +20,6 @@ bool KinWBC<T>::FindConfiguration(
     DVec<T> & jvel_cmd,
     DVec<T> & jacc_cmd){
 
-  //printf("contact list size: %d\n", contact_list.size());
   // Contact Jacobian Setup
   DMat<T> Jc, Jc_i;
   contact_list[0]->getContactJacobian(Jc);

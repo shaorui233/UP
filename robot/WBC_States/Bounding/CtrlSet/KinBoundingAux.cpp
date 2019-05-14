@@ -252,10 +252,10 @@ void KinBoundingCtrl<T>::_lcm_data_sending(){
       (Ctrl::_robot_sys->_vGC[linkID::HL])[i] - (Ctrl::_robot_sys->_vGC[linkID::HL_abd])[i];
 
     if((!_b_front_swing) && (!_b_hind_swing)){
-      _wbc_data_lcm.fr_Fr_des[i] = _wbic_data->_Fr_des[i];
-      _wbc_data_lcm.fl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
-      _wbc_data_lcm.hr_Fr_des[i] = _wbic_data->_Fr_des[i+6];
-      _wbc_data_lcm.hl_Fr_des[i] = _wbic_data->_Fr_des[i+9];
+      _wbc_data_lcm.fr_Fr_des[i] = _fr_contact->getRFDesired()[i];
+      _wbc_data_lcm.fl_Fr_des[i] = _fl_contact->getRFDesired()[i];
+      _wbc_data_lcm.hr_Fr_des[i] = _hr_contact->getRFDesired()[i];
+      _wbc_data_lcm.hl_Fr_des[i] = _hl_contact->getRFDesired()[i];
 
       _wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
       _wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i+3];
@@ -263,15 +263,16 @@ void KinBoundingCtrl<T>::_lcm_data_sending(){
       _wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i+9];
     }
     else if((!_b_front_swing)){
-      _wbc_data_lcm.fr_Fr_des[i] = _wbic_data->_Fr_des[i];
-      _wbc_data_lcm.fl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+      _wbc_data_lcm.fr_Fr_des[i] = _fr_contact->getRFDesired()[i];
+      _wbc_data_lcm.fl_Fr_des[i] = _fl_contact->getRFDesired()[i];
 
       _wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
       _wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i+3];
     }
     else if((!_b_hind_swing)){
-      _wbc_data_lcm.hr_Fr_des[i] = _wbic_data->_Fr_des[i];
-      _wbc_data_lcm.hl_Fr_des[i] = _wbic_data->_Fr_des[i+3];
+      _wbc_data_lcm.hr_Fr_des[i] = _hr_contact->getRFDesired()[i];
+      _wbc_data_lcm.hl_Fr_des[i] = _hl_contact->getRFDesired()[i];
+
 
       _wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i];
       _wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i+3];
@@ -321,13 +322,21 @@ void KinBoundingCtrl<T>::_save_file(){
   _Fr_result = DVec<T>::Zero(12);
 
   if((!_b_front_swing)&&(!_b_hind_swing)){ // Full Stance
-    _Fr_des = _wbic_data->_Fr_des;
+    _Fr_des.head(3) = _fr_contact->getRFDesired();
+    _Fr_des.segment(3, 3) = _fl_contact->getRFDesired();
+    _Fr_des.segment(6, 3) = _hr_contact->getRFDesired();
+    _Fr_des.segment(9, 3) = _hl_contact->getRFDesired();
+
     _Fr_result = _wbic_data->_Fr;
   }else if(!_b_front_swing){ // Front Stance
-    _Fr_des.head(6) = _wbic_data->_Fr_des;
+    _Fr_des.head(3) = _fr_contact->getRFDesired();
+    _Fr_des.segment(3, 3) = _fl_contact->getRFDesired();
+
     _Fr_result.head(6) = _wbic_data->_Fr;
   }else if(!_b_hind_swing){ // Hind Stance
-    _Fr_des.tail(6) = _wbic_data->_Fr_des;
+    _Fr_des.segment(6, 3) = _hr_contact->getRFDesired();
+    _Fr_des.segment(9, 3) = _hl_contact->getRFDesired();
+
     _Fr_result.tail(6) = _wbic_data->_Fr;
   }
   saveVector(_Fr_des, _folder_name, "Fr_des");

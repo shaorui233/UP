@@ -9,6 +9,7 @@
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
 #include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
 #include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
+#include <WBC_States/WBICTrot/WBICTrotTest.hpp>
 #include <WBC_States/BackFlip/BackFlipTest.hpp>
 #include <WBC_States/Bounding/BoundingTest.hpp>
 #include <Configuration.h>
@@ -20,6 +21,8 @@
 #include "rt/rt_interface_lcm.h"
 #include <gui_main_control_settings_t.hpp>
 
+//#define REMOTE_CTRL false
+#define REMOTE_CTRL true
 
 void RobotController::init() {
   printf("[RobotController] initialize\n");
@@ -62,6 +65,8 @@ void RobotController::init() {
     _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
   } else if (test_name == "wblc_trot") {
     _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
+  } else if (test_name == "wbic_trot") {
+    _wbc_state = new WBICTrotTest<float>(&_model, robotType);
   } else if (test_name == "bounding") {
     _wbc_state = new BoundingTest<float>(&_model, robotType);
   }
@@ -113,7 +118,12 @@ void RobotController::run() {
 
   // RC controller
   gui_main_control_settings_t main_control_settings;
+#if (REMOTE_CTRL)
   get_main_control_settings(&main_control_settings);
+  //printf("%f\n", main_control_settings.mode);
+#else 
+  main_control_settings.mode = 11;
+#endif
 
   if(main_control_settings.mode == 0 ){ // E-Stop
     for (int leg = 0; leg < 4; leg++) {
@@ -171,9 +181,9 @@ void RobotController::run() {
           _data->jvel[3 * leg + jidx] = _legController->datas[leg].qd[jidx];
         }
       }
-      // Mode Setting
       _data->mode = main_control_settings.mode;
 
+      // Mode Setting
       _data->dir_command[0] = driverCommand->leftStickAnalog[1];
       _data->dir_command[1] = driverCommand->leftStickAnalog[0];
 
@@ -184,7 +194,8 @@ void RobotController::run() {
       _data->ori_command[1] = driverCommand->rightStickAnalog[1];
       _data->ori_command[2] = driverCommand->rightStickAnalog[0];
 
-
+#if (REMOTE_CTRL)
+      // Remote control
       if(main_control_settings.variable[0] == 4){ // Body Posture Control
         _data->ori_command[0] = main_control_settings.rpy_des[0];
         _data->ori_command[1] = main_control_settings.rpy_des[1];
@@ -194,7 +205,7 @@ void RobotController::run() {
         _data->dir_command[1] = main_control_settings.v_des[1];
         _data->ori_command[2] = main_control_settings.omega_des[2];
       }
-
+#endif
       //Timer timer;
       _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
       //if(count_ini%500 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
