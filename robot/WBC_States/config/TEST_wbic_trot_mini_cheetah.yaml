@@ -14,7 +14,7 @@ body_lifting_time: 0.7
 
 step_time_ratio: 0.7
 
-body_height: .27
+body_height: .28
 
 CTRL_move_to_target_height:
     max_rf_z: 100
@@ -48,11 +48,11 @@ CTRL_two_leg_trans:
     min_rf_z: 0
 
 Kp_body_pos_kin: [1.0, 1.0, 1.0]
-Kp_body_pos: [130., 130., 100.]
+Kp_body_pos: [100., 100., 100.]
 Kd_body_pos: [5., 5., 5.]
 
 Kp_body_ori_kin: [1.0, 1.0, 1.0]
-Kp_body_ori: [130., 130., 100.]
+Kp_body_ori: [120., 120., 90.]
 Kd_body_ori: [5., 5., 5.]
 #Kp_body_ori: [10., 10., 10.]
 #Kp_body_ori: [0., 0., 0.]

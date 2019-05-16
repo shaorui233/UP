@@ -12,7 +12,7 @@ bounding_time: 10000.
 swing_time: 0.18
 default_stance_time: 0.15
 
-leg_height: 0.29
+leg_height: 0.28
 
 CTRL_move_to_target_height:
   max_rf_z: 100
@@ -40,22 +40,22 @@ CTRL_keep_posture:
 
 
 CTRL_bounding:
-  K_time: 0.4
+  K_time: 0.6
   K_pitch: 0.9
   impact_amp: 1.0
-  front_foot_offset: 0.017
+  front_foot_offset: 0.014
   hind_foot_offset: -0.04
   step_width: 0.07
-  swing_height: 0.09
+  swing_height: 0.1
   front_jump_amp: 3.0
   hind_jump_amp: 8.5
   contact_vel_threshold: 2.5
-  total_mass: 9.5
+  total_mass: 9.0
   step_length_limit: 0.3
 
 
 # WBIC Feedback gain
-Kp_ryrz: [5., 25.]
+Kp_ryrz: [5., 35.]
 Kd_ryrz: [0.5, 0.5]
 
 Kp_roll: 10
