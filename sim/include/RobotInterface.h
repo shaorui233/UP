@@ -21,6 +21,8 @@
 
 class RobotInterface : PeriodicTask {
 public:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  
   RobotInterface(RobotType robotType, Graphics3D* gfx, PeriodicTaskManager* tm);
   RobotControlParameters& getParams() { return _controlParameters; }
   void startInterface();
