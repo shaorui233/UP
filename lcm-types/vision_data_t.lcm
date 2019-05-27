@@ -1,0 +1,4 @@
+struct  vision_data_t
+{
+    double p_lidar[3]; 
+}

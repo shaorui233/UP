@@ -110,6 +110,13 @@ void pretty_print(Vec3<T> const & vv, std::ostream & os,
 }
 
 template<typename T>
+void pretty_print(Vec2<T> const & vv, std::ostream & os,
+        std::string const & title, std::string const & prefix="", bool nonl = false){
+    pretty_print((DMat<T> const &) vv, os, title, prefix, true, nonl);
+}
+
+
+template<typename T>
 void pretty_print(const std::vector<T> & _vec, const char* title){
     printf("%s: ", title);
     for( size_t i(0); i< _vec.size(); ++i){

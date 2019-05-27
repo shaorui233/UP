@@ -1,4 +1,4 @@
-#ifndef WBIC_TROT_TEST_Cheetah
+#ifndef WBIC_TROT_TEST_eheetah
 #define WBIC_TROT_TEST_Cheetah
 
 #include <WBC_States/Test.hpp>
@@ -6,7 +6,9 @@
 #include <Utilities/filters.h>
 
 #include <lcm-cpp.hpp>
+#include <thread>
 #include "wbc_test_data_t.hpp"
+#include "vision_data_t.hpp"
 
 template <typename T> class StateProvider;
 
@@ -48,7 +50,18 @@ class WBICTrotTest: public Test<T>{
         Vec3<T> _hind_foot_loc;
 
         std::string _folder_name;
+
+        void handleVisionLCM(const lcm::ReceiveBuffer* rbuf,
+            const std::string& chan,
+            const vision_data_t* msg);
+
+        void visionLCMThread();
+
     protected:
+        Vec3<T> _vision_loc;
+        lcm::LCM    _visionLCM;
+        std::thread _visionLCMThread;
+
         std::vector<filter<T>*> _filtered_input_vel;
         Vec3<T> _input_vel;
         T _target_body_height;

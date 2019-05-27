@@ -21,6 +21,10 @@ WBICTrotTest<T>::WBICTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
   _des_jacc(cheetah::num_act_joint),
   _wbcLCM(getLcmUrl(255))
 {
+  _vision_loc.setZero();
+  _visionLCM.subscribe("vision_data", &WBICTrotTest<T>::handleVisionLCM, this);
+  _visionLCMThread = std::thread(&WBICTrotTest<T>::visionLCMThread, this);
+
   _body_pos.setZero();
   _body_vel.setZero();
   _body_acc.setZero();
@@ -76,6 +80,25 @@ WBICTrotTest<T>::WBICTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
 }
 
 template <typename T>
+void WBICTrotTest<T>::handleVisionLCM(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+                                      const vision_data_t *msg) {
+  (void)rbuf;
+  (void)chan;
+  printf("%f, %f, %f\n", msg->p_lidar[0], msg->p_lidar[1], msg->p_lidar[2]);
+
+  for(size_t i(0); i<3; ++i) _vision_loc[i] = msg->p_lidar[i];
+}
+
+
+template <typename T>
+void WBICTrotTest<T>::visionLCMThread() {
+  while(true) {
+    _visionLCM.handle();
+  }
+}
+
+
+template <typename T>
 WBICTrotTest<T>::~WBICTrotTest(){
   for(size_t i(0); i<Test<T>::_state_list.size(); ++i){
     delete Test<T>::_state_list[i];
@@ -121,6 +144,8 @@ int WBICTrotTest<T>::_NextPhase(const int & phase){
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
 
     landing_loc_ave[2] = 0.; // Flat terrain
+    // TEST
+    //_vision_loc += landing_loc_ave;
     //_body_pos -= landing_loc_ave;
     _body_pos.setZero();
     _body_pos[2] = _target_body_height;
@@ -143,6 +168,8 @@ int WBICTrotTest<T>::_NextPhase(const int & phase){
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HR];
 
     landing_loc_ave[2] = 0.; // Flat terrain
+    // TEST
+    //_vision_loc += landing_loc_ave;
     //_body_pos -= landing_loc_ave;
     _body_pos.setZero();
     _body_pos[2] = _target_body_height;
@@ -187,21 +214,37 @@ template <typename T>
 void WBICTrotTest<T>::_UpdateTestOneStep(){
   T scale(1.0);
 
-  _body_ang_vel[2] = _sp->_ori_command[2];
 
-  // Command Truncation
-  //printf("%f, %f, %f \n", _sp->_dir_command[0], _sp->_dir_command[1], _body_ang_vel[2]);
-  if(fabs(_body_ang_vel[2]) < 0.1) { _body_ang_vel[2] = 0.; }
-  if(fabs(_sp->_dir_command[0]) < 0.1) { _sp->_dir_command[0] = 0.; }
-  if(fabs(_sp->_dir_command[1]) < 0.1) { _sp->_dir_command[1] = 0.; }
+  //bool b_remote_ctrl(false);
+  bool b_remote_ctrl(true);
 
+  if(b_remote_ctrl){
+    _body_ang_vel[2] = _sp->_ori_command[2];
+    
+    // Command Truncation
+    if(fabs(_body_ang_vel[2]) < 0.1) { _body_ang_vel[2] = 0.; }
+    if(fabs(_sp->_dir_command[0]) < 0.1) { _sp->_dir_command[0] = 0.; }
+    if(fabs(_sp->_dir_command[1]) < 0.1) { _sp->_dir_command[1] = 0.; }
+
+
+    _filtered_input_vel[0]->input(scale*_sp->_dir_command[0]);
+    _filtered_input_vel[1]->input(scale*_sp->_dir_command[1]);
+
+    _input_vel[0] = _filtered_input_vel[0]->output();
+    _input_vel[1] = _filtered_input_vel[1]->output();
+
+  }else{ // Vision Data
+    Vec2<T> des_loc; des_loc.setZero();
+    des_loc[0] = 1.0* sin(2*M_PI * 0.1 * _sp->_curr_time);
+    //pretty_print(des_loc, std::cout, "des loc");
+    //pretty_print(_vision_loc, std::cout, "vision loc");
+    _input_vel[0] = 5.*(des_loc[0] - _vision_loc[0]);
+    _input_vel[1] = 5.*(des_loc[1] - _vision_loc[1]);
+
+    _input_vel[0] = coerce<T>(_input_vel[0], -0.5, 0.5);
+    _input_vel[1] = coerce<T>(_input_vel[1], -0.1, 0.1);
+  }
   _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
-
-  _filtered_input_vel[0]->input(scale*_sp->_dir_command[0]);
-  _filtered_input_vel[1]->input(scale*_sp->_dir_command[1]);
-  _input_vel[0] = _filtered_input_vel[0]->output();
-  _input_vel[1] = _filtered_input_vel[1]->output();
-
   Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
   _body_vel = Rot.transpose() * _input_vel;
   _body_pos += _body_vel*Test<T>::dt;
@@ -252,7 +295,9 @@ void WBICTrotTest<T>::_UpdateExtraData(Cheetah_Extra_Data<T> * ext_data){
   }
 
   //_wbc_data_lcm.body_ori[3] = Ctrl::_robot_sys->_state.bodyOrientation[3];
-  //for(size_t i(0); i<3; ++i){
+  for(size_t i(0); i<3; ++i){
+    _wbc_data_lcm.vision_loc[i] = _vision_loc[i];
+  }
     //_wbc_data_lcm.body_ori[i] = Ctrl::_robot_sys->_state.bodyOrientation[i];
     //_wbc_data_lcm.body_ang_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i];
 

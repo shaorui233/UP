@@ -38,4 +38,6 @@ struct wbc_test_data_t
     float jpos_cmd[12];
     float jvel_cmd[12];
     float jacc_cmd[12];
+
+    float vision_loc[3];
 }
