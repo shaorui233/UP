@@ -78,5 +78,8 @@ Kd: [ 5., 5., 5.,
 #Kp_joint: [40.0, 40.0, 40.0]
 #Kd_joint: [1.5, 1.5, 1.5]
 
+#remote_control: true
+remote_control: false 
+    
 #save_file: true
 save_file: false

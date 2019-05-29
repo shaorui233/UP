@@ -11,6 +11,7 @@
 #include "vision_data_t.hpp"
 
 template <typename T> class StateProvider;
+template <typename T> class Path;
 
 namespace WBICTrotPhase{
     constexpr int lift_up = 0;
@@ -58,9 +59,12 @@ class WBICTrotTest: public Test<T>{
         void visionLCMThread();
 
     protected:
-        Vec3<T> _vision_loc;
+        bool _b_remote_ctrl;
+        Path<T>* _path;
+        Vec3<T> _vision_loc; // (x, y, yaw)
         lcm::LCM    _visionLCM;
         std::thread _visionLCMThread;
+        bool _b_loc_update;
 
         std::vector<filter<T>*> _filtered_input_vel;
         Vec3<T> _input_vel;

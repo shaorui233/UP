@@ -164,7 +164,8 @@ void WBIC_FullContactCtrl<T>::LastVisit(){}
 
 template <typename T>
 bool WBIC_FullContactCtrl<T>::EndOfPhase(){
-  if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt) && (_sp->_mode == 11)){
+  if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt) 
+          && (_sp->_mode == 11)){
     return true;
   }
   return false;

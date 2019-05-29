@@ -9,6 +9,7 @@
 
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 #include <ParamHandler/ParamHandler.hpp>
+#include "Path.hpp"
 
 #include <Utilities/Utilities_print.h>
 #include <Utilities/save_file.h>
@@ -19,11 +20,17 @@ WBICTrotTest<T>::WBICTrotTest(FloatingBaseModel<T>* robot, const RobotType & typ
   _des_jpos(cheetah::num_act_joint),
   _des_jvel(cheetah::num_act_joint),
   _des_jacc(cheetah::num_act_joint),
+    _b_remote_ctrl(true),
+_visionLCM(getLcmUrl(255)),
+    _b_loc_update(false),
   _wbcLCM(getLcmUrl(255))
 {
   _vision_loc.setZero();
   _visionLCM.subscribe("vision_data", &WBICTrotTest<T>::handleVisionLCM, this);
   _visionLCMThread = std::thread(&WBICTrotTest<T>::visionLCMThread, this);
+
+  //_path = new LinPath<T>();
+  _path = new CircularPath<T>();
 
   _body_pos.setZero();
   _body_vel.setZero();
@@ -84,9 +91,25 @@ void WBICTrotTest<T>::handleVisionLCM(const lcm::ReceiveBuffer *rbuf, const std:
                                       const vision_data_t *msg) {
   (void)rbuf;
   (void)chan;
-  printf("%f, %f, %f\n", msg->p_lidar[0], msg->p_lidar[1], msg->p_lidar[2]);
+  printf("lidar pos: %f, %f, %f\n", msg->p_lidar[0], msg->p_lidar[1], msg->p_lidar[2]);
+  printf("lidar quaternion (x, y, z, w) : %f, %f, %f, %f\n", 
+          msg->lidar_quaternion[0], 
+          msg->lidar_quaternion[1], 
+          msg->lidar_quaternion[2], 
+          msg->lidar_quaternion[3]);
 
-  for(size_t i(0); i<3; ++i) _vision_loc[i] = msg->p_lidar[i];
+  for(size_t i(0); i<2; ++i) _vision_loc[i] = msg->p_lidar[i];
+  Quat<T> vision_quat;
+  vision_quat[0] = msg->lidar_quaternion[3];
+  vision_quat[1] = msg->lidar_quaternion[0];
+  vision_quat[2] = msg->lidar_quaternion[1];
+  vision_quat[3] = msg->lidar_quaternion[2];
+
+  Vec3<T> rpy = ori::quatToRPY(vision_quat);
+  _vision_loc[2] = rpy[2];
+  //_vision_loc[0] = -msg->p_lidar[2];
+  //_vision_loc[1] = -msg->p_lidar[0];
+  //_vision_loc[2] = msg->p_lidar[1];
 }
 
 
@@ -94,6 +117,7 @@ template <typename T>
 void WBICTrotTest<T>::visionLCMThread() {
   while(true) {
     _visionLCM.handle();
+    _b_loc_update = true;
   }
 }
 
@@ -144,9 +168,14 @@ int WBICTrotTest<T>::_NextPhase(const int & phase){
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HL];
 
     landing_loc_ave[2] = 0.; // Flat terrain
-    // TEST
-    //_vision_loc += landing_loc_ave;
-    //_body_pos -= landing_loc_ave;
+
+    if(!_b_loc_update){
+        _vision_loc += landing_loc_ave;
+        Vec3<T> rpy = ori::quatToRPY(
+                Test<T>::_robot->_state.bodyOrientation);
+        _vision_loc[2] = rpy[2]; 
+    }
+
     _body_pos.setZero();
     _body_pos[2] = _target_body_height;
 
@@ -161,16 +190,19 @@ int WBICTrotTest<T>::_NextPhase(const int & phase){
 
   if(next_phase == WBICTrotPhase::frhl_swing_start_trans){
 
-    //pretty_print(_front_foot_loc, std::cout, "front foot");
-    //pretty_print(_hind_foot_loc, std::cout, "hind foot");
     Vec3<T> landing_loc_ave = Vec3<T>::Zero();
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::FL];
     landing_loc_ave += 0.5 * Test<T>::_robot->_pGC[linkID::HR];
 
     landing_loc_ave[2] = 0.; // Flat terrain
-    // TEST
-    //_vision_loc += landing_loc_ave;
-    //_body_pos -= landing_loc_ave;
+    
+    if(!_b_loc_update){
+        _vision_loc += landing_loc_ave;
+        Vec3<T> rpy = ori::quatToRPY(
+                Test<T>::_robot->_state.bodyOrientation);
+        _vision_loc[2] = rpy[2]; 
+     }
+   
     _body_pos.setZero();
     _body_pos[2] = _target_body_height;
 
@@ -187,38 +219,40 @@ int WBICTrotTest<T>::_NextPhase(const int & phase){
 
 template <typename T>
 void WBICTrotTest<T>::_SettingParameter(){
-  typename std::vector< Controller<T> *>::iterator iter = Test<T>::_state_list.begin();
-  ParamHandler* handler = NULL;
-  while(iter < Test<T>::_state_list.end()){
-    if(Test<T>::_robot_type == RobotType::CHEETAH_3){
-      (*iter)->SetTestParameter(
-          CheetahConfigPath"TEST_wbic_trot_cheetah3.yaml");
+    typename std::vector< Controller<T> *>::iterator iter = Test<T>::_state_list.begin();
+    ParamHandler* handler = NULL;
 
-      handler = new ParamHandler(CheetahConfigPath"TEST_wbic_trot_cheetah3.yaml");
+    if(Test<T>::_robot_type == RobotType::CHEETAH_3){
+        while(iter < Test<T>::_state_list.end()){
+            (*iter)->SetTestParameter(
+                    CheetahConfigPath"TEST_wbic_trot_cheetah3.yaml");
+            ++iter;
+        }
+        handler = new ParamHandler(CheetahConfigPath"TEST_wbic_trot_cheetah3.yaml");
     }else if (Test<T>::_robot_type == RobotType::MINI_CHEETAH){
-      (*iter)->SetTestParameter(
-          CheetahConfigPath"TEST_wbic_trot_mini_cheetah.yaml");
-      handler = new ParamHandler(CheetahConfigPath"TEST_wbic_trot_mini_cheetah.yaml");
+        while(iter < Test<T>::_state_list.end()){
+            (*iter)->SetTestParameter(
+                    CheetahConfigPath"TEST_wbic_trot_mini_cheetah.yaml");
+            ++iter;
+        }
+        handler = new ParamHandler(CheetahConfigPath"TEST_wbic_trot_mini_cheetah.yaml");
     }else{
-      printf("[WBIC Trot Test] Invalid robot type\n");
+        printf("[WBIC Trot Test] Invalid robot type\n");
     } 
-    ++iter;
-  }
-  handler->getValue<T>("body_height", _target_body_height);
-  _body_pos[2] = _target_body_height;
-  handler->getBoolean("save_file", Test<T>::_b_save_file);
-  delete handler;
+
+    handler->getValue<T>("body_height", _target_body_height);
+    _body_pos[2] = _target_body_height;
+    handler->getBoolean("remote_control", _b_remote_ctrl);
+    handler->getBoolean("save_file", Test<T>::_b_save_file);
+    delete handler;
 }
 
 template <typename T>
 void WBICTrotTest<T>::_UpdateTestOneStep(){
-  T scale(1.0);
 
-
-  //bool b_remote_ctrl(false);
-  bool b_remote_ctrl(true);
-
-  if(b_remote_ctrl){
+    static int count(0);
+    ++count;
+  if(_b_remote_ctrl){
     _body_ang_vel[2] = _sp->_ori_command[2];
     
     // Command Truncation
@@ -227,28 +261,56 @@ void WBICTrotTest<T>::_UpdateTestOneStep(){
     if(fabs(_sp->_dir_command[1]) < 0.1) { _sp->_dir_command[1] = 0.; }
 
 
-    _filtered_input_vel[0]->input(scale*_sp->_dir_command[0]);
-    _filtered_input_vel[1]->input(scale*_sp->_dir_command[1]);
+    _filtered_input_vel[0]->input(_sp->_dir_command[0]);
+    _filtered_input_vel[1]->input(_sp->_dir_command[1]);
 
     _input_vel[0] = _filtered_input_vel[0]->output();
     _input_vel[1] = _filtered_input_vel[1]->output();
 
-  }else{ // Vision Data
-    Vec2<T> des_loc; des_loc.setZero();
-    des_loc[0] = 1.0* sin(2*M_PI * 0.1 * _sp->_curr_time);
-    //pretty_print(des_loc, std::cout, "des loc");
-    //pretty_print(_vision_loc, std::cout, "vision loc");
-    _input_vel[0] = 5.*(des_loc[0] - _vision_loc[0]);
-    _input_vel[1] = 5.*(des_loc[1] - _vision_loc[1]);
+    _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
+    Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
+    _body_vel = Rot.transpose() * _input_vel;
+    _body_pos += _body_vel*Test<T>::dt;
 
-    _input_vel[0] = coerce<T>(_input_vel[0], -0.5, 0.5);
-    _input_vel[1] = coerce<T>(_input_vel[1], -0.1, 0.1);
+  }else{ // Vision Data
+      Vec3<T> des_loc; des_loc.setZero();
+      if(_sp->_mode == 11){
+          _path->getDesLoc(_sp->_curr_time, _vision_loc, des_loc);
+
+          _input_vel[0] = 1.3*(des_loc[0] - _vision_loc[0]);
+          _input_vel[1] = 1.3*(des_loc[1] - _vision_loc[1]);
+          //T yaw_err =(des_loc[2] - _vision_loc[2]);
+          // TEST
+          Vec3<T> rpy = ori::quatToRPY(
+                  Test<T>::_robot->_state.bodyOrientation);
+          T yaw_err =(des_loc[2] - rpy[2]);
+
+          while(true){
+              if(yaw_err > M_PI){ yaw_err -= 2.*M_PI; }
+              else if(yaw_err < -M_PI){ yaw_err += 2.*M_PI; }
+              else {break;}
+          }
+          _body_ang_vel[2] = 2.*yaw_err;
+
+      }
+      //printf("yaw cmd, act, err: %f, %f, %f\n", des_loc[2], 
+      //_vision_loc[2], yaw_err);
+
+      _body_ang_vel[2] = coerce<T>(_body_ang_vel[2], -0.6, 0.6);
+      _input_vel[0] = coerce<T>(_input_vel[0], -0.5, 0.5);
+      _input_vel[1] = coerce<T>(_input_vel[1], -0.5, 0.5);
+
+      _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
+      _body_vel = _input_vel;
+      //_body_pos += _body_vel*Test<T>::dt;
+    if(count%300 ==0){
+        printf("target loc: %f, %f\n", des_loc[0], des_loc[1]);
+        printf("vision loc: %f, %f\n", _vision_loc[0], _vision_loc[1]);
+        printf("loc err: %f, %f\n", des_loc[0] - _vision_loc[0],
+                des_loc[1] - _vision_loc[1]);
+    }
   }
-  _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
-  Mat3<T> Rot = rpyToRotMat(_body_ori_rpy);
-  _body_vel = Rot.transpose() * _input_vel;
-  _body_pos += _body_vel*Test<T>::dt;
-  
+ 
   //printf("command: %f, %f, %f \n", _input_vel[0], _input_vel[1], _body_ang_vel[2]);
 
   //T body_height_adj = 0.05 * sqrt(_body_vel[0]*_body_vel[0] + _body_vel[1]*_body_vel[1]);
