@@ -52,7 +52,7 @@ Kp_body_pos: [100., 100., 100.]
 Kd_body_pos: [5., 5., 5.]
 
 Kp_body_ori_kin: [1.0, 1.0, 1.0]
-Kp_body_ori: [120., 120., 90.]
+Kp_body_ori: [130., 130., 90.]
 Kd_body_ori: [5., 5., 5.]
 #Kp_body_ori: [10., 10., 10.]
 #Kp_body_ori: [0., 0., 0.]

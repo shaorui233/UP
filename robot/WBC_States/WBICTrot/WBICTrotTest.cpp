@@ -279,11 +279,12 @@ void WBICTrotTest<T>::_UpdateTestOneStep(){
 
           _input_vel[0] = 1.3*(des_loc[0] - _vision_loc[0]);
           _input_vel[1] = 1.3*(des_loc[1] - _vision_loc[1]);
-          //T yaw_err =(des_loc[2] - _vision_loc[2]);
+          T yaw_err =(des_loc[2] - _vision_loc[2]);
+          
           // TEST
-          Vec3<T> rpy = ori::quatToRPY(
-                  Test<T>::_robot->_state.bodyOrientation);
-          T yaw_err =(des_loc[2] - rpy[2]);
+          //Vec3<T> rpy = ori::quatToRPY(
+                  //Test<T>::_robot->_state.bodyOrientation);
+          //T yaw_err =(des_loc[2] - rpy[2]);
 
           while(true){
               if(yaw_err > M_PI){ yaw_err -= 2.*M_PI; }
@@ -303,12 +304,12 @@ void WBICTrotTest<T>::_UpdateTestOneStep(){
       _body_ori_rpy[2] += _body_ang_vel[2]*Test<T>::dt;
       _body_vel = _input_vel;
       //_body_pos += _body_vel*Test<T>::dt;
-    if(count%300 ==0){
-        printf("target loc: %f, %f\n", des_loc[0], des_loc[1]);
-        printf("vision loc: %f, %f\n", _vision_loc[0], _vision_loc[1]);
-        printf("loc err: %f, %f\n", des_loc[0] - _vision_loc[0],
-                des_loc[1] - _vision_loc[1]);
-    }
+    //if(count%300 ==0){
+        //printf("target loc: %f, %f\n", des_loc[0], des_loc[1]);
+        //printf("vision loc: %f, %f\n", _vision_loc[0], _vision_loc[1]);
+        //printf("loc err: %f, %f\n", des_loc[0] - _vision_loc[0],
+                //des_loc[1] - _vision_loc[1]);
+    //}
   }
  
   //printf("command: %f, %f, %f \n", _input_vel[0], _input_vel[1], _body_ang_vel[2]);

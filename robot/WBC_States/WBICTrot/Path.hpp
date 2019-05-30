@@ -22,7 +22,7 @@ template <typename T>
 class LinPath : public Path<T>{
     public:
         LinPath():_b_first_visit(true), 
-        _amp(0.6), _freq(0.06), _prepare_time(2.0){}
+        _amp(1.5), _freq(0.06), _prepare_time(2.0){}
         virtual ~LinPath(){}
 
         virtual void getDesLoc(
@@ -56,8 +56,8 @@ template <typename T>
 class CircularPath: public Path<T>{
     public:
         CircularPath():_loop_time(0.), _prepare_time(1.0), 
-        _b_first_visit(true), _radius_x(0.9),_radius_y(0.25),  
-        _freq(0.08){}
+        _b_first_visit(true), _radius_x(1.8),_radius_y(0.50),  
+        _freq(0.03){}
         virtual ~CircularPath(){}
 
         virtual void getDesLoc(
