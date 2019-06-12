@@ -22,8 +22,8 @@
 #include <gui_main_control_settings_t.hpp>
 #include <Controllers/PositionVelocityEstimator.h>
 
-#define REMOTE_CTRL false
-//#define REMOTE_CTRL true
+//#define REMOTE_CTRL false
+#define REMOTE_CTRL true
 
 void RobotController::init() {
   printf("[RobotController] initialize\n");
