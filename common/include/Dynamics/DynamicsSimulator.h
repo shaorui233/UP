@@ -110,6 +110,7 @@ private:
   FloatingBaseModel<T>& _model;
   vector<CollisionPlane<T>> _collisionPlanes;
   ContactConstraint<T> * _contact_constr;
+  SVec<T> _lastBodyVelocity;
   bool _useSpringDamper;
 };
 

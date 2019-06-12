@@ -18,6 +18,9 @@ public:
   virtual void run() {
     this->_stateEstimatorData.result->contactEstimate = *this->_stateEstimatorData.contactPhase;
   }
+  virtual void setup() {
+
+  }
 };
 
 #endif //PROJECT_CONTACTESTIMATOR_H

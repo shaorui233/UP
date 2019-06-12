@@ -20,7 +20,7 @@ void ImuSimulator<T>::computeAcceleration(const FBModelState<T> &robotState,
   // gravity (should be positive when robot is upright)
   acc += (R_body * Vec3<float>(0,0,9.81));
 
-  // acceleration (todo check with pat that this should work)
+  // acceleration
   acc += spatial::spatialToLinearAcceleration(robotStateD.dBodyVelocity, robotState.bodyVelocity).template cast<float>();
 }
 
