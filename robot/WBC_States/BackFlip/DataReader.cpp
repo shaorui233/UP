@@ -9,12 +9,12 @@ DataReader::DataReader(const RobotType & type):_type(type)
     if(_type == RobotType::MINI_CHEETAH)
     {
         printf("[Backflip DataReader] Setup for mini cheetah\n");
-        load_control_plan(THIS_COM"robot/WBC_State/BackFlip/data/mc_flip.dat");
+        load_control_plan(THIS_COM"robot/WBC_States/BackFlip/data/mc_flip.dat");
     }
     else
     {
         printf("[Backflip DataReader] Setup for cheetah 3\n");
-        load_control_plan(THIS_COM"robot/WBC_State/BackFlip/data/backflip.dat");
+        load_control_plan(THIS_COM"robot/WBC_States/BackFlip/data/backflip.dat");
     }
     printf("[Backflip DataReader] Constructed.\n");
 }
@@ -79,15 +79,16 @@ float* DataReader::get_plan_at_time(int timestep)
         return nullptr;
     }
 
-    //if(timestep < 0 || timestep >= plan_timesteps)
-    //{
-        //printf("[Backflip DataReader] Error: get_plan_at_time called for timestep %d\n"
-               //"\tmust be between 0 and %d\n",timestep,plan_timesteps-1);
-        //return nullptr; // TODO: this should estop the robot, can't really recover from this!
-    //}
+    if(timestep < 0 || timestep >= plan_timesteps)
+    {
+        printf("[Backflip DataReader] Error: get_plan_at_time called for timestep %d\n"
+               "\tmust be between 0 and %d\n",timestep,plan_timesteps-1);
+	timestep = plan_timesteps-1;
+        // return nullptr; // TODO: this should estop the robot, can't really recover from this!
+    }
 
-    if(timestep < 0) { return plan_buffer + 3; } 
-    if(timestep >= plan_timesteps){ timestep = plan_timesteps-1; }
+    //if(timestep < 0) { return plan_buffer + 3; } 
+    //if(timestep >= plan_timesteps){ timestep = plan_timesteps-1; }
 
     return plan_buffer + plan_cols * timestep;
 }

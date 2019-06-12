@@ -113,7 +113,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
   for(size_t i(0); i<6; ++i){ _sp->_Qdot[i] = _state.bodyVelocity[i]; }
 
   // Body orientation check (fliped or not)
-  _SafetyCheck();
+  //_SafetyCheck(); // dont use this for backflip test
 
   // Command Computation
   if(_b_running){

@@ -21,8 +21,8 @@
 #include "rt/rt_interface_lcm.h"
 #include <gui_main_control_settings_t.hpp>
 
-//#define REMOTE_CTRL false
-#define REMOTE_CTRL true
+#define REMOTE_CTRL false
+//#define REMOTE_CTRL true
 
 void RobotController::init() {
   printf("[RobotController] initialize\n");
@@ -69,6 +69,8 @@ void RobotController::init() {
     _wbc_state = new WBICTrotTest<float>(&_model, robotType);
   } else if (test_name == "bounding") {
     _wbc_state = new BoundingTest<float>(&_model, robotType);
+  } else if (test_name == "back_flip") {
+    _wbc_state = new BackFlipTest<float>(&_model, robotType);
   }
   //_wbc_state = new JPosCtrlTest<float>(&_model, robotType);
   //_wbc_state = new BackFlipTest<float>(&_model, robotType);

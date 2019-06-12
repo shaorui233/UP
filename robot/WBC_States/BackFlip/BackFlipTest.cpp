@@ -19,7 +19,7 @@ BackFlipTest<T>::BackFlipTest(FloatingBaseModel<T>* robot, const RobotType & typ
     _data_reader = new DataReader(type);
 
     body_up_ctrl_ = new FullContactTransCtrl<T>(robot);
-    backflip_pre_ = new JPosCtrl<T>(robot);
+    backflip_pre_ = new BackFlipCtrl<T>(robot, _data_reader); //JPosCtrl<T>(robot);
     backflip_ctrl_ = new BackFlipCtrl<T>(robot, _data_reader);
     backflip_end_ = new JPosCtrl<T>(robot);
     
