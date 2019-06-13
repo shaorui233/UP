@@ -37,7 +37,7 @@ include_directories(${CMAKE_BINARY_DIR})
 include_directories(${CMAKE_BINARY_DIR}/third-party/nlopt/src/api)
 
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
-file(GLOB_RECURSE test_sources "test/*.cpp")             # test cpp files
+file(GLOB_RECURSE test_sources "test/test_*.cpp")             # test cpp files
 
 # Library
 #add_library(biomimetics STATIC ${sources})       # produce a library used by sim/robot
