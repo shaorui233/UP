@@ -144,15 +144,28 @@ void RobotController::run() {
     Mat3<float> kdMat;
     if (!_jpos_initializer->IsInitialized(_legController)) {
       //if (false) {  // TEST
-      kpMat <<
-        5, 0, 0,
-        0, 5, 0,
-        0, 0, 5;
+	if (robotType == RobotType::MINI_CHEETAH) {
+	      kpMat <<
+        	5, 0, 0,
+        	0, 5, 0,
+        	0, 0, 5;
 
-      kdMat <<
-        0.1, 0, 0,
-        0, 0.1, 0,
-        0, 0, 0.1;
+	      kdMat <<
+        	0.1, 0, 0,
+        	0, 0.1, 0,
+        	0, 0, 0.1;}
+	else {
+	      kpMat <<
+        	50, 0, 0,
+        	0, 50, 0,
+        	0, 0, 50;
+
+	      kdMat <<
+        	5, 0, 0,
+        	0, 5, 0,
+        	0, 0, 5;
+	}
+
       _ini_yaw = _stateEstimator->getResult().rpy[2];
       for (int leg = 0; leg < 4; leg++) {
         _legController->commands[leg].kpJoint = kpMat;
