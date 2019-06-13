@@ -22,8 +22,8 @@
 #include <gui_main_control_settings_t.hpp>
 #include <Controllers/PositionVelocityEstimator.h>
 
-//#define REMOTE_CTRL false
-#define REMOTE_CTRL true
+#define REMOTE_CTRL false
+//#define REMOTE_CTRL true
 
 void RobotController::init() {
   printf("[RobotController] initialize\n");
@@ -143,49 +143,70 @@ void RobotController::run() {
       _legController->commands[leg].kdJoint.setZero();
     }
   }else{
-    // ======= WBC state command computation  =============== //
-    // Commenting out WBC for now to test Locomotion control
-    Mat3<float> kpMat;
-    Mat3<float> kdMat;
-    if (!_jpos_initializer->IsInitialized(_legController)) {
-      //if (false) {  // TEST
-      kpMat <<
-        5, 0, 0,
-        0, 5, 0,
-        0, 0, 5;
+      // ======= WBC state command computation  =============== //
+      // Commenting out WBC for now to test Locomotion control
+      Mat3<float> kpMat;
+      Mat3<float> kdMat;
+      if (!_jpos_initializer->IsInitialized(_legController)) {
+          //if (false) {  // TEST
+          if (robotType == RobotType::MINI_CHEETAH) {
+              kpMat <<
+                  5, 0, 0,
+                  0, 5, 0,
+                  0, 0, 5;
 
-      kdMat <<
-        0.1, 0, 0,
-        0, 0.1, 0,
-        0, 0, 0.1;
-      _ini_yaw = _stateEstimator->getResult().rpy[2];
-      for (int leg = 0; leg < 4; leg++) {
-        _legController->commands[leg].kpJoint = kpMat;
-        _legController->commands[leg].kdJoint = kdMat;
-      }
-    } else {
-      Vec3<float> rpy = _stateEstimator->getResult().rpy;
-      rpy[2] -= _ini_yaw;
-      Quat<float> quat_ori = ori::rpyToQuat(rpy);
+              kdMat <<
+                  0.1, 0, 0,
+                  0, 0.1, 0,
+                  0, 0, 0.1;}
+          else {
+              kpMat <<
+                  50, 0, 0,
+                  0, 50, 0,
+                  0, 0, 50;
 
-      // Quaternion (Orientation setting
-      for (size_t i(0); i < 4; ++i) { _data->body_ori[i] = quat_ori[i]; }
-      // Angular velocity
-      for (int i(0); i < 3; ++i) {
-        _data->ang_vel[i] = _stateEstimator->getResult().omegaBody[i];
-      }
+              kdMat <<
+                  5, 0, 0,
+                  0, 5, 0,
+                  0, 0, 5;
+          }
+
+          _ini_yaw = _stateEstimator->getResult().rpy[2];
+          for (int leg = 0; leg < 4; leg++) {
+              _legController->commands[leg].kpJoint = kpMat;
+              _legController->commands[leg].kdJoint = kdMat;
+          }
+      } else {
+          if(robotType == RobotType::MINI_CHEETAH){
+              Vec3<float> rpy = _stateEstimator->getResult().rpy;
+              rpy[2] -= _ini_yaw;
+              Quat<float> quat_ori = ori::rpyToQuat(rpy);
+
+              // Quaternion (Orientation setting
+              for (size_t i(0); i < 4; ++i) { _data->body_ori[i] = quat_ori[i]; }
+              // Angular velocity
+              for (int i(0); i < 3; ++i) {
+                  _data->ang_vel[i] = _stateEstimator->getResult().omegaBody[i];
+              }
+          }else { // TODO: Cheetah 3 does not have a IMU simulator yet
+              for (size_t i(0); i < 4; ++i) { _data->body_ori[i] = cheaterState->orientation[i]; }
+              // Angular velocity
+              for (int i(0); i < 3; ++i) {
+                  _data->ang_vel[i] = cheaterState->omegaBody[i];
+              }
+          }
 
       if(_cheaterModeEnabled){
-        _data->global_body_pos[0] = cheaterState->position[0];
-        _data->global_body_pos[1] = cheaterState->position[1];
-        _data->global_body_pos[2] = cheaterState->position[2] + 0.5; // ground is -0.5
-        _data->cheater_mode = true;
+          _data->global_body_pos[0] = cheaterState->position[0];
+          _data->global_body_pos[1] = cheaterState->position[1];
+          _data->global_body_pos[2] = cheaterState->position[2] + 0.5; // ground is -0.5
+          _data->cheater_mode = true;
       }
 
       for (int leg(0); leg < 4; ++leg) {
-        for (int jidx(0); jidx < 3; ++jidx) {
-          _data->jpos[3 * leg + jidx] = _legController->datas[leg].q[jidx];
-          _data->jvel[3 * leg + jidx] = _legController->datas[leg].qd[jidx];
+            for (int jidx(0); jidx < 3; ++jidx) {
+                _data->jpos[3 * leg + jidx] = _legController->datas[leg].q[jidx];
+                _data->jvel[3 * leg + jidx] = _legController->datas[leg].qd[jidx];
         }
       }
       _data->mode = main_control_settings.mode;
