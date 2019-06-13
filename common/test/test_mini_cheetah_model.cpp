@@ -179,7 +179,7 @@ TEST(MiniCheetah, simulatorDynamicsABANoExternalForceMiniCheetah) {
  */
 TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
   FloatingBaseModel<double> cheetahModel = buildMiniCheetah<double>().buildModel();
-  DynamicsSimulator<double> sim(cheetahModel);
+  DynamicsSimulator<double> sim(cheetahModel, true);
 
   RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
                          coordinateRotation(CoordinateAxis::Y, .111);
@@ -241,7 +241,7 @@ TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
 
 
   EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
-  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
+  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, .01));
 
   for (size_t i = 0; i < 12; i++) {
     // the qdd's are large - see qddRef, so we're only accurate to within ~1.

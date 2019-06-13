@@ -129,32 +129,6 @@ void QpProblem<T>::computeConstraintInfos()
   }
 }
 
-/*!
- * Perform one-time linear solver setup
- */
-template<typename T>
-void QpProblem<T>::setupLinearSolverDense()
-{
-  _kktSolver = Eigen::LDLT<DenseMatrix<T>>(_kkt);
-  //std::cout << "DIAr:" << _kktSolver.vectorD().transpose() << "\n\n";
-
-}
-
-template<typename T>
-void QpProblem<T>::setupLinearSolverSparse()
-{
-  _kktSparseSolver = new Eigen::SimplicialLDLT<Eigen::SparseMatrix<T>>();
-  _kktSparseX.resize(m + n, 1);
-  _kktSparse = _kkt.sparseView();
-  _kktSparseSolver->compute(_kktSparse);
-}
-
-template<typename T>
-void QpProblem<T>::setupCholeskyDenseSolver()
-{
-
-}
-
 template<typename T>
 void QpProblem<T>::setupLinearSolverCommon()
 {
@@ -188,27 +162,13 @@ void QpProblem<T>::solveLinearSystem()
     _xzTilde[i + n] = (*_zPrev)[i] - _constraintInfos[i].invRho * _y[i];
 
   if(_sparse)
+  {
     _cholSparseSolver.solve(_xzTilde);
+  }
   else
-    _cholDenseSolver.solveAVX(_xzTilde);
-
-  // step!
-  for(s64 i = 0; i < m; i++)
-    _xzTilde[i + n] = (*_zPrev)[i] + _constraintInfos[i].invRho * (_xzTilde[i + n] - _y[i]);
-}
-
-template<typename T>
-void QpProblem<T>::solveLinearSystemSparse()
-{
-  // set up rhs
-  for(s64 i = 0; i < n; i++)
-    _kktSparseX[i] = settings.sigma * (*_xPrev)[i] - q[i];
-
-  for(s64 i = 0; i < m; i++)
-    _kktSparseX[i + n] = (*_zPrev)[i] - _constraintInfos[i].invRho * _y[i];
-
-
-  _xzTilde = _kktSparseSolver->solve(_kktSparseX);
+  {
+    _cholDenseSolver.solve(_xzTilde);
+  }
 
 
   // step!
@@ -232,7 +192,6 @@ void QpProblem<T>::stepZ()
   for(s64 i = 0; i < m; i++) {
     (*_z)[i] = settings.alpha * _xzTilde[i + n] + (T(1) - settings.alpha) * (*_zPrev)[i] + _constraintInfos[i].invRho * _y[i];
 
-    // msvc is garbage and turns this into branches, todo investigate more
     if((*_z)[i] < l[i]) (*_z)[i] = l[i];
     if((*_z)[i] > u[i]) (*_z)[i] = u[i];
   }
@@ -280,47 +239,12 @@ T QpProblem<T>::calcAndDisplayResidual()
     printf("p: %8.4f | d: %8.4f", p, d);
     return (d + p)/4;
   }
-
 }
 
 template<typename T>
 void QpProblem<T>::check()
 {
 
-
-//  std::cout << "x_: " << _x.transpose() << "\n";
-//  std::cout << "x~: " << _xzTilde.topLeftCorner(n,1).transpose() << "\n";
-//  std::cout << "z_: " << _z.transpose() << "\n";
-//  std::cout << "z~: " << _xzTilde.bottomLeftCorner(m,1).transpose() << "\n";
-//  Vector<T> Ax = A * _x;
-//  std::cout << "Ax: " << Ax.transpose() << "\n";
-  //std::cout << _x.transpose() << "\n";
-
-  //  // choldense testing.
-//  DenseMatrix<T> diff = _cholDenseSolver.getInternal() - _kktSolver.matrixLDLT();
-//  printf("Diff %g to %g\n", diff.maxCoeff(), diff.minCoeff());
-//  Vector<T> cholRes(n + m);
-//  Vector<T> cholIn(n + m);
-//  cholIn.setRandom();
-//
-//  Timer mySolverTime;
-//  for(s64 i = 0; i < 1000; i++)
-//  {
-//    cholRes = cholIn;
-//    _cholDenseSolver.solveAVX(cholRes);
-//  }
-//  printf("choldense: %.5f ms\n", mySolverTime.getMs());
-//
-//  Vector<T> prod = _kkt * cholRes;
-//  Vector<T> diff2 = _kkt * cholRes - cholIn;
-//  printf("diff2 %g to %g\n", diff2.maxCoeff(), diff2.minCoeff());
-//
-//  Timer eigenSolveTime;
-//  for(s64 i = 0; i < 1000; i++)
-//  {
-//    Vector<T> ref = _kktSolver.solve(cholIn);
-//  }
-//  printf("eigen: %.5f ms\n", eigenSolveTime.getMs());
 }
 
 

@@ -4,8 +4,7 @@
 #include "../third-party/JCQP/QpProblem.h"
 #include "../third-party/JCQP/ProblemGenerator.h"
 #include "../third-party/JCQP/Timer.h"
-//#include "../third-party/JCQP/OsqpTest.h"
-//#include "../third-party/JCQP/qpOASES.h"
+#include "Utilities/utilities.h"
 
 
 TEST(JCQP, test_example){
@@ -28,84 +27,117 @@ TEST(JCQP, test_example){
   for(int i = 0; i < problem.m; i++) {
     if(Ax[i] < problem.l[i]) {
       printf("lb error (%.3f %.3f, %.3f)!\n", problem.l[i], problem.u[i], soln[i]);
+      EXPECT_TRUE(false);
     }
     if(Ax[i] > problem.u[i]) {
       printf("ub error (%.3f %.3f, %.3f)!\n", problem.l[i], problem.u[i], soln[i]);
+      EXPECT_TRUE(false);
     }
   }
 }
 
+TEST(JCQP, test_result_dense) {
+  QpProblem<double> problem(2,6);
+  problem.A << 1, 1,
+               1, 0,
+               0, 1,
+               -1, -1,
+               -1, 0,
+               0, -1;
+  problem.P << 4,1,1,2;
+  problem.u << 1, 0.7, 0.7, -1, 0, 0;
+  problem.l << -1000, -1000, -1000, -1000, -1000, -1000;
+  problem.run();
 
-TEST(JCQP, MPC_generator){
-  ProblemGenerator<double> pg;
-  auto problem = pg.generateSparseMPC(12,12,300, 0);
-
-  problem.settings.rho = 7;
-
-
-  //Vector<double> qpOasesSoln = testQPOASES(problem);
-  //Vector<double> osqpSoln = testOSQP(problem);
-
-  problem.run(1575, true);
-  Vector<double> mySoln = problem.getSolution();
-
-
-
-  Vector<double> qf = 0.5 * mySoln.transpose() * problem.P * mySoln;
-  double objective = qf(0,0) + problem.q.transpose() * mySoln;
-  printf("my objective: %f\n", objective);
-
-  /*
-  qf = 0.5 * osqpSoln.transpose() * problem.P * osqpSoln;
-  objective = qf(0,0) + problem.q.transpose() * osqpSoln;
-  printf("osqp objective: %f\n", objective);
-
-//  qf = 0.5 * qpOasesSoln.transpose() * problem.P * qpOasesSoln;
-//  objective = qf(0,0) + problem.q.transpose() * qpOasesSoln;
-//  printf("qpoases objective: %f\n", objective);
-
-  Vector<double> soln_diff = mySoln - osqpSoln;
-  fprintf(stderr, "diff (me to osqp): %f (rel %f), frac %f\n", soln_diff.norm(), mySoln.norm(), soln_diff.norm()/ mySoln.norm());
-  printf("diff max (me to osqp) %g, %g\n", soln_diff.minCoeff(), soln_diff.maxCoeff());
-
-//  soln_diff = mySoln - qpOasesSoln;
-//  fprintf(stderr, "diff (me to qpoases): %f (rel %f), frac %f\n", soln_diff.norm(), mySoln.norm(), soln_diff.norm()/ mySoln.norm());
-//  printf("diff max (me to qpoases) %g, %g\n", soln_diff.minCoeff(), soln_diff.maxCoeff());
-
-//  Vector<double> Ax = problem.A * osqpSoln;
-//  for(int i = 0; i < problem.m; i++) {
-//    if(Ax(i,0) < problem.l(i,0) - 2e-3) {
-//      printf("lb error %d (%.3f %.3f, %.3f)!\n", i, problem.l[i], problem.u[i], Ax[i]);
-//    }
-//    if(Ax(i,0) > problem.u(i,0) + 2e-3) {
-//      printf("ub error %d (%.3f %.3f, %.3f)!\n", i, problem.l[i], problem.u[i], Ax[i]);
-//    }
-//  }
-   */
-
+  EXPECT_TRUE(fpEqual(problem.getSolution()[0],0.3, .0001));
+  EXPECT_TRUE(fpEqual(problem.getSolution()[1],0.7, .0001));
 }
 
 
-TEST(JCQP, test_solver){
-#define NTPDF double
-  DenseMatrix<NTPDF> A (100,100);
+TEST(JCQP, test_result_sparse) {
+  QpProblem<double> problem(2,3);
+  problem.A << 1, 1,
+      1, 0,
+      0, 1;
+  problem.P << 4,1,1,2;
+  problem.u << 1, 0.7, 0.7;
+  problem.l << 1,0,0;
+  problem.run(-1, true);
+
+  EXPECT_TRUE(fpEqual(problem.getSolution()[0],0.3, .0001));
+  EXPECT_TRUE(fpEqual(problem.getSolution()[1],0.7, .0001));
+  std::cout << "-----> sol: " << problem.getSolution().transpose() << "\n";
+}
+
+
+TEST(JCQP, test_solver_dense_double){
+  DenseMatrix<double> A (100,100);
   A.setRandom();
   A = A * A.transpose();
-  Vector<NTPDF> x(100);
+  Vector<double> x(100);
   x.setRandom();
 
-  Vector<NTPDF> b = x;
+  Vector<double> b = x;
 
-  CholeskyDenseSolver<NTPDF> solver;
-  Timer tim;
+  CholeskyDenseSolver<double> solver(false);
   for(s64 i = 0; i < 3; i++)
   {
     solver.setup(A);
   }
 
   solver.solve(x);
-  printf("solved in %.3f ms\n", tim.getMs() / 3);
 
-  Vector<NTPDF> diff = A * x - b;
-  printf("diff %g, %g\n", diff.minCoeff(), diff.maxCoeff());
+  Vector<double> diff = A * x - b;
+  EXPECT_TRUE(fpEqual(diff.minCoeff(), 0.0, 0.001));
+  EXPECT_TRUE(fpEqual(diff.maxCoeff(), 0.0, 0.001));
+}
+
+TEST(JCQP, test_solver_dense_float) {
+  DenseMatrix<float> A (10,10);
+  A.setRandom();
+  A = A * A.transpose();
+  Vector<float> x(10);
+  x.setRandom();
+
+  Vector<float> b = x;
+
+  CholeskyDenseSolver<float> solver(false);
+  for(s64 i = 0; i < 3; i++)
+  {
+    solver.setup(A);
+  }
+
+  solver.solve(x);
+
+  Vector<float> diff = A * x - b;
+  EXPECT_TRUE(fpEqual(diff.minCoeff(), 0.0f, 0.001f));
+  EXPECT_TRUE(fpEqual(diff.maxCoeff(), 0.0f, 0.001f));
+}
+
+TEST(JCQP, test_solver_sparse) {
+  int n = 300;
+  Vector<double> x(n);
+  x.setRandom();
+  Vector<double> b = x;
+  DenseMatrix<double> A (n,n);
+  A.setRandom();
+  for(int i = 0; i < n; i++) {
+    for(int j = 0; j < n; j++) {
+      if((i + 3 * j) % 7 == 1) {
+        A(i,j) = 0;
+      }
+    }
+  }
+
+  A = A * A.transpose();
+  SparseMatrix<double> As = A.sparseView();
+  CholeskySparseSolver<double> solver;
+  solver.preSetup(As);
+  solver.setup(As);
+  solver.solve(x);
+  Vector<double> diff = As * x - b;
+  EXPECT_TRUE(fpEqual(diff.minCoeff(), 0.0, 0.001));
+  EXPECT_TRUE(fpEqual(diff.maxCoeff(), 0.0, 0.001));
+
+  printf("diff %g %g\n", diff.minCoeff(), diff.maxCoeff());
 }

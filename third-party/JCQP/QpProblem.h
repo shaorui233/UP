@@ -11,11 +11,10 @@
 
 template<typename T>
 struct QpProblemSettings {
-  s64 scalingIterations = 10;
   s64 maxIterations = 1000000;
   T rho = 6;
   T sigma = 1e-6;
-  T alpha = 1.6;
+  T alpha = 1.7;
 
   // numerical hacks
   T infty = 1e10;
@@ -51,17 +50,22 @@ class QpProblem
 {
 public:
 
-    QpProblem(s64 n_, s64 m_) : A(m_,n_), P(n_,n_), 
+    QpProblem(s64 n_, s64 m_, bool print_timings = true)
+     : A(m_,n_), P(n_,n_),
     l(m_), u(m_), q(n_), 
-    n(n_), m(m_), 
+    n(n_), m(m_),
+    _print(print_timings),
     _kkt(n_ + m_, n_ + m_),
+    _cholDenseSolver(print_timings),
     _xzTilde(n_ + m_), _y(m_),
     _x0(n_), _x1(n_), _z0(m_), _z1(m_),   
     _Ar(m_), _Pr(n_), _AtR(n_), 
     _deltaY(m_), _AtDeltaY(n_),
-    _deltaX(n_), _PDeltaX(n_), _ADeltaX(m_) {
+    _deltaX(n_), _PDeltaX(n_), _ADeltaX(m_)
+    {
         _constraintInfos.resize(m);
-
+      (void)(n_);
+      (void)(m_);
     }
 
     void run(s64 nIterations = -1, bool sparse = false);
@@ -77,7 +81,7 @@ public:
   s64 n, m;
 
   ~QpProblem() {
-    delete _kktSparseSolver;
+    printf("done!\n");
   }
 
 private:
@@ -95,17 +99,15 @@ private:
   void stepY();
   T calcAndDisplayResidual();
   void check();
-  bool isSolved();
-  void stepV2();
   T infNorm(const Vector<T>& v);
 
-
+  bool _print;
   DenseMatrix<T> _kkt;
   SparseMatrix<T> _kktSparse;
   Vector<T> _kktSparseX;
-
-  Eigen::LDLT<DenseMatrix<T>> _kktSolver;
-  Eigen::SimplicialLDLT<Eigen::SparseMatrix<T>>* _kktSparseSolver = nullptr;
+//
+//  //Eigen::LDLT<DenseMatrix<T>> _kktSolver;
+//  //Eigen::SimplicialLDLT<Eigen::SparseMatrix<T>>* _kktSparseSolver = nullptr;
   CholeskyDenseSolver<T> _cholDenseSolver;
   CholeskySparseSolver<T> _cholSparseSolver;
   Eigen::SparseMatrix<T> Asparse;

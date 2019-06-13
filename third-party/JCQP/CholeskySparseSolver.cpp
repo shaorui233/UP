@@ -4,6 +4,7 @@
 #include <iostream>
 #include <immintrin.h>
 
+
 template<typename T>
 void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat)
 {
@@ -63,7 +64,6 @@ void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat)
 
   sanityCheck();
   printf("CHOLSPARSE CHECK %.3f ms\n", tim.getMs());
-  tim.start();
 }
 
 template<typename T>
@@ -85,6 +85,11 @@ void CholeskySparseSolver<T>::setup(const DenseMatrix<T> &kktMat)
   factor();
   printf("CHOLSPARSE FACTOR %.3f ms\n", tim.getMs());
   tim.start();
+
+#ifndef JCQP_USE_AVX2
+  solveOrder();
+  printf("CHOLSPARSE SOLVEORDER %.3f ms\n", tim.getMs());
+#endif
 }
 
 template<typename T>
@@ -458,28 +463,34 @@ void CholeskySparseSolver<T>::solve(Vector<T>& outv) {
     out[j] = outP[P[j]];
   }
 
+#ifdef JCQP_USE_AVX2
   spTriAVX(n, L.colPtrs, L.rowIdx, L.values, out);
-//  for(u32 j = 0; j < n; j++) {
-//    u32 end = L.colPtrs[j + 1];
-//    for(u32 p = L.colPtrs[j]; p < end; p++) {
-//      out[L.rowIdx[p]] -= L.values[p] * out[j];
-//    }
-//  }
+#else
+  for(u32 j = 0; j < n; j++) {
+    u32 end = L.colPtrs[j + 1];
+    for(u32 p = L.colPtrs[j]; p < end; p++) {
+      out[L.rowIdx[p]] -= L.values[p] * out[j];
+    }
+  }
+#endif
+
 
 
   for(u32 i = 0; i < n; i++) {
     out[i] *= rD[i];
   }
 
+#ifdef JCQP_USE_AVX2
   spTriTAVX2(n, L.colPtrs, L.rowIdx, L.values, out);
-
-//  T* mat = reverseOrder;
-//  for(s32 i = n - 1; i >= 0; i--) {
-//    u32 end = L.colPtrs[i + 1];
-//    for(u32 j = L.colPtrs[i]; j < end; j++) {
-//      out[i] -= L.values[j] * out[L.rowIdx[j]];
-//    }
-//  }
+#else
+  T* mat = reverseOrder;
+  for(s32 i = n - 1; i >= 0; i--) {
+    u32 end = L.colPtrs[i + 1];
+    for(u32 j = L.colPtrs[i]; j < end; j++) {
+      out[i] -= L.values[j] * out[L.rowIdx[j]];
+    }
+  }
+#endif
 
   for(u32 j = 0; j < n; j++) {
     outP[P[j]] = out[j];
@@ -508,7 +519,7 @@ void CholeskySparseSolver<T>::solveOrder()
 template<typename T>
 void CholeskySparseSolver<T>::amdOrder(MatCSC<T> &mat, u32 *perm, u32* iperm)
 {
-  T* amdInfo = new T[AMD_INFO];
+  T amdInfo[AMD_INFO];
   int amdRV = amd_order((int)mat.n, (int*)mat.colPtrs, (int*)mat.rowIdx, (int*)perm, nullptr, amdInfo);
   if(amdRV < 0) throw std::runtime_error("reorder failed");
 

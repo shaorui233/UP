@@ -9,9 +9,8 @@
 #include <cassert>
 #include <iostream>
 #include <immintrin.h>
-//#include "ThreadGroup.h"
 
-static constexpr s64 UNROLL_MATVEC = 8; //! Loop unroll for all inner loops
+static constexpr s64 UNROLL_MATVEC = 8; //! Loop unroll for all inner loops, AVX2 only
 
 /*!
  * Perform initial factorization
@@ -33,7 +32,9 @@ void CholeskyDenseSolver<T>::setup(const DenseMatrix<T> &kktMat)
 
   Vector<T> temp(n); // O(n) temporary storage, used in a few places
 
-  printf("CHOLDENSE SETUP %.3f ms\n", tim.getMs());
+  if(_print)
+    printf("CHOLDENSE SETUP %.3f ms\n", tim.getMs());
+
   tim.start();
 
   // in place dense LDLT algorithm
@@ -64,7 +65,7 @@ void CholeskyDenseSolver<T>::setup(const DenseMatrix<T> &kktMat)
         std::swap(L(row, i), L(pivot, i));
       }
 
-      // sawp col
+      // swap col
       for(s64 i = pivot + 1; i < n; i++)
       {
         std::swap(L(i, row), L(i, pivot));
@@ -95,7 +96,7 @@ void CholeskyDenseSolver<T>::setup(const DenseMatrix<T> &kktMat)
         L(row, row) -= temp[i] * L(row, i); // D_i = A_ii - sum_k D_k * L_ik
       }
 
-      T factor = L(row, row);
+      //T factor = L(row, row);
 
       // compute ith (row-th) column of L
       // all L's are assumed to be in the row-th column
@@ -125,7 +126,9 @@ void CholeskyDenseSolver<T>::setup(const DenseMatrix<T> &kktMat)
     }
   }
 
-  printf("CHOLDENSE FACT %.3f ms\n", tim.getMs());
+  if(_print)
+    printf("CHOLDENSE FACT %.3f ms\n", tim.getMs());
+
   tim.start();
 
   // set up memory:
@@ -148,8 +151,8 @@ void CholeskyDenseSolver<T>::setup(const DenseMatrix<T> &kktMat)
     }
   }
 
-  printf("CHOLDENSE FIN %.3f ms\n", tim.getMs());
-  tim.start();
+  if(_print)
+    printf("CHOLDENSE FIN %.3f ms\n", tim.getMs());
 }
 
 /*!
@@ -164,13 +167,18 @@ void CholeskyDenseSolver<double>::setupAVX(double *mat, double *result, double *
   double* resultPtr;
   for(s64 c = 0; c < C; c++)
   {
+
+#ifdef JCQP_USE_AVX2
     __m256d vecData = _mm256_set1_pd(vec[c]); // broadcast to all
+#endif
     resultPtr = result;
     matPtr = mat + c * n;
     s64 r = 0;
+    r = 0;
 
+#ifdef JCQP_USE_AVX2
     s64 end = R - 4 * UNROLL_MATVEC; // gcc fails to make this optimization.
-    for(r = 0; r < end; r += 4 * UNROLL_MATVEC)
+    for(; r < end; r += 4 * UNROLL_MATVEC)
     {
       for(s64 u = 0; u < UNROLL_MATVEC; u++)
       {
@@ -183,6 +191,7 @@ void CholeskyDenseSolver<double>::setupAVX(double *mat, double *result, double *
         resultPtr += 4;
       }
     }
+#endif
 
     // leftovers that don't fit in a vector.
     for(; r < R; r++)
@@ -206,13 +215,16 @@ void CholeskyDenseSolver<float>::setupAVX(float *mat, float *result, float *vec,
   float* resultPtr;
   for(s64 c = 0; c < C; c++)
   {
+#ifdef JCQP_USE_AVX2
     __m256 vecData = _mm256_set1_ps(vec[c]); // broadcast to all
+#endif
     resultPtr = result;
     matPtr = mat + c * n;
     s64 r = 0;
 
+#ifdef JCQP_USE_AVX2
     s64 end = R - 8 * UNROLL_MATVEC; // gcc fails to make this optimization.
-    for(r = 0; r < end; r += 8 * UNROLL_MATVEC)
+    for(; r < end; r += 8 * UNROLL_MATVEC)
     {
       for(s64 u = 0; u < UNROLL_MATVEC; u++)
       {
@@ -225,7 +237,7 @@ void CholeskyDenseSolver<float>::setupAVX(float *mat, float *result, float *vec,
         resultPtr += 8;
       }
     }
-
+#endif
     // leftovers.
     for(; r < R; r++)
     {
@@ -262,11 +274,17 @@ DenseMatrix<T> CholeskyDenseSolver<T>::getReconstructedPermuted()
 }
 
 /*!
- * Reference slow solve function.  don't use
+ * public solve function
  */
 template<typename T>
 void CholeskyDenseSolver<T>::solve(Vector<T> &out)
 {
+  // only use the AVX solver if we have it available.
+#ifdef JCQP_USE_AVX2
+  solveAVX(out);
+  return;
+#endif
+
   s64 c = 0;
   // first permute:
   for(s64 i = 0; i < n; i++)
@@ -313,7 +331,6 @@ void CholeskyDenseSolver<T>::solve(Vector<T> &out)
 template<>
 void CholeskyDenseSolver<double>::solveAVX(Vector<double> &out)
 {
-  s64 c = 0;
   // first permute:
   for(s64 i = 0; i < n; i++)
   {
@@ -359,7 +376,6 @@ void CholeskyDenseSolver<double>::solveAVX(Vector<double> &out)
     out[i] /= L(i,i);
   }
 
-  c = 0;
   matPtr = solve2;
   for(s64 j = n; j --> 0;)
   {
@@ -400,7 +416,6 @@ void CholeskyDenseSolver<double>::solveAVX(Vector<double> &out)
 template<>
 void CholeskyDenseSolver<float>::solveAVX(Vector<float> &out)
 {
-  s64 c = 0;
   // first permute:
   for(s64 i = 0; i < n; i++)
   {
@@ -446,7 +461,6 @@ void CholeskyDenseSolver<float>::solveAVX(Vector<float> &out)
     out[i] /= L(i,i);
   }
 
-  c = 0;
   matPtr = solve2;
   for(s64 j = n; j --> 0;)
   {

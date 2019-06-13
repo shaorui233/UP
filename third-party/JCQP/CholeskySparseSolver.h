@@ -58,7 +58,7 @@ private:
   MatCSC<T> A;
   MatCSC<T> L;
   u32 n;
-  T* tempSolve;
+  T* tempSolve = nullptr;
   T* reverseOrder = nullptr;
   u32* nnzLCol = nullptr; // # of nonzeros per column in L
   u32* P = nullptr;       // reorder permutation
