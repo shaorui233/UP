@@ -8,6 +8,8 @@
 #include "CholeskyDenseSolver.h"
 #include "CholeskySparseSolver.h"
 
+// 0.5 * x'Px + q'x
+// l <= Ax <= u
 
 template<typename T>
 struct QpProblemSettings {
@@ -63,6 +65,7 @@ public:
     _deltaY(m_), _AtDeltaY(n_),
     _deltaX(n_), _PDeltaX(n_), _ADeltaX(m_)
     {
+        q.setZero();
         _constraintInfos.resize(m);
       (void)(n_);
       (void)(m_);

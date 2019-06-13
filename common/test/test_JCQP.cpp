@@ -47,6 +47,7 @@ TEST(JCQP, test_result_dense) {
   problem.P << 4,1,1,2;
   problem.u << 1, 0.7, 0.7, -1, 0, 0;
   problem.l << -1000, -1000, -1000, -1000, -1000, -1000;
+  problem.q << 0, 0;
   problem.run();
 
   EXPECT_TRUE(fpEqual(problem.getSolution()[0],0.3, .0001));
@@ -57,11 +58,12 @@ TEST(JCQP, test_result_dense) {
 TEST(JCQP, test_result_sparse) {
   QpProblem<double> problem(2,3);
   problem.A << 1, 1,
-      1, 0,
-      0, 1;
-  problem.P << 4,1,1,2;
-  problem.u << 1, 0.7, 0.7;
-  problem.l << 1,0,0;
+      1., 0.,
+      0., 1.;
+  problem.P << 4.,1.,1.,2.;
+  problem.u << 1., 0.7, 0.7;
+  problem.l << 1., 0., 0.;
+  problem.q << 0, 0;
   problem.run(-1, true);
 
   EXPECT_TRUE(fpEqual(problem.getSolution()[0],0.3, .0001));

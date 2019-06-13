@@ -28,6 +28,7 @@ void QpProblem<T>::coldStart()
 template<typename T>
 void QpProblem<T>::run(s64 nIterations, bool sparse)
 {
+    if(nIterations <0) {nIterations = settings.maxIterations; }
   _sparse = sparse;
   // print info
   printf("n: %ld\nm: %ld\n, sz %ld", n, m, sizeof(T));
@@ -76,7 +77,7 @@ void QpProblem<T>::run(s64 nIterations, bool sparse)
     stepZ();
     stepY();
 
-    if(!((iteration + 1) % 300)) {
+    if(!((iteration + 1) % 30)) {
       Timer residTimer;
 
       printf("Iteration %5ld: ", iteration + 1);
