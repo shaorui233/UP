@@ -70,7 +70,7 @@ void get_main_control_settings(void *settings) {
 
 void get_rc_channels(void *settings) {
   pthread_mutex_lock(&lcm_get_set_mutex);
-  v_memcpy(settings, &rc_channels, 4 * sizeof(rc_channels));
+  v_memcpy(settings, &rc_channels, sizeof(rc_channels));
   pthread_mutex_unlock(&lcm_get_set_mutex);
 }
 

@@ -43,9 +43,10 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T> & model) {
     Mat6<T> xtreeAbadRotor = createSXform(I3, withLegSigns<T>(_abadRotorLocation, legID));
 
     if(sideSign < 0) {
-      model.addBody(_abadInertia.flipAlongAxis(CoordinateAxis::Y), _abadRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+      model.addBody(_abadInertia.flipAlongAxis(CoordinateAxis::Y), 
+              _abadRotorInertia.flipAlongAxis(CoordinateAxis::Y),
               _abadGearRatio, baseID, JointType::Revolute,
-                    CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
+              CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
     } else {
       model.addBody(_abadInertia, _abadRotorInertia, _abadGearRatio, baseID, JointType::Revolute,
                     CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
@@ -53,10 +54,13 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T> & model) {
 
     // Hip Joint
     bodyID++;
-    Mat6<T> xtreeHip = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipLocation, legID));
-    Mat6<T> xtreeHipRotor = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipRotorLocation, legID));
+    Mat6<T> xtreeHip = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), 
+            withLegSigns<T>(_hipLocation, legID));
+    Mat6<T> xtreeHipRotor = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), 
+            withLegSigns<T>(_hipRotorLocation, legID));
     if(sideSign < 0) {
-      model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y), _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+      model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y), 
+              _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
               _hipGearRatio, bodyID-1, JointType::Revolute, CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
     } else {
       model.addBody(_hipInertia, _hipRotorInertia,
@@ -71,11 +75,15 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T> & model) {
     Mat6<T> xtreeKnee = createSXform(I3, _kneeLocation);
     Mat6<T> xtreeKneeRotor = createSXform(I3, _kneeRotorLocation);
     if(sideSign < 0) {
-      model.addBody(_kneeInertia.flipAlongAxis(CoordinateAxis::Y), _kneeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-              _kneeGearRatio, bodyID - 1, JointType::Revolute, CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
+      model.addBody(
+              _kneeInertia.flipAlongAxis(CoordinateAxis::Y), 
+              _kneeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+              _kneeGearRatio, bodyID - 1, JointType::Revolute, 
+              CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
     } else {
       model.addBody(_kneeInertia, _kneeRotorInertia,
-                    _kneeGearRatio, bodyID - 1, JointType::Revolute, CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
+                    _kneeGearRatio, bodyID - 1, JointType::Revolute, 
+                    CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
     }
 
     // add foot
@@ -121,12 +129,14 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
     Mat6<T> xtreeAbadRotor = createSXform(I3, withLegSigns<T>(_abadRotorLocation, legID));
 
     if(sideSign < 0) {
-      model.addBody(_abadInertia.flipAlongAxis(CoordinateAxis::Y), _abadRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-              _abadGearRatio, baseID, JointType::Revolute,
-                    CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
+        model.addBody(
+                _abadInertia.flipAlongAxis(CoordinateAxis::Y), 
+                _abadRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+                _abadGearRatio, baseID, JointType::Revolute,
+                CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
     } else {
-      model.addBody(_abadInertia, _abadRotorInertia, _abadGearRatio, baseID, JointType::Revolute,
-                    CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
+        model.addBody(_abadInertia, _abadRotorInertia, _abadGearRatio, baseID, JointType::Revolute,
+                CoordinateAxis::X, xtreeAbad, xtreeAbadRotor);
     }
 
     // Hip Joint
@@ -134,11 +144,14 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
     Mat6<T> xtreeHip = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipLocation, legID));
     Mat6<T> xtreeHipRotor = createSXform(coordinateRotation<T>(CoordinateAxis::Z, T(M_PI)), withLegSigns<T>(_hipRotorLocation, legID));
     if(sideSign < 0) {
-      model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y), _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-              _hipGearRatio, bodyID-1, JointType::Revolute, CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
+      model.addBody(_hipInertia.flipAlongAxis(CoordinateAxis::Y), 
+              _hipRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+              _hipGearRatio, bodyID-1, JointType::Revolute, 
+              CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
     } else {
       model.addBody(_hipInertia, _hipRotorInertia,
-                    _hipGearRatio, bodyID-1, JointType::Revolute, CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
+                    _hipGearRatio, bodyID-1, JointType::Revolute, 
+                    CoordinateAxis::Y, xtreeHip, xtreeHipRotor);
     }
 
     // add knee ground contact point
@@ -149,11 +162,14 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
     Mat6<T> xtreeKnee = createSXform(I3, _kneeLocation);
     Mat6<T> xtreeKneeRotor = createSXform(I3, _kneeRotorLocation);
     if(sideSign < 0) {
-      model.addBody(_kneeInertia.flipAlongAxis(CoordinateAxis::Y), _kneeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
-              _kneeGearRatio, bodyID - 1, JointType::Revolute, CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
+      model.addBody(_kneeInertia.flipAlongAxis(CoordinateAxis::Y), 
+              _kneeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
+              _kneeGearRatio, bodyID - 1, JointType::Revolute, 
+              CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
     } else {
       model.addBody(_kneeInertia, _kneeRotorInertia,
-                    _kneeGearRatio, bodyID - 1, JointType::Revolute, CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
+                    _kneeGearRatio, bodyID - 1, JointType::Revolute, 
+                    CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
     }
 
     // add foot

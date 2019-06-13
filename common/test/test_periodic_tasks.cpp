@@ -41,7 +41,7 @@ TEST(PeriodicTask, test1) {
   task2.start();
 
   for(int i = 0; i < 10; i++) {
-    taskManager.printStatus();
+    //taskManager.printStatus();
     usleep(50000);
   }
 
@@ -63,7 +63,7 @@ TEST(PeriodicTask, test1) {
   task3.start();
 
   for(int i = 0; i < 10; i++) {
-    taskManager.printStatus();
+    //taskManager.printStatus();
     usleep(50000);
   }
 

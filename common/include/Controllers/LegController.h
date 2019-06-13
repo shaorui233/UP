@@ -37,17 +37,25 @@ struct LegControllerData {
     zero();
   }
 
+  void setQuadruped(Quadruped<T>& quad) {
+    quadruped = &quad;
+  }
+
   void zero();
 
   Vec3<T> q, qd, p, v;
   Mat3<T> J;
   Vec3<T> tauEstimate;
+  Quadruped<T>* quadruped;
 };
 
 template <typename T>
 class LegController {
 public:
-  LegController(Quadruped<T>& quad) : _quadruped(quad)  { }
+  LegController(Quadruped<T>& quad) : _quadruped(quad)  {
+    for(auto& data : datas)
+      data.setQuadruped(_quadruped);
+  }
 
   void zeroCommand();
   void edampCommand(RobotType robot, T gain);

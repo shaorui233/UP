@@ -19,6 +19,8 @@ void CheaterOrientationEstimator<T>::run()  {
   this->_stateEstimatorData.result->omegaBody = this->_stateEstimatorData.cheaterState->omegaBody.template cast<T>();
   this->_stateEstimatorData.result->omegaWorld = this->_stateEstimatorData.result->rBody.transpose() * this->_stateEstimatorData.result->omegaBody;
   this->_stateEstimatorData.result->rpy = ori::quatToRPY(this->_stateEstimatorData.result->orientation);
+  this->_stateEstimatorData.result->aBody = this->_stateEstimatorData.cheaterState->acceleration.template cast<T>();
+  this->_stateEstimatorData.result->aWorld = this->_stateEstimatorData.result->rBody.transpose() * this->_stateEstimatorData.result->aBody;
 }
 
 template<typename T>
@@ -35,6 +37,10 @@ void VectorNavOrientationEstimator<T>::run() {
   this->_stateEstimatorData.result->omegaBody = this->_stateEstimatorData.vectorNavData->gyro.template cast <T>();
   this->_stateEstimatorData.result->omegaWorld = this->_stateEstimatorData.result->rBody.transpose() * this->_stateEstimatorData.result->omegaBody;
   this->_stateEstimatorData.result->rpy = ori::quatToRPY(this->_stateEstimatorData.result->orientation);
+  this->_stateEstimatorData.result->aBody =
+      this->_stateEstimatorData.vectorNavData->accelerometer.template cast<T>();
+  this->_stateEstimatorData.result->aWorld =
+      this->_stateEstimatorData.result->rBody.transpose() * this->_stateEstimatorData.result->aBody;
 }
 
 template<typename T>

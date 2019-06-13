@@ -20,9 +20,10 @@
 
 #include "rt/rt_interface_lcm.h"
 #include <gui_main_control_settings_t.hpp>
+#include <Controllers/PositionVelocityEstimator.h>
 
-#define REMOTE_CTRL false
-//#define REMOTE_CTRL true
+//#define REMOTE_CTRL false
+#define REMOTE_CTRL true
 
 void RobotController::init() {
   printf("[RobotController] initialize\n");
@@ -34,6 +35,7 @@ void RobotController::init() {
   }
 
   _legController = new LegController<float>(_quadruped);
+  printf("Control Parameters is 0x%lx\n", (uint64_t)controlParameters);
   _stateEstimator = new StateEstimatorContainer<float>(
       cheaterState, kvhImuData, vectorNavData,
       _legController->datas, &_stateEstimate, controlParameters);
@@ -97,6 +99,9 @@ void RobotController::run() {
 
   cheetahMainVisualization->p.setZero();
   _stateEstimator->run(cheetahMainVisualization);
+  cheetahMainVisualization->p = _stateEstimate.position;
+  printf("p robot %.3f %.3f %.3f\n", _stateEstimate.position[0], _stateEstimate.position[1],
+      _stateEstimate.position[2]);
 
   // for debugging the visualizations from robot code
   //testDebugVisualization();
@@ -696,6 +701,7 @@ void RobotController::run() {
 
   void RobotController::initializeStateEstimator(bool cheaterMode) {
     _stateEstimator->removeAllEstimators();
+    _stateEstimator->addEstimator<ContactEstimator<float>>();
     if (cheaterMode) {
       _stateEstimator->addEstimator<CheaterOrientationEstimator<float>>();
     } else if (robotType == RobotType::MINI_CHEETAH) {
@@ -705,6 +711,7 @@ void RobotController::run() {
     } else {
       assert(false);
     }
+    _stateEstimator->addEstimator<LinearKFPositionVelocityEstimator<float>>();
   }
 
   RobotController::~RobotController() {
