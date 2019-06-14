@@ -32,8 +32,14 @@ include_directories("../lcm-types/cpp/")
 include_directories("../third-party/inih")       # inih includes
 include_directories("../third-party/osqp/include")       # osqp includes
 include_directories("../third-party/ParamHandler")
-include_directories("../third-party/nlopt/")
 include_directories(${CMAKE_BINARY_DIR})
+
+# Casaid include
+include_directories("../third-party/casadi/")
+include_directories(${CMAKE_BINARY_DIR}/third-party/casadi/)
+
+# Nlopt include
+include_directories("../third-party/nlopt/")
 include_directories(${CMAKE_BINARY_DIR}/third-party/nlopt/src/api)
 
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
@@ -50,4 +56,7 @@ target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_par
 target_link_libraries(test-common Goldfarb_Optimizer nlopt)
 target_link_libraries(test-common WBC_state)
 target_link_libraries(test-common JCQP)
+target_link_libraries(test-common casadi)
+
 add_test(NAME example_test COMMAND test-common)
+

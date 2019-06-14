@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.5)
 project(robot)
 
 
-
 include_directories("include/")
 include_directories("./")
 include_directories("../common/include/")
@@ -19,9 +18,7 @@ include_directories(${CMAKE_BINARY_DIR})
 file(GLOB sources "src/*.cpp" "src/rt/*.c"  "src/rt/*.cpp" "FSM_States/*.h" "FSM_States/*.cpp")
 
 add_executable(robot ${sources})
-target_link_libraries(robot biomimetics pthread lcm rt inih 
-    libvnc
-    )
+target_link_libraries(robot biomimetics pthread lcm rt inih libvnc)
 
 add_subdirectory(WBC_States)
 add_subdirectory(WBC)

@@ -258,7 +258,6 @@ void ControlParameters::initializeFromYamlFile(const std::string &path) {
 
   std::vector<std::string> keys = paramHandler.getKeys();
 
-
   for(auto& key : keys) {
     if(key == YAML_COLLECTION_NAME_KEY) continue;
     ControlParameter& cp = collection.lookup(key);
