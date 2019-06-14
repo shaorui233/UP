@@ -16,6 +16,7 @@
 #include "JPosInitializer.h"
 #include "Utilities/PeriodicTask.h"
 #include "ControlFSM.h"
+#include <gui_main_control_settings_t.hpp>
 
 // gamepadCommand
 // robotType
@@ -30,6 +31,17 @@
 // spiCommand
 //
 
+/**
+ * Enumerate all of the Control logic options. Each one will have 
+ * an initialize and a run function that pieces together the control
+ * logic from the various robot controllers and sensors.
+ */
+enum class ControlLogicName {
+  CONTROL_FSM,
+  WBC
+};
+
+
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 template <typename T> class Test;
 
@@ -41,30 +53,15 @@ public:
   void run() override;
   void cleanup() override;
 
-  // Handles the logic for locomotion controlled by the Gait Scheduler
-  void LocomotionControlStep();
+  // Control options logic initializations 
+  void initializeControlOptionControlFSM(); // ControlFSM
+  void initializeControlOptionWBC();        // WBC
 
-  // Calculates the GRF for stance legs and next footstep location for the swing legs
-  void runControls();
+  // Control options logic run functions
+  void runControlOptionControlFSM();  // ControlFSM
+  void runControlOptionWBC();         // WBC
 
-  // Calls the interface to the controller
-  void runBalanceController();
-
-  // Calls the interface to the controller
-  void runWholeBodyController();
-
-  // Calls the interface to the controller
-  void runConvexModelPredictiveController();
-
-  // Calls the interface to the controller
-  void runRegularizedPredictiveController();
-
-  // Heuristic based swing foot placement
-  void footstepHeuristicPlacement();
-
-  // Impedance control for the stance legs
-  void stanceLegImpedanceControl(int leg);
-
+  // Initialize the state estimator with default no cheaterMode
   void initializeStateEstimator(bool cheaterMode = false);
   virtual ~RobotController();
 
@@ -85,6 +82,8 @@ public:
 private:
   float _ini_yaw;
 
+  int iter = 0;
+
   void setupStep();
   void finalizeStep();
   void testDebugVisualization();
@@ -100,12 +99,10 @@ private:
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
   ControlFSM<float>* _controlFSM;
+  gui_main_control_settings_t main_control_settings;
 
-  // Ground reaction forces for the stance feet to be calculated by the controllers
-  Mat34<float> groundReactionForces;
-
-  // Next footstep location for the swing feet
-  Mat34<float> footstepLocations;
+  // Option for the control logic
+  ControlLogicName CONTROL_OPTION;
 
   // Gait Scheduler controls the nominal contact schedule for the feet
   GaitScheduler<float>* _gaitScheduler;

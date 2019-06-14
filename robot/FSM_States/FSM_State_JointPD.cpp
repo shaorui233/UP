@@ -26,6 +26,9 @@ void FSM_State_JointPD<T>::onEnter() {
 
   // Reset the transition data
   this->transitionData.zero();
+
+  // Reset counter
+  iter = 0;
 }
 
 
@@ -52,7 +55,7 @@ void FSM_State_JointPD<T>::run() {
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
  *
- * @return the enumarated FSM state name to transition into
+ * @return the enumerated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_JointPD<T>::checkTransition() {
@@ -66,9 +69,34 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
     // Normal operation for state based transitions
     break;
 
+  case K_IMPEDANCE_CONTROL:
+    // Requested change to impedance control
+    this->nextStateName = FSM_StateName::IMPEDANCE_CONTROL;
+
+    // Transition time is 1 second
+    this->transitionDuration = 1.0;
+    break;
+
+  case K_STAND_UP:
+    // Requested change to impedance control
+    this->nextStateName = FSM_StateName::STAND_UP;
+
+    // Transition time is immediate
+    this->transitionDuration = 0.0;
+    break;
+
   case K_BALANCE_STAND:
     // Requested change to balance stand
     this->nextStateName = FSM_StateName::BALANCE_STAND;
+    break;
+
+  case K_PASSIVE:
+    // Requested change to BALANCE_STAND
+    this->nextStateName = FSM_StateName::PASSIVE;
+
+    // Transition time is immediate
+    this->transitionDuration = 0.0;
+
     break;
 
   default:
@@ -89,6 +117,40 @@ FSM_StateName FSM_State_JointPD<T>::checkTransition() {
  */
 template <typename T>
 TransitionData<T> FSM_State_JointPD<T>::transition() {
+
+    // Switch FSM control mode
+  switch (this->nextStateName) {
+  case FSM_StateName::IMPEDANCE_CONTROL:
+
+    iter++;
+    if (iter >= this->transitionDuration * 1000) {
+      this->transitionData.done = true;
+    } else {
+      this->transitionData.done = false;
+    }
+    break;
+
+  case FSM_StateName::STAND_UP:
+    this->transitionData.done = true;
+
+    break;
+
+  case FSM_StateName::BALANCE_STAND:
+    this->transitionData.done = true;
+
+    break;
+
+  case FSM_StateName::PASSIVE:
+    this->turnOffAllSafetyChecks();
+
+    this->transitionData.done = true;
+
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_JOINT_PD << " to " << this->_data->controlParameters->control_mode << std::endl;
+
+  }
   // Finish transition
   this->transitionData.done = true;
 

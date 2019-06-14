@@ -17,11 +17,7 @@ template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND, "BALANCE_STAND") {
   // Set the pre controls safety checks
-  this->checkSafeOrientation = true;
-
-  // Post control safety checks
-  this->checkPDesFoot = true;
-  this->checkForceFeedForward = true;
+  this->turnOnAllSafetyChecks();
 
   // Initialize GRF to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
@@ -30,7 +26,12 @@ FSM_State_BalanceStand<T>::FSM_State_BalanceStand(ControlFSMData<T>* _controlFSM
 
 template <typename T>
 void FSM_State_BalanceStand<T>::onEnter() {
+  // Set the pre controls safety checks
+  this->turnOnAllSafetyChecks();
+
+  // Reset transition duration
   this->transitionDuration = 0.0;
+
   // Default is to not transition
   this->nextStateName = this->stateName;
 
@@ -56,7 +57,7 @@ void FSM_State_BalanceStand<T>::run() {
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
  *
- * @return the enumarated FSM state name to transition into
+ * @return the enumerated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
@@ -83,7 +84,7 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
     }*/
 
     // in place to show automatic non user requested transitions
-    if (iter >= 2058) {
+    if (iter >= 5458) {
       this->nextStateName = FSM_StateName::LOCOMOTION;
       this->_data->controlParameters->control_mode = K_LOCOMOTION;
       this->transitionDuration = 0.0;
@@ -101,6 +102,15 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
 
     // Set the next gait in the scheduler to
     this->_data->_gaitScheduler->gaitData._nextGait = GaitType::TROT;
+    break;
+
+  case K_PASSIVE:
+    // Requested change to BALANCE_STAND
+    this->nextStateName = FSM_StateName::PASSIVE;
+
+    // Transition time is immediate
+    this->transitionDuration = 0.0;
+
     break;
 
   default:
@@ -122,9 +132,10 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
  */
 template <typename T>
 TransitionData<T> FSM_State_BalanceStand<T>::transition() {
+  // Switch FSM control mode
+  switch (this->nextStateName) {
 
-  if (this->nextStateName == FSM_StateName::LOCOMOTION) {
-
+  case FSM_StateName::LOCOMOTION:
     BalanceStandStep();
 
     iter++;
@@ -133,6 +144,19 @@ TransitionData<T> FSM_State_BalanceStand<T>::transition() {
     } else {
       this->transitionData.done = false;
     }
+
+    break;
+
+  case FSM_StateName::PASSIVE:
+    this->turnOffAllSafetyChecks();
+
+    this->transitionData.done = true;
+
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Something went wrong in transition" << std::endl;
+
   }
 
   // Return the transition data to the FSM
@@ -158,28 +182,12 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
   //StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
   // Run the balancing controllers to get GRF and next step locations
-  //runControls();
-
-  // Reset the forces and steps to 0
-  this->footFeedForwardForces = Mat34<T>::Zero();
-
-  // Test to make sure we can control the robot
-  for (int leg = 0; leg < 4; leg++) {
-    this->footFeedForwardForces.col(leg) << 0.0, 0.0, 0;//-110.36;
-    //footFeedForwardForces.col(leg) = stateEstimate.rBody * footFeedForwardForces.col(leg);
-
-    this->footstepLocations.col(leg) << 0.0, 0.0, -this->_data->_quadruped->_maxLegLength / 2;
-  }
-  Vec3<T> vDes;
-  vDes << 0, 0, 0;
-
-  //std::cout << footFeedForwardForces << std::endl;
+  this->runControls();
 
   // All legs are force commanded to be on the ground
   for (int leg = 0; leg < 4; leg++) {
 
-    this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
-
+    this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), Vec3<T>::Zero(), this->_data->controlParameters->stand_kp_cartesian, this->_data->controlParameters->stand_kd_cartesian);
 
     this->_data->_legController->commands[leg].forceFeedForward = this->footFeedForwardForces.col(leg);
 

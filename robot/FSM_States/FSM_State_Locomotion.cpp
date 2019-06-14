@@ -17,14 +17,8 @@
 template <typename T>
 FSM_State_Locomotion<T>::FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData):
   FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION") {
-  // Set the pre controls safety checks
-  this->checkSafeOrientation = true;
-
-  // Post control safety checks
-  this->checkPDesFoot = true;
-  this->checkForceFeedForward = true;
-
-  // Set the post controls safety checks
+  // Set the safety checks
+  this->turnOnAllSafetyChecks();
 
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
@@ -57,7 +51,7 @@ void FSM_State_Locomotion<T>::run() {
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
  *
- * @return the enumarated FSM state name to transition into
+ * @return the enumerated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
@@ -82,7 +76,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
     }*/
 
     // in place to show automatic non user requested transitions
-    if (iter >= 1) { //2058) {
+    if (iter >= 1387) { //2058) {
       // Set the next state to be BALANCE_STAND
       this->nextStateName = FSM_StateName::BALANCE_STAND;
 
@@ -109,6 +103,16 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
 
     break;
 
+  case K_PASSIVE:
+    // Requested change to BALANCE_STAND
+    this->nextStateName = FSM_StateName::PASSIVE;
+
+    // Transition time is immediate
+    this->transitionDuration = 0.0;
+
+    break;
+
+
   default:
     std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_LOCOMOTION << " to " << this->_data->controlParameters->control_mode << std::endl;
 
@@ -128,9 +132,10 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
  */
 template <typename T>
 TransitionData<T> FSM_State_Locomotion<T>::transition() {
+  // Switch FSM control mode
+  switch (this->nextStateName) {
 
-  if (this->nextStateName == FSM_StateName::BALANCE_STAND) {
-    // Call the locomotion control logic for this iteration
+  case FSM_StateName::BALANCE_STAND:
     LocomotionControlStep();
 
     iter++;
@@ -139,7 +144,18 @@ TransitionData<T> FSM_State_Locomotion<T>::transition() {
     } else {
       this->transitionData.done = false;
     }
-  } else {
+
+    break;
+
+  case FSM_StateName::PASSIVE:
+    this->turnOffAllSafetyChecks();
+
+    this->transitionData.done = true;
+
+    break;
+
+  default:
+    std::cout << "[CONTROL FSM] Something went wrong in transition" << std::endl;
 
   }
 
@@ -194,7 +210,7 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
       this->footstepLocations.col(leg) << (this->_data->_quadruped->_maxLegLength / 7)*sin(this->_data->_gaitScheduler->gaitData.phaseSwing(leg) * 3.14), 0, -this->_data->_quadruped->_maxLegLength / 2;
 
       // Swing leg impedance control
-      this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg));
+      this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), Vec3<T>::Zero(), this->_data->controlParameters->stand_kp_cartesian, this->_data->controlParameters->stand_kd_cartesian);
 
       // Feedforward torques for swing leg tracking
       // TODO
@@ -216,12 +232,8 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
 template <typename T>
 void FSM_State_Locomotion<T>::StanceLegImpedanceControl(int leg) {
 
-  // Match foot velocity relative to the body
-  Vec3<T> vDes;
-  vDes << 0, 0, 0;
-
   // Impedance control for the stance leg
-  this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), vDes);
+  this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), Vec3<T>::Zero(), this->_data->controlParameters->stand_kp_cartesian, this->_data->controlParameters->stand_kd_cartesian);
 
 }
 

@@ -6,13 +6,18 @@
 #include "Controllers/GaitScheduler.h"
 #include "../include/ControlFSMData.h"
 #include "../include/TransitionData.h"
-//#include "../include/TransitionData.h" // this will be implemented later
 
+#include "../Controllers/BalanceController/BalanceController.hpp"
+
+// Normal robot states
 #define K_PASSIVE 0
-#define K_JOINT_PD 1
-#define K_IMPEDANCE_CONTROL 2
+#define K_STAND_UP 1
 #define K_BALANCE_STAND 3
 #define K_LOCOMOTION 4
+
+// Specific control states
+#define K_JOINT_PD 10
+#define K_IMPEDANCE_CONTROL 11
 
 #define K_INVALID 100
 
@@ -24,6 +29,7 @@ enum class FSM_StateName {
   PASSIVE,
   JOINT_PD,
   IMPEDANCE_CONTROL,
+  STAND_UP,
   BALANCE_STAND,
   LOCOMOTION
 };
@@ -58,10 +64,20 @@ public:
   virtual void onExit() { }
 
   //
-  void jointPDControl(int leg, Vec3<T> qDes = Vec3<T>::Zero(), Vec3<T> qdDes = Vec3<T>::Zero());
-  void cartesianImpedanceControl(int leg, Vec3<T> pDes = Vec3<T>::Zero(), Vec3<T> vDes = Vec3<T>::Zero());
+  void jointPDControl(int leg, Vec3<T> qDes, Vec3<T> qdDes);
+  void cartesianImpedanceControl(int leg, Vec3<T> pDes, Vec3<T> vDes, Vec3<double> kp_cartesian, Vec3<double> kd_cartesian);
   void footstepHeuristicPlacement(int leg);
+
+  //
   void runControls();
+  void runBalanceController();
+  void runWholeBodyController();
+  void runConvexModelPredictiveController();
+  void runRegularizedPredictiveController();
+
+  //
+  void turnOnAllSafetyChecks();
+  void turnOffAllSafetyChecks();
 
   // Holds all of the relevant control data
   ControlFSMData<T>* _data;
@@ -94,6 +110,11 @@ public:
 
   // Footstep locations for next step
   Mat34<T> footstepLocations;
+
+  // Higher level Robot body controllers
+  BalanceController balanceController;
+  // ModelPredictiveController cMPC
+  // RegularizedPredictiveController RPC
 
 private:
 
