@@ -730,8 +730,9 @@ namespace casadi {
   struct UnaryOperation<OP_ACOS>{
   public:
     template<typename T> static inline void fcn(const T& x, T& f) { f = acos(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d)
-    { d[0]=-1/sqrt(1-x*x);}
+    template<typename T> static inline void der(const T& x, const T& f, T* d){ 
+      (void)f;
+      d[0]=-1/sqrt(1-x*x);}
   };
 
   /// Arcus tangent
@@ -739,7 +740,9 @@ namespace casadi {
   struct UnaryOperation<OP_ATAN>{
   public:
     template<typename T> static inline void fcn(const T& x, T& f) { f = atan(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = 1/(1+x*x);}
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)f;
+      d[0] = 1/(1+x*x);}
   };
 
   /// Less than
@@ -748,7 +751,10 @@ namespace casadi {
   public:
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = x < y;}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
-        d[0]=d[1]=0;}
+      (void)x;
+      (void)y;
+      (void)f;
+         d[0]=d[1]=0;}
   };
 
   /// Less or equal to
@@ -757,7 +763,9 @@ namespace casadi {
   public:
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = x <= y;}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
-        d[0]=d[1]=0;}
+      (void)x;
+      (void)y;
+      d[0]=d[1]=0;}
   };
 
   /// Floor function
@@ -765,7 +773,10 @@ namespace casadi {
   struct UnaryOperation<OP_FLOOR>{
   public:
     template<typename T> static inline void fcn(const T& x, T& f) { f = floor(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = 0;}
+    template<typename T> static inline void der(const T& x, const T& f, T* d) {
+      (void)x;
+      (void)f;
+      d[0] = 0;}
   };
 
   /// Ceil function
@@ -773,7 +784,10 @@ namespace casadi {
   struct UnaryOperation<OP_CEIL>{
   public:
     template<typename T> static inline void fcn(const T& x, T& f) { f = ceil(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = 0;}
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)x;
+      (void)f;
+      d[0] = 0;}
   };
 
   /// Remainder of division
@@ -789,7 +803,9 @@ namespace casadi {
   struct BinaryOperation<OP_EQ>{
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = x==y;}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
-        d[0]=d[1]=0;}
+      (void)x;
+      (void)f;
+         d[0]=d[1]=0;}
   };
 
   /// Not equal to
@@ -797,7 +813,9 @@ namespace casadi {
   struct BinaryOperation<OP_NE>{
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = x!=y;}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
-        d[0]=d[1]=0;}
+      (void)x;
+      (void)f;
+         d[0]=d[1]=0;}
   };
 
   /// Logical not
@@ -805,7 +823,10 @@ namespace casadi {
   struct UnaryOperation<OP_NOT>{
   public:
     template<typename T> static inline void fcn(const T& x, T& f) { f = !x;}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = 0;}
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)x;
+      (void)f;
+      d[0] = 0;}
   };
 
   /// Logical and
@@ -813,6 +834,7 @@ namespace casadi {
   struct BinaryOperation<OP_AND>{
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = x && y;}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
+      (void)f;
         d[0]=d[1]=0;}
   };
 
@@ -821,6 +843,7 @@ namespace casadi {
   struct BinaryOperation<OP_OR>{
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = x || y;}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
+      (void)f;
         d[0]=d[1]=0;}
   };
 
@@ -829,6 +852,7 @@ namespace casadi {
   struct UnaryOperation<OP_ERF>{
     template<typename T> static inline void fcn(const T& x, T& f) { f = erf(x);}
     template<typename T> static inline void der(const T& x, const T& f, T* d) {
+      (void)f;
         d[0] = (2/sqrt(pi))*exp(-x*x);}
   };
 
@@ -837,6 +861,7 @@ namespace casadi {
   struct UnaryOperation<OP_FABS>{
     template<typename T> static inline void fcn(const T& x, T& f) { f = fabs(x);}
     template<typename T> static inline void der(const T& x, const T& f, T* d) {
+      (void)f;
         d[0]=sign(x);}
   };
 
@@ -844,7 +869,9 @@ namespace casadi {
   template<>
   struct UnaryOperation<OP_SIGN>{
     template<typename T> static inline void fcn(const T& x, T& f) { f = sign(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0]=0;}
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)x; (void)f;
+      d[0]=0;}
   };
 
   /// Copysign
@@ -852,6 +879,7 @@ namespace casadi {
   struct BinaryOperation<OP_COPYSIGN>{
     template<typename T> static inline void fcn(const T& x, const T& y, T& f) { f = copysign(x, y);}
     template<typename T> static inline void der(const T& x, const T& y, const T& f, T* d) {
+      (void)x;
         T e = 1; d[0]=copysign(e, y); d[1]=0;}
   };
 
@@ -875,21 +903,27 @@ namespace casadi {
   template<>
   struct UnaryOperation<OP_INV>{
     template<typename T> static inline void fcn(const T& x, T& f) { f = 1./x;}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = -f*f; }
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)x;
+      d[0] = -f*f; }
   };
 
   /// Hyperbolic sine
   template<>
   struct UnaryOperation<OP_SINH>{
     template<typename T> static inline void fcn(const T& x, T& f) { f = sinh(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = cosh(x); }
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)f;
+      d[0] = cosh(x); }
   };
 
   /// Hyperbolic cosine
   template<>
   struct UnaryOperation<OP_COSH>{
     template<typename T> static inline void fcn(const T& x, T& f) { f = cosh(x);}
-    template<typename T> static inline void der(const T& x, const T& f, T* d) { d[0] = -sinh(x); }
+    template<typename T> static inline void der(const T& x, const T& f, T* d) { 
+      (void)f;
+      d[0] = -sinh(x); }
   };
 
   /// Hyperbolic tangent

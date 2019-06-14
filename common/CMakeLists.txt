@@ -35,7 +35,7 @@ include_directories("../third-party/ParamHandler")
 include_directories(${CMAKE_BINARY_DIR})
 
 # Casaid include
-include_directories("../third-party/casadi/")
+include_directories(SYSTEM "../third-party/casadi/")
 include_directories(${CMAKE_BINARY_DIR}/third-party/casadi/)
 
 # Nlopt include
