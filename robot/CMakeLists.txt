@@ -10,6 +10,7 @@ include_directories("../third-party/include")
 include_directories("../third-party/ParamHandler")
 include_directories("../third-party/vectornav/include")
 include_directories("../third-party/vectornav/include/vn")
+include_directories(SYSTEM "../third-party/qpOASES/include/")
 
 include_directories("../lcm-types/cpp")
 include_directories("/usr/local/include/lcm/")   # lcm includes

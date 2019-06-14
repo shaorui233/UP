@@ -84,9 +84,9 @@ void WBIC<T>::MakeTorque(
 
 
   // Optimization
-  Timer timer;
+  //Timer timer;
   T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
-  std::cout<<"\n wbic old time: "<<timer.getMs()<<std::endl;
+  //std::cout<<"\n wbic old time: "<<timer.getMs()<<std::endl;
   (void)f;
 
   //pretty_print(qddot_pre, std::cout, "qddot_cmd");

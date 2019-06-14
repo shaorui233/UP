@@ -52,7 +52,8 @@ void RobotController::init() {
   initializeStateEstimator(false);
 
   // Choose which control logic option to use
-  CONTROL_OPTION = ControlLogicName::CONTROL_FSM;
+  //CONTROL_OPTION = ControlLogicName::CONTROL_FSM;
+  CONTROL_OPTION = ControlLogicName::WBC;
 
   // Control logic specific initializations
   switch (CONTROL_OPTION) {
@@ -63,7 +64,7 @@ void RobotController::init() {
 
   case ControlLogicName::WBC:
     // Initialize WBC logic
-    initializeControlOptionControlFSM();
+    initializeControlOptionWBC();
     break;
   }
 }
@@ -277,9 +278,9 @@ void RobotController::runControlOptionWBC() {
         _data->ori_command[2] = main_control_settings.omega_des[2];
       }
 #endif
-      Timer timer;
+      //Timer timer;
       _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
-      if(count_ini%500 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
+      //std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
     }
     // === End of WBC state command computation  =========== //
   }

@@ -6,6 +6,7 @@ add_subdirectory(nlopt)
 add_subdirectory(vectornav)
 add_subdirectory(JCQP)
 add_subdirectory(casadi)
+add_subdirectory(qpOASES)
 
 if (CMAKE_SYSTEM_NAME MATCHES Linux)
    find_library(gfortran NAMES libgfortran.so.4 PATHS /usr/lib/x86_64-linux-gnu/)
