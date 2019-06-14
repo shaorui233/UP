@@ -31,6 +31,9 @@ struct StateEstimate {
 
   Vec3<T> omegaWorld;
   Vec3<T> vWorld;
+  Vec3<T> aBody, aWorld;
+
+  Vec3<T> pFeetWorld[4];
 };
 
 /*!
@@ -57,6 +60,7 @@ template<typename T>
 class GenericEstimator {
 public:
   virtual void run() = 0;
+  virtual void setup() = 0;
 
   void setData(StateEstimatorData<T> data) {
     _stateEstimatorData = data;
@@ -131,8 +135,9 @@ public:
    * @tparam EstimatorToAdd
    */
   template<typename EstimatorToAdd> void addEstimator() {
-    auto * estimator = new EstimatorToAdd;
+    auto * estimator = new EstimatorToAdd();
     estimator->setData(_data);
+    estimator->setup();
     _estimators.push_back(estimator);
   }
 

@@ -30,6 +30,7 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model, bool useSpr
   _state.q = DVec<T>::Zero(_model._nDof - 6);
   _state.qd = DVec<T>::Zero(_model._nDof - 6);
   _dstate.qdd = DVec<T>::Zero(_model._nDof - 6);
+  _lastBodyVelocity.setZero();
 }
 
 /*!
@@ -98,6 +99,8 @@ void DynamicsSimulator<T>::integrate(T dt) {
     _state.q += _state.qd * dt;
     _state.bodyPosition += _dstate.dBodyPosition * dt;
     _state.bodyOrientation = integrateQuatImplicit(_state.bodyOrientation, omegaBody, dt);
+    _dstate.dBodyVelocity = (_state.bodyVelocity - _lastBodyVelocity) / dt;
+    _lastBodyVelocity = _state.bodyVelocity;
   }
 }
 

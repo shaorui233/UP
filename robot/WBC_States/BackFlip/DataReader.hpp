@@ -4,8 +4,8 @@
 
 enum plan_offsets
 {
-    q0_offset = 0,    // x, z, front hip, front knee, rear hip, rear knee
-    qd0_offset = 7,   // x, z, front hip, front knee, rear hip, rear knee
+    q0_offset = 0,    // x, z, yaw, front hip, front knee, rear hip, rear knee
+    qd0_offset = 7,   // x, z, yaw, front hip, front knee, rear hip, rear knee
     tau_offset = 14,  // front hip, front knee, rear hip, rear knee
     force_offset = 18 // front x, front z, rear x, rear z
 };

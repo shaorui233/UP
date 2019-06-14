@@ -19,7 +19,7 @@ If you would like to open LCM spy, you can do this by running `../script/launch_
 
 On the mini cheetah, you will find a folder in the home directory name `robot-software` and the date.  Inside this folder is a copy of the configure lcm script.  Run `./configure_network_lcm.sh mc-top` if you are connected with the ethernet cable on top of the robot.
 
-To run the robot code, enter the build folder and run `mc_run.sh`.  The mini cheetah program will wait until the interface has been open and started in MiniCheetah, Robot mode.
+To run the robot code, enter the build folder and run `(sudo) nohup mc_run.sh`.  The mini cheetah program will wait until the interface has been open and started in MiniCheetah, Robot mode.
 
 The robot controller currently works with:
 

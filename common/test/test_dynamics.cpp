@@ -343,7 +343,7 @@ TEST(Dynamics, contactJacobians) {
  */
 TEST(Dynamics, simulatorDynamicsWithExternalForceCheetah3) {
   FloatingBaseModel<double> cheetahModel = buildCheetah3<double>().buildModel();
-  DynamicsSimulator<double> sim(cheetahModel);
+  DynamicsSimulator<double> sim(cheetahModel, true);
 
   RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
                          coordinateRotation(CoordinateAxis::Y, .111);

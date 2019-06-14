@@ -32,6 +32,10 @@ Kd: [ 5., 5., 5.,
       5., 5., 5., 
       5., 5., 5. ]
 
+# Joint Feedback gain
+Kp_joint: [20., 20., 20.]
+Kd_joint: [3, 3, 3]
+
 # temp
 target_jpos: [ 
     -0.2, -1.1, 1.8, 

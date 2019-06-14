@@ -37,12 +37,19 @@ TEST(MiniCheetah, miniCheetahModel1) {
   // this is kind of stupid, but a reasonable sanity check for inertias
   Mat6<double> inertiaSumRef;
   inertiaSumRef << 
-    0.0272,      0, 0.0001,       0, 0.0663, 0,
-         0, 0.3758,    0.0, -0.0663,      0, 0,
-    0.0001, 0.0000, 0.0497, 0, 0, 0,
-    0, -0.0663, 0, 8.4170, 0, 0,
-    0.0663, 0, 0, 0, 8.4170, 0,
-    0, 0, 0, 0, 0, 8.4170;
+    //0.0272,      0, 0.0001,       0, 0.0663, 0,
+         //0, 0.3758,    0.0, -0.0663,      0, 0,
+    //0.0001, 0.0000, 0.0497, 0, 0, 0,
+    //0, -0.0663, 0, 8.4170, 0, 0,
+    //0.0663, 0, 0, 0, 8.4170, 0,
+    //0, 0, 0, 0, 0, 8.4170;
+
+      0.0272,    0,      0,         0, 0.0663,    0, 
+      0,      0.05,      0, -0.066336,      0,    0,
+      0,         0, 0.0497,         0,      0,    0, 
+      0, -0.066336,      0,     8.417,      0,    0,
+      0.066336,  0,      0,         0,  8.417,    0,
+      0,         0,      0,         0,      0, 8.417;
 
   Mat6<double> inertiaSum = Mat6<double>::Zero();
 
@@ -133,23 +140,27 @@ TEST(MiniCheetah, simulatorDynamicsABANoExternalForceMiniCheetah) {
   // check:
   Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
   SVec<double> vbdRef;
-  vbdRef << 1.2926, -0.068, -0.1488, -.0024, 0.0331, -0.0587;
-  vbdRef = vbdRef * 1e3;
+  vbdRef << 1217.31,
+         -182.793,
+         -171.524,
+         -4.09393,
+         33.6798,
+         -59.975;
 
   DVec<double> qddRef(12);
-  qddRef << -2.1941,
-          -0.9794,
-          -1.4734,
-          -3.2994,
-          -1.3090,
-          -2.6362,
-          -6.5224,
-          -4.0238,
-          -4.2126,
-          -7.3662,
-          -3.5136,
-          -5.1148;
-  qddRef *= 1000;
+  qddRef<< -1946.36,
+      -1056.62,
+      -1470.57,
+      -3133.03,
+      -1263.89,
+      -2626.9,
+      -6637.38,
+      -4071.88,
+      -4219.14,
+      -7554.08,
+      -3392.44,
+      -5112.85;
+
 
   EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
   EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
@@ -168,7 +179,7 @@ TEST(MiniCheetah, simulatorDynamicsABANoExternalForceMiniCheetah) {
  */
 TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
   FloatingBaseModel<double> cheetahModel = buildMiniCheetah<double>().buildModel();
-  DynamicsSimulator<double> sim(cheetahModel);
+  DynamicsSimulator<double> sim(cheetahModel, true);
 
   RotMat<double> rBody = coordinateRotation(CoordinateAxis::X, .123) * coordinateRotation(CoordinateAxis::Z, .232) *
                          coordinateRotation(CoordinateAxis::Y, .111);
@@ -207,31 +218,30 @@ TEST(MiniCheetah, simulatorDynamicsWithExternalForceMiniCheetah) {
   // check:
   Vec3<double> pdRef(4.3717, 4.8598, 5.8541);
   SVec<double> vbdRef;
-  vbdRef << 3.2350,
-          0.0153,
-          0.2561,
-          -0.0041,
-          -0.0539,
-          0.0691;
-  vbdRef = vbdRef * 1e3;
+  vbdRef << 3153.46,
+         42.6931,
+         264.584,
+         -3.80573,
+         -53.3519,
+         68.5713;
 
   DVec<double> qddRef(12);
-  qddRef << -1.2379,
-          -1.1817,
-          -2.0258,
-          0.4152,
-          -0.2857,
-          -2.2896,
-          -1.8900,
-          -4.0431,
-          -4.9216,
-          0.0840,
-          -2.4799,
-          -4.9679;
-  qddRef *= 1000;
+  qddRef << -1211.85,
+         -1167.39,
+         -2024.94,
+         394.414,
+         -297.854,
+         -2292.29,
+         -1765.92,
+         -4040.78,
+         -4917.41,
+         149.368,
+         -2508.2,
+         -4969.02;
+
 
   EXPECT_TRUE(almostEqual(pdRef, sim.getDState().dBodyPosition, .001));
-  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, 1));
+  EXPECT_TRUE(almostEqual(vbdRef, sim.getDState().dBodyVelocity, .01));
 
   for (size_t i = 0; i < 12; i++) {
     // the qdd's are large - see qddRef, so we're only accurate to within ~1.

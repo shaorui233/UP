@@ -3,6 +3,7 @@
 
 #include <WBC_States/Controller.hpp>
 #include <ParamHandler/ParamHandler.hpp>
+#include <WBC_States/BackFlip/DataReader.hpp>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBLC;
@@ -34,6 +35,8 @@ class BackFlipCtrl: public Controller<T>{
         DVec<T> _des_jpos; 
         DVec<T> _des_jvel; 
         DVec<T> _jtorque; 
+
+        std::vector<T> _Kp_joint, _Kd_joint;
 
         bool _b_set_height_target;
         T _end_time;
