@@ -390,7 +390,7 @@ void SimControlPanel::on_goHomeButton_clicked() {
   printf("go home\n");
   FBModelState<double> homeState;
   homeState.bodyOrientation << 1, 0, 0, 0;
-  homeState.bodyPosition = Vec3<double>(0,0,1);
+  homeState.bodyPosition = Vec3<double>(0,0,0.5);
   homeState.bodyVelocity = SVec<double>::Zero();
   homeState.q = DVec<double>(12);
   homeState.q << 0,0,0,0,0,0,0,0,0,0,0,0;

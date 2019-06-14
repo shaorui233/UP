@@ -43,7 +43,7 @@ void FSM_State_ImpedanceControl<T>::run() {
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
  *
- * @return the enumarated FSM state name to transition into
+ * @return the enumerated FSM state name to transition into
  */
 template <typename T>
 FSM_StateName FSM_State_ImpedanceControl<T>::checkTransition() {

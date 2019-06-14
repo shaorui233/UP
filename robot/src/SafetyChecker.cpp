@@ -15,13 +15,12 @@
  */
 template <typename T>
 bool SafetyChecker<T>::checkSafeOrientation() {
-
-  /*if (roll >= 1.3 || pitch >= 1.3) {
-    return false
+  if (abs(data->_stateEstimator->getResult().rpy(0)) >= 1.3 ||
+      abs(data->_stateEstimator->getResult().rpy(1)) >= 1.3) {
+    return true;
   } else {
     return true;
-  }*/
-  return true;
+  }
 }
 
 
@@ -117,6 +116,7 @@ bool SafetyChecker<T>::checkForceFeedForward() {
 
   // Check all of the legs
   for (int leg = 0; leg < 4; leg++) {
+
     // Limit the lateral forces in +x body frame
     if (data->_legController->commands[leg].forceFeedForward(0) > maxLateralForce) {
       std::cout << "[CONTROL FSM] Safety: Force leg: " << leg << " | coordinate: " << 0 << "\n";
@@ -164,6 +164,7 @@ bool SafetyChecker<T>::checkForceFeedForward() {
       data->_legController->commands[leg].forceFeedForward(2) = -maxVerticalForce;
       safeForceFeedForward = false;
     }
+
   }
 
   // Return true if all feed forward forces are safe

@@ -40,6 +40,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.passive = new FSM_State_Passive<T>(&data);
   statesList.jointPD = new FSM_State_JointPD<T>(&data);
   statesList.impedanceControl = new FSM_State_ImpedanceControl<T>(&data);
+  statesList.standUp = new FSM_State_StandUp<T>(&data);
   statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
   statesList.locomotion = new FSM_State_Locomotion<T>(&data);
 
@@ -114,12 +115,10 @@ void ControlFSM<T>::runFSM() {
       transitionData = currentState->transition();
 
       // Check the robot state for safe operation
-      //safetyPostCheck();
+      safetyPostCheck();
 
       // Run the state transition
       if (transitionData.done) {
-        // Check the robot state for safe operation
-        safetyPostCheck();
 
         // Exit the current state cleanly
         currentState->onExit();
@@ -136,10 +135,6 @@ void ControlFSM<T>::runFSM() {
         // Return the FSM to normal operation mode
         operatingMode = FSM_OperatingMode::NORMAL;
 
-      } else {
-
-        // Check the robot state for safe operation
-        safetyPostCheck();
       }
     } else {
 
@@ -171,7 +166,10 @@ FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
 
   // Check for safe orientation if the current state requires it
   if (currentState->checkSafeOrientation) {
-    safetyChecker->checkSafeOrientation();
+    if (!safetyChecker->checkSafeOrientation()) {
+      operatingMode = FSM_OperatingMode::ESTOP;
+      std::cout << "broken" << std::endl;
+    }
   }
 
   // Default is to return the current operating mode
@@ -230,6 +228,9 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 
   case FSM_StateName::IMPEDANCE_CONTROL :
     return statesList.impedanceControl;
+
+  case FSM_StateName::STAND_UP :
+    return statesList.standUp;
 
   case FSM_StateName::BALANCE_STAND :
     return statesList.balanceStand;

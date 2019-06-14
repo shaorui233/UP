@@ -14,6 +14,7 @@
 #include "../FSM_States/FSM_State_Passive.h"
 #include "../FSM_States/FSM_State_JointPD.h"
 #include "../FSM_States/FSM_State_ImpedanceControl.h"
+#include "../FSM_States/FSM_State_StandUp.h"
 #include "../FSM_States/FSM_State_BalanceStand.h"
 #include "../FSM_States/FSM_State_Locomotion.h"
 
@@ -38,6 +39,7 @@ struct FSM_StatesList {
   FSM_State_Passive<T>* passive;
   FSM_State_JointPD<T>* jointPD;
   FSM_State_ImpedanceControl<T>* impedanceControl;
+  FSM_State_StandUp<T>* standUp;
   FSM_State_BalanceStand<T>* balanceStand;
   FSM_State_Locomotion<T>* locomotion;
 };
