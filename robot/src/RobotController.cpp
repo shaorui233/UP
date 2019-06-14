@@ -100,8 +100,8 @@ void RobotController::run() {
   cheetahMainVisualization->p.setZero();
   _stateEstimator->run(cheetahMainVisualization);
   cheetahMainVisualization->p = _stateEstimate.position;
-  printf("p robot %.3f %.3f %.3f\n", _stateEstimate.position[0], _stateEstimate.position[1],
-      _stateEstimate.position[2]);
+  //printf("p robot %.3f %.3f %.3f\n", _stateEstimate.position[0], _stateEstimate.position[1],
+      //_stateEstimate.position[2]);
 
   // for debugging the visualizations from robot code
   //testDebugVisualization();
@@ -234,9 +234,9 @@ void RobotController::run() {
         _data->ori_command[2] = main_control_settings.omega_des[2];
       }
 #endif
-      //Timer timer;
+      Timer timer;
       _wbc_state->GetCommand(_data, _legController->commands, _extra_data);
-      //if(count_ini%500 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
+      if(count_ini%500 ==0) std::cout<< "wbc computation: " << timer.getMs()<<std::endl;
     }
     // === End of WBC state command computation  =========== //
 

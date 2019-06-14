@@ -32,8 +32,8 @@ class CholeskySparseSolver
 {
 public:
   CholeskySparseSolver() = default;
-  void preSetup(const DenseMatrix<T>& kktMat);
-  void setup(const DenseMatrix<T>& kktMat);
+  void preSetup(const DenseMatrix<T>& kktMat, bool b_print = true);
+  void setup(const DenseMatrix<T>& kktMat, bool b_print = true);
   void solve(Vector<T>& out);
   void amdOrder(MatCSC<T>& mat, u32* perm, u32* iperm);
 

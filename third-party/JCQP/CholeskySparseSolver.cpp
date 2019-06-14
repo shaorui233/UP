@@ -6,7 +6,7 @@
 
 
 template<typename T>
-void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat)
+void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat, bool b_print)
 {
   Timer tim;
   // get sizes
@@ -22,10 +22,10 @@ void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat)
     }
   }
 
-  printf("CHOLSPARSE PASS1 %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE PASS1 %.3f ms\n", tim.getMs());
   tim.start();
 
-  printf("nnz %d, fill %.3f\n", A.nnz, (double)A.nnz / (double)(A.n*A.m));
+  if(b_print) printf("nnz %d, fill %.3f\n", A.nnz, (double)A.nnz / (double)(A.n*A.m));
 
   // allocate
   A.values = new T[A.nnz];
@@ -38,7 +38,7 @@ void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat)
   tempSolve = new T[n];
   L.colPtrs = new u32[A.n + 1];
 
-  printf("CHOLSPARSE ALLOC %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE ALLOC %.3f ms\n", tim.getMs());
   tim.start();
 
   // convert to sparse
@@ -59,36 +59,36 @@ void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat)
   }
 
   assert(i == A.nnz);
-  printf("CHOLSPARSE SETUP %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE SETUP %.3f ms\n", tim.getMs());
   tim.start();
 
   sanityCheck();
-  printf("CHOLSPARSE CHECK %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE CHECK %.3f ms\n", tim.getMs());
 }
 
 template<typename T>
-void CholeskySparseSolver<T>::setup(const DenseMatrix<T> &kktMat)
+void CholeskySparseSolver<T>::setup(const DenseMatrix<T> &kktMat, bool b_print)
 {
   Timer tim;
 
   reorder();
-  printf("CHOLSPARSE REORDER %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE REORDER %.3f ms\n", tim.getMs());
   tim.start();
 
   L.nnz = symbolicFactor();
-  printf("CHOLSPARSE SYM_FACTOR %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE SYM_FACTOR %.3f ms\n", tim.getMs());
   tim.start();
-  printf("factor nnz %d, fill %.3f\n", L.nnz, (double)L.nnz / (double)(A.n*A.m));
+  if(b_print) printf("factor nnz %d, fill %.3f\n", L.nnz, (double)L.nnz / (double)(A.n*A.m));
 
   L.values = new T[L.nnz];
   L.rowIdx = new u32[L.nnz];
   factor();
-  printf("CHOLSPARSE FACTOR %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE FACTOR %.3f ms\n", tim.getMs());
   tim.start();
 
 #ifndef JCQP_USE_AVX2
   solveOrder();
-  printf("CHOLSPARSE SOLVEORDER %.3f ms\n", tim.getMs());
+  if(b_print) printf("CHOLSPARSE SOLVEORDER %.3f ms\n", tim.getMs());
 #endif
 }
 

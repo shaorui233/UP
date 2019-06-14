@@ -82,16 +82,56 @@ void WBIC<T>::MakeTorque(
   //printf("g0:\n");
   //std::cout<<g0<<std::endl;
 
-
+ 
   // Optimization
+  QpProblem<double> problem(_dim_opt, _dim_eq_cstr + _dim_Uf, false);
+  for(size_t j(0); j<_dim_opt; ++j){
+    // Cost
+    for(size_t i(0); i<_dim_opt; ++i){
+      problem.P(i,j) = _G(i, j);
+    }
+    for(size_t i(0); i<_dim_eq_cstr; ++i){
+      problem.A(i, j) = _dyn_CE(i, j);
+    }
+    for(size_t i(0); i<_dim_Uf; ++i){
+      problem.A(i + _dim_eq_cstr, j) = _dyn_CI(i,j);
+    }
+  }
+
+  for(size_t i(0); i<_dim_eq_cstr; ++i){
+    problem.l[i] = _dyn_ce0[i];
+    problem.u[i] = _dyn_ce0[i];
+  }
+  for(size_t i(0); i<_dim_Uf; ++i){
+    problem.l[i + _dim_eq_cstr] = _dyn_ci0[i];
+    problem.u[i + _dim_eq_cstr] = 1000.;
+  }
+  problem.settings.terminate = 0.1;
+  //problem.q.setZero(); default
+  //problem.A.block(0, 0, _dim_eq_cstr, _dim_opt) = _dyn_CE;
+  //problem.l.head(_dim_eq_cstr) = _dyn_ce0;
+  //problem.u.head(_dim_eq_cstr) = _dyn_ce0;
+
+  //problem.A.block(_dim_eq_cstr, 0, _dim_Uf, _dim_opt) = _dyn_CI;
+  //problem.l.tail(_dim_Uf) = _dyn_ci0;
+  //problem.u.tail(_dim_Uf) = Vector<T>::Constant(_dim_Uf, 1000.);
+  //static int count(0);
+  //++count;
   Timer timer;
-  T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
-  std::cout<<"\n wbic old time: "<<timer.getMs()<<std::endl;
-  (void)f;
+  problem.run(-1, true, true);
+  std::cout<< "\n wbic computation: " << timer.getMs()<<std::endl;
+
+  //problem.run(-1, true, false);
+
+  Vector<double> z = problem.getSolution();
+  //Vector<T> z;
 
   //pretty_print(qddot_pre, std::cout, "qddot_cmd");
   for(size_t i(0); i<_dim_floating; ++i) qddot_pre[i] += z[i];
-  _GetSolution(qddot_pre, cmd);
+  DVec<T> Fr = _Fr_des;
+  for(size_t i(0); i<_dim_rf; ++i) Fr[i] += z[i + _dim_floating];
+  
+  _GetSolution(qddot_pre, Fr, cmd);
 
   _data->_opt_result = DVec<T>(_dim_opt);
   for(size_t i(0); i<_dim_opt; ++i){
@@ -129,19 +169,14 @@ void WBIC<T>::MakeTorque(
 template<typename T>
 void WBIC<T>::_SetEqualityConstraint(const DVec<T> & qddot){
   if(_dim_rf > 0){
-    _dyn_CE.block(0, 0, _dim_eq_cstr, _dim_floating) = WB::A_.block(0,0, _dim_floating, _dim_floating);
+    _dyn_CE.block(0, 0, _dim_eq_cstr, _dim_floating) = 
+      WB::A_.block(0,0, _dim_floating, _dim_floating);
     _dyn_CE.block(0, _dim_floating, _dim_eq_cstr, _dim_rf) = -WB::Sv_ * _Jc.transpose();
     _dyn_ce0 = -WB::Sv_ *(WB::A_*qddot + WB::cori_ + WB::grav_ - _Jc.transpose() * _Fr_des);
   }else {
-    _dyn_CE.block(0, 0, _dim_eq_cstr, _dim_floating) = WB::A_.block(0,0, _dim_floating, _dim_floating);
+    _dyn_CE.block(0, 0, _dim_eq_cstr, _dim_floating) = 
+      WB::A_.block(0,0, _dim_floating, _dim_floating);
     _dyn_ce0 = -WB::Sv_ *(WB::A_*qddot + WB::cori_ + WB::grav_);
-  }
-
-  for(size_t i(0); i< _dim_eq_cstr; ++i){
-    for(size_t j(0); j<_dim_opt; ++j){
-      CE[j][i] = _dyn_CE(i,j);
-    }
-    ce0[i] = -_dyn_ce0[i];
   }
    //pretty_print(_dyn_CE, std::cout, "WBIC: CE");
    //pretty_print(_dyn_ce0, std::cout, "WBIC: ce0");
@@ -153,13 +188,7 @@ void WBIC<T>::_SetInEqualityConstraint(){
   _dyn_CI.block(0, _dim_floating, _dim_Uf, _dim_rf) = _Uf;
   _dyn_ci0 = _Uf_ieq_vec - _Uf * _Fr_des;
 
-  for(size_t i(0); i< _dim_Uf; ++i){
-    for(size_t j(0); j<_dim_opt; ++j){
-      CI[j][i] = _dyn_CI(i,j);
-    }
-    ci0[i] = -_dyn_ci0[i];
-  }
-   //pretty_print(_dyn_CI, std::cout, "WBIC: CI");
+  //pretty_print(_dyn_CI, std::cout, "WBIC: CI");
    //pretty_print(_dyn_ci0, std::cout, "WBIC: ci0");
 }
 
@@ -219,12 +248,12 @@ void WBIC<T>::_ContactBuilding(){
 }
 
 template<typename T> 
-void WBIC<T>::_GetSolution(const DVec<T> & qddot, DVec<T> & cmd){
+void WBIC<T>::_GetSolution(const DVec<T> & qddot, const DVec<T> & Fr, DVec<T> & cmd){
   DVec<T> tot_tau;
   if(_dim_rf > 0){
     _data->_Fr = DVec<T>(_dim_rf);
     // get Reaction forces
-    for(size_t i(0); i<_dim_rf; ++i) _data->_Fr[i] = z[i + _dim_floating] + _Fr_des[i];
+    for(size_t i(0); i<_dim_rf; ++i) _data->_Fr[i] = Fr[i];
     tot_tau = WB::A_ * qddot + WB::cori_ + WB::grav_ - _Jc.transpose() * _data->_Fr;
 
   }else{
@@ -249,11 +278,11 @@ void WBIC<T>::_SetCost(){
   // Set Cost
   size_t idx_offset(0);
   for (size_t i(0); i< _dim_floating; ++i){
-    G[i+idx_offset][i+idx_offset] = _data->_W_floating[i];
+    _G(i+idx_offset, i+idx_offset) = _data->_W_floating[i];
   }
   idx_offset += _dim_floating;
   for (size_t i(0); i< _dim_rf; ++i){
-    G[i+idx_offset][i+idx_offset] = _data->_W_rf[i];
+    _G(i+idx_offset, i+idx_offset) = _data->_W_rf[i];
   }
   //pretty_print(_data->_W_floating, std::cout, "W floating");
   //pretty_print(_data->_W_rf, std::cout, "W rf");
@@ -290,17 +319,12 @@ void WBIC<T>::_SetOptimizationSize(){
   _dim_eq_cstr = _dim_floating;
 
   // Matrix Setting
-  G.resize(0., _dim_opt, _dim_opt); 
-  g0.resize(0., _dim_opt);
-  CE.resize(0., _dim_opt, _dim_eq_cstr);
-  ce0.resize(0., _dim_eq_cstr);
+  _G = DMat<T>::Zero(_dim_opt, _dim_opt); 
 
   // Eigen Matrix Setting
   _dyn_CE = DMat<T>::Zero(_dim_eq_cstr, _dim_opt);
   _dyn_ce0 = DVec<T>(_dim_eq_cstr);
   if(_dim_rf > 0){
-    CI.resize(0., _dim_opt, _dim_Uf);
-    ci0.resize(0., _dim_Uf);
     _dyn_CI = DMat<T>::Zero(_dim_Uf, _dim_opt);
     _dyn_ci0 = DVec<T>(_dim_Uf);
 
@@ -310,9 +334,6 @@ void WBIC<T>::_SetOptimizationSize(){
 
     _Uf = DMat<T>(_dim_Uf, _dim_rf); _Uf.setZero();
     _Uf_ieq_vec = DVec<T>(_dim_Uf);
-  }else {
-    CI.resize(0., _dim_opt, 1);
-    ci0.resize(0., 1);
   }
 }
 
