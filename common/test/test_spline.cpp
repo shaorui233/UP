@@ -6,7 +6,7 @@
 #include "Utilities/save_file.h"
 #include "Utilities/BezierCurve.h"
 #include "Utilities/BSplineBasic.h"
-#include "../robot/WBC_States/common/Utils/SplineOptimizer.h"
+//#include "../robot/WBC_States/common/Utils/SplineOptimizer.h"
 #include "../robot/WBC_States/Bounding/CtrlSet/ImpulseCurve.hpp"
 #include "Utilities/Timer.h"
 #include <Configuration.h>
@@ -324,7 +324,7 @@ TEST(Spline, BSpline_1D_test) {
   }
   delete [] middle_pt;
 }
-
+/*
 TEST(Spline, BSpline_Opt) {
   constexpr int dim_bs = 2;
   constexpr int degree = 3;
@@ -384,7 +384,7 @@ TEST(Spline, BSpline_Opt) {
   }
   //delete [] middle_pt;
 }
-
+*/
 TEST(Spline, ImpulseCurve){
   ImpulseCurve<double> curve;
 

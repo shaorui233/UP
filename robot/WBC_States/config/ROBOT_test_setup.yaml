@@ -1,5 +1,3 @@
-#test_name: "wbdc_trot" # Cheater mode must be off
-#test_name: "wblc_trot" # Cheater mode must be off
 test_name: "wbic_trot" # Cheater mode must be off
 #test_name: "back_flip"
 #test_name: "bounding" 

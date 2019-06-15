@@ -10,7 +10,7 @@
 #include <WBC/WBLC/KinWBC.hpp>
 #include <WBC/WBLC/WBLC.hpp>
 #include <ParamHandler/ParamHandler.hpp>
-#include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
+#include <WBC_States/Test.hpp>
 
 
 template <typename T>

@@ -7,8 +7,6 @@
 #include <Utilities/Utilities_print.h>
 #include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
-#include <WBC_States/WBDCTrot/WBDCTrotTest.hpp>
-#include <WBC_States/WBLCTrot/WBLCTrotTest.hpp>
 #include <WBC_States/WBICTrot/WBICTrotTest.hpp>
 #include <WBC_States/BackFlip/BackFlipTest.hpp>
 #include <WBC_States/Bounding/BoundingTest.hpp>
@@ -160,10 +158,6 @@ void RobotController::initializeControlOptionWBC() {
   // Run the requested test from the string
   if (test_name == "body_ctrl") {
     _wbc_state = new BodyCtrlTest<float>(&_model, robotType);
-  } else if (test_name == "wbdc_trot") {
-    _wbc_state = new WBDCTrotTest<float>(&_model, robotType);
-  } else if (test_name == "wblc_trot") {
-    _wbc_state = new WBLCTrotTest<float>(&_model, robotType);
   } else if (test_name == "wbic_trot") {
     _wbc_state = new WBICTrotTest<float>(&_model, robotType);
   } else if (test_name == "bounding") {

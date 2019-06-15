@@ -1,6 +1,6 @@
 #ifndef SPLINE_OPTIMIZER
 #define SPLINE_OPTIMIZER
-
+/*
 #include <nlopt.hpp>
 #include <math.h>
 #include "Utilities/BSplineBasic.h"
@@ -158,4 +158,5 @@ class SplineOptimizer{
         T* _mid_pt[NUM_MIDDLE];
         BS_Basic<T, DIM, 3, NUM_MIDDLE, 2, 2> _spline;
 };
+*/
 #endif

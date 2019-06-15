@@ -323,7 +323,7 @@ set(INCLUDE_PREFIX ${DEF_INCLUDE_PREFIX} CACHE PATH "Installation directory for 
 set(CMAKE_PREFIX ${DEF_CMAKE_PREFIX} CACHE PATH "Installation directory for CMake files")
 set(PYTHON_PREFIX ${DEF_PYTHON_PREFIX} CACHE PATH "Installation directory for Python files")
 set(MATLAB_PREFIX ${DEF_MATLAB_PREFIX} CACHE PATH "Installation directory for MATLAB/Octave files")
-add_compile_definitions(PLUGIN_EXTRA_SEARCH_PATH="${CMAKE_BINARY_DIR}/third-party/casadi/lib")
+#add_compile_definitions(PLUGIN_EXTRA_SEARCH_PATH="${CMAKE_BINARY_DIR}/third-party/casadi/lib")
 
 # Make relative paths absolute (needed later on)
 foreach(p LIB BIN INCLUDE CMAKE PYTHON MATLAB)
