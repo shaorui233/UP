@@ -69,5 +69,6 @@ s: simulation, r: robot
 - `mesa-common-dev`
 - `freeglut3-dev`
 - `coinor-libipopt-dev`
+- `libblas-dev liblapack-dev`
 
 
