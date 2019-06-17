@@ -45,5 +45,5 @@ class CollisionPlane : public Collision<T>{
     T _height;
 };
 
-#endif //COLLISIONPLANE_H
+#endif //COLLISION_PLANE_H
 

@@ -1,3 +1,7 @@
+/*! @file ContactConstraint.cpp
+ *  @brief ContactConstraint virtual class 
+ */
+
 #include "Collision/ContactConstraint.h"
 
 template<typename T>

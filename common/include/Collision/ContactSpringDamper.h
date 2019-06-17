@@ -1,3 +1,7 @@
+/*! @file ContactSpringDamper.h
+ *  @brief Spring Damper based Contact Computation logic 
+ */
+
 #ifndef CONTACT_SPRING_DAMPER_H
 #define CONTACT_SPRING_DAMPER_H
 

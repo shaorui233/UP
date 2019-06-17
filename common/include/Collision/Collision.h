@@ -1,7 +1,7 @@
 /*! @file Collision.h
- *  @brief Collision logic for an infinite plane
+ *  @brief Virtual class of Collision logic 
  *
- *  Simplest collision, used for floor and global bounding box
+ * To make a child class, you need to implement virtual function, ContactDetection 
  */
 
 #ifndef COLLISION_H

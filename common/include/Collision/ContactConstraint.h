@@ -1,3 +1,10 @@
+/*! @file ContactConstraint.h
+ *  @brief Virtual class of Contact Constraint logic 
+ *
+ * To make a child class, you need to implement virtual function, 
+ * UpdateExternalForces, UpdateQdot
+ */
+
 #ifndef CONTACT_CONSTRAINT_H
 #define CONTACT_CONSTRAINT_H
 

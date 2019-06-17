@@ -50,5 +50,5 @@ class CollisionMesh : public Collision<T>{
     T _y_max;
 };
 
-#endif //PROJECT_COLLISIONPLANE_H
+#endif //COLLISION_MESH_H
 

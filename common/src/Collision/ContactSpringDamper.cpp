@@ -1,11 +1,20 @@
+/*! @file ContactConstraint.cpp
+ *  @brief ContactConstraint virtual class 
+ */
+
 #include "Collision/ContactSpringDamper.h"
 #include "Dynamics/FloatingBaseModel.h"
 
+/*!
+ * compute contact forces coinciding to the contact and update external force
+ * in a dynamics model.
+ */
 template<typename T>
 void ContactSpringDamper<T>::UpdateExternalForces(T K, T D, T dt){
     CC::_nContact = CC::_CheckContact();
     for(size_t i(0); i<_nGC; ++i){
-        deflectionRate[i] = (-K/D) * _tangentialDeflections[i];
+      // first assume there's no contact, so the ground "springs back"
+      deflectionRate[i] = (-K/D) * _tangentialDeflections[i];
     }
     if(CC::_nContact > 0){
         _groundContactWithOffset(K, D);
@@ -26,6 +35,9 @@ void ContactSpringDamper<T>::UpdateExternalForces(T K, T D, T dt){
    }
 }
 
+/*!
+ * subfunction computing contact forces 
+ */
 template <typename T>
 void ContactSpringDamper<T>::_groundContactWithOffset(T K, T D) {
 
