@@ -1,8 +1,8 @@
 /*! @file obj_loader.cpp
  *  @brief Utility to load .obj files, containing 3D models of robots.
  *
- *  This utility is based off of a library found on Github.  Unfortunately, the library had some bugs and was
- *  modified.  The original library can no longer be found online. This code is not very good.
+ *  This is now our own version of obj loader
+ *  OBJ files should have a triangular mesh, with normals, but no texture coordinates.
  */
 
 #include "obj_loader.h"

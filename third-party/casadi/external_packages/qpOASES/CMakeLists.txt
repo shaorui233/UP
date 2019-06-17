@@ -15,6 +15,7 @@ endif()
 
 include_directories(include)
 set(QPOASES_LIBRARIES ${QPOASES_LIBRARIES})
+set(CMAKE_CXX_FLAGS "-O3 -fPIC -ggdb -w")
 file(GLOB SRC src/*.cpp)
 file(GLOB EXTRAS_SRC src/extras/*.cpp)
 

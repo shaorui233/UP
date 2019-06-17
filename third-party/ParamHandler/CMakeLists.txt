@@ -103,7 +103,7 @@ endif()
 ###
 ### General compilation settings
 ###
-set(yaml_c_flags ${CMAKE_C_FLAGS})
+#set(yaml_c_flags ${CMAKE_C_FLAGS})
 set(yaml_cxx_flags ${CMAKE_CXX_FLAGS})
 
 if(BUILD_SHARED_LIBS)
@@ -267,7 +267,7 @@ add_library(dynacore_param_handler SHARED ParamHandler.hpp ParamHandler.cpp)
 
 target_link_libraries(dynacore_param_handler dynacore_yaml-cpp)
 set_target_properties(dynacore_yaml-cpp PROPERTIES
-  COMPILE_FLAGS "${yaml_c_flags} ${yaml_cxx_flags}"
+  COMPILE_FLAGS "${yaml_cxx_flags}"
 )
 
 set_target_properties(dynacore_yaml-cpp PROPERTIES

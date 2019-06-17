@@ -1,3 +1,8 @@
+/*!
+ * @file RobotInterface.h
+ * @brief Interface between simulator and hardware using LCM.
+ */
+
 #ifndef PROJECT_ROBOTINTERFACE_H
 #define PROJECT_ROBOTINTERFACE_H
 

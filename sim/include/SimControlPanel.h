@@ -1,3 +1,8 @@
+/*!
+ * @file SimControlPanel.h
+ * @brief QT gui for the simulator
+ */
+
 #ifndef SIMCONTROLPANEL_H
 #define SIMCONTROLPANEL_H
 
