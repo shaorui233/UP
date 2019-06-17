@@ -1,9 +1,16 @@
+/*!
+ * @file HardwareBridge.h
+ * @brief Interface between robot code and robot hardware
+ *
+ * This class initializes the hardware of both robots and allows the robot controller to access it
+ */
+
 #ifndef PROJECT_HARDWAREBRIDGE_H
 #define PROJECT_HARDWAREBRIDGE_H
 
 
 #define MAX_STACK_SIZE 16384 // 16KB  of stack
-#define TASK_PRIORITY 49
+#define TASK_PRIORITY 49     // linux priority, this is not the nice value
 
 #include <string>
 #include <lcm-cpp.hpp>

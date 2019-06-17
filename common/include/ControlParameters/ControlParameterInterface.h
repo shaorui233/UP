@@ -80,12 +80,4 @@ struct ControlParameterResponse {
   }
 };
 
-class ControlParameterInterface {
-public:
-private:
-
-};
-
-
-
 #endif //PROJECT_CONTROLPARAMETERINTERFACE_H

@@ -21,9 +21,6 @@ Cheetah-3-Documentation-Control:
 
 #include <eigen3/Eigen/Dense>
 #include <qpOASES.hpp>
-#include "MyThreadClass.hpp"
-#include "OptimizationThread.hpp"
-
 #include <lcm/lcm-cpp.hpp>
 #include "sim_command_t.hpp"
 #include "qp_controller_data_t.hpp"
@@ -40,6 +37,7 @@ static const double NEGATIVE_NUMBER = -1000000.0;
 static const double POSITIVE_NUMBER =  1000000.0;
 
 using namespace Eigen;
+using namespace qpOASES;
 
 class BalanceController
 {
@@ -211,8 +209,6 @@ private:
 
   /* Interal QP management data */
   bool QPFinished;
-  OptimizationThread optThreadObject;
-  MyThreadClass *myThread = &optThreadObject;
 
   Eigen::VectorXd xOptPrev;
   Eigen::VectorXd yOptPrev;

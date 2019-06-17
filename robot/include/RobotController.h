@@ -1,3 +1,9 @@
+/*!
+ * @file RobotController.h
+ * @brief Common framework for running robot controllers.
+ * This code is a common interface between control code and hardware/simulation for mini cheetah and cheetah 3
+ */
+
 #ifndef PROJECT_ROBOTCONTROLLER_H
 #define PROJECT_ROBOTCONTROLLER_H
 
@@ -18,18 +24,6 @@
 #include "ControlFSM.h"
 #include <gui_main_control_settings_t.hpp>
 
-// gamepadCommand
-// robotType
-// kvh
-// vectorNav
-// cheaterState
-// spiData
-// controlParameterRequest
-// "mode" ?
-
-// robotType
-// spiCommand
-//
 
 /**
  * Enumerate all of the Control logic options. Each one will have 

@@ -1,6 +1,7 @@
 #include "BalanceControllerWrapper.h"
 #include "BalanceController.hpp"
 #include <cstdlib>
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C" {
@@ -81,11 +82,6 @@ void balanceControl_SetContactData(double* contact_state_in, double* min_forces_
   BalanceControllerObj->SetContactData(contact_state_in,
                                        min_forces_in,
                                        max_forces_in);
-}
-
-void balanceControl_solveQP()
-{
-  BalanceControllerObj->solveQP(xOpt_force);
 }
 
 void balanceControl_solveQP_nonThreaded()

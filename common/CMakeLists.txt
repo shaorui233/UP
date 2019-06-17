@@ -1,3 +1,5 @@
+# common library (libbiomimetics)
+
 cmake_minimum_required(VERSION 2.8.2)
 
 project(libbiomimetics)
@@ -34,7 +36,7 @@ include_directories("../third-party/osqp/include")       # osqp includes
 include_directories("../third-party/ParamHandler")
 include_directories(${CMAKE_BINARY_DIR})
 
-# Casaid include
+# Casadi include
 include_directories(SYSTEM "../third-party/casadi/")
 include_directories(${CMAKE_BINARY_DIR}/third-party/casadi/)
 
@@ -42,7 +44,6 @@ file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp fi
 file(GLOB_RECURSE test_sources "test/test_*.cpp")             # test cpp files
 
 # Library
-#add_library(biomimetics STATIC ${sources})       # produce a library used by sim/robot
 add_library(biomimetics SHARED ${sources})       # produce a library used by sim/robot
 target_link_libraries(biomimetics inih dynacore_param_handler)
 

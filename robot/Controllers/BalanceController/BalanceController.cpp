@@ -15,21 +15,13 @@ Cheetah-3-Documentation-Control:
 
 
 #include "BalanceController.hpp"
+#include <iostream>
 // #include "Sim_Utils.h"
 
-BalanceController::BalanceController() :  QProblemObj_qpOASES(NUM_VARIABLES_QP, NUM_CONSTRAINTS_QP),
-  optThreadObject(QProblemObj_qpOASES,
-                  &nWSR_qpOASES,
-                  H_qpOASES,
-                  g_qpOASES,
-                  A_qpOASES,
-                  lb_qpOASES,
-                  ub_qpOASES,
-                  lbA_qpOASES,
-                  ubA_qpOASES,
-                  xOpt_qpOASES,
-                  yOpt_qpOASES,
-                  &QPFinished)
+using namespace std;
+
+
+BalanceController::BalanceController() :  QProblemObj_qpOASES(NUM_VARIABLES_QP, NUM_CONSTRAINTS_QP)
 {
   // *!! It seems like this next block of 5 lines does not actually do anything,
   // I had to set print level in the OptimizationThread class
@@ -281,25 +273,6 @@ void BalanceController::set_actual_swing_pos(double* pFeet_act_in)
   }
 }
 
-void BalanceController::solveQP(double* xOpt)
-{
-  myThread->StartInternalThread();
-  myThread->WaitForInternalThreadToExit();
-//
-  copy_real_t_to_Eigen(xOpt_eigen, xOpt_qpOASES, 12);
-
-  xOptPrev = xOpt_eigen;
-  for (int i = 0; i < NUM_CONTACT_POINTS; i++)
-  {
-    tempVector3 = -R_b_world.transpose() * xOpt_eigen.segment(3 * i, 3);
-    xOpt[3 * i] = tempVector3(0);
-    xOpt[3 * i + 1] = tempVector3(1);
-    xOpt[3 * i + 2] = tempVector3(2);
-  }
-
-  calc_constraint_check();
-  qp_controller_data_publish = qp_controller_data;
-}
 
 
 void BalanceController::solveQP_nonThreaded(double* xOpt)

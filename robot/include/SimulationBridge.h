@@ -1,6 +1,6 @@
 /*! @file SimulatorDriver.h
  *  @brief  The SimulatorDriver runs a RobotController and connects it to a Simulator, using shared memory.
- *
+ *  It is the simulation version of the HardwareDriver.
  */
 
 #ifndef PROJECT_SIMULATIONDRIVER_H

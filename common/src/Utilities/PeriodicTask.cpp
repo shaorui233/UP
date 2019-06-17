@@ -1,3 +1,9 @@
+/*!
+ * @file PeriodicTask.cpp
+ * @brief Implementation of a periodic function running in a separate thread.  Periodic tasks have a task manager,
+ * which measure how long they take to run.
+ */
+
 #include "include/Utilities/PeriodicTask.h"
 #include "Utilities/Utilities_print.h"
 #include <sys/timerfd.h>

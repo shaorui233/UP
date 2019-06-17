@@ -12,14 +12,12 @@ void DrawList::loadFiles() {
   std::vector<std::string> names = {"c3_body.obj", "mini_abad.obj", 
       "c3_upper_link.obj", "c3_lower_link.obj", "mini_body.obj", 
       "mini_abad.obj", "mini_upper_link.obj", "mini_lower_link.obj", "sphere.obj", "cube.obj"};
-  objLoader::ObjLoader loader;
   for (const auto &name : names) {
     std::string filename = _baseFileName + name;
     _vertexData.emplace_back();
     _normalData.emplace_back();
     _colorData.emplace_back();
-    loader.load(filename.c_str(), _vertexData.back(), _normalData.back());
-
+    load_obj_file(filename, _vertexData.back(), _normalData.back());
     if(name == "sphere.obj") {
       setSolidColor(_colorData.back(), _vertexData.back().size(),
                     debugRedColor[0], debugRedColor[1], debugRedColor[2]);

@@ -1,3 +1,9 @@
+/*!
+ * @file PeriodicTask.h
+ * @brief Implementation of a periodic function running in a separate thread.  Periodic tasks have a task manager,
+ * which measure how long they take to run.
+ */
+
 #ifndef PROJECT_PERIODICTASK_H
 #define PROJECT_PERIODICTASK_H
 
@@ -5,11 +11,11 @@
 #include <string>
 #include <thread>
 
-
 class PeriodicTaskManager;
 
-
-
+/*!
+ * A single periodic task which will call run() at the given frequency
+ */
 class PeriodicTask {
 public:
   PeriodicTask(PeriodicTaskManager* taskManager, float period, std::string name);
@@ -54,6 +60,9 @@ private:
   std::thread _thread;
 };
 
+/*!
+ * A collection of periodic tasks which can be monitored together
+ */
 class PeriodicTaskManager {
 public:
   PeriodicTaskManager() = default;
@@ -67,7 +76,9 @@ private:
   std::vector<PeriodicTask*> _tasks;
 };
 
-
+/*!
+ * A periodic task for calling a function
+ */
 class PeriodicFunction : public PeriodicTask {
 public:
   PeriodicFunction(PeriodicTaskManager* taskManager, float period,
@@ -86,7 +97,9 @@ private:
   void (*_function)() = nullptr;
 };
 
-
+/*!
+ * A periodic task for printing the status of all tasks in the task manager
+ */
 class PrintTaskStatus : public PeriodicTask {
 public:
   PrintTaskStatus(PeriodicTaskManager* tm, float period) : PeriodicTask(tm, period, "print-tasks"), _tm(tm) { }
@@ -105,6 +118,9 @@ private:
   PeriodicTaskManager* _tm;
 };
 
+/*!
+ * A periodic task for calling a member function
+ */
 template<typename T>
 class PeriodicMemberFunction : public PeriodicTask {
 public:

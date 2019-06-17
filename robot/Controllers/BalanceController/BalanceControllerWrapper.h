@@ -14,7 +14,6 @@ void balanceControl_set_wrench_weights(double* COM_weights_in, double* Base_weig
 void balanceControl_set_QP_options(double use_hard_constraint_pitch_in);
 void balanceControl_updateProblemData(double* xfb_in, double* pFeet_in, double yaw_in);
 void balanceControl_SetContactData(double* contact_state_in, double* min_forces_in, double* max_forces_in);
-void balanceControl_solveQP();
 void balanceControl_solveQP_nonThreaded();
 void balanceControl_set_friction(double mu_in);
 void balanceControl_set_alpha_control(double alpha_control_in);
