@@ -135,7 +135,7 @@ TEST(JCQP, test_solver_sparse) {
   SparseMatrix<double> As = A.sparseView();
   CholeskySparseSolver<double> solver;
   solver.preSetup(As);
-  solver.setup(As);
+  solver.setup();
   solver.solve(x);
   Vector<double> diff = As * x - b;
   EXPECT_TRUE(fpEqual(diff.minCoeff(), 0.0, 0.001));
