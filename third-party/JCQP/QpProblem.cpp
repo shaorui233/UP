@@ -58,7 +58,7 @@ void QpProblem<T>::run(s64 nIterations, bool sparse, bool b_print)
   Timer setupTimer;
 
   if(sparse)
-    _cholSparseSolver.setup(_kkt, b_print); // set up this one first.
+    _cholSparseSolver.setup(b_print); // set up this one first.
   else
     _cholDenseSolver.setup(_kkt);
 
@@ -84,8 +84,9 @@ void QpProblem<T>::run(s64 nIterations, bool sparse, bool b_print)
       T residual; 
       if(b_print) {
         printf("Iteration %5ld: ", iteration + 1);
-        residual = calcAndDisplayResidual();
       }
+      residual = calcAndDisplayResidual(b_print);
+
 
       if(residual < settings.terminate || iteration + 1 >= nIterations) {
         if(b_print) {
@@ -96,7 +97,7 @@ void QpProblem<T>::run(s64 nIterations, bool sparse, bool b_print)
         check();
 
         if(!solutionLog.empty()) {
-          for(s64 i = 0; i < solutionLog.size() -1; i++) {
+          for(u64 i = 0; i < solutionLog.size() -1; i++) {
             Vector<T> diff = solutionLog[i] - solutionLog[i + 1];
             if(b_print) printf("DIFF %ld: %.3f\n", i, diff.norm());
           }
@@ -216,7 +217,7 @@ void QpProblem<T>::stepY()
 template<typename T>
 T QpProblem<T>::infNorm(const Vector<T>& v) {
   T m(0);
-  for(u64 i = 0; i < v.rows(); i++) {
+  for(s64 i = 0; i < v.rows(); i++) {
     if(std::abs(v[i]) > m) m = std::abs(v[i]);
   }
   return m;
@@ -224,7 +225,7 @@ T QpProblem<T>::infNorm(const Vector<T>& v) {
 
 
 template<typename T>
-T QpProblem<T>::calcAndDisplayResidual()
+T QpProblem<T>::calcAndDisplayResidual(bool print)
 {
 
   if(_sparse) {
@@ -234,7 +235,9 @@ T QpProblem<T>::calcAndDisplayResidual()
     Vector<T> dual = P * (*_x) + q + Asparse.transpose() * _y;
     T d = infNorm(dual);
 
-    printf("p: %8.4f | d: %8.4f", p, d);
+    if(print)
+      printf("p: %8.4f | d: %8.4f", p, d);
+
     return (d + p)/4;
   } else {
     Vector<T> Axz = A * (*_x) - (*_zPrev);
@@ -243,7 +246,9 @@ T QpProblem<T>::calcAndDisplayResidual()
     Vector<T> dual = P * (*_x) + q + A.transpose() * _y;
     T d = infNorm(dual);
 
-    printf("p: %8.4f | d: %8.4f", p, d);
+    if(print)
+      printf("p: %8.4f | d: %8.4f", p, d);
+
     return (d + p)/4;
   }
 }

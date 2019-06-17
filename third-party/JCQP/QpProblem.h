@@ -100,7 +100,7 @@ private:
   void stepX();
   void stepZ();
   void stepY();
-  T calcAndDisplayResidual();
+  T calcAndDisplayResidual(bool print);
   void check();
   T infNorm(const Vector<T>& v);
 
