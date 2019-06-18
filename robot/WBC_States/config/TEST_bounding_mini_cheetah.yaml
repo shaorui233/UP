@@ -4,7 +4,7 @@
 body_height: 0.25
 
 # Timing Parameters (sec)
-body_lifting_time: 0.8
+
 bounding_time: 10000.
 #swing_time: 0.22
 #default_stance_time: 0.13
@@ -17,6 +17,7 @@ leg_height: 0.28
 CTRL_move_to_target_height:
   max_rf_z: 100
   min_rf_z: 3
+  body_lifting_time: 0.8
 
 CTRL_bounding_initiate:
 CTRL_keep_posture:

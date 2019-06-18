@@ -22,7 +22,7 @@ BackFlipCtrl<T>::BackFlipCtrl(
     _des_jpos(cheetah::num_act_joint),
     _des_jvel(cheetah::num_act_joint),
     _jtorque(cheetah::num_act_joint),
-    _end_time(1000.0),
+    _end_time(5.0),
     _dim_contact(0),
     _ctrl_start_time(0.)
 {
@@ -182,6 +182,14 @@ bool BackFlipCtrl<T>::EndOfPhase(){
     if(Ctrl::_state_machine_time > (_end_time-2.*Test<T>::dt)){
         return true;
     }
+    
+    if(_sp->_Q[8]>2.55 and Ctrl::_state_machine_time>0.2){
+	printf("Switch to the next phase using contact detection !!!");
+     	printf("Q-Knee: %lf \n",_sp->_Q[8]);
+    	printf("state_machine_time: %lf \n",Ctrl::_state_machine_time);
+        return true;
+    }
+
     return false;
 }
 

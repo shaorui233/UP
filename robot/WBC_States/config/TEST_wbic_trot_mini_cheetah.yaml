@@ -10,7 +10,7 @@ stance_time: 0.004
 #stance_time: 0.001
   
 # Timing Parameters (sec)
-body_lifting_time: 0.7
+
 
 step_time_ratio: 0.7
 
@@ -19,6 +19,7 @@ body_height: .28
 CTRL_move_to_target_height:
     max_rf_z: 100
     min_rf_z: 0
+    body_lifting_time: 0.7
 
 CTRL_fix_stance:
 

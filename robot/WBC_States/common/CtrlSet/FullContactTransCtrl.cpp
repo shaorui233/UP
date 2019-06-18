@@ -197,6 +197,7 @@ template <typename T>
 void FullContactTransCtrl<T>::CtrlInitialization(const std::string & category_name){
   _param_handler->getValue<T>(category_name, "max_rf_z", _max_rf_z);
   _param_handler->getValue<T>(category_name, "min_rf_z", _min_rf_z);
+  _param_handler->getValue<T>(category_name, "body_lifting_time", _end_time);
 }
 
 template <typename T>
@@ -207,7 +208,7 @@ void FullContactTransCtrl<T>::SetTestParameter(
   if(_param_handler->getValue<T>("body_height", _target_body_height)){
     _b_set_height_target = true;
   }
-  _param_handler->getValue<T>("body_lifting_time", _end_time);
+
 
   // Feedback Gain
   std::vector<T> tmp_vec;
