@@ -16,7 +16,7 @@ CTRL_backflip:
 
 CTRL_backflip_end:
     max_rf_z: 50
-    min_rf_z: 3
+    min_rf_z: 10
     body_lifting_time: 1.0
 
 # Timing Parameters (sec)

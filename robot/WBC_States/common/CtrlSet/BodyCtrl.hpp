@@ -1,9 +1,8 @@
-#ifndef BODY_POSTURE_CTRL
-#define BODY_POSTURE_CTRL
+#ifndef BODY_CTRL
+#define BODY_CTRL
 
 #include <WBC_States/Controller.hpp>
 #include <ParamHandler/ParamHandler.hpp>
-#include <Utilities/filters.h>
 
 template <typename T> class ContactSpec;
 template <typename T> class WBLC;
@@ -13,10 +12,10 @@ template <typename T> class StateProvider;
 template <typename T> class BodyCtrlTest;
 
 template <typename T>
-class BodyPostureCtrl: public Controller<T>{
+class BodyCtrl: public Controller<T>{
     public:
-        BodyPostureCtrl(const FloatingBaseModel<T>* , BodyCtrlTest<T>* );
-        virtual ~BodyPostureCtrl();
+        BodyCtrl(const FloatingBaseModel<T>* );
+        virtual ~BodyCtrl();
 
         virtual void OneStep(void* _cmd);
         virtual void FirstVisit();
@@ -30,7 +29,6 @@ class BodyPostureCtrl: public Controller<T>{
 
     protected:
         BodyCtrlTest<T>* _body_test;
-        std::vector<filter<T> * > _ori_cmd_filter;
         std::vector<T> _Kp_joint, _Kd_joint;
         DVec<T> _Kp, _Kd;
         DVec<T> _des_jpos; 

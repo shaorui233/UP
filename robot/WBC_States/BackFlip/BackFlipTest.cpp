@@ -3,6 +3,7 @@
 #include <WBC_States/BackFlip/CtrlSet/BackFlipCtrl.hpp>
 #include <WBC_States/common/CtrlSet/FullContactTransCtrl.hpp>
 #include <WBC_States/common/CtrlSet/JPosCtrl.hpp>
+#include <WBC_States/common/CtrlSet/BodyCtrl.hpp>
 
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 #include <ParamHandler/ParamHandler.hpp>
@@ -22,7 +23,7 @@ BackFlipTest<T>::BackFlipTest(FloatingBaseModel<T>* robot, const RobotType & typ
     //backflip_pre_ = new BackFlipCtrl<T>(robot, _data_reader); //JPosCtrl<T>(robot);
     backflip_ctrl_ = new BackFlipCtrl<T>(robot, _data_reader);
     backflip_end_ = new FullContactTransCtrl<T>(robot); //new JPosCtrl<T>(robot);
-    body_ctrl_ = new WBIC_FullContactCtrl<T>(this, robot);
+    body_ctrl_ = new BodyCtrl<T>(robot);
     
     Test<T>::_state_list.push_back(body_up_ctrl_);
     //Test<T>::_state_list.push_back(backflip_pre_);
