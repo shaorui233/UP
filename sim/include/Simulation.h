@@ -1,3 +1,8 @@
+/*!
+ * @file Simulation.h
+ * @brief Main simulation class
+ */
+
 #ifndef PROJECT_SIMULATION_H
 #define PROJECT_SIMULATION_H
 

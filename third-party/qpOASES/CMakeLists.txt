@@ -51,6 +51,9 @@ SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/libs)
 ############################################################
 #################### compiler flags ########################
 ############################################################
+
+# warnings are disabled! (qpOASES has many warnings)
+set(CMAKE_CXX_FLAGS "-O3 -no-pie -ggdb -w")
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__NO_COPYRIGHT__ -Wno-error")
 IF ( UNIX )
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic -Wfloat-equal -Wshadow -DLINUX")

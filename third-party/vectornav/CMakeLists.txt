@@ -6,6 +6,8 @@ set(CMAKE_SUPPRESS_REGENERATION TRUE)
 include_directories(
     include)
 
+set(CMAKE_C_FLAGS "-O3 -no-pie -ggdb")
+
 set(SOURCES
         src/vn/xplat/criticalsection.c
         src/vn/xplat/event.c

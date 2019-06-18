@@ -1,8 +1,11 @@
 #include "Collision/CollisionPlane.h"
 
-
-#include "Collision/CollisionPlane.h"
-
+/*!
+ * check whether the contact happens or not
+ * cp_frame let you know which direction is normal (z) and which directions are 
+ * x and y w.r.t global frame. In the case of plane collition, the cp_frame is
+ * always an identity matrix.
+ */
 template<typename T>
 bool CollisionPlane<T>::ContactDetection(
         const Vec3<T> & cp_pos, T & penetration, 

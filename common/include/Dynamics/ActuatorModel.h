@@ -2,7 +2,7 @@
  *  @brief Model of actuator
  *  Includes friction, max torque, and motor torque speed curve.
  *
- *  The getTorque is used for torque at the joint, not torque at the motor
+ *  The getTorque is used for torque at the joint, not torque at the motor.
  *  The provided frictions are for torques at the joint, not torque at the motor
  *  The R/KT are for the motor
  */

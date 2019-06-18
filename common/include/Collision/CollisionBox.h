@@ -52,5 +52,5 @@ class CollisionBox : public Collision<T>{
     Mat3<T> _orientation;
 };
 
-#endif //PROJECT_COLLISIONPLANE_H
+#endif //COLLISION_BOX_H
 
