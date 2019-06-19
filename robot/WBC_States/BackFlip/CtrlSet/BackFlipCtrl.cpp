@@ -22,7 +22,7 @@ BackFlipCtrl<T>::BackFlipCtrl(
     _des_jpos(cheetah::num_act_joint),
     _des_jvel(cheetah::num_act_joint),
     _jtorque(cheetah::num_act_joint),
-    _end_time(5.0),
+    _end_time(2.5),
     _dim_contact(0),
     _ctrl_start_time(0.)
 {
@@ -111,7 +111,11 @@ float tau_mult;
 		tau_front << 0.0, 0.0, 0.0;
 		tau_rear << 0.0, 0.0, 0.0;
 
-		float s = (current_iteration-tuck_iteration)/(ramp_end_iteration-tuck_iteration);
+		float s;
+		s = (float)(current_iteration-tuck_iteration)/(ramp_end_iteration-tuck_iteration);
+
+		//printf("tuck ramping phase s: %f \n",s);
+
 		if (s>1) {s=1;}
 
 		Vec3<float> q_des_front_0;
@@ -183,11 +187,15 @@ bool BackFlipCtrl<T>::EndOfPhase(){
         return true;
     }
     
-    if(_sp->_Q[8]>2.55 and Ctrl::_state_machine_time>0.2){
-	printf("Switch to the next phase using contact detection !!!");
-     	printf("Q-Knee: %lf \n",_sp->_Q[8]);
-    	printf("state_machine_time: %lf \n",Ctrl::_state_machine_time);
-        return true;
+    for(int i=2; i<12; i+=3){ // check contact for each leg
+
+    	if(Ctrl::_state_machine_time>1.5 and _sp->_Qdot[i+6]>_qdot_knee_max){
+		printf("Contact detected at leg [%d] (i= %d) => Switch to the landing phase !!! \n", i/3, i);
+    		printf("state_machine_time: %lf \n",Ctrl::_state_machine_time);
+     		printf("Q-Knee: %lf \n",_sp->_Q[i+6]);
+     		printf("Qdot-Knee: %lf \n",_sp->_Qdot[i+6]);
+        	return true;
+    	}
     }
 
     return false;
@@ -195,7 +203,7 @@ bool BackFlipCtrl<T>::EndOfPhase(){
 
 template <typename T>
 void BackFlipCtrl<T>::CtrlInitialization(const std::string & category_name){
-    (void)category_name;
+  _param_handler->getValue<T>(category_name, "qdot_knee_max", _qdot_knee_max);
 }
 
 template <typename T>

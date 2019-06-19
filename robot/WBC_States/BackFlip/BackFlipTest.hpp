@@ -34,7 +34,7 @@ class BackFlipTest: public Test<T>{
         Controller<T>* body_up_ctrl_;
         //Controller<T>* backflip_pre_;
         Controller<T>* backflip_ctrl_;
-        Controller<T>* backflip_end_;
+        Controller<T>* backflip_landing_;
         Controller<T>* body_ctrl_;
         
         DataReader* _data_reader;

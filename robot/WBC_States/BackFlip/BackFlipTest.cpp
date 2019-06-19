@@ -22,13 +22,13 @@ BackFlipTest<T>::BackFlipTest(FloatingBaseModel<T>* robot, const RobotType & typ
     body_up_ctrl_ = new FullContactTransCtrl<T>(robot);
     //backflip_pre_ = new BackFlipCtrl<T>(robot, _data_reader); //JPosCtrl<T>(robot);
     backflip_ctrl_ = new BackFlipCtrl<T>(robot, _data_reader);
-    backflip_end_ = new FullContactTransCtrl<T>(robot); //new JPosCtrl<T>(robot);
+    backflip_landing_ = new FullContactTransCtrl<T>(robot); //new JPosCtrl<T>(robot);
     body_ctrl_ = new BodyCtrl<T>(robot);
     
     Test<T>::_state_list.push_back(body_up_ctrl_);
     //Test<T>::_state_list.push_back(backflip_pre_);
     Test<T>::_state_list.push_back(backflip_ctrl_);
-    Test<T>::_state_list.push_back(backflip_end_);
+    Test<T>::_state_list.push_back(backflip_landing_);
     Test<T>::_state_list.push_back(body_ctrl_);
     
     _sp = StateProvider<T>::getStateProvider();
@@ -54,7 +54,7 @@ void BackFlipTest<T>::_TestInitialization(){
   body_up_ctrl_->CtrlInitialization("CTRL_move_to_target_height");
   //backflip_pre_->CtrlInitialization("CTRL_backflip_pre");
   backflip_ctrl_->CtrlInitialization("CTRL_backflip");
-  backflip_end_->CtrlInitialization("CTRL_backflip_end");
+  backflip_landing_->CtrlInitialization("CTRL_backflip_landing");
   body_ctrl_->CtrlInitialization("CTRL_fix_stance");
 }
 

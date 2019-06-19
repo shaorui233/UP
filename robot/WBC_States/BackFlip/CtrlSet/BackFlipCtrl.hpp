@@ -45,6 +45,8 @@ class BackFlipCtrl: public Controller<T>{
         void _update_joint_command();
 
         T _ctrl_start_time;
+	T _qdot_knee_max;
+
         ParamHandler* _param_handler;
         StateProvider<T>* _sp;
 };

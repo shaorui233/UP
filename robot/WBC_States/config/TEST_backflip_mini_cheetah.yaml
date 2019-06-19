@@ -12,9 +12,9 @@ CTRL_backflip_pre:
     move_time: 2.0
 
 CTRL_backflip:
+    qdot_knee_max: 10 # used to detect landing instant 
 
-
-CTRL_backflip_end:
+CTRL_backflip_landing:
     max_rf_z: 50
     min_rf_z: 10
     body_lifting_time: 1.0
