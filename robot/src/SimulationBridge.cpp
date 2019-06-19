@@ -164,32 +164,32 @@ void SimulationBridge::runRobotControl() {
 
     _fakeTaskManager = new PeriodicTaskManager;
 
-    _robotController = new RobotController(_fakeTaskManager, 0, "robot-task");
-    //_robotController = new RobotController(&taskManager, 0, "robot-task");
+    _robotRunner = new RobotRunner(_fakeTaskManager, 0, "robot-task");
+    //_robotRunner = new RobotRunner(&taskManager, 0, "robot-task");
 
-    _robotController->driverCommand =
+    _robotRunner->driverCommand =
         &_sharedMemory().simToRobot.gamepadCommand;
-    _robotController->spiData = &_sharedMemory().simToRobot.spiData;
-    _robotController->tiBoardData = _sharedMemory().simToRobot.tiBoardData;
-    _robotController->robotType = _robot;
-    _robotController->kvhImuData = &_sharedMemory().simToRobot.kvh;
-    _robotController->vectorNavData = &_sharedMemory().simToRobot.vectorNav;
-    _robotController->cheaterState = &_sharedMemory().simToRobot.cheaterState;
-    _robotController->spiCommand = &_sharedMemory().robotToSim.spiCommand;
-    _robotController->tiBoardCommand =
+    _robotRunner->spiData = &_sharedMemory().simToRobot.spiData;
+    _robotRunner->tiBoardData = _sharedMemory().simToRobot.tiBoardData;
+    _robotRunner->robotType = _robot;
+    _robotRunner->kvhImuData = &_sharedMemory().simToRobot.kvh;
+    _robotRunner->vectorNavData = &_sharedMemory().simToRobot.vectorNav;
+    _robotRunner->cheaterState = &_sharedMemory().simToRobot.cheaterState;
+    _robotRunner->spiCommand = &_sharedMemory().robotToSim.spiCommand;
+    _robotRunner->tiBoardCommand =
         _sharedMemory().robotToSim.tiBoardCommand;
-    _robotController->controlParameters = &_robotParams;
-    _robotController->visualizationData =
+    _robotRunner->controlParameters = &_robotParams;
+    _robotRunner->visualizationData =
         &_sharedMemory().robotToSim.visualizationData;
-    _robotController->cheetahMainVisualization =
+    _robotRunner->cheetahMainVisualization =
         &_sharedMemory().robotToSim.mainCheetahVisualization;
 
-    _robotController->init();
+    _robotRunner->init();
     _firstControllerRun = false;
 
     sbus_thread = new std::thread(&SimulationBridge::run_sbus, this);
   }
-  _robotController->run();
+  _robotRunner->run();
 }
 
 void SimulationBridge::run_sbus() {

@@ -1,12 +1,12 @@
 /*!
- * @file RobotController.h
+ * @file RobotRunner.h
  * @brief Common framework for running robot controllers.
  * This code is a common interface between control code and hardware/simulation
  * for mini cheetah and cheetah 3
  */
 
-#ifndef PROJECT_ROBOTCONTROLLER_H
-#define PROJECT_ROBOTCONTROLLER_H
+#ifndef PROJECT_ROBOTRUNNER_H
+#define PROJECT_ROBOTRUNNER_H
 
 #include <ControlParameters/ControlParameterInterface.h>
 #include <ControlParameters/RobotParameters.h>
@@ -36,7 +36,7 @@ enum class ControlLogicName { CONTROL_FSM, WBC };
 template <typename T>
 class Test;
 
-class RobotController : public PeriodicTask {
+class RobotRunner : public PeriodicTask {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   using PeriodicTask::PeriodicTask;
@@ -54,7 +54,7 @@ class RobotController : public PeriodicTask {
 
   // Initialize the state estimator with default no cheaterMode
   void initializeStateEstimator(bool cheaterMode = false);
-  virtual ~RobotController();
+  virtual ~RobotRunner();
 
   GamepadCommand* driverCommand;
   RobotType robotType;
@@ -108,4 +108,4 @@ class RobotController : public PeriodicTask {
   u64 _iterations = 0;
 };
 
-#endif  // PROJECT_ROBOTCONTROLLER_H
+#endif  // PROJECT_ROBOTRUNNER_H

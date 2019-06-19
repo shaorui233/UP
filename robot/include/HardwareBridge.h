@@ -14,7 +14,7 @@
 
 #include <lcm-cpp.hpp>
 #include <string>
-#include "RobotController.h"
+#include "RobotRunner.h"
 #include "Utilities/PeriodicTask.h"
 #include "control_parameter_request_lcmt.hpp"
 #include "control_parameter_respones_lcmt.hpp"
@@ -30,7 +30,7 @@ class HardwareBridge {
   void setupScheduler();
   void initError(const char* reason, bool printErrno = false);
   void initCommon();
-  ~HardwareBridge() { delete _robotController; }
+  ~HardwareBridge() { delete _robotRunner; }
   void handleGamepadLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
                         const gamepad_lcmt* msg);
 
@@ -55,7 +55,7 @@ class HardwareBridge {
   SpiCommand _spiCommand;
 
   bool _firstRun = true;
-  RobotController* _robotController = nullptr;
+  RobotRunner* _robotRunner = nullptr;
   RobotControlParameters _robotParams;
   u64 _iterations = 0;
   std::thread _interfaceLcmThread;

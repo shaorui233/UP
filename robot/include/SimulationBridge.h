@@ -9,7 +9,7 @@
 
 #include <thread>
 #include "ControlParameters/RobotParameters.h"
-#include "RobotController.h"
+#include "RobotRunner.h"
 #include "SimUtilities/SimulatorMessage.h"
 #include "Types.h"
 #include "Utilities/PeriodicTask.h"
@@ -23,7 +23,7 @@ class SimulationBridge {
   void runRobotControl();
   ~SimulationBridge() {
     delete _fakeTaskManager;
-    delete _robotController;
+    delete _robotRunner;
   }
   void run_sbus();
 
@@ -32,7 +32,7 @@ class SimulationBridge {
   bool _firstControllerRun = true;
   PeriodicTaskManager* _fakeTaskManager = nullptr;
   RobotType _robot;
-  RobotController* _robotController = nullptr;
+  RobotRunner* _robotRunner = nullptr;
   SimulatorMode _simMode;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
   RobotControlParameters _robotParams;

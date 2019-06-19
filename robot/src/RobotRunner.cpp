@@ -1,4 +1,4 @@
-#include "RobotController.h"
+#include "RobotRunner.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/OrientationEstimator.h"
 #include "Dynamics/Cheetah3.h"
@@ -26,8 +26,8 @@
  * Initializes the robot model, state estimator, leg controller,
  * robot data, and any control logic specific data.
  */
-void RobotController::init() {
-  printf("[RobotController] initialize\n");
+void RobotRunner::init() {
+  printf("[RobotRunner] initialize\n");
 
   // Build the appropriate Quadruped object
   if (robotType == RobotType::MINI_CHEETAH) {
@@ -71,7 +71,7 @@ void RobotController::init() {
  * Runs the overall robot control system by calling each of the major components
  * to run each of their respective steps.
  */
-void RobotController::run() {
+void RobotRunner::run() {
   // Increment the iteration counter
   iter++;
 
@@ -108,7 +108,7 @@ void RobotController::run() {
 /**
  * Initializes the Control FSM.
  */
-void RobotController::initializeControlOptionControlFSM() {
+void RobotRunner::initializeControlOptionControlFSM() {
   // Initialize a new GaitScheduler object
   _gaitScheduler = new GaitScheduler<float>();
 
@@ -129,7 +129,7 @@ void RobotController::initializeControlOptionControlFSM() {
 /**
  * Calculate the commands for the leg controllers using the ControlFSM logic.
  */
-void RobotController::runControlOptionControlFSM() {
+void RobotRunner::runControlOptionControlFSM() {
   // Run the state estimator step
   _stateEstimator->run(cheetahMainVisualization);
 
@@ -146,7 +146,7 @@ void RobotController::runControlOptionControlFSM() {
 /**
  * Initializes the WBC.
  */
-void RobotController::initializeControlOptionWBC() {
+void RobotRunner::initializeControlOptionWBC() {
   // Get the requested test name from the parameters
   ParamHandler handler(THIS_COM
                        "robot/WBC_States/config/ROBOT_test_setup.yaml");
@@ -171,7 +171,7 @@ void RobotController::initializeControlOptionWBC() {
 /**
  * Calculate the commands for the leg controllers using the WBC logic.
  */
-void RobotController::runControlOptionWBC() {
+void RobotRunner::runControlOptionWBC() {
   // Run the state estimator step
   _stateEstimator->run(cheetahMainVisualization);
 
@@ -280,7 +280,7 @@ void RobotController::runControlOptionWBC() {
   }
 }
 
-void RobotController::StepLocationVisualization() {
+void RobotRunner::StepLocationVisualization() {
   // Cones
   // visualizationData->num_cones = 20*2;
   int num_step = _extra_data->num_step;
@@ -297,7 +297,7 @@ void RobotController::StepLocationVisualization() {
     visualizationData->cones[j] = cone;
   }
 }
-void RobotController::BodyPathVisualization() {
+void RobotRunner::BodyPathVisualization() {
   // Path visualization
   PathVisualization path;
   path.num_points = _extra_data->num_path_pt;
@@ -313,7 +313,7 @@ void RobotController::BodyPathVisualization() {
   visualizationData->paths[0] = path;
 }
 
-void RobotController::BodyPathArrowVisualization() {
+void RobotRunner::BodyPathArrowVisualization() {
   visualizationData->num_arrows = _extra_data->num_middle_pt;
 
   double ar_len(0.07);
@@ -339,7 +339,7 @@ void RobotController::BodyPathArrowVisualization() {
   }
 }
 
-void RobotController::testDebugVisualization() {
+void RobotRunner::testDebugVisualization() {
   // Todo, move some of this into the robot controller.
 
   float t = (float)_iterations / 1000;
@@ -415,7 +415,7 @@ void RobotController::testDebugVisualization() {
   visualizationData->paths[0] = path;
 }
 
-void RobotController::setupStep() {
+void RobotRunner::setupStep() {
   // Update the leg data
   if (robotType == RobotType::MINI_CHEETAH) {
     _legController->updateData(spiData);
@@ -433,7 +433,7 @@ void RobotController::setupStep() {
   // state estimator
   // check transition to cheater mode:
   if (!_cheaterModeEnabled && controlParameters->cheater_mode) {
-    printf("[RobotController] Transitioning to Cheater Mode...\n");
+    printf("[RobotRunner] Transitioning to Cheater Mode...\n");
     initializeStateEstimator(true);
     // todo any configuration
     _cheaterModeEnabled = true;
@@ -441,7 +441,7 @@ void RobotController::setupStep() {
 
   // check transition from cheater mode:
   if (_cheaterModeEnabled && !controlParameters->cheater_mode) {
-    printf("[RobotController] Transitioning from Cheater Mode...\n");
+    printf("[RobotRunner] Transitioning from Cheater Mode...\n");
     initializeStateEstimator(false);
     // todo any configuration
     _cheaterModeEnabled = false;
@@ -450,7 +450,7 @@ void RobotController::setupStep() {
   // todo safety checks, sanity checks, etc...
 }
 
-void RobotController::finalizeStep() {
+void RobotRunner::finalizeStep() {
   if (robotType == RobotType::MINI_CHEETAH) {
     _legController->updateCommand(spiCommand);
   } else if (robotType == RobotType::CHEETAH_3) {
@@ -461,7 +461,7 @@ void RobotController::finalizeStep() {
   _iterations++;
 }
 
-void RobotController::initializeStateEstimator(bool cheaterMode) {
+void RobotRunner::initializeStateEstimator(bool cheaterMode) {
   _stateEstimator->removeAllEstimators();
   _stateEstimator->addEstimator<ContactEstimator<float>>();
   if (cheaterMode) {
@@ -475,7 +475,7 @@ void RobotController::initializeStateEstimator(bool cheaterMode) {
   }
 }
 
-RobotController::~RobotController() {
+RobotRunner::~RobotRunner() {
   delete _legController;
   delete _stateEstimator;
   delete _wbc_state;
@@ -484,4 +484,4 @@ RobotController::~RobotController() {
   delete _jpos_initializer;
 }
 
-void RobotController::cleanup() {}
+void RobotRunner::cleanup() {}
