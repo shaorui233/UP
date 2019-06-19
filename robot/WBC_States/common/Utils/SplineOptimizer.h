@@ -1,8 +1,8 @@
 #ifndef SPLINE_OPTIMIZER
 #define SPLINE_OPTIMIZER
 /*
-#include <nlopt.hpp>
 #include <math.h>
+#include <nlopt.hpp>
 #include "Utilities/BSplineBasic.h"
 #include "Utilities/Utilities_print.h"
 
@@ -24,7 +24,7 @@ class SplineOptimizer{
             }
         }
         static double MinAcc(
-                const std::vector<double> &x, 
+                const std::vector<double> &x,
                 std::vector<double> & grad,
                 void *d_) {
 
@@ -33,15 +33,15 @@ class SplineOptimizer{
 
             T cost_sum(0.);
             for(size_t i(0); i<DIM; ++i){
-                //grad[i] = 2.*x[i]; 
-                //cost_sum += (x[i]*x[i]); 
-                cost_sum += (x[i]); 
+                //grad[i] = 2.*x[i];
+                //cost_sum += (x[i]*x[i]);
+                cost_sum += (x[i]);
             }
             return cost_sum;
-        } 
+        }
 
         static void BoundAcceleration(
-                unsigned m, double * result, unsigned n, const double *x, 
+                unsigned m, double * result, unsigned n, const double *x,
                 double * grad, void*data){
 
             (void)m;
@@ -52,23 +52,28 @@ class SplineOptimizer{
             SplineOptimizer* tester = (SplineOptimizer*)data;
             T delta_t = tester->_fin_time/((T)tester->_num_check_pt);
 
-            for (unsigned int k(0); k<DIM; ++k) tester->_fin_opt[DIM*2 + k] = x[k + DIM];
+            for (unsigned int k(0); k<DIM; ++k) tester->_fin_opt[DIM*2 + k] =
+x[k + DIM];
 
-            tester->_spline.SetParam(tester->_ini, tester->_fin_opt, 
+            tester->_spline.SetParam(tester->_ini, tester->_fin_opt,
                     tester->_mid_pt, tester->_fin_time);
 
             //printf("ini pos: %f, %f\n", tester->_ini[0], tester->_ini[1]);
             //printf("ini vel: %f, %f\n", tester->_ini[2], tester->_ini[3]);
             //printf("ini acc: %f, %f\n", tester->_ini[4], tester->_ini[5]);
 
-            //printf("fin pos: %f, %f\n", tester->_fin_opt[0], tester->_fin_opt[1]);
-            //printf("fin vel: %f, %f\n", tester->_fin_opt[2], tester->_fin_opt[3]);
-            //printf("fin acc: %f, %f\n", tester->_fin_opt[4], tester->_fin_opt[5]);
+            //printf("fin pos: %f, %f\n", tester->_fin_opt[0],
+tester->_fin_opt[1]);
+            //printf("fin vel: %f, %f\n", tester->_fin_opt[2],
+tester->_fin_opt[3]);
+            //printf("fin acc: %f, %f\n", tester->_fin_opt[4],
+tester->_fin_opt[5]);
 
-            //printf("mid pt: %f, %f\n", tester->_mid_pt[0][0], tester->_mid_pt[0][1]);
+            //printf("mid pt: %f, %f\n", tester->_mid_pt[0][0],
+tester->_mid_pt[0][1]);
 
 
-            T acc[DIM]; 
+            T acc[DIM];
             for(size_t i(0); i< DIM; ++i) acc[i] = 0.;
 
             for(unsigned int i(0); i<tester->_num_check_pt; ++i){
@@ -86,7 +91,7 @@ class SplineOptimizer{
         void setParam(T* ini, T* fin, T ** middle_pt, T fin_time){
             for(size_t i(0); i<DIM*3; ++i) _fin_opt[i] = fin[i];
             for(size_t i(0); i<DIM*3; ++i) _ini[i]= ini[i];
-            for(size_t i(0); i<NUM_MIDDLE; ++i) 
+            for(size_t i(0); i<NUM_MIDDLE; ++i)
                 for(size_t j(0); j<DIM; ++j)
                     _mid_pt[i][j]= middle_pt[i][j];
 
@@ -114,16 +119,17 @@ class SplineOptimizer{
             }
             test->set_lower_bounds(lb);
             test->set_upper_bounds(ub);
-            
+
             int num_acc_check_pt = 2 * (DIM*_num_check_pt);
             std::vector<double> tol_ieq(num_acc_check_pt);
             for(int i(0); i<num_acc_check_pt; ++i){ tol_ieq[i] = 1e-4; }
-            test->add_inequality_mconstraint(SplineOptimizer::BoundAcceleration, this, tol_ieq);
+            test->add_inequality_mconstraint(SplineOptimizer::BoundAcceleration,
+this, tol_ieq);
 
             // Objective Function
             test->set_xtol_rel(1e-10);
             test->set_ftol_rel(1e-10);
-            test->set_maxeval(500); 
+            test->set_maxeval(500);
 
             test->set_min_objective(SplineOptimizer::MinAcc, this);
             T opt_f;

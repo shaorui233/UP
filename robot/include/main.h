@@ -5,4 +5,4 @@
 
 extern MasterConfig gMasterConfig;
 
-#endif //ROBOT_MAIN_H
+#endif  // ROBOT_MAIN_H

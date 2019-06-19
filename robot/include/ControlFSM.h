@@ -11,24 +11,17 @@
 
 // FSM States
 #include "../FSM_States/FSM_State.h"
-#include "../FSM_States/FSM_State_Passive.h"
-#include "../FSM_States/FSM_State_JointPD.h"
-#include "../FSM_States/FSM_State_ImpedanceControl.h"
-#include "../FSM_States/FSM_State_StandUp.h"
 #include "../FSM_States/FSM_State_BalanceStand.h"
+#include "../FSM_States/FSM_State_ImpedanceControl.h"
+#include "../FSM_States/FSM_State_JointPD.h"
 #include "../FSM_States/FSM_State_Locomotion.h"
-
+#include "../FSM_States/FSM_State_Passive.h"
+#include "../FSM_States/FSM_State_StandUp.h"
 
 /**
  * Enumerate all of the operating modes
  */
-enum class FSM_OperatingMode {
-  NORMAL,
-  TRANSITIONING,
-  ESTOP,
-  EDAMP
-};
-
+enum class FSM_OperatingMode { NORMAL, TRANSITIONING, ESTOP, EDAMP };
 
 /**
  *
@@ -44,17 +37,15 @@ struct FSM_StatesList {
   FSM_State_Locomotion<T>* locomotion;
 };
 
-
 /**
  * Control FSM handles the FSM states from a higher level
  */
 template <typename T>
 class ControlFSM {
-public:
+ public:
   ControlFSM(Quadruped<T>* _quadruped,
              StateEstimatorContainer<T>* _stateEstimator,
-             LegController<T>* _legController,
-             GaitScheduler<T>* _gaitScheduler,
+             LegController<T>* _legController, GaitScheduler<T>* _gaitScheduler,
              DesiredStateCommand<T>* _desiredStateCommand,
              RobotControlParameters* controlParameters);
 
@@ -80,28 +71,25 @@ public:
   ControlFSMData<T> data;
 
   // FSM state information
-  FSM_StatesList<T> statesList;		// holds all of the FSM States
-  FSM_State<T>* currentState;		// current FSM state
-  FSM_State<T>* nextState;			// next FSM state
-  FSM_StateName nextStateName;		// next FSM state name
+  FSM_StatesList<T> statesList;  // holds all of the FSM States
+  FSM_State<T>* currentState;    // current FSM state
+  FSM_State<T>* nextState;       // next FSM state
+  FSM_StateName nextStateName;   // next FSM state name
 
   // Checks all of the inputs and commands for safety
   SafetyChecker<T>* safetyChecker;
 
   TransitionData<T> transitionData;
 
-private:
+ private:
   // Operating mode of the FSM
   FSM_OperatingMode operatingMode;
 
   // Choose how often to print info, every N iterations
-  int printNum = 1000; // N*(0.001s) in simulation time
+  int printNum = 1000;  // N*(0.001s) in simulation time
 
   // Track the number of iterations since last info print
   int printIter = 0;  // make larger than printNum to not print
-
 };
 
-
-
-#endif // CONTROLFSM_H
+#endif  // CONTROLFSM_H

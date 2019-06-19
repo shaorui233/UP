@@ -2,9 +2,9 @@
  *  @brief Declaration of various simulator parameters
  *
  *  This class contains all the ControlParameters for the simulator.
- *  In most cases, the simulator just loads the control parameters in simulator-defaults.ini and this is okay
+ *  In most cases, the simulator just loads the control parameters in
+ * simulator-defaults.ini and this is okay
  */
-
 
 #ifndef PROJECT_SIMULATORPARAMETERS_H
 #define PROJECT_SIMULATORPARAMETERS_H
@@ -15,32 +15,26 @@
 #define MINI_CHEETAH_DEFAULT_PARAMETERS "/mini-cheetah-defaults.yaml"
 #define CHEETAH_3_DEFAULT_PARAMETERS "/cheetah-3-defaults.yaml"
 
-
-
-
 class SimulatorControlParameters : public ControlParameters {
-public:
-
-  SimulatorControlParameters() :
-          ControlParameters("simulator-parameters"),
-          INIT_PARAMETER(kvh_imu_accelerometer_noise),
-          INIT_PARAMETER(kvh_imu_gyro_noise),
-          INIT_PARAMETER(vectornav_imu_accelerometer_noise),
-          INIT_PARAMETER(vectornav_imu_gyro_noise),
-          INIT_PARAMETER(vectornav_imu_quat_noise),
-          INIT_PARAMETER(game_controller_deadband),
-          INIT_PARAMETER(simulation_speed),
-          INIT_PARAMETER(simulation_paused),
-          INIT_PARAMETER(high_level_dt),
-          INIT_PARAMETER(low_level_dt),
-          INIT_PARAMETER(dynamics_dt),
-          INIT_PARAMETER(floor_kp),
-          INIT_PARAMETER(floor_kd),
-          INIT_PARAMETER(use_spring_damper),
-          INIT_PARAMETER(sim_state_lcm),
-          INIT_PARAMETER(sim_lcm_ttl)
-  { }
-
+ public:
+  SimulatorControlParameters()
+      : ControlParameters("simulator-parameters"),
+        INIT_PARAMETER(kvh_imu_accelerometer_noise),
+        INIT_PARAMETER(kvh_imu_gyro_noise),
+        INIT_PARAMETER(vectornav_imu_accelerometer_noise),
+        INIT_PARAMETER(vectornav_imu_gyro_noise),
+        INIT_PARAMETER(vectornav_imu_quat_noise),
+        INIT_PARAMETER(game_controller_deadband),
+        INIT_PARAMETER(simulation_speed),
+        INIT_PARAMETER(simulation_paused),
+        INIT_PARAMETER(high_level_dt),
+        INIT_PARAMETER(low_level_dt),
+        INIT_PARAMETER(dynamics_dt),
+        INIT_PARAMETER(floor_kp),
+        INIT_PARAMETER(floor_kd),
+        INIT_PARAMETER(use_spring_damper),
+        INIT_PARAMETER(sim_state_lcm),
+        INIT_PARAMETER(sim_lcm_ttl) {}
 
   DECLARE_PARAMETER(float, kvh_imu_accelerometer_noise)
   DECLARE_PARAMETER(float, kvh_imu_gyro_noise)
@@ -63,4 +57,4 @@ public:
   DECLARE_PARAMETER(s64, sim_lcm_ttl)
 };
 
-#endif //PROJECT_SIMULATORPARAMETERS_H
+#endif  // PROJECT_SIMULATORPARAMETERS_H

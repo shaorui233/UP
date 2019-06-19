@@ -7,8 +7,8 @@
  *
  */
 template <typename T>
-class FSM_State_StandUp: public FSM_State<T> {
-public:
+class FSM_State_StandUp : public FSM_State<T> {
+ public:
   FSM_State_StandUp(ControlFSMData<T>* _controlFSMData);
 
   // Behavior to be carried out when entering a state
@@ -27,12 +27,10 @@ public:
   void onExit();
 
   TransitionData<T> testTransition();
-  
 
-private:
+ private:
   // Keep track of the control iterations
   int iter = 0;
-
 };
 
-#endif // FSM_STATE_STANDUP_H
+#endif  // FSM_STATE_STANDUP_H

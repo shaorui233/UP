@@ -6,30 +6,26 @@
 #include <vector>
 
 template <typename T>
-class KinWBC{
-    public:
-        KinWBC(size_t num_qdot);
-        ~KinWBC(){}
+class KinWBC {
+ public:
+  KinWBC(size_t num_qdot);
+  ~KinWBC() {}
 
-        bool FindConfiguration(
-                const DVec<T> & curr_config,
-                const std::vector<Task<T>*> & task_list,
-                const std::vector<ContactSpec<T>*> & contact_list,
-                DVec<T> & jpos_cmd,
-                DVec<T> & jvel_cmd,
-                DVec<T> & jacc_cmd);
+  bool FindConfiguration(const DVec<T>& curr_config,
+                         const std::vector<Task<T>*>& task_list,
+                         const std::vector<ContactSpec<T>*>& contact_list,
+                         DVec<T>& jpos_cmd, DVec<T>& jvel_cmd,
+                         DVec<T>& jacc_cmd);
 
-        DMat<T> Ainv_;
-    private:
-        void _PseudoInverse(const DMat<T> J, DMat<T> & Jinv);
-        void _BuildProjectionMatrix(
-                const DMat<T> & J,
-                DMat<T> & N);
+  DMat<T> Ainv_;
 
-        double threshold_;
-        size_t num_qdot_;
-        size_t num_act_joint_;
-        DMat<T> I_mtx;
+ private:
+  void _PseudoInverse(const DMat<T> J, DMat<T>& Jinv);
+  void _BuildProjectionMatrix(const DMat<T>& J, DMat<T>& N);
+
+  double threshold_;
+  size_t num_qdot_;
+  size_t num_act_joint_;
+  DMat<T> I_mtx;
 };
 #endif
-

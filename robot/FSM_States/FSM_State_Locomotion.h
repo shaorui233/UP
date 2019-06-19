@@ -7,8 +7,8 @@
  *
  */
 template <typename T>
-class FSM_State_Locomotion: public FSM_State<T> {
-public:
+class FSM_State_Locomotion : public FSM_State<T> {
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   FSM_State_Locomotion(ControlFSMData<T>* _controlFSMData);
 
@@ -27,7 +27,7 @@ public:
   // Behavior to be carried out when exiting a state
   void onExit();
 
-private:
+ private:
   // Keep track of the control iterations
   int iter = 0;
 
@@ -36,7 +36,6 @@ private:
 
   // Impedance control for the stance legs during locomotion
   void StanceLegImpedanceControl(int leg);
-
 };
 
-#endif // FSM_STATE_LOCOMOTION_H
+#endif  // FSM_STATE_LOCOMOTION_H

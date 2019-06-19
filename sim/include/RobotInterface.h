@@ -6,35 +6,35 @@
 #ifndef PROJECT_ROBOTINTERFACE_H
 #define PROJECT_ROBOTINTERFACE_H
 
-
 #include <ControlParameters/RobotParameters.h>
-#include <lcm-cpp.hpp>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
+#include <Dynamics/Quadruped.h>
 #include <Utilities/PeriodicTask.h>
 #include <cheetah_visualization_lcmt.hpp>
-#include <Dynamics/Quadruped.h>
+#include <condition_variable>
+#include <lcm-cpp.hpp>
+#include <mutex>
+#include <thread>
 #include "Graphics3D.h"
-#include "gamepad_lcmt.hpp"
-#include "control_parameter_respones_lcmt.hpp"
 #include "control_parameter_request_lcmt.hpp"
+#include "control_parameter_respones_lcmt.hpp"
+#include "gamepad_lcmt.hpp"
 
-#define ROBOT_INTERFACE_UPDATE_PERIOD (1.f/60.f)
+#define ROBOT_INTERFACE_UPDATE_PERIOD (1.f / 60.f)
 #define INTERFACE_LCM_NAME "interface"
 #define TIMES_TO_RESEND_CONTROL_PARAM 5
 
 class RobotInterface : PeriodicTask {
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  
+
   RobotInterface(RobotType robotType, Graphics3D* gfx, PeriodicTaskManager* tm);
   RobotControlParameters& getParams() { return _controlParameters; }
   void startInterface();
   void stopInterface();
   void lcmHandler();
   void sendControlParameter(const std::string& name,
-      ControlParameterValue value, ControlParameterValueKind kind);
+                            ControlParameterValue value,
+                            ControlParameterValueKind kind);
   void handleControlParameter(const lcm::ReceiveBuffer* rbuf,
                               const std::string& chan,
                               const control_parameter_respones_lcmt* msg);
@@ -43,15 +43,15 @@ public:
                                const std::string& chan,
                                const cheetah_visualization_lcmt* msg);
 
-  void init() { }
+  void init() {}
   void run();
-  void cleanup() { }
+  void cleanup() {}
   virtual ~RobotInterface() {
     delete _simulator;
     stop();
   }
 
-private:
+ private:
   PeriodicTaskManager _taskManager;
   gamepad_lcmt _gamepad_lcmt;
   control_parameter_request_lcmt _parameter_request_lcmt;
@@ -77,5 +77,4 @@ private:
   FBModelState<double> _fwdKinState;
 };
 
-
-#endif //PROJECT_ROBOTINTERFACE_H
+#endif  // PROJECT_ROBOTINTERFACE_H

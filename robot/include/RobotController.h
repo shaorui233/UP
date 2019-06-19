@@ -1,55 +1,52 @@
 /*!
  * @file RobotController.h
  * @brief Common framework for running robot controllers.
- * This code is a common interface between control code and hardware/simulation for mini cheetah and cheetah 3
+ * This code is a common interface between control code and hardware/simulation
+ * for mini cheetah and cheetah 3
  */
 
 #ifndef PROJECT_ROBOTCONTROLLER_H
 #define PROJECT_ROBOTCONTROLLER_H
 
-#include <SimUtilities/IMUTypes.h>
 #include <ControlParameters/ControlParameterInterface.h>
 #include <ControlParameters/RobotParameters.h>
-#include "Controllers/LegController.h"
-#include "Dynamics/Quadruped.h"
-#include "SimUtilities/GamepadCommand.h"
-#include "SimUtilities/VisualizationData.h"
 #include <Controllers/StateEstimatorContainer.h>
-#include "cheetah_visualization_lcmt.hpp"
-#include "Controllers/GaitScheduler.h"
+#include <SimUtilities/IMUTypes.h>
+#include <gui_main_control_settings_t.hpp>
+#include "ControlFSM.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
+#include "Controllers/GaitScheduler.h"
+#include "Controllers/LegController.h"
+#include "Dynamics/Quadruped.h"
 #include "JPosInitializer.h"
+#include "SimUtilities/GamepadCommand.h"
+#include "SimUtilities/VisualizationData.h"
 #include "Utilities/PeriodicTask.h"
-#include "ControlFSM.h"
-#include <gui_main_control_settings_t.hpp>
-
+#include "cheetah_visualization_lcmt.hpp"
 
 /**
- * Enumerate all of the Control logic options. Each one will have 
+ * Enumerate all of the Control logic options. Each one will have
  * an initialize and a run function that pieces together the control
  * logic from the various robot controllers and sensors.
  */
-enum class ControlLogicName {
-  CONTROL_FSM,
-  WBC
-};
-
+enum class ControlLogicName { CONTROL_FSM, WBC };
 
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
-template <typename T> class Test;
+template <typename T>
+class Test;
 
 class RobotController : public PeriodicTask {
-public:
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   using PeriodicTask::PeriodicTask;
   void init() override;
   void run() override;
   void cleanup() override;
 
-  // Control options logic initializations 
-  void initializeControlOptionControlFSM(); // ControlFSM
-  void initializeControlOptionWBC();        // WBC
+  // Control options logic initializations
+  void initializeControlOptionControlFSM();  // ControlFSM
+  void initializeControlOptionWBC();         // WBC
 
   // Control options logic run functions
   void runControlOptionControlFSM();  // ControlFSM
@@ -59,9 +56,8 @@ public:
   void initializeStateEstimator(bool cheaterMode = false);
   virtual ~RobotController();
 
-
   GamepadCommand* driverCommand;
-  RobotType  robotType;
+  RobotType robotType;
   KvhImuData* kvhImuData;
   VectorNavData* vectorNavData;
   CheaterState<double>* cheaterState;
@@ -73,7 +69,7 @@ public:
   VisualizationData* visualizationData;
   CheetahVisualization* cheetahMainVisualization;
 
-private:
+ private:
   float _ini_yaw;
 
   int iter = 0;
@@ -112,5 +108,4 @@ private:
   u64 _iterations = 0;
 };
 
-
-#endif //PROJECT_ROBOTCONTROLLER_H
+#endif  // PROJECT_ROBOTCONTROLLER_H

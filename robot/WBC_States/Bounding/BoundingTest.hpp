@@ -1,48 +1,48 @@
 #ifndef BOUNDING_TEST_Cheetah
 #define BOUNDING_TEST_Cheetah
 
-#include <WBC_States/Test.hpp>
 #include <Dynamics/Quadruped.h>
-
-template <typename T> class StateProvider;
-
-namespace BoundingPhase{
-    constexpr int lift_up = 0;
-    constexpr int posture_keeping = 1;
-    constexpr int bounding = 2;
-    constexpr int NUM_BOUNDING_PHASE = 3;
-};
-
+#include <WBC_States/Test.hpp>
 
 template <typename T>
-class BoundingTest: public Test<T>{
-    public:
-        BoundingTest(FloatingBaseModel<T>* , const RobotType& );
-        virtual ~BoundingTest();
+class StateProvider;
 
-        Vec3<T> _body_pos;
-        Vec3<T> _body_vel;
-        Vec3<T> _body_acc;
+namespace BoundingPhase {
+constexpr int lift_up = 0;
+constexpr int posture_keeping = 1;
+constexpr int bounding = 2;
+constexpr int NUM_BOUNDING_PHASE = 3;
+};  // namespace BoundingPhase
 
-        Vec3<T> _body_ori_rpy;
-        // This does not have any frame meaning. just derivation of rpy
-        Vec3<T> _body_ang_vel; 
+template <typename T>
+class BoundingTest : public Test<T> {
+ public:
+  BoundingTest(FloatingBaseModel<T>*, const RobotType&);
+  virtual ~BoundingTest();
 
+  Vec3<T> _body_pos;
+  Vec3<T> _body_vel;
+  Vec3<T> _body_acc;
 
-        std::string _folder_name;
-    protected:
-        virtual void _UpdateTestOneStep();
-        virtual void _TestInitialization();
-        virtual int _NextPhase(const int & phase);
-        virtual void _UpdateExtraData(Cheetah_Extra_Data<T> * ext_data);
+  Vec3<T> _body_ori_rpy;
+  // This does not have any frame meaning. just derivation of rpy
+  Vec3<T> _body_ang_vel;
 
-        void _SettingParameter();
+  std::string _folder_name;
 
-        Controller<T>* _body_up_ctrl;
-        Controller<T>* _posture_keeping;
-        Controller<T>* _bounding;
+ protected:
+  virtual void _UpdateTestOneStep();
+  virtual void _TestInitialization();
+  virtual int _NextPhase(const int& phase);
+  virtual void _UpdateExtraData(Cheetah_Extra_Data<T>* ext_data);
 
-        StateProvider<T>* _sp;
+  void _SettingParameter();
+
+  Controller<T>* _body_up_ctrl;
+  Controller<T>* _posture_keeping;
+  Controller<T>* _bounding;
+
+  StateProvider<T>* _sp;
 };
 
 #endif

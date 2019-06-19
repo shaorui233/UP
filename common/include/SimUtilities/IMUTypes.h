@@ -36,4 +36,4 @@ struct CheaterState {
   Vec3<T> acceleration;
 };
 
-#endif //PROJECT_IMUTYPES_H
+#endif  // PROJECT_IMUTYPES_H

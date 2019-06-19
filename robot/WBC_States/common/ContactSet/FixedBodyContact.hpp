@@ -3,13 +3,13 @@
 
 #include <WBC/ContactSpec.hpp>
 
-template<typename T>
-class FixedBodyContact: public ContactSpec<T>{
-public:
+template <typename T>
+class FixedBodyContact : public ContactSpec<T> {
+ public:
   FixedBodyContact();
   virtual ~FixedBodyContact();
 
-protected:
+ protected:
   virtual bool _UpdateJc();
   virtual bool _UpdateJcDotQdot();
   virtual bool _UpdateUf();

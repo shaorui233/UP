@@ -1,98 +1,98 @@
 #ifndef WBIC_TROT_TEST_eheetah
 #define WBIC_TROT_TEST_Cheetah
 
-#include <WBC_States/Test.hpp>
 #include <Dynamics/Quadruped.h>
 #include <Utilities/filters.h>
+#include <WBC_States/Test.hpp>
 
 #include <lcm-cpp.hpp>
 #include <thread>
-#include "wbc_test_data_t.hpp"
 #include "vision_data_t.hpp"
-
-template <typename T> class StateProvider;
-template <typename T> class Path;
-
-namespace WBICTrotPhase{
-    constexpr int lift_up = 0;
-    constexpr int full_contact_1 = 1;
-    constexpr int frhl_swing_start_trans = 2;
-    constexpr int frhl_swing = 3;
-    constexpr int frhl_swing_end_trans = 4;
-    constexpr int full_contact_2 = 5;
-    constexpr int flhr_swing_start_trans = 6;
-    constexpr int flhr_swing = 7;
-    constexpr int flhr_swing_end_trans = 8;
-    constexpr int NUM_TROT_PHASE = 9;
-};
-
+#include "wbc_test_data_t.hpp"
 
 template <typename T>
-class WBICTrotTest: public Test<T>{
-    public:
-        WBICTrotTest(FloatingBaseModel<T>* , const RobotType& );
-        virtual ~WBICTrotTest();
+class StateProvider;
+template <typename T>
+class Path;
 
-        DVec<T> _jpos_des_pre;
+namespace WBICTrotPhase {
+constexpr int lift_up = 0;
+constexpr int full_contact_1 = 1;
+constexpr int frhl_swing_start_trans = 2;
+constexpr int frhl_swing = 3;
+constexpr int frhl_swing_end_trans = 4;
+constexpr int full_contact_2 = 5;
+constexpr int flhr_swing_start_trans = 6;
+constexpr int flhr_swing = 7;
+constexpr int flhr_swing_end_trans = 8;
+constexpr int NUM_TROT_PHASE = 9;
+};  // namespace WBICTrotPhase
 
-        DVec<T> _des_jpos; 
-        DVec<T> _des_jvel; 
-        DVec<T> _des_jacc;
+template <typename T>
+class WBICTrotTest : public Test<T> {
+ public:
+  WBICTrotTest(FloatingBaseModel<T>*, const RobotType&);
+  virtual ~WBICTrotTest();
 
-        Vec3<T> _body_pos;
-        Vec3<T> _body_vel;
-        Vec3<T> _body_acc;
+  DVec<T> _jpos_des_pre;
 
-        Vec3<T> _body_ori_rpy;
-        // This does not have any frame meaning. just derivation of rpy
-        Vec3<T> _body_ang_vel; 
+  DVec<T> _des_jpos;
+  DVec<T> _des_jvel;
+  DVec<T> _des_jacc;
 
-        Vec3<T> _front_foot_loc;
-        Vec3<T> _hind_foot_loc;
+  Vec3<T> _body_pos;
+  Vec3<T> _body_vel;
+  Vec3<T> _body_acc;
 
-        std::string _folder_name;
+  Vec3<T> _body_ori_rpy;
+  // This does not have any frame meaning. just derivation of rpy
+  Vec3<T> _body_ang_vel;
 
-        void handleVisionLCM(const lcm::ReceiveBuffer* rbuf,
-            const std::string& chan,
-            const vision_data_t* msg);
+  Vec3<T> _front_foot_loc;
+  Vec3<T> _hind_foot_loc;
 
-        void visionLCMThread();
+  std::string _folder_name;
 
-    protected:
-        bool _b_remote_ctrl;
-        Path<T>* _path;
-        Vec3<T> _vision_loc; // (x, y, yaw)
-        lcm::LCM    _visionLCM;
-        std::thread _visionLCMThread;
-        bool _b_loc_update;
+  void handleVisionLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
+                       const vision_data_t* msg);
 
-        std::vector<filter<T>*> _filtered_input_vel;
-        Vec3<T> _input_vel;
-        T _target_body_height;
-        virtual void _UpdateTestOneStep();
-        virtual void _TestInitialization();
-        virtual int _NextPhase(const int & phase);
-        virtual void _UpdateExtraData(Cheetah_Extra_Data<T> * ext_data);
+  void visionLCMThread();
 
-        void _SettingParameter();
+ protected:
+  bool _b_remote_ctrl;
+  Path<T>* _path;
+  Vec3<T> _vision_loc;  // (x, y, yaw)
+  lcm::LCM _visionLCM;
+  std::thread _visionLCMThread;
+  bool _b_loc_update;
 
-        Controller<T>* body_up_ctrl_;
-        Controller<T>* body_ctrl_;
+  std::vector<filter<T>*> _filtered_input_vel;
+  Vec3<T> _input_vel;
+  T _target_body_height;
+  virtual void _UpdateTestOneStep();
+  virtual void _TestInitialization();
+  virtual int _NextPhase(const int& phase);
+  virtual void _UpdateExtraData(Cheetah_Extra_Data<T>* ext_data);
 
-        // Front Right and Hind Left leg swing
-        Controller<T>* frhl_swing_start_trans_ctrl_;
-        Controller<T>* frhl_swing_ctrl_;
-        Controller<T>* frhl_swing_end_trans_ctrl_;
+  void _SettingParameter();
 
-        // Front Left and Hind Right leg swing
-        Controller<T>* flhr_swing_start_trans_ctrl_;
-        Controller<T>* flhr_swing_ctrl_;
-        Controller<T>* flhr_swing_end_trans_ctrl_;
+  Controller<T>* body_up_ctrl_;
+  Controller<T>* body_ctrl_;
 
-        StateProvider<T>* _sp;
+  // Front Right and Hind Left leg swing
+  Controller<T>* frhl_swing_start_trans_ctrl_;
+  Controller<T>* frhl_swing_ctrl_;
+  Controller<T>* frhl_swing_end_trans_ctrl_;
 
-        lcm::LCM _wbcLCM;
-        wbc_test_data_t _wbc_data_lcm;
+  // Front Left and Hind Right leg swing
+  Controller<T>* flhr_swing_start_trans_ctrl_;
+  Controller<T>* flhr_swing_ctrl_;
+  Controller<T>* flhr_swing_end_trans_ctrl_;
+
+  StateProvider<T>* _sp;
+
+  lcm::LCM _wbcLCM;
+  wbc_test_data_t _wbc_data_lcm;
 };
 
 #endif

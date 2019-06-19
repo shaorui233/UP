@@ -7,8 +7,8 @@
  *
  */
 template <typename T>
-class FSM_State_BalanceStand: public FSM_State<T> {
-public:
+class FSM_State_BalanceStand : public FSM_State<T> {
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData);
 
@@ -27,13 +27,12 @@ public:
   // Behavior to be carried out when exiting a state
   void onExit();
 
-private:
+ private:
   // Keep track of the control iterations
   int iter = 0;
 
   // Parses contact specific controls to the leg controller
   void BalanceStandStep();
-
 };
 
-#endif // FSM_STATE_BALANCESTAND_H
+#endif  // FSM_STATE_BALANCESTAND_H

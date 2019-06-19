@@ -5,10 +5,10 @@
 #ifndef DESIRED_STATE_COMMAND_H
 #define DESIRED_STATE_COMMAND_H
 
-#include "SimUtilities/GamepadCommand.h"
 #include <Controllers/StateEstimatorContainer.h>
-#include <iostream>
 #include <cppTypes.h>
+#include <iostream>
+#include "SimUtilities/GamepadCommand.h"
 
 /**
  *
@@ -16,9 +16,7 @@
 template <typename T>
 struct DesiredStateData {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  DesiredStateData() {
-    zero();
-  }
+  DesiredStateData() { zero(); }
 
   // Zero out all of the data
   void zero();
@@ -30,17 +28,15 @@ struct DesiredStateData {
   Eigen::Matrix<T, 12, 10> stateTrajDes;
 };
 
-
 /**
  *
  */
 template <typename T>
-class DesiredStateCommand
-{
-public:
+class DesiredStateCommand {
+ public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // Initialize with the GamepadCommand struct
-  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate)  {
+  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate) {
     gamepadCommand = command;
     stateEstimate = sEstimate;
   }
@@ -66,8 +62,7 @@ public:
   // Holds the instantaneous desired state and future desired state trajectory
   DesiredStateData<T> data;
 
-
-private:
+ private:
   GamepadCommand* gamepadCommand;
   StateEstimate<T>* stateEstimate;
 
@@ -81,11 +76,10 @@ private:
   T deadbandRegion = 0.075;
 
   // Choose how often to print info, every N iterations
-  int printNum = 5; // N*(0.001s) in simulation time
+  int printNum = 5;  // N*(0.001s) in simulation time
 
   // Track the number of iterations since last info print
   int printIter = 0;
-
 };
 
 #endif

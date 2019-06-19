@@ -13,8 +13,8 @@
  * @param _controlFSMData holds all of the relevant control data
  */
 template <typename T>
-FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData):
-  FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE, "PASSIVE") {
+FSM_State_Passive<T>::FSM_State_Passive(ControlFSMData<T>* _controlFSMData)
+    : FSM_State<T>(_controlFSMData, FSM_StateName::PASSIVE, "PASSIVE") {
   // Do nothing
   // Set the pre controls safety checks
   this->checkSafeOrientation = false;
@@ -31,9 +31,7 @@ void FSM_State_Passive<T>::onEnter() {
 
   // Reset the transition data
   this->transitionData.zero();
-
 }
-
 
 /**
  * Calls the functions to be executed on each control loop iteration.
@@ -43,7 +41,6 @@ void FSM_State_Passive<T>::run() {
   // Do nothing, all commands should begin as zeros
   testTransition();
 }
-
 
 /**
  * Handles the actual transition for the robot between states.
@@ -56,8 +53,6 @@ TransitionData<T> FSM_State_Passive<T>::testTransition() {
   this->transitionData.done = true;
   return this->transitionData;
 }
-
-
 
 /**
  * Manages which states can be transitioned into either by the user
@@ -72,24 +67,24 @@ FSM_StateName FSM_State_Passive<T>::checkTransition() {
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
-  case K_PASSIVE:  // normal c
-    // Normal operation for state based transitions
-    break;
+    case K_PASSIVE:  // normal c
+      // Normal operation for state based transitions
+      break;
 
-  case K_JOINT_PD:
-    // Requested switch to joint PD control
-    this->nextStateName = FSM_StateName::JOINT_PD;
-    break;
+    case K_JOINT_PD:
+      // Requested switch to joint PD control
+      this->nextStateName = FSM_StateName::JOINT_PD;
+      break;
 
-  default:
-    std::cout << "[CONTROL FSM] Bad Request: Cannot transition from " << K_PASSIVE << " to " << this->_data->controlParameters->control_mode << std::endl;
-
+    default:
+      std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
+                << K_PASSIVE << " to "
+                << this->_data->controlParameters->control_mode << std::endl;
   }
 
   // Get the next state
   return this->nextStateName;
 }
-
 
 /**
  * Handles the actual transition for the robot between states.
@@ -106,7 +101,6 @@ TransitionData<T> FSM_State_Passive<T>::transition() {
   return this->transitionData;
 }
 
-
 /**
  * Cleans up the state information on exiting the state.
  */
@@ -115,7 +109,5 @@ void FSM_State_Passive<T>::onExit() {
   // Nothing to clean up when exiting
 }
 
-
-
-//template class FSM_State_Passive<double>;
+// template class FSM_State_Passive<double>;
 template class FSM_State_Passive<float>;

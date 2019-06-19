@@ -7,7 +7,6 @@
 
 #include "ControlFSM.h"
 
-
 /**
  * Constructor for the Control FSM. Passes in all of the necessary
  * data and stores it in a struct. Initializes the FSM with a starting
@@ -48,9 +47,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
 
   // Initialize the FSM with the Passive FSM State
   initialize();
-
 }
-
 
 /**
  * Initialize the Control FSM with the default settings. SHould be set to
@@ -69,9 +66,7 @@ void ControlFSM<T>::initialize() {
 
   // Initialize FSM mode to normal operation
   operatingMode = FSM_OperatingMode::NORMAL;
-
 }
-
 
 /**
  * Called each control loop iteration. Decides if the robot is safe to
@@ -85,7 +80,6 @@ void ControlFSM<T>::runFSM() {
 
   // Run the robot control code if operating mode is not unsafe
   if (operatingMode != FSM_OperatingMode::ESTOP) {
-
     // Run normal controls if no transition is detected
     if (operatingMode == FSM_OperatingMode::NORMAL) {
       // Check the current state for any transition
@@ -93,7 +87,6 @@ void ControlFSM<T>::runFSM() {
 
       // Detect a commanded transition
       if (nextStateName != currentState->stateName) {
-
         // Set the FSM operating mode to transitioning
         operatingMode = FSM_OperatingMode::TRANSITIONING;
 
@@ -106,7 +99,6 @@ void ControlFSM<T>::runFSM() {
       } else {
         // Run the iteration for the current state normally
         currentState->run();
-
       }
     }
 
@@ -119,7 +111,6 @@ void ControlFSM<T>::runFSM() {
 
       // Run the state transition
       if (transitionData.done) {
-
         // Exit the current state cleanly
         currentState->onExit();
 
@@ -134,10 +125,8 @@ void ControlFSM<T>::runFSM() {
 
         // Return the FSM to normal operation mode
         operatingMode = FSM_OperatingMode::NORMAL;
-
       }
     } else {
-
       // Check the robot state for safe operation
       safetyPostCheck();
     }
@@ -150,9 +139,7 @@ void ControlFSM<T>::runFSM() {
 
   // Print the current state of the FSM
   printInfo(0);
-
 }
-
 
 /**
  * Checks the robot state for safe operation conditions. If it is in
@@ -163,7 +150,6 @@ void ControlFSM<T>::runFSM() {
  */
 template <typename T>
 FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
-
   // Check for safe orientation if the current state requires it
   if (currentState->checkSafeOrientation) {
     if (!safetyChecker->checkSafeOrientation()) {
@@ -174,9 +160,7 @@ FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
 
   // Default is to return the current operating mode
   return operatingMode;
-
 }
-
 
 /**
  * Checks the robot state for safe operation commands after calculating the
@@ -190,7 +174,6 @@ FSM_OperatingMode ControlFSM<T>::safetyPreCheck() {
  */
 template <typename T>
 FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
-
   // Check for safe desired foot positions
   if (currentState->checkPDesFoot) {
     safetyChecker->checkPDesFoot();
@@ -203,9 +186,7 @@ FSM_OperatingMode ControlFSM<T>::safetyPostCheck() {
 
   // Default is to return the current operating mode
   return operatingMode;
-
 }
-
 
 /**
  * Returns the approptiate next FSM State when commanded.
@@ -217,33 +198,31 @@ template <typename T>
 FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
   // Choose the correct FSM State by enumerated state name
   switch (stateName) {
-  case FSM_StateName::INVALID :
-    return statesList.invalid;
+    case FSM_StateName::INVALID:
+      return statesList.invalid;
 
-  case FSM_StateName::PASSIVE :
-    return statesList.passive;
+    case FSM_StateName::PASSIVE:
+      return statesList.passive;
 
-  case FSM_StateName::JOINT_PD :
-    return statesList.jointPD;
+    case FSM_StateName::JOINT_PD:
+      return statesList.jointPD;
 
-  case FSM_StateName::IMPEDANCE_CONTROL :
-    return statesList.impedanceControl;
+    case FSM_StateName::IMPEDANCE_CONTROL:
+      return statesList.impedanceControl;
 
-  case FSM_StateName::STAND_UP :
-    return statesList.standUp;
+    case FSM_StateName::STAND_UP:
+      return statesList.standUp;
 
-  case FSM_StateName::BALANCE_STAND :
-    return statesList.balanceStand;
+    case FSM_StateName::BALANCE_STAND:
+      return statesList.balanceStand;
 
-  case FSM_StateName::LOCOMOTION :
-    return statesList.locomotion;
+    case FSM_StateName::LOCOMOTION:
+      return statesList.locomotion;
 
-  default:
-    return statesList.invalid;
+    default:
+      return statesList.invalid;
   }
-
 }
-
 
 /**
  * Prints Control FSM info at regular intervals and on important events
@@ -255,49 +234,59 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 template <typename T>
 void ControlFSM<T>::printInfo(int opt) {
   switch (opt) {
-  case 0 :  // Normal printing case at regular intervals
-    // Increment printing iteration
-    printIter++;
+    case 0:  // Normal printing case at regular intervals
+      // Increment printing iteration
+      printIter++;
 
-    // Print at commanded frequency
-    if (printIter == printNum) {
-      std::cout << "[CONTROL FSM] Printing FSM Info...\n";
-      std::cout << "---------------------------------------------------------\n";
-      if (operatingMode == FSM_OperatingMode::NORMAL) {
-        std::cout << "Operating Mode: NORMAL in " << currentState->stateString << "\n";
+      // Print at commanded frequency
+      if (printIter == printNum) {
+        std::cout << "[CONTROL FSM] Printing FSM Info...\n";
+        std::cout
+            << "---------------------------------------------------------\n";
+        if (operatingMode == FSM_OperatingMode::NORMAL) {
+          std::cout << "Operating Mode: NORMAL in " << currentState->stateString
+                    << "\n";
 
-      } else if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
-        std::cout << "Operating Mode: TRANSITIONING from " << currentState->stateString << " to " << nextState->stateString << "\n";
+        } else if (operatingMode == FSM_OperatingMode::TRANSITIONING) {
+          std::cout << "Operating Mode: TRANSITIONING from "
+                    << currentState->stateString << " to "
+                    << nextState->stateString << "\n";
 
-      } else if (operatingMode == FSM_OperatingMode::ESTOP) {
-        std::cout << "Operating Mode: ESTOP\n";
+        } else if (operatingMode == FSM_OperatingMode::ESTOP) {
+          std::cout << "Operating Mode: ESTOP\n";
+        }
+        std::cout << "Gait Type: " << data._gaitScheduler->gaitData.gaitName
+                  << "\n";
+        std::cout << std::endl;
 
+        // Reset iteration counter
+        printIter = 0;
       }
-      std::cout << "Gait Type: " << data._gaitScheduler->gaitData.gaitName << "\n";
-      std::cout << std::endl;
 
-      // Reset iteration counter
-      printIter = 0;
-    }
+      // Print robot info about the robot's status
+      // data._gaitScheduler->printGaitInfo();
+      // data._desiredStateCommand->printStateCommandInfo();
 
-    // Print robot info about the robot's status
-    //data._gaitScheduler->printGaitInfo();
-    //data._desiredStateCommand->printStateCommandInfo();
+      break;
 
-    break;
+    case 1:  // Initializing FSM State transition
+      std::cout << "[CONTROL FSM] Transition initialized from "
+                << currentState->stateString << " to " << nextState->stateString
+                << "\n"
+                << std::endl;
 
-  case 1 :  // Initializing FSM State transition
-    std::cout << "[CONTROL FSM] Transition initialized from " << currentState->stateString << " to " << nextState->stateString << "\n" << std::endl;
+      break;
 
-    break;
+    case 2:  // Finalizing FSM State transition
+      std::cout << "[CONTROL FSM] Transition finalizing from "
+                << currentState->stateString << " to " << nextState->stateString
+                << "\n"
+                << std::endl;
 
-  case 2 :  // Finalizing FSM State transition
-    std::cout << "[CONTROL FSM] Transition finalizing from " << currentState->stateString << " to " << nextState->stateString << "\n" << std::endl;
-
-    break;
+      break;
   }
 }
 
-
-//template class ControlFSM<double>; This should be fixed... need to make RobotController a template
+// template class ControlFSM<double>; This should be fixed... need to make
+// RobotController a template
 template class ControlFSM<float>;

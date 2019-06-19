@@ -1,20 +1,19 @@
 #include "StateProvider.hpp"
 
-template<typename T>
-StateProvider<T>* StateProvider<T>::getStateProvider(){
+template <typename T>
+StateProvider<T>* StateProvider<T>::getStateProvider() {
   static StateProvider state_provider_;
   return &state_provider_;
 }
 
-template<typename T>
-StateProvider<T>::StateProvider():
-  _mode(0),
-  _Q(cheetah::num_q),
-  _Qdot(cheetah::dim_config),
-  _num_contact(2),
-  _curr_time(0.0),
-  _num_step(-1)
-{
+template <typename T>
+StateProvider<T>::StateProvider()
+    : _mode(0),
+      _Q(cheetah::num_q),
+      _Qdot(cheetah::dim_config),
+      _num_contact(2),
+      _curr_time(0.0),
+      _num_step(-1) {
   _contact_pt[0] = linkID::FL;
   _contact_pt[1] = linkID::HR;
   _Q.setZero();
@@ -35,6 +34,5 @@ StateProvider<T>::StateProvider():
   _global_hl_loc.setZero();
 }
 
-template class StateProvider<double> ;
-template class StateProvider<float> ;
-
+template class StateProvider<double>;
+template class StateProvider<float>;

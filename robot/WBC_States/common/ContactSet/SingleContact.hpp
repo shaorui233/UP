@@ -1,17 +1,18 @@
 #ifndef Cheetah_SINGLE_CONTACT
 #define Cheetah_SINGLE_CONTACT
 
-#include <WBC/ContactSpec.hpp>
 #include <Dynamics/FloatingBaseModel.h>
+#include <WBC/ContactSpec.hpp>
 
-template<typename T>
-class SingleContact: public ContactSpec<T>{
-public:
+template <typename T>
+class SingleContact : public ContactSpec<T> {
+ public:
   SingleContact(const FloatingBaseModel<T>* robot, int contact_pt);
   virtual ~SingleContact();
 
-  void setMaxFz(T max_fz){ _max_Fz = max_fz; }
-protected:
+  void setMaxFz(T max_fz) { _max_Fz = max_fz; }
+
+ protected:
   T _max_Fz;
   int _contact_pt;
   int _dim_U;
