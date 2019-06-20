@@ -1,6 +1,0 @@
-struct python_to_simulation {
-    boolean reset_call;
-    double state[36];
-    double jpos_cmd[12];
-    double jvel_cmd[12];
-}

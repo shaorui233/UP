@@ -1,125 +1,34 @@
-#ifndef PROJECT_ROBOTCONTROLLER_H
-#define PROJECT_ROBOTCONTROLLER_H
+#ifndef ROBOT_CONTROLLER_H
+#define ROBOT_CONTROLLER_H
 
-#include <SimUtilities/IMUTypes.h>
-#include <ControlParameters/ControlParameterInterface.h>
-#include <ControlParameters/RobotParameters.h>
 #include "Controllers/LegController.h"
-#include "Dynamics/Quadruped.h"
-#include "SimUtilities/GamepadCommand.h"
-#include "SimUtilities/VisualizationData.h"
+#include "Dynamics/FloatingBaseModel.h"
 #include <Controllers/StateEstimatorContainer.h>
-#include "cheetah_visualization_lcmt.hpp"
-#include "Controllers/GaitScheduler.h"
-#include "Controllers/ContactEstimator.h"
-#include "Controllers/DesiredStateCommand.h"
-#include "JPosInitializer.h"
-#include "Utilities/PeriodicTask.h"
-#include "ControlFSM.h"
+#include <SimUtilities/VisualizationData.h>
+#include "SimUtilities/GamepadCommand.h"
 
-// gamepadCommand
-// robotType
-// kvh
-// vectorNav
-// cheaterState
-// spiData
-// controlParameterRequest
-// "mode" ?
-
-// robotType
-// spiCommand
-//
-
-#include <WBC_States/Cheetah_DynaCtrl_Definition.h>
-template <typename T> class Test;
-
-class RobotController : public PeriodicTask {
+class RobotController{
+  friend class RobotRunner;
 public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-  using PeriodicTask::PeriodicTask;
-  void init() override;
-  void run() override;
-  void cleanup() override;
+  RobotController(){}
+  virtual ~RobotController(){}
 
-  // Handles the logic for locomotion controlled by the Gait Scheduler
-  void LocomotionControlStep();
-
-  // Calculates the GRF for stance legs and next footstep location for the swing legs
-  void runControls();
-
-  // Calls the interface to the controller
-  void runBalanceController();
-
-  // Calls the interface to the controller
-  void runWholeBodyController();
-
-  // Calls the interface to the controller
-  void runConvexModelPredictiveController();
-
-  // Calls the interface to the controller
-  void runRegularizedPredictiveController();
-
-  // Heuristic based swing foot placement
-  void footstepHeuristicPlacement();
-
-  // Impedance control for the stance legs
-  void stanceLegImpedanceControl(int leg);
-
-  void initializeStateEstimator(bool cheaterMode = false);
-  virtual ~RobotController();
+  virtual void initializeController() = 0;
+/**
+ * Called one time every control loop 
+ */
+  virtual void runController() = 0;
+  virtual void updateVisualization() = 0;
 
 
-  GamepadCommand* driverCommand;
-  RobotType  robotType;
-  KvhImuData* kvhImuData;
-  VectorNavData* vectorNavData;
-  CheaterState<double>* cheaterState;
-  SpiData* spiData;
-  SpiCommand* spiCommand;
-  TiBoardCommand* tiBoardCommand;
-  TiBoardData* tiBoardData;
-  RobotControlParameters* controlParameters;
-  VisualizationData* visualizationData;
-  CheetahVisualization* cheetahMainVisualization;
-
-private:
-  float _ini_yaw;
-
-  void setupStep();
-  void finalizeStep();
-  void testDebugVisualization();
-  void StepLocationVisualization();
-  void BodyPathVisualization();
-  void BodyPathArrowVisualization();
-
-  JPosInitializer<float>* _jpos_initializer;
-  Quadruped<float> _quadruped;
-  LegController<float>* _legController = nullptr;
-  StateEstimate<float> _stateEstimate;
-  StateEstimatorContainer<float>* _stateEstimator;
-  bool _cheaterModeEnabled = false;
-  DesiredStateCommand<float>* _desiredStateCommand;
-  ControlFSM<float>* _controlFSM;
-
-  // Ground reaction forces for the stance feet to be calculated by the controllers
-  Mat34<float> groundReactionForces;
-
-  // Next footstep location for the swing feet
-  Mat34<float> footstepLocations;
-
-  // Gait Scheduler controls the nominal contact schedule for the feet
-  GaitScheduler<float>* _gaitScheduler;
-
-  // Contact Estimator to calculate estimated forces and contacts
-  ContactEstimator<double>* _contactEstimator;
-
-  // For WBC state (test)
-  Test<float>* _wbc_state;
-  Cheetah_Data<float>* _data;
-  Cheetah_Extra_Data<float>* _extra_data;
+protected:
   FloatingBaseModel<float> _model;
-  u64 _iterations = 0;
+  LegController<float>* _legController;
+  StateEstimatorContainer<float>* _stateEstimator;
+  GamepadCommand* _driverCommand;
+
+  VisualizationData* _visualizationData;
+  RobotType _robotType;
 };
 
-
-#endif //PROJECT_ROBOTCONTROLLER_H
+#endif

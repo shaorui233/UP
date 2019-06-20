@@ -7,7 +7,7 @@ if ("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 endif ()
 
 set(CMAKE_COLOR_MAKEFILE   ON)
-execute_process(COMMAND ../scripts/make_types.sh)
+#execute_process(COMMAND ../scripts/make_types.sh)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
@@ -46,4 +46,4 @@ add_subdirectory(robot)
 add_subdirectory(third-party)
 add_subdirectory(common)
 add_subdirectory(sim)
-#add_subdirectory(algorithms)
+add_subdirectory(user)

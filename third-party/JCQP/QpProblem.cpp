@@ -26,13 +26,15 @@ void QpProblem<T>::coldStart()
  * Solve QP
  */
 template<typename T>
-void QpProblem<T>::run(s64 nIterations, bool sparse)
+void QpProblem<T>::run(s64 nIterations, bool sparse, bool b_print)
 {
     if(nIterations <0) {nIterations = settings.maxIterations; }
   _sparse = sparse;
   // print info
-  printf("n: %ld\nm: %ld\n, sz %ld", n, m, sizeof(T));
-  settings.print();
+  if(b_print) {
+    printf("n: %ld\nm: %ld\n, sz %ld", n, m, sizeof(T));
+    settings.print();
+  }
 
   // init variables
   if(!_hotStarted)
@@ -47,21 +49,21 @@ void QpProblem<T>::run(s64 nIterations, bool sparse)
 
   Timer preSetupTimer;
   if(sparse) // don't include time to build sparse matrices
-    _cholSparseSolver.preSetup(_kkt);
+    _cholSparseSolver.preSetup(_kkt, b_print);
 
 
-  printf("Pre-setup in %.3f ms\n", preSetupTimer.getMs());
+  if(b_print) printf("Pre-setup in %.3f ms\n", preSetupTimer.getMs());
 
   Timer totalTimer;
   Timer setupTimer;
 
   if(sparse)
-    _cholSparseSolver.setup(_kkt); // set up this one first.
+    _cholSparseSolver.setup(b_print); // set up this one first.
   else
     _cholDenseSolver.setup(_kkt);
 
   double setupTimeMs = setupTimer.getMs();
-  printf("Setup in %.3f ms\n", setupTimeMs);
+  if(b_print) printf("Setup in %.3f ms\n", setupTimeMs);
 
   std::vector<Vector<T>> solutionLog;
   double totalResidTime = 0;
@@ -77,29 +79,34 @@ void QpProblem<T>::run(s64 nIterations, bool sparse)
     stepZ();
     stepY();
 
-    if(!((iteration + 1) % 30)) {
+    if(!((iteration + 1) % 10)) {
       Timer residTimer;
+      T residual; 
+      if(b_print) {
+        printf("Iteration %5ld: ", iteration + 1);
+      }
+      residual = calcAndDisplayResidual(b_print);
 
-      printf("Iteration %5ld: ", iteration + 1);
-      T residual = calcAndDisplayResidual();
 
       if(residual < settings.terminate || iteration + 1 >= nIterations) {
-        printf("\n\nTERMINATE at iteration %ld, total time %.3f ms (%.3f ms on setup, %.3f on termination checks), residual %g\n",
-            iteration + 1, totalTimer.getMs(), setupTimeMs, totalResidTime, residual);
-        fprintf(stderr, "%.3f, ", totalTimer.getMs());
+        if(b_print) {
+          printf("\n\nTERMINATE at iteration %ld, total time %.3f ms (%.3f ms on setup, %.3f on termination checks), residual %g\n",
+              iteration + 1, totalTimer.getMs(), setupTimeMs, totalResidTime, residual);
+          fprintf(stderr, "%.3f, ", totalTimer.getMs());
+        }
         check();
 
         if(!solutionLog.empty()) {
-          for(s64 i = 0; i < solutionLog.size() -1; i++) {
+          for(u64 i = 0; i < solutionLog.size() -1; i++) {
             Vector<T> diff = solutionLog[i] - solutionLog[i + 1];
-            printf("DIFF %ld: %.3f\n", i, diff.norm());
+            if(b_print) printf("DIFF %ld: %.3f\n", i, diff.norm());
           }
         }
 
         break;
       }
 
-      printf(" took %.3f ms (%.3f on residual), %6.3f total\n", iterationTimer.getMs(), residTimer.getMs(), totalTimer.getMs());
+      if(b_print) printf(" took %.3f ms (%.3f on residual), %6.3f total\n", iterationTimer.getMs(), residTimer.getMs(), totalTimer.getMs());
 
       totalResidTime += residTimer.getMs();
     }
@@ -210,7 +217,7 @@ void QpProblem<T>::stepY()
 template<typename T>
 T QpProblem<T>::infNorm(const Vector<T>& v) {
   T m(0);
-  for(u64 i = 0; i < v.rows(); i++) {
+  for(s64 i = 0; i < v.rows(); i++) {
     if(std::abs(v[i]) > m) m = std::abs(v[i]);
   }
   return m;
@@ -218,7 +225,7 @@ T QpProblem<T>::infNorm(const Vector<T>& v) {
 
 
 template<typename T>
-T QpProblem<T>::calcAndDisplayResidual()
+T QpProblem<T>::calcAndDisplayResidual(bool print)
 {
 
   if(_sparse) {
@@ -228,7 +235,9 @@ T QpProblem<T>::calcAndDisplayResidual()
     Vector<T> dual = P * (*_x) + q + Asparse.transpose() * _y;
     T d = infNorm(dual);
 
-    printf("p: %8.4f | d: %8.4f", p, d);
+    if(print)
+      printf("p: %8.4f | d: %8.4f", p, d);
+
     return (d + p)/4;
   } else {
     Vector<T> Axz = A * (*_x) - (*_zPrev);
@@ -237,7 +246,9 @@ T QpProblem<T>::calcAndDisplayResidual()
     Vector<T> dual = P * (*_x) + q + A.transpose() * _y;
     T d = infNorm(dual);
 
-    printf("p: %8.4f | d: %8.4f", p, d);
+    if(print)
+      printf("p: %8.4f | d: %8.4f", p, d);
+
     return (d + p)/4;
   }
 }

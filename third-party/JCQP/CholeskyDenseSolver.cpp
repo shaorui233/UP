@@ -328,6 +328,7 @@ void CholeskyDenseSolver<T>::solve(Vector<T> &out)
   }
 }
 
+#ifdef JCQP_USE_AVX2
 template<>
 void CholeskyDenseSolver<double>::solveAVX(Vector<double> &out)
 {
@@ -497,7 +498,7 @@ void CholeskyDenseSolver<float>::solveAVX(Vector<float> &out)
     std::swap(out[pivots[i]], out[i]);
   }
 }
-
+#endif
 
 
 template class CholeskyDenseSolver<double>;

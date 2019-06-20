@@ -71,7 +71,7 @@ public:
       (void)(m_);
     }
 
-    void run(s64 nIterations = -1, bool sparse = false);
+    void run(s64 nIterations = -1, bool sparse = false, bool b_print = true);
 
     Vector<T>& getSolution() { return *_x; }
 
@@ -84,7 +84,7 @@ public:
   s64 n, m;
 
   ~QpProblem() {
-    printf("done!\n");
+    //printf("done!\n");
   }
 
 private:
@@ -100,7 +100,7 @@ private:
   void stepX();
   void stepZ();
   void stepY();
-  T calcAndDisplayResidual();
+  T calcAndDisplayResidual(bool print);
   void check();
   T infNorm(const Vector<T>& v);
 

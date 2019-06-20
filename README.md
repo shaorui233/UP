@@ -68,5 +68,10 @@ s: simulation, r: robot
 - Eigen - http://eigen.tuxfamily.org
 - `mesa-common-dev`
 - `freeglut3-dev`
+- `coinor-libipopt-dev`
+- `libblas-dev liblapack-dev`
 
+To use casadi, 
 
+- `sudo apt-get install gfortran liblapack-dev`
+- `sudo apt-get install coinor-libipopt-dev`
