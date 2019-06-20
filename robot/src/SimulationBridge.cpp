@@ -162,11 +162,6 @@ void SimulationBridge::runRobotControl() {
           "not all parameters initialized when going into RUN_CONTROLLER");
     }
 
-    _fakeTaskManager = new PeriodicTaskManager;
-
-    _robotRunner = new RobotRunner(_fakeTaskManager, 0, "robot-task");
-    //_robotRunner = new RobotRunner(&taskManager, 0, "robot-task");
-
     _robotRunner->driverCommand =
         &_sharedMemory().simToRobot.gamepadCommand;
     _robotRunner->spiData = &_sharedMemory().simToRobot.spiData;

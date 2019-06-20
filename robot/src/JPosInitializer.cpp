@@ -1,7 +1,7 @@
 #include "JPosInitializer.h"
-#include <Configuration.h>
 #include <Utilities/Utilities_print.h>
 #include <ParamHandler/ParamHandler.hpp>
+#include <Configuration.h>
 
 template <typename T>
 JPosInitializer<T>::JPosInitializer(T end_time)
@@ -24,15 +24,7 @@ bool JPosInitializer<T>::IsInitialized(LegController<T>* ctrl) {
     _UpdateInitial(ctrl);
     _b_first_visit = false;
   }
-
-  // T ini[cheetah::num_act_joint];
-  // for(int leg(0); leg<4; ++leg){
-  // for(int jidx(0); jidx<3; ++jidx){
-  // ini[3*leg + jidx] = ctrl->datas[leg].q[jidx];
-  //}
-  //}
-  // pretty_print(ini, "jpos", cheetah::num_act_joint);
-
+  
   // Smooth movement
   if (_curr_time < _end_time) {
     T jpos[cheetah::num_act_joint];
@@ -44,8 +36,6 @@ bool JPosInitializer<T>::IsInitialized(LegController<T>* ctrl) {
       for (size_t jidx(0); jidx < cheetah::num_leg_joint; ++jidx) {
         ctrl->commands[leg].tauFeedForward[jidx] = 0.;
         ctrl->commands[leg].qDes[jidx] = jpos[3 * leg + jidx];
-        // ctrl->commands[leg].qDes[jidx] = _ini_jpos[3*leg + jidx];
-        // ctrl->commands[leg].qDes[jidx] = ctrl->datas[leg].q[jidx];
         ctrl->commands[leg].qdDes[jidx] = 0.;
       }
     }
@@ -70,11 +60,9 @@ void JPosInitializer<T>::_UpdateInitial(const LegController<T>* ctrl) {
     for (int jidx(0); jidx < 3; ++jidx) {
       ini[3 * leg + jidx] = ctrl->datas[leg].q[jidx];
       _ini_jpos[3 * leg + jidx] = ctrl->datas[leg].q[jidx];
-      //_ini_jpos[3*leg + jidx]  = 0.3;
     }
   }
 
-  // pretty_print(_ini_jpos, "ini jpos");
   for (size_t i(0); i < cheetah::num_act_joint; ++i) {
     fin[i] = _target_jpos[i];
     mid[0][i] = _mid_jpos[i];

@@ -22,10 +22,13 @@
 
 class HardwareBridge {
  public:
-  HardwareBridge()
+  HardwareBridge(RobotController* robot_ctrl)
       : statusTask(&taskManager, 0.5f),
         _interfaceLCM(getLcmUrl(255)),
-        _visualizationLCM(getLcmUrl(255)) {}
+        _visualizationLCM(getLcmUrl(255)) {
+          _robotRunner = 
+            new RobotRunner(robot_ctrl, &taskManager, 0.001f, "robot-control");
+        }
   void prefaultStack();
   void setupScheduler();
   void initError(const char* reason, bool printErrno = false);
@@ -66,7 +69,7 @@ class HardwareBridge {
 
 class MiniCheetahHardwareBridge : public HardwareBridge {
  public:
-  MiniCheetahHardwareBridge();
+  MiniCheetahHardwareBridge(RobotController* );
   void runSpi();
   void initHardware();
   void run();
