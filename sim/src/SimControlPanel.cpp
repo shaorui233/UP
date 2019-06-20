@@ -161,7 +161,7 @@ void SimControlPanel::on_startButton_clicked() {
     printf("[SimControlPanel] Init Robot Interface...\n");
     _interfaceTaskManager = new PeriodicTaskManager;
     _robotInterface =
-        new RobotInterface(robotType, _graphicsWindow, _interfaceTaskManager);
+        new RobotInterface(robotType, _graphicsWindow, _interfaceTaskManager, _userParameters);
     loadRobotParameters(_robotInterface->getParams());
     _robotInterface->startInterface();
     _graphicsWindow->setAnimating(true);
@@ -524,9 +524,8 @@ void SimControlPanel::on_userControlTable_cellChanged(int row, int column) {
             QString(parameter.toString().c_str()));
         _ignoreTableCallbacks = false;
       } else {
-        throw std::runtime_error("user paramters not supported in robot yet");
-//      _robotInterface->sendControlParameter(
-//          cellName, parameter.get(parameter._kind), parameter._kind);
+      _robotInterface->sendControlParameter(
+          cellName, parameter.get(parameter._kind), parameter._kind, true);
       }
     }
   }
@@ -557,26 +556,11 @@ void SimControlPanel::on_loadUserButton_clicked() {
         }
       }
     } else {
-      throw std::runtime_error("no user parameters on robot yet");
-//    _robotInterface->getParams().lockMutex();
-//    _robotInterface->getParams().collection.clearAllSet();
-//    _robotInterface->getParams().initializeFromYamlFile(fileName.toStdString());
-//    if (!_robotInterface->getParams().collection.checkIfAllSet()) {
-//      printf(
-//          "new settings file %s doesn't contain the following robot "
-//          "parameters:\n%s\n",
-//          fileName.toStdString().c_str(),
-//          _robotInterface->getParams().generateUnitializedList().c_str());
-//      throw std::runtime_error("bad new settings file");
-//    }
-//    loadRobotParameters(_robotInterface->getParams());
-//
-//    for (auto& kv : _robotInterface->getParams().collection._map) {
-//      _robotInterface->sendControlParameter(
-//          kv.first, kv.second->get(kv.second->_kind), kv.second->_kind);
-//    }
-//
-//    _robotInterface->getParams().unlockMutex();
+    for (auto& kv : _userParameters.collection._map) {
+      _robotInterface->sendControlParameter(
+          kv.first, kv.second->get(kv.second->_kind), kv.second->_kind, true);
+    }
+
     }
   }
 }

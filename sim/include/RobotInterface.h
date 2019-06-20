@@ -27,7 +27,7 @@ class RobotInterface : PeriodicTask {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  RobotInterface(RobotType robotType, Graphics3D* gfx, PeriodicTaskManager* tm);
+  RobotInterface(RobotType robotType, Graphics3D* gfx, PeriodicTaskManager* tm, ControlParameters& userParameters);
   RobotControlParameters& getParams() { return _controlParameters; }
   void startInterface();
   void stopInterface();
@@ -62,6 +62,7 @@ class RobotInterface : PeriodicTask {
   std::thread _lcmThread;
   VisualizationData _visualizationData;
   RobotControlParameters _controlParameters;
+  ControlParameters& _userParameters;
   Graphics3D* _gfx;
   RobotType _robotType;
   bool _running = false;

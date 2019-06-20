@@ -6,9 +6,10 @@
 #include "ControlParameters/SimulatorParameters.h"
 
 RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx,
-                               PeriodicTaskManager *tm)
+                               PeriodicTaskManager *tm, ControlParameters& userParameters)
     : PeriodicTask(tm, ROBOT_INTERFACE_UPDATE_PERIOD, "robot-interface"),
-      _lcm(getLcmUrl(255)) {
+      _lcm(getLcmUrl(255)),
+      _userParameters(userParameters) {
   _parameter_request_lcmt.requestNumber = 0;
   _gfx = gfx;
   _robotType = robotType;
@@ -178,6 +179,11 @@ void RobotInterface::startInterface() {
   for (auto &kv : _controlParameters.collection._map) {
     sendControlParameter(kv.first, kv.second->get(kv.second->_kind),
                          kv.second->_kind, false);
+  }
+
+  for (auto &kv : _userParameters.collection._map) {
+    sendControlParameter(kv.first, kv.second->get(kv.second->_kind),
+                         kv.second->_kind, true);
   }
 
   throw std::runtime_error("need to send user parameters");
