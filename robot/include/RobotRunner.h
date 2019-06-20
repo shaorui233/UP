@@ -13,48 +13,33 @@
 #include <Controllers/StateEstimatorContainer.h>
 #include <SimUtilities/IMUTypes.h>
 #include <gui_main_control_settings_t.hpp>
-#include "ControlFSM.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
-#include "Controllers/GaitScheduler.h"
 #include "Controllers/LegController.h"
 #include "Dynamics/Quadruped.h"
 #include "JPosInitializer.h"
+
 #include "SimUtilities/GamepadCommand.h"
 #include "SimUtilities/VisualizationData.h"
 #include "Utilities/PeriodicTask.h"
 #include "cheetah_visualization_lcmt.hpp"
-
-/**
- * Enumerate all of the Control logic options. Each one will have
- * an initialize and a run function that pieces together the control
- * logic from the various robot controllers and sensors.
- */
-enum class ControlLogicName { CONTROL_FSM, WBC };
-
-#include <WBC_States/Cheetah_DynaCtrl_Definition.h>
-template <typename T>
-class Test;
+#include <RobotController.h>
 
 class RobotRunner : public PeriodicTask {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+  RobotRunner(RobotController* , PeriodicTaskManager*, float, std::string);
   using PeriodicTask::PeriodicTask;
   void init() override;
   void run() override;
   void cleanup() override;
 
-  // Control options logic initializations
-  void initializeControlOptionControlFSM();  // ControlFSM
-  void initializeControlOptionWBC();         // WBC
-
-  // Control options logic run functions
-  void runControlOptionControlFSM();  // ControlFSM
-  void runControlOptionWBC();         // WBC
-
   // Initialize the state estimator with default no cheaterMode
   void initializeStateEstimator(bool cheaterMode = false);
   virtual ~RobotRunner();
+
+  RobotController* _robot_ctrl;
 
   GamepadCommand* driverCommand;
   RobotType robotType;
@@ -88,22 +73,10 @@ class RobotRunner : public PeriodicTask {
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
-  ControlFSM<float>* _controlFSM;
   gui_main_control_settings_t main_control_settings;
-
-  // Option for the control logic
-  ControlLogicName CONTROL_OPTION;
-
-  // Gait Scheduler controls the nominal contact schedule for the feet
-  GaitScheduler<float>* _gaitScheduler;
-
   // Contact Estimator to calculate estimated forces and contacts
   ContactEstimator<double>* _contactEstimator;
 
-  // For WBC state (test)
-  Test<float>* _wbc_state;
-  Cheetah_Data<float>* _data;
-  Cheetah_Extra_Data<float>* _extra_data;
   FloatingBaseModel<float> _model;
   u64 _iterations = 0;
 };

@@ -3,9 +3,9 @@ FILE(GLOB_RECURSE sources *.cpp)
 
 set(STATE_NAME WBC)
 
-include_directories("./../")
-include_directories("../../lcm-types/cpp")
-include_directories("/usr/local/include/lcm/")   # lcm includes
+#include_directories("./../../")
+#include_directories("../../../lcm-types/cpp")
+#include_directories("/usr/local/include/lcm/")   # lcm includes
 
 
 add_library (${STATE_NAME}_state SHARED ${headers} ${sources} )

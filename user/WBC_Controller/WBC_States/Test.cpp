@@ -50,7 +50,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
     _state.bodyOrientation[i] = data->body_ori[i];
   }
 
-  // pretty_print(_state.bodyOrientation, std::cout, "body ori");
+   //pretty_print(_state.bodyOrientation, std::cout, "body ori");
 
   _sp->_Q[cheetah::dim_config] = _state.bodyOrientation[0];
   _sp->_Q[0] = _state.bodyOrientation[1];

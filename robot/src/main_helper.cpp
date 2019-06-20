@@ -7,11 +7,13 @@
  */
 
 #include <HardwareBridge.h>
-#include <main.h>
+#include "SimulationBridge.h"
+
+#include <main_helper.h>
 #include <cassert>
 #include <iostream>
 
-#include "SimulationBridge.h"
+#include <RobotController.h>
 
 MasterConfig gMasterConfig;
 
@@ -25,7 +27,7 @@ void printUsage() {
       "robot\n");
 }
 
-int main(int argc, char** argv) {
+int main_helper(int argc, char** argv, RobotController* ctrl) {
   if (argc != 3) {
     printUsage();
     return EXIT_FAILURE;
@@ -60,11 +62,11 @@ int main(int argc, char** argv) {
   // dispatch the appropriate driver
   if (gMasterConfig.simulated) {
     if (gMasterConfig._robot == RobotType::MINI_CHEETAH) {
-      SimulationBridge simulationBridge(gMasterConfig._robot);
+      SimulationBridge simulationBridge(gMasterConfig._robot, ctrl);
       simulationBridge.run();
       printf("[Quadruped] SimDriver run() has finished!\n");
     } else if (gMasterConfig._robot == RobotType::CHEETAH_3) {
-      SimulationBridge simulationBridge(gMasterConfig._robot);
+      SimulationBridge simulationBridge(gMasterConfig._robot, ctrl);
       simulationBridge.run();
     } else {
       printf("[ERROR] unknown robot\n");
@@ -72,7 +74,7 @@ int main(int argc, char** argv) {
     }
   } else {
     if (gMasterConfig._robot == RobotType::MINI_CHEETAH) {
-      MiniCheetahHardwareBridge hw;
+      MiniCheetahHardwareBridge hw(ctrl);
       hw.run();
       printf("[Quadruped] SimDriver run() has finished!\n");
     } else if (gMasterConfig._robot == RobotType::CHEETAH_3) {

@@ -7,10 +7,10 @@
 DataReader::DataReader(const RobotType& type) : _type(type) {
   if (_type == RobotType::MINI_CHEETAH) {
     printf("[Backflip DataReader] Setup for mini cheetah\n");
-    load_control_plan(THIS_COM "robot/WBC_States/BackFlip/data/mc_flip.dat");
+    load_control_plan(THIS_COM "user/WBC_Controller/WBC_States/BackFlip/data/mc_flip.dat");
   } else {
     printf("[Backflip DataReader] Setup for cheetah 3\n");
-    load_control_plan(THIS_COM "robot/WBC_States/BackFlip/data/backflip.dat");
+    load_control_plan(THIS_COM "user/WBC_Controller/WBC_States/BackFlip/data/backflip.dat");
   }
   printf("[Backflip DataReader] Constructed.\n");
 }

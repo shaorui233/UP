@@ -156,14 +156,14 @@ void HardwareBridge::handleControlParameter(
   _interfaceLCM.publish("interface_response", &_parameter_response_lcmt);
 }
 
-MiniCheetahHardwareBridge::MiniCheetahHardwareBridge()
-    : _spiLcm(getLcmUrl(255)) {}
+MiniCheetahHardwareBridge::MiniCheetahHardwareBridge(RobotController* robot_ctrl)
+    : HardwareBridge(robot_ctrl), _spiLcm(getLcmUrl(255)) {}
 
 void MiniCheetahHardwareBridge::run() {
   initCommon();
   initHardware();
 
-  _robotRunner = new RobotRunner(&taskManager, 0.001f, "robot-control");
+  //_robotRunner = new RobotRunner(&taskManager, 0.001f, "robot-control");
 
   _robotRunner->driverCommand = &_gamepadCommand;
   _robotRunner->spiData = &_spiData;
