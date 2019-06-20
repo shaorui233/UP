@@ -45,12 +45,15 @@ void RobotRunner::init() {
   initializeStateEstimator(false);
 
   // Controller initializations
-  _robot_ctrl->_model = _model;
+  _robot_ctrl->_model = &_model;
+  _robot_ctrl->_quadruped = &_quadruped;
   _robot_ctrl->_legController = _legController;
   _robot_ctrl->_stateEstimator = _stateEstimator;
+  _robot_ctrl->_stateEstimate = &_stateEstimate;
   _robot_ctrl->_visualizationData= visualizationData;
   _robot_ctrl->_robotType = robotType;
   _robot_ctrl->_driverCommand = driverCommand;
+  _robot_ctrl->_controlParameters = controlParameters;
 
   _robot_ctrl->initializeController();
 }

@@ -3,11 +3,11 @@
 
 #include <stdio.h>
 
-#include "../include/ControlFSMData.h"
-#include "../include/TransitionData.h"
+#include "ControlFSMData.h"
+#include "TransitionData.h"
 #include "Controllers/GaitScheduler.h"
 
-#include "../Controllers/BalanceController/BalanceController.hpp"
+#include <Controllers/BalanceController/BalanceController.hpp>
 
 // Normal robot states
 #define K_PASSIVE 0
