@@ -1,0 +1,152 @@
+#include "common_types.h"
+#include "convexMPC_interface.h"
+#include "SolverMPC.h"
+#include <eigen3/Eigen/Dense>
+#include <iostream>
+#include <stdio.h>
+#include <sys/time.h>
+
+
+
+void print_matlab_array(mfp* array, u16 rows, u16 cols)
+{
+    for(u16 r = 0; r < rows; r++)
+    {
+        for(u16 c = 0; c < cols; c++)
+            printf("%.3f ",array[c + r*cols]);
+        printf("\n");
+    }
+}
+
+void generate_stationary_trajectory(mfp* traj, u16 rows, mfp height)
+{
+    for(u16 i = 0; i < rows*12; i++)
+        traj[i] = 0.f;
+
+    for(u16 i = 0; i < rows; i++)
+        traj[11-6 + i*12] = height;
+
+    printf("[MPC Test] Stationary Trajectory:\n");
+    print_matlab_array(traj,rows,12);
+}
+
+int main()
+{
+#ifdef EIGEN_USE_MKL_ALL
+    printf("using mkl!\n");
+#endif
+
+
+    //first test the helper methods....
+
+    //quat 2 rpy
+    Eigen::Quaternionf qq;
+    qq.w() = 0.8823;
+    qq.x() = 0.4220;
+    qq.y() = 0.1122;
+    qq.z() = 0.1757;
+    Eigen::Matrix<fpt,3,1> rpyt;
+    quat_to_rpy(qq,rpyt);
+    printf("test quat to rpy:\n");
+    std::cout<<rpyt<<std::endl;
+    printf("expected 0.4173, 0.0497, 0.9027\n");
+
+
+    //ct state space
+    Eigen::Matrix<fpt,3,3> Id;
+    Id << 1,0,0,
+          0,2,0,
+          0,0,3;
+    Eigen::Matrix<fpt,3,3> Id_inv = Id.inverse();
+    Eigen::Matrix<fpt,3,4> r_feet;
+    r_feet << 1,2,3,4,5,6,7,8,9,10,11,12;
+    fpt m = 40;
+    fpt yaww = 0.32;
+    Eigen::Matrix<fpt,13,13> A;
+    Eigen::Matrix<fpt,13,12> B;
+    Eigen::Matrix<fpt,3,3> R_yaw;
+    fpt yc = cos(yaww);
+    fpt ys = sin(yaww);
+
+    R_yaw <<  yc,  -ys,   0,
+              ys,  yc,   0,
+               0,   0,   1;
+    ct_ss_mats(Id,m,r_feet,R_yaw,A,B);
+    printf("test ct ss mats\n");
+    std::cout<<"A:\n"<<A<<"\nB:\n"<<B<<"\n";
+
+
+    //ct to dt...
+    //c2qp(A,B,.04f);
+
+
+    mint gait[36*4] = {1,1,1,1,
+                     1,0,0,0,
+                     1,1,0,0,
+                     0,1,0,0,
+                     0,0,0,0,
+                     0,0,1,0,
+                     0,0,1,1,
+                     0,0,0,1,
+                     0,0,0,0,
+                     1,0,0,0,
+                     1,1,0,0,
+                     0,1,0,0,
+                     0,0,0,0,
+                     0,0,1,0,
+                     0,0,1,1,
+                     0,0,0,1,
+                     0,0,0,0,
+                     1,1,1,1,
+                     1,0,0,0,
+                     1,1,0,0,
+                     0,1,0,0,
+                     0,0,0,0,
+                     0,0,1,0,
+                     0,0,1,1,
+                     0,0,0,1,
+                     0,0,0,0,
+                     1,0,0,0,
+                     1,1,0,0,
+                     0,1,0,0,
+                     0,0,0,0,
+                     0,0,1,0,
+                     0,0,1,1,
+                     0,0,0,1,
+                     0,0,0,0,
+                     1,1,1,1,
+                     1,1,1,1};
+
+    mfp p[3] = {0.2f,0.f,0.35f};
+    mfp v[3] = {0.2f,0.f,0.f};
+    mfp q[4] = {1.f,0.f,0.f,0.f};
+    mfp w[3] = {0.f,0.f,0.f};
+    mfp r[12] = {0.25, 0.25, -0.25, -0.25,
+                 0.05, -0.05, -0.05, 0.05,
+                 -0.33, -0.33, -0.33, -0.33};
+    mfp yaw = 0.f;
+    mfp weights[12] = {11,6,0,0,0,30,0,0,3,12,12,0};
+    mfp traj[12*36];
+    generate_stationary_trajectory(traj,36,0.35f);
+    mfp alpha = 0.0000001;
+
+
+    for(int i = 5; i < 36; i++)
+    {
+    printf("%d\n",i);
+    struct timeval st,et;
+    gettimeofday(&st,NULL);
+    setup_problem(0.04f, i, 0.5f, 666.f);
+    update_problem_data(p,v,q,w,r,yaw,weights,traj,alpha,gait);
+    gettimeofday(&et,NULL);
+    int dtt = ((et.tv_sec-st.tv_sec)*1000000)+(et.tv_usec-st.tv_usec);
+    printf("%d\n\n",dtt);
+    //printf("starting resolve for horizon length %d \n",i);
+    gettimeofday(&st,NULL);
+    update_problem_data(p,v,q,w,r,yaw,weights,traj,alpha,gait);
+    gettimeofday(&et,NULL);
+     dtt = ((et.tv_sec-st.tv_sec)*1000000)+(et.tv_usec-st.tv_usec);
+    printf("%d\n\n\n\n",dtt);
+    }
+    return 0;
+}

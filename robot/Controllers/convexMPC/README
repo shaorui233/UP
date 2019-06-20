@@ -1,0 +1,9 @@
+convexMPC Controller
+
+Problem modes:
+1 - dense MPC formulation, qpOASES solver
+2 - sparse MPC formulation, qpOASES solver
+3 - dense MPC formulation, my solver
+4 - sparese MPC formulation, my solver
+
+
