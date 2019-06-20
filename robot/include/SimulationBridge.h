@@ -21,6 +21,7 @@ class SimulationBridge {
     _robot(robot) {
      _fakeTaskManager = new PeriodicTaskManager;
     _robotRunner = new RobotRunner(robot_ctrl, _fakeTaskManager, 0, "robot-task");
+    _userParams = robot_ctrl->getUserControlParameters();
 
  }
   void run();
@@ -41,6 +42,7 @@ class SimulationBridge {
   SimulatorMode _simMode;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
   RobotControlParameters _robotParams;
+  ControlParameters* _userParams = nullptr;
   u64 _iterations = 0;
 
   std::thread* sbus_thread;

@@ -188,3 +188,23 @@ TEST(ControlParams, CheckCheetah3Defulats) {
   }
   EXPECT_TRUE(robotParams.isFullyInitialized());
 }
+
+
+TEST(ControlParams, CheckTypeRecognition) {
+  EXPECT_TRUE(getControlParameterValueKindFromString("3.f") == ControlParameterValueKind::FLOAT);
+  EXPECT_TRUE(getControlParameterValueKindFromString("3.") == ControlParameterValueKind::DOUBLE);
+  EXPECT_TRUE(getControlParameterValueKindFromString("3") == ControlParameterValueKind::S64);
+  EXPECT_TRUE(getControlParameterValueKindFromString("[1,2,3]") == ControlParameterValueKind::VEC3_DOUBLE);
+  EXPECT_TRUE(getControlParameterValueKindFromString("[1.f,2.f,3.f]") == ControlParameterValueKind::VEC3_FLOAT);
+}
+
+TEST(ControlParams, DefineFromYaml) {
+  ControlParameters params("robot-parameters");
+  params.defineAndInitializeFromYamlFile(getConfigDirectoryPath() +
+CHEETAH_3_DEFAULT_PARAMETERS);
+
+  params.collection.deleteAll();
+  params.defineAndInitializeFromYamlFile(getConfigDirectoryPath() + MINI_CHEETAH_DEFAULT_PARAMETERS);
+
+  //printf("Result: \n %s\n", params.collection.printToIniString().c_str());
+}

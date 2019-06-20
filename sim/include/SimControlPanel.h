@@ -14,6 +14,7 @@
 #include "Simulation.h"
 
 #define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
+#define DEFAULT_USER_FILE "/default-user.yaml"
 
 namespace Ui {
 class SimControlPanel;
@@ -53,9 +54,11 @@ class SimControlPanel : public QMainWindow {
 
   void on_kickButton_clicked();
 
-  void on_favoritesTable_cellChanged(int row, int column);
+  void on_userControlTable_cellChanged(int row, int column);
 
-  void on_loadFavoriteButton_clicked();
+  void on_saveUserButton_clicked();
+
+  void on_loadUserButton_clicked();
 
   void on_setTerrainButton_clicked();
 
@@ -63,6 +66,7 @@ class SimControlPanel : public QMainWindow {
 
   void loadSimulationParameters(SimulatorControlParameters& params);
   void loadRobotParameters(RobotControlParameters& params);
+  void loadUserParameters(ControlParameters& params);
 
  private:
   void updateUiEnable();
@@ -74,9 +78,11 @@ class SimControlPanel : public QMainWindow {
   RobotInterface* _robotInterface = nullptr;
   Graphics3D* _graphicsWindow = nullptr;
   SimulatorControlParameters _parameters;
+  ControlParameters _userParameters;
   bool _simulationMode = false;
   bool _firstStart = true;
   bool _ignoreTableCallbacks = false;
+  bool _loadedUserSettings = false;
   std::string _terrainFileName;
 };
 

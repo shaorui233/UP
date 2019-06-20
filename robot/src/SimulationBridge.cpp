@@ -89,7 +89,7 @@ void SimulationBridge::handleControlParameters() {
                              .size();  // todo don't do this every single time?
 
   switch (request.requestKind) {
-    case ControlParameterRequestKind::SET_PARAM_BY_NAME: {
+    case ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME: {
       std::string name(request.name);
       ControlParameter& param = _robotParams.collection.lookup(name);
 
@@ -119,7 +119,41 @@ void SimulationBridge::handleControlParameters() {
 
     } break;
 
-    case ControlParameterRequestKind::GET_PARAM_BY_NAME: {
+    case ControlParameterRequestKind::SET_USER_PARAM_BY_NAME: {
+      std::string name(request.name);
+      if(!_userParams) {
+        printf("[Simulation Bridge] Warning: tried to set user parameter, but the robot does not have any!\n");
+      } else {
+        ControlParameter& param = _userParams->collection.lookup(name);
+
+        // type check
+        if (param._kind != request.parameterKind) {
+          throw std::runtime_error(
+              "type mismatch for parameter " + name + ", robot thinks it is " +
+              controlParameterValueKindToString(param._kind) +
+              " but received a command to set it to " +
+              controlParameterValueKindToString(request.parameterKind));
+        }
+
+        // do the actual set
+        param.set(request.value, request.parameterKind);
+      }
+
+      // respond:
+      response.requestNumber =
+          request.requestNumber;  // acknowledge that the set has happened
+      response.parameterKind =
+          request.parameterKind;       // just for debugging print statements
+      response.value = request.value;  // just for debugging print statements
+      strcpy(response.name,
+             name.c_str());  // just for debugging print statements
+      response.requestKind = request.requestKind;
+
+      printf("%s\n", response.toString().c_str());
+
+    } break;
+
+    case ControlParameterRequestKind::GET_ROBOT_PARAM_BY_NAME: {
       std::string name(request.name);
       ControlParameter& param = _robotParams.collection.lookup(name);
 
@@ -144,6 +178,8 @@ void SimulationBridge::handleControlParameters() {
 
       printf("%s\n", response.toString().c_str());
     } break;
+    default:
+      throw std::runtime_error("unhandled get/set");
   }
 }
 
@@ -153,7 +189,6 @@ void SimulationBridge::runRobotControl() {
     if (_robotParams.isFullyInitialized()) {
       printf("\tAll %ld control parameters are initialized\n",
              _robotParams.collection._map.size());
-      _simMode = SimulatorMode::RUN_CONTROLLER;
     } else {
       printf(
           "\tbut not all control parameters were initialized. Missing:\n%s\n",
@@ -161,6 +196,24 @@ void SimulationBridge::runRobotControl() {
       throw std::runtime_error(
           "not all parameters initialized when going into RUN_CONTROLLER");
     }
+
+    auto* userControlParameters = _robotRunner->_robot_ctrl->getUserControlParameters();
+    if(userControlParameters) {
+      if (userControlParameters->isFullyInitialized()) {
+        printf("\tAll %ld user parameters are initialized\n",
+               userControlParameters->collection._map.size());
+        _simMode = SimulatorMode::RUN_CONTROLLER;
+      } else {
+        printf(
+            "\tbut not all control parameters were initialized. Missing:\n%s\n",
+            userControlParameters->generateUnitializedList().c_str());
+        throw std::runtime_error(
+            "not all parameters initialized when going into RUN_CONTROLLER");
+      }
+    } else {
+      _simMode = SimulatorMode::RUN_CONTROLLER;
+    }
+
 
     _robotRunner->driverCommand =
         &_sharedMemory().simToRobot.gamepadCommand;

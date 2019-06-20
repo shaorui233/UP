@@ -16,8 +16,8 @@
  * the robot to connect. Use firstRun() instead!
  */
 Simulation::Simulation(RobotType robot, Graphics3D* window,
-                       SimulatorControlParameters& params)
-    : _simParams(params), _tau(12) {
+                       SimulatorControlParameters& params, ControlParameters& userParams)
+    : _simParams(params), _userParams(userParams), _tau(12) {
   // init parameters
   printf("[Simulation] Load parameters...\n");
   _simParams
@@ -210,8 +210,7 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
 
 void Simulation::sendControlParameter(const std::string& name,
                                       ControlParameterValue value,
-                                      ControlParameterValueKind kind) {
-#ifndef DISABLE_HIGH_LEVEL_CONTROL
+                                      ControlParameterValueKind kind, bool isUser) {
   ControlParameterRequest& request =
       _sharedMemory().simToRobot.controlParameterRequest;
   ControlParameterResponse& response =
@@ -224,7 +223,7 @@ void Simulation::sendControlParameter(const std::string& name,
   request.requestNumber++;
 
   // message data
-  request.requestKind = ControlParameterRequestKind::SET_PARAM_BY_NAME;
+  request.requestKind = isUser ? ControlParameterRequestKind::SET_USER_PARAM_BY_NAME : ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME;
   strcpy(request.name, name.c_str());
   request.value = value;
   request.parameterKind = kind;
@@ -243,6 +242,8 @@ void Simulation::sendControlParameter(const std::string& name,
     _connected = false;
     printf(
         "[ERROR] Timed out waiting for message from robot!  Did it crash?\n");
+    request.requestNumber = response.requestNumber;
+    _robotMutex.unlock();
     return;
   }
 
@@ -253,7 +254,6 @@ void Simulation::sendControlParameter(const std::string& name,
   assert(response.requestNumber == request.requestNumber);
   assert(response.parameterKind == request.parameterKind);
   assert(std::string(response.name) == request.name);
-#endif
 }
 
 /*!
@@ -282,10 +282,15 @@ void Simulation::firstRun() {
   _robotMutex.unlock();
 
   // send all control parameters
-  printf("[Simulation] Send control parameters to robot...\n");
+  printf("[Simulation] Send robot control parameters to robot...\n");
   for (auto& kv : _robotParams.collection._map) {
     sendControlParameter(kv.first, kv.second->get(kv.second->_kind),
-                         kv.second->_kind);
+                         kv.second->_kind, false);
+  }
+
+  for (auto& kv : _userParams.collection._map) {
+    sendControlParameter(kv.first, kv.second->get(kv.second->_kind),
+                         kv.second->_kind, true);
   }
 }
 
@@ -427,6 +432,7 @@ void Simulation::highLevelControl() {
     _connected = false;
     printf(
         "[ERROR] Timed out waiting for message from robot!  Did it crash?\n");
+    _robotMutex.unlock();
     return;
   }
   _robotMutex.unlock();

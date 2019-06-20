@@ -92,7 +92,7 @@ using namespace std::chrono_literals;
 
 void RobotInterface::sendControlParameter(const std::string &name,
                                           ControlParameterValue value,
-                                          ControlParameterValueKind kind) {
+                                          ControlParameterValueKind kind, bool isUser) {
   if (_pendingControlParameterSend) {
     printf(
         "[ERROR] trying to send control parameter while a send is in progress, "
@@ -105,8 +105,8 @@ void RobotInterface::sendControlParameter(const std::string &name,
     _parameter_request_lcmt.requestNumber++;
 
     // message data
-    _parameter_request_lcmt.requestKind =
-        (s8)ControlParameterRequestKind::SET_PARAM_BY_NAME;
+    _parameter_request_lcmt.requestKind = isUser ?
+        (s8)ControlParameterRequestKind::SET_USER_PARAM_BY_NAME : (s8)ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME;
     strcpy((char *)_parameter_request_lcmt.name, name.c_str());
     memcpy(_parameter_request_lcmt.value, &value, sizeof(value));
     _parameter_request_lcmt.parameterKind = (s8)kind;
@@ -177,8 +177,10 @@ void RobotInterface::startInterface() {
   printf("[RobotInterface] Send parameters to robot...\n");
   for (auto &kv : _controlParameters.collection._map) {
     sendControlParameter(kv.first, kv.second->get(kv.second->_kind),
-                         kv.second->_kind);
+                         kv.second->_kind, false);
   }
+
+  throw std::runtime_error("need to send user parameters");
 }
 
 void RobotInterface::stopInterface() {

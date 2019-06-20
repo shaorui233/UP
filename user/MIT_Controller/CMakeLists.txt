@@ -14,9 +14,9 @@ include_directories("../lcm-types/cpp")
 include_directories("/usr/local/include/lcm/")   # lcm includes
 
 include_directories(${CMAKE_BINARY_DIR})
-file(GLOB sources "FSM_States/*.h" "FSM_States/*.cpp" \
-"Controllers/BalanceController/*.cpp" \
-"Controllers/BalanceController/*.h" \
+file(GLOB sources "FSM_States/*.h" "FSM_States/*.cpp"
+"Controllers/BalanceController/*.cpp"
+"Controllers/BalanceController/*.h"
 "Controllers/BalanceController/*.hpp")
 
 add_executable(MIT_Controller ${sources})
