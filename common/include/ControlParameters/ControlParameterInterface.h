@@ -1,8 +1,10 @@
 /*! @file ControlParameterInterface.h
- *  @brief Types to allow remote access of control parameters, for use with LCM/Shared memory
+ *  @brief Types to allow remote access of control parameters, for use with
+ * LCM/Shared memory
  *
- * There are response/request messages.  The robot receives request messages and responds with response messages
- * The request messages either request setting a parameter or getting a parameter
+ * There are response/request messages.  The robot receives request messages and
+ * responds with response messages The request messages either request setting a
+ * parameter or getting a parameter
  */
 
 #ifndef PROJECT_CONTROLPARAMETERINTERFACE_H
@@ -11,27 +13,29 @@
 #include <map>
 #include "ControlParameters.h"
 
-
 enum class ControlParameterRequestKind {
   GET_PARAM_BY_NAME,
   SET_PARAM_BY_NAME,
 };
 
-std::string controlParameterRequestKindToString(ControlParameterRequestKind request);
-
+std::string controlParameterRequestKindToString(
+    ControlParameterRequestKind request);
 
 struct ControlParameterRequest {
-  char name[CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH] = "";  // name of the parameter to set/get
+  char name[CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH] =
+      "";  // name of the parameter to set/get
   u64 requestNumber = UINT64_MAX;
   ControlParameterValue value;
   ControlParameterValueKind parameterKind;
   ControlParameterRequestKind requestKind;
 
   std::string toString() {
-    std::string result = "Request(" + std::to_string(requestNumber) + ") "
-            + controlParameterRequestKindToString(requestKind) + " "
-            + controlParameterValueKindToString(parameterKind) + " " + std::string(name) + " ";
-    switch(requestKind) {
+    std::string result = "Request(" + std::to_string(requestNumber) + ") " +
+                         controlParameterRequestKindToString(requestKind) +
+                         " " +
+                         controlParameterValueKindToString(parameterKind) +
+                         " " + std::string(name) + " ";
+    switch (requestKind) {
       case ControlParameterRequestKind::GET_PARAM_BY_NAME:
         result += "is: ";
         result += controlParameterValueToString(value, parameterKind);
@@ -56,16 +60,18 @@ struct ControlParameterResponse {
 
   bool isResponseTo(ControlParameterRequest& request) {
     return requestNumber == request.requestNumber &&
-     requestKind == request.requestKind &&
-     std::string(name) == std::string(request.name);
+           requestKind == request.requestKind &&
+           std::string(name) == std::string(request.name);
   }
 
   std::string toString() {
-    std::string result = "Response(" + std::to_string(requestNumber) + ") "
-            + controlParameterRequestKindToString(requestKind) + " "
-              + controlParameterValueKindToString(parameterKind) + " " + std::string(name) + " ";
+    std::string result = "Response(" + std::to_string(requestNumber) + ") " +
+                         controlParameterRequestKindToString(requestKind) +
+                         " " +
+                         controlParameterValueKindToString(parameterKind) +
+                         " " + std::string(name) + " ";
 
-    switch(requestKind) {
+    switch (requestKind) {
       case ControlParameterRequestKind::SET_PARAM_BY_NAME:
         result += "to: ";
         result += controlParameterValueToString(value, parameterKind);
@@ -80,4 +86,4 @@ struct ControlParameterResponse {
   }
 };
 
-#endif //PROJECT_CONTROLPARAMETERINTERFACE_H
+#endif  // PROJECT_CONTROLPARAMETERINTERFACE_H

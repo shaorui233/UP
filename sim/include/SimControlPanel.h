@@ -1,28 +1,33 @@
+/*!
+ * @file SimControlPanel.h
+ * @brief QT gui for the simulator
+ */
+
 #ifndef SIMCONTROLPANEL_H
 #define SIMCONTROLPANEL_H
 
 #include <QMainWindow>
 #include <thread>
-#include "Simulation.h"
-#include "Graphics3D.h"
 #include "ControlParameters/SimulatorParameters.h"
+#include "Graphics3D.h"
 #include "RobotInterface.h"
+#include "Simulation.h"
 
 #define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
 
 namespace Ui {
-  class SimControlPanel;
+class SimControlPanel;
 }
 
 class SimControlPanel : public QMainWindow {
-Q_OBJECT
+  Q_OBJECT
 
-public:
-  explicit SimControlPanel(QWidget *parent = nullptr);
+ public:
+  explicit SimControlPanel(QWidget* parent = nullptr);
 
   ~SimControlPanel();
 
-private slots:
+ private slots:
 
   void on_startButton_clicked();
 
@@ -59,15 +64,15 @@ private slots:
   void loadSimulationParameters(SimulatorControlParameters& params);
   void loadRobotParameters(RobotControlParameters& params);
 
-private:
+ private:
   void updateUiEnable();
   std::thread _simThread;
   bool _started = false;
-  Ui::SimControlPanel *ui;
-  Simulation *_simulation = nullptr;
+  Ui::SimControlPanel* ui;
+  Simulation* _simulation = nullptr;
   PeriodicTaskManager* _interfaceTaskManager = nullptr;
   RobotInterface* _robotInterface = nullptr;
-  Graphics3D *_graphicsWindow = nullptr;
+  Graphics3D* _graphicsWindow = nullptr;
   SimulatorControlParameters _parameters;
   bool _simulationMode = false;
   bool _firstStart = true;
@@ -75,4 +80,4 @@ private:
   std::string _terrainFileName;
 };
 
-#endif // SIMCONTROLPANEL_H
+#endif  // SIMCONTROLPANEL_H

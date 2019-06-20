@@ -67,7 +67,7 @@ void CholeskySparseSolver<T>::preSetup(const DenseMatrix<T> &kktMat, bool b_prin
 }
 
 template<typename T>
-void CholeskySparseSolver<T>::setup(const DenseMatrix<T> &kktMat, bool b_print)
+void CholeskySparseSolver<T>::setup(bool b_print)
 {
   Timer tim;
 
@@ -96,12 +96,12 @@ template<typename T>
 void CholeskySparseSolver<T>::sanityCheck()
 {
   assert(A.colPtrs[0] == 0);
-  for(int i = 0; i < n; i++) {
+  for(u32 i = 0; i < n; i++) {
     assert(A.colPtrs[i] < A.colPtrs[i + 1]);
   }
 
 
-  for(int i = 0; i < A.colPtrs[n]; i++) {
+  for(u32 i = 0; i < A.colPtrs[n]; i++) {
     assert(A.rowIdx[i] >= 0 && A.rowIdx[i] < n);
   }
 }
@@ -171,9 +171,9 @@ u32 CholeskySparseSolver<T>::symbolicFactor()
 
   for(u32 j = 0; j < n; j++) {
     temp[j] = j;
-    for(s32 p = A.colPtrs[j]; p < A.colPtrs[j + 1]; p++) {
+    for(u32 p = A.colPtrs[j]; p < A.colPtrs[j + 1]; p++) {
       s32 i = A.rowIdx[p];
-      while(temp[i] != j) {
+      while((u32)temp[i] != j) {
         if(parent[i] == -1) {
           parent[i] = j;
         }
@@ -223,7 +223,7 @@ void CholeskySparseSolver<T>::factor()
   u32* elims = new u32[n];
 
   L.colPtrs[0] = 0;
-  for(s32 i = 0; i < n; i++) {
+  for(s32 i = 0; i < (s32)n; i++) {
     L.colPtrs[i + 1] = L.colPtrs[i] + nnzLCol[i]; // col ptrs
     colUsed[i] = 0; // unused
     y[i] = 0.;
@@ -234,12 +234,12 @@ void CholeskySparseSolver<T>::factor()
   D[0] = A.values[0];
   rD[0] = 1./D[0];
 
-  for(s32 k = 1; k < n; k++) {
+  for(s32 k = 1; k < (s32)n; k++) {
     u32 nnzRow = 0;
     u32 end = A.colPtrs[k + 1];
-    for(s32 i = A.colPtrs[k]; i < end; i++) {
+    for(s32 i = A.colPtrs[k]; i < (s32)end; i++) {
       u32 bIdx = A.rowIdx[i];
-      if(bIdx == k) {
+      if(bIdx == (u32)k) {
         D[k] = A.values[i];
         continue;
       }
@@ -271,7 +271,7 @@ void CholeskySparseSolver<T>::factor()
 
       u32 end = next[cSel];
       T yi = y[cSel];
-      for(s32 j = L.colPtrs[cSel]; j < end; j++) {
+      for(s32 j = L.colPtrs[cSel]; j < (s32)end; j++) {
         y[L.rowIdx[j]] -= L.values[j] * yi;
       }
 
@@ -338,6 +338,8 @@ void CholeskySparseSolver<T>::factor()
   //for(int i = 0; i < n; i++) D[i] = 1. / D[i];
 }
 
+#ifdef JCQP_USE_AVX2
+__attribute__ ((unused))
 static void spTriAVX(u32 n, const u32* p, const u32* i, const double* v, double* x)
 {
   constexpr int UNROLL = 1;
@@ -378,6 +380,7 @@ static void spTriAVX(u32 n, const u32* p, const u32* i, const double* v, double*
   }
 }
 
+__attribute__ ((unused))
 static void spTriTAVX(u32 n, const u32* p, const u32* i, const double* v, double* x) {
   constexpr int UNROLL = 1; // 440 best
   for(s32 c = n - 1; c >= 0; c--) {
@@ -419,6 +422,7 @@ static void spTriTAVX(u32 n, const u32* p, const u32* i, const double* v, double
  * @param v - values of sparse matrix
  * @param x - input/output (x,b)
  */
+__attribute__ ((unused))
 static void spTriTAVX2(u32 n, const u32* p, const u32* i, const double* v, double* x) {
   constexpr int UNROLL = 1;
   for(s32 c = n - 1; c >= 0; c--) { // loop backward over columns
@@ -453,6 +457,7 @@ static void spTriTAVX2(u32 n, const u32* p, const u32* i, const double* v, doubl
     }
   }
 }
+#endif
 
 template<typename T>
 void CholeskySparseSolver<T>::solve(Vector<T>& outv) {
@@ -483,7 +488,6 @@ void CholeskySparseSolver<T>::solve(Vector<T>& outv) {
 #ifdef JCQP_USE_AVX2
   spTriTAVX2(n, L.colPtrs, L.rowIdx, L.values, out);
 #else
-  T* mat = reverseOrder;
   for(s32 i = n - 1; i >= 0; i--) {
     u32 end = L.colPtrs[i + 1];
     for(u32 j = L.colPtrs[i]; j < end; j++) {
