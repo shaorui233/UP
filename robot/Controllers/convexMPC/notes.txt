@@ -1,0 +1,24 @@
+Changes made to current branch
+-------------------------------
+-Added convexMPC to prepare_model.sh
+-Test with no modifications
+-Tested without early contact and warp - results very poor.
+-Did not actually remove early contact all the way.
+-Remove warp
+-Remove early contact
+-Test no warp/no early contact
+
+
+Changes needed
+-------------------------------
+-Update simulink build paths
+-Add solver
+-Test solver
+-Add threaded solver
+-Pronk?
+-Trot?
+-Trot-run?
+-Variable sized arrays?
+-Decrease bonus damping
+-Increase maximum torque
+-Fix NaN bug in gait scheduling
