@@ -111,6 +111,48 @@ void HardwareBridge::handleControlParameter(
 
   switch (msg->requestKind) {
     case (s8)ControlParameterRequestKind::SET_USER_PARAM_BY_NAME: {
+      if(!_userControlParameters) {
+        printf("[Warning] Got user param %s, but not using user parameters!\n",
+               (char*)msg->name);
+      } else {
+        std::string name((char*)msg->name);
+        ControlParameter& param = _userControlParameters->collection.lookup(name);
+
+        // type check
+        if ((s8)param._kind != msg->parameterKind) {
+          throw std::runtime_error(
+              "type mismatch for parameter " + name + ", robot thinks it is " +
+              controlParameterValueKindToString(param._kind) +
+              " but received a command to set it to " +
+              controlParameterValueKindToString(
+                  (ControlParameterValueKind)msg->parameterKind));
+        }
+
+        // do the actual set
+        ControlParameterValue v;
+        memcpy(&v, msg->value, sizeof(v));
+        param.set(v, (ControlParameterValueKind)msg->parameterKind);
+
+        // respond:
+        _parameter_response_lcmt.requestNumber =
+            msg->requestNumber;  // acknowledge that the set has happened
+        _parameter_response_lcmt.parameterKind =
+            msg->parameterKind;  // just for debugging print statements
+        memcpy(_parameter_response_lcmt.value, msg->value, 64);
+        //_parameter_response_lcmt.value = _parameter_request_lcmt.value; // just
+        //for debugging print statements
+        strcpy((char*)_parameter_response_lcmt.name,
+               name.c_str());  // just for debugging print statements
+        _parameter_response_lcmt.requestKind = msg->requestKind;
+
+        printf("[User Control Parameter] set %s to %s\n", name.c_str(),
+               controlParameterValueToString(
+                   v, (ControlParameterValueKind)msg->parameterKind)
+                   .c_str());
+      }
+    } break;
+
+    case (s8)ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME: {
       std::string name((char*)msg->name);
       ControlParameter& param = _robotParams.collection.lookup(name);
 
@@ -175,8 +217,15 @@ void MiniCheetahHardwareBridge::run() {
   _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
 
   while (!_robotParams.isFullyInitialized()) {
-    printf("[Hardware Bridge] Waiting for parameters...\n");
+    printf("[Hardware Bridge] Waiting for robot parameters...\n");
     usleep(1000000);
+  }
+
+  if(_userControlParameters) {
+    while (!_userControlParameters->isFullyInitialized()) {
+      printf("[Hardware Bridge] Waiting for user parameters...\n");
+      usleep(1000000);
+    }
   }
 
   printf("[Hardware Bridge] Got all parameters, starting up!\n");
