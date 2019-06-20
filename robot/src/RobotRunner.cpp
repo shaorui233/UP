@@ -70,29 +70,44 @@ void RobotRunner::run() {
   // Update the data from the robot
   setupStep();
 
-  if (!_jpos_initializer->IsInitialized(_legController)) {
-    Mat3<float> kpMat;
-    Mat3<float> kdMat;
-    kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
-    kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
-
-    for (int leg = 0; leg < 4; leg++) {
-      _legController->commands[leg].kpJoint = kpMat;
-      _legController->commands[leg].kdJoint = kdMat;
-    }
+  static int count_ini(0);
+  ++count_ini;
+  if (count_ini < 10) {
+    _legController->setEnabled(false);
+  } else if (20 < count_ini && count_ini < 30) {
+    _legController->setEnabled(false);
+  } else if (40 < count_ini && count_ini < 50) {
+    _legController->setEnabled(false);
   } else {
-    // Run Control 
-    _robot_ctrl->runController();
+    _legController->setEnabled(true);
 
-    // Update Visualization
-    _robot_ctrl->updateVisualization();
+    // Controller
+    if (!_jpos_initializer->IsInitialized(_legController)) {
+      Mat3<float> kpMat;
+      Mat3<float> kdMat;
+      kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
+      kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+
+      for (int leg = 0; leg < 4; leg++) {
+        _legController->commands[leg].kpJoint = kpMat;
+        _legController->commands[leg].kdJoint = kdMat;
+      }
+    } else {
+      // Run Control 
+      _robot_ctrl->runController();
+
+      // Update Visualization
+      _robot_ctrl->updateVisualization();
+    }
   }
+
+
 
   // Visualization (will make this into a separate function later)
   for (int leg = 0; leg < 4; leg++) {
     for (int joint = 0; joint < 3; joint++) {
       cheetahMainVisualization->q[leg * 3 + joint] =
-          _legController->datas[leg].q[joint];
+        _legController->datas[leg].q[joint];
     }
   }
   cheetahMainVisualization->p.setZero();

@@ -6,7 +6,9 @@
 
 class JPos_Controller:public RobotController{
   public:
-    JPos_Controller():RobotController(){}
+    JPos_Controller():RobotController(),_jpos_ini(cheetah::num_act_joint){
+    _jpos_ini.setZero();
+    }
     virtual ~JPos_Controller(){}
 
     virtual void initializeController(){}
@@ -16,6 +18,7 @@ class JPos_Controller:public RobotController{
       return &userParameters;
     }
   protected:
+    DVec<float> _jpos_ini;
   JPosUserParameters userParameters;
 };
 
