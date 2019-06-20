@@ -22,7 +22,7 @@ BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T>* robot,
       _des_jpos(cheetah::num_act_joint),
       _des_jvel(cheetah::num_act_joint),
       _jtorque(cheetah::num_act_joint),
-      _end_time(10.),
+      _end_time(3.5),
       _dim_contact(0),
       _ctrl_start_time(0.) {
   _sp = StateProvider<T>::getStateProvider();
@@ -66,7 +66,7 @@ template <typename T>
 void BackFlipCtrl<T>::_update_joint_command() {
   static int current_iteration(0);
   static int pre_mode_count(0);
-  int pre_mode_duration(1000);
+  int pre_mode_duration(2000);
   int tuck_iteration(600);
   int ramp_end_iteration(650);
   float tau_mult;
@@ -208,22 +208,23 @@ bool BackFlipCtrl<T>::EndOfPhase() {
     return true;
   }
 
-  // for(int i=2; i<12; i+=3){ // check contact for each leg
+   for(int i=2; i<12; i+=3){ // check contact for each leg
 
-  // if(Ctrl::_state_machine_time>1.5 && _sp->_Qdot[i+6]>_qdot_knee_max){
-  // printf("Contact detected at leg [%d] (i= %d) => Switch to the landing phase
-  // !!! \n", i/3, i); printf("state_machine_time: %lf
-  // \n",Ctrl::_state_machine_time); printf("Q-Knee: %lf \n",_sp->_Q[i+6]);
-  // printf("Qdot-Knee: %lf \n",_sp->_Qdot[i+6]);
-  // return true;
-  //}
-  //}
+  	 if(Ctrl::_state_machine_time>2.7 && _sp->_Q[i+6]>_q_knee_max && _sp->_Qdot[i+6]>_qdot_knee_max){
+  	 	printf("Contact detected at leg [%d] => Switch to the landing phase !!! \n", i/3); 
+		printf("state_machine_time: %lf \n",Ctrl::_state_machine_time); 
+		printf("Q-Knee: %lf \n",_sp->_Q[i+6]);
+  	 	printf("Qdot-Knee: %lf \n",_sp->_Qdot[i+6]);
+  	 	return true;
+  	}
+  }
 
   return false;
 }
 
 template <typename T>
 void BackFlipCtrl<T>::CtrlInitialization(const std::string& category_name) {
+  _param_handler->getValue<T>(category_name, "qdot_knee_max", _q_knee_max);
   _param_handler->getValue<T>(category_name, "qdot_knee_max", _qdot_knee_max);
 }
 
@@ -242,8 +243,8 @@ void BackFlipCtrl<T>::SetTestParameter(const std::string& test_file) {
     _Kd[i] = tmp_vec[i];
   }
   // Joint level feedback gain
-  _param_handler->getVector<T>("Kp_joint", _Kp_joint);
-  _param_handler->getVector<T>("Kd_joint", _Kd_joint);
+  _param_handler->getVector<T>("Kp_joint_backflip", _Kp_joint);
+  _param_handler->getVector<T>("Kd_joint_backflip", _Kd_joint);
 }
 
 template class BackFlipCtrl<double>;
