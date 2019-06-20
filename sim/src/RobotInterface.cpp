@@ -185,8 +185,7 @@ void RobotInterface::startInterface() {
     sendControlParameter(kv.first, kv.second->get(kv.second->_kind),
                          kv.second->_kind, true);
   }
-
-  throw std::runtime_error("need to send user parameters");
+  
 }
 
 void RobotInterface::stopInterface() {
