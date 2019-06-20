@@ -482,7 +482,6 @@ void SimControlPanel::on_userControlTable_cellChanged(int row, int column) {
     return;
   }
 
-  if(!_simulationMode) throw std::runtime_error("user parameter in robot not supported yet");
   auto& parameter = _userParameters.collection.lookup(cellName);
 //  auto& parameter = (_simulationMode ? _simulation->getRobotParams()
 //                                     : _robotInterface->getParams())
