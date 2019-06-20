@@ -21,7 +21,6 @@ public:
   virtual void updateVisualization() = 0;
   virtual ControlParameters* getUserControlParameters() = 0;
 
-
 protected:
   Quadruped<float>* _quadruped;
   FloatingBaseModel<float>* _model;

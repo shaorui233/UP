@@ -15,6 +15,10 @@ public:
   virtual void initializeController();
   virtual void runController();
   virtual void updateVisualization(){}
+  virtual ControlParameters* getUserControlParameters() {
+    return nullptr;
+  }
+
 
 protected:
   ControlFSM<float>* _controlFSM;
