@@ -79,6 +79,13 @@ void ControlParameterCollection::clearAllSet() {
   }
 }
 
+void ControlParameterCollection::deleteAll() {
+  for(auto& kv : _map) {
+    delete kv.second;
+  }
+  _map.clear();
+}
+
 std::string ControlParameters::generateUnitializedList() {
   std::string result;
   for (auto& kv : collection._map) {
@@ -242,6 +249,114 @@ void ControlParameters::initializeFromIniFile(const std::string& path) {
         throw std::runtime_error("can't read type " +
                                  std::to_string((u32)cp._kind) +
                                  " from ini file");
+        break;
+    }
+  }
+}
+
+ControlParameterValueKind getControlParameterValueKindFromString(const std::string& str) {
+  if(str.find('[') != std::string::npos) {
+    // vec type
+    if(str.find('f') != std::string::npos) {
+      return ControlParameterValueKind::VEC3_FLOAT;
+    } else {
+      return ControlParameterValueKind::VEC3_DOUBLE;
+    }
+  } else {
+    // scalar type
+    if(str.find('.') != std::string::npos) {
+      if(str.find('f') != std::string::npos) {
+        return ControlParameterValueKind::FLOAT;
+      } else {
+        return ControlParameterValueKind::DOUBLE;
+      }
+    } else {
+      // integer
+      return ControlParameterValueKind::S64;
+    }
+  }
+}
+
+void ControlParameters::defineAndInitializeFromYamlFile(const std::string &path) {
+  ParamHandler paramHandler(path);
+
+  if (!paramHandler.fileOpenedSuccessfully()) {
+    printf(
+        "[ERROR] Could not open yaml file %s : not initializing control "
+        "parameters!\n",
+        path.c_str());
+    throw std::runtime_error("yaml file bad");
+  }
+
+  std::string name;
+  if (!paramHandler.getString(YAML_COLLECTION_NAME_KEY, name)) {
+    printf("[ERROR] YAML doesn't have a a collection name field named %s\n",
+           YAML_COLLECTION_NAME_KEY);
+    throw std::runtime_error("yaml file bad");
+  }
+
+  if (name != _name) {
+    printf(
+        "[ERROR] YAML file %s has collection name %s which cannot be used to "
+        "initialize %s\n",
+        path.c_str(), name.c_str(), _name.c_str());
+    throw std::runtime_error("yaml file bad");
+  }
+
+  std::vector<std::string> keys = paramHandler.getKeys();
+
+  for (auto& key : keys) {
+    if (key == YAML_COLLECTION_NAME_KEY) continue;
+    std::string valueString;
+    paramHandler.getString(key, valueString);
+    ControlParameterValueKind kind;
+    if(valueString.empty()) {
+      kind = ControlParameterValueKind::VEC3_DOUBLE;
+    } else {
+      kind = ControlParameterValueKind::DOUBLE;
+    }
+
+    ControlParameter* cp = new ControlParameter(key, kind);
+    collection.addParameter(cp, key);
+    switch (cp->_kind) {
+      case ControlParameterValueKind::DOUBLE: {
+        double d;
+        assert(paramHandler.getValue(key, d));
+        cp->initializeDouble(d);
+      } break;
+
+      case ControlParameterValueKind::FLOAT: {
+        float f;
+        assert(paramHandler.getValue(key, f));
+        cp->initializeFloat(f);
+      } break;
+
+      case ControlParameterValueKind::S64: {
+        s64 f;
+        assert(paramHandler.getValue(key, f));
+        cp->initializeInteger(f);
+      } break;
+
+      case ControlParameterValueKind::VEC3_DOUBLE: {
+        std::vector<double> vv;
+        assert(paramHandler.getVector(key, vv));
+        assert(vv.size() == 3);
+        Vec3<double> v(vv[0], vv[1], vv[2]);
+        cp->initializeVec3d(v);
+      } break;
+
+      case ControlParameterValueKind::VEC3_FLOAT: {
+        std::vector<float> vv;
+        assert(paramHandler.getVector(key, vv));
+        assert(vv.size() == 3);
+        Vec3<float> v(vv[0], vv[1], vv[2]);
+        cp->initializeVec3f(v);
+      } break;
+
+      default:
+        throw std::runtime_error("can't read type " +
+                                 std::to_string((u32)cp->_kind) +
+                                 " from yaml file");
         break;
     }
   }

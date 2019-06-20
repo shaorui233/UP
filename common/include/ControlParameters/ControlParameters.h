@@ -39,6 +39,8 @@ enum class ControlParameterValueKind : u64 {
   VEC3_FLOAT = 4
 };
 
+ControlParameterValueKind getControlParameterValueKindFromString(const std::string& str);
+
 std::string controlParameterValueKindToString(
     ControlParameterValueKind valueKind);
 
@@ -107,6 +109,7 @@ class ControlParameterCollection {
                                     //!< YAML file format
   bool checkIfAllSet();  //!< are all the control parameters initialized?
   void clearAllSet();
+  void deleteAll();
 
   std::map<std::string, ControlParameter*> _map;
 
@@ -176,6 +179,13 @@ class ControlParameter {
     collection.addParameter(this, name);
   }
 
+  ControlParameter(const std::string& name, ControlParameterValueKind kind) {
+    _name = name;
+    truncateName();
+    _kind = kind;
+    _value.vec3d = (double*)&_staticValue;
+  }
+
   void truncateName() {
     if (_name.length() > CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH) {
       printf("[Error] name %s is too long, shortening to ", _name.c_str());
@@ -196,6 +206,8 @@ class ControlParameter {
     _set = true;
     *_value.d = d;
   }
+
+
 
   void initializeFloat(float f) {
     if (_kind != ControlParameterValueKind::FLOAT) {
@@ -367,6 +379,7 @@ class ControlParameter {
   std::string _name;
   std::string _units;
   ControlParameterValueKind _kind;
+  ControlParameterValue _staticValue;
 
  private:
 };
@@ -419,6 +432,7 @@ class ControlParameters {
   void writeToIniFile(const std::string& path);
   void initializeFromIniFile(const std::string& path);
   void initializeFromYamlFile(const std::string& path);
+  void defineAndInitializeFromYamlFile(const std::string& path);
 
   void writeToYamlFile(const std::string& path);
 

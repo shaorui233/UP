@@ -110,7 +110,7 @@ void HardwareBridge::handleControlParameter(
   }
 
   switch (msg->requestKind) {
-    case (s8)ControlParameterRequestKind::SET_PARAM_BY_NAME: {
+    case (s8)ControlParameterRequestKind::SET_USER_PARAM_BY_NAME: {
       std::string name((char*)msg->name);
       ControlParameter& param = _robotParams.collection.lookup(name);
 
@@ -148,8 +148,8 @@ void HardwareBridge::handleControlParameter(
 
     } break;
 
-    case (s8)ControlParameterRequestKind::GET_PARAM_BY_NAME: {
-      printf("[ERROR] Robot doesn't support get param currently\n");
+    default: {
+      throw std::runtime_error("parameter type unsupported");
     }
     break;
   }

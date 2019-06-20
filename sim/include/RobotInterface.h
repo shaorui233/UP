@@ -34,7 +34,8 @@ class RobotInterface : PeriodicTask {
   void lcmHandler();
   void sendControlParameter(const std::string& name,
                             ControlParameterValue value,
-                            ControlParameterValueKind kind);
+                            ControlParameterValueKind kind, bool isUser);
+
   void handleControlParameter(const lcm::ReceiveBuffer* rbuf,
                               const std::string& chan,
                               const control_parameter_respones_lcmt* msg);

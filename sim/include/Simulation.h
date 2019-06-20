@@ -40,7 +40,7 @@ class Simulation {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   explicit Simulation(RobotType robot, Graphics3D* window,
-                      SimulatorControlParameters& params);
+                      SimulatorControlParameters& params, ControlParameters& userParams);
 
   /*!
    * Explicitly set the state of the robot
@@ -75,7 +75,8 @@ class Simulation {
   void runAtSpeed(bool graphics = true);
   void sendControlParameter(const std::string& name,
                             ControlParameterValue value,
-                            ControlParameterValueKind kind);
+                            ControlParameterValueKind kind,
+                            bool isUser);
 
   void resetSimTime() {
     _currentSimTime = 0.;
@@ -105,6 +106,7 @@ class Simulation {
   SimulatorControlParameters& getSimParams() { return _simParams; }
 
   RobotControlParameters& getRobotParams() { return _robotParams; }
+  ControlParameters& getUserParams() { return _userParams; }
 
   bool isRobotConnected() { return _connected; }
 
@@ -118,6 +120,7 @@ class Simulation {
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
   ImuSimulator<double>* _imuSimulator = nullptr;
   SimulatorControlParameters& _simParams;
+  ControlParameters& _userParams;
   RobotControlParameters _robotParams;
 
   size_t _simRobotID, _controllerRobotID;

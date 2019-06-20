@@ -14,8 +14,10 @@
 #include "ControlParameters.h"
 
 enum class ControlParameterRequestKind {
-  GET_PARAM_BY_NAME,
-  SET_PARAM_BY_NAME,
+  GET_ROBOT_PARAM_BY_NAME,
+  SET_ROBOT_PARAM_BY_NAME,
+  GET_USER_PARAM_BY_NAME,
+  SET_USER_PARAM_BY_NAME
 };
 
 std::string controlParameterRequestKindToString(
@@ -36,12 +38,20 @@ struct ControlParameterRequest {
                          controlParameterValueKindToString(parameterKind) +
                          " " + std::string(name) + " ";
     switch (requestKind) {
-      case ControlParameterRequestKind::GET_PARAM_BY_NAME:
-        result += "is: ";
+      case ControlParameterRequestKind::GET_USER_PARAM_BY_NAME:
+        result += "user is: ";
         result += controlParameterValueToString(value, parameterKind);
         return result;
-      case ControlParameterRequestKind::SET_PARAM_BY_NAME:
-        result += "to: ";
+      case ControlParameterRequestKind::SET_USER_PARAM_BY_NAME:
+        result += "user to: ";
+        result += controlParameterValueToString(value, parameterKind);
+        return result;
+      case ControlParameterRequestKind::GET_ROBOT_PARAM_BY_NAME:
+        result += "robot is: ";
+        result += controlParameterValueToString(value, parameterKind);
+        return result;
+      case ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME:
+        result += "robot to: ";
         result += controlParameterValueToString(value, parameterKind);
         return result;
       default:
@@ -72,12 +82,20 @@ struct ControlParameterResponse {
                          " " + std::string(name) + " ";
 
     switch (requestKind) {
-      case ControlParameterRequestKind::SET_PARAM_BY_NAME:
-        result += "to: ";
+      case ControlParameterRequestKind::SET_USER_PARAM_BY_NAME:
+        result += "user to: ";
         result += controlParameterValueToString(value, parameterKind);
         return result;
-      case ControlParameterRequestKind::GET_PARAM_BY_NAME:
-        result += "is: ";
+      case ControlParameterRequestKind::GET_USER_PARAM_BY_NAME:
+        result += "user is: ";
+        result += controlParameterValueToString(value, parameterKind);
+        return result;
+      case ControlParameterRequestKind::SET_ROBOT_PARAM_BY_NAME:
+        result += "robot to: ";
+        result += controlParameterValueToString(value, parameterKind);
+        return result;
+      case ControlParameterRequestKind::GET_ROBOT_PARAM_BY_NAME:
+        result += "robot is: ";
         result += controlParameterValueToString(value, parameterKind);
         return result;
       default:

@@ -15,6 +15,9 @@ public:
   virtual void initializeController();
   virtual void runController();
   virtual void updateVisualization();
+  virtual ControlParameters* getUserControlParameters() {
+    return nullptr;
+  }
 
 protected:
   Test<float>* _wbc_state;
