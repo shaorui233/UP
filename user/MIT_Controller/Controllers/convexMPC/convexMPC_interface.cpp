@@ -80,7 +80,9 @@ int has_solved = 0;
 
 void *call_solve(void* ptr)
 {
+  (void)ptr;
     solve_mpc(&update, &problem_configuration);
+    return ptr;
 }
 //safely copies problem data and starts the solver
 void update_problem_data(double* p, double* v, double* q, double* w, double* r, double yaw, double* weights, double* state_trajectory, double alpha, int* gait)

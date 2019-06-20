@@ -5,6 +5,7 @@
 #include <eigen3/Eigen/Dense>
 #include <cmath>
 #include <eigen3/unsupported/Eigen/MatrixFunctions>
+//#include <unsupported/Eigen/MatrixFunctions>
 #include <qpOASES.hpp>
 #include <stdio.h>
 #include <sys/time.h>
@@ -534,6 +535,7 @@ void solve_mpc(update_data_t* update, problem_setup* setup)
         int elapsed_time;
         gettimeofday(&t1,NULL);
         int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
+        (void)rval;
         int rval2 = problem_red.getPrimalSolution(q_red);
         if(rval2 != qpOASES::SUCCESSFUL_RETURN)
             printf("failed to solve!\n");
