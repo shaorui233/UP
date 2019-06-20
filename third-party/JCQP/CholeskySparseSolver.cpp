@@ -269,15 +269,15 @@ void CholeskySparseSolver<T>::factor()
     for(s32 i = nnzRow - 1; i >= 0; i--) {
       u32 cSel = yIdx[i];
 
-      u32 end = next[cSel];
+      u32 end2 = next[cSel];
       T yi = y[cSel];
-      for(s32 j = L.colPtrs[cSel]; j < (s32)end; j++) {
+      for(s32 j = L.colPtrs[cSel]; j < (s32)end2; j++) {
         y[L.rowIdx[j]] -= L.values[j] * yi;
       }
 
-      L.rowIdx[end] = k;
-      L.values[end] = yi * rD[cSel];
-      D[k] -= yi * L.values[end];
+      L.rowIdx[end2] = k;
+      L.values[end2] = yi * rD[cSel];
+      D[k] -= yi * L.values[end2];
       next[cSel]++;
 
       y[cSel] = 0.;

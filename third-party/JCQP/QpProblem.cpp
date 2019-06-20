@@ -216,11 +216,11 @@ void QpProblem<T>::stepY()
 
 template<typename T>
 T QpProblem<T>::infNorm(const Vector<T>& v) {
-  T m(0);
+  T mm(0);
   for(s64 i = 0; i < v.rows(); i++) {
-    if(std::abs(v[i]) > m) m = std::abs(v[i]);
+    if(std::abs(v[i]) > mm) mm = std::abs(v[i]);
   }
-  return m;
+  return mm;
 }
 
 
