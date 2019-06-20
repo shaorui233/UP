@@ -41,11 +41,11 @@ To run the simulator:
 ```
 2. In the another command window, run the robot control code
 ```
-./robot/robot ${robot_name} ${target_system}
+./user/${controller_folder}/${controller_name} ${robot_name} ${target_system}
 ```
 Example)
 ```
-./robot/robot 3 s
+./user/JPos_Controller/jpos_ctrl 3 s
 ```
 3: Cheetah 3, m: Mini Cheetah
 s: simulation, r: robot
