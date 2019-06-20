@@ -62,13 +62,23 @@ void RobotRunner::run() {
 
   // Update the data from the robot
   setupStep();
+  if (!_jpos_initializer->IsInitialized(_legController)) {
+    Mat3<float> kpMat;
+    Mat3<float> kdMat;
+    kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
+    kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
 
-  // Run Control 
-  _robot_ctrl->runController();
+    for (int leg = 0; leg < 4; leg++) {
+      _legController->commands[leg].kpJoint = kpMat;
+      _legController->commands[leg].kdJoint = kdMat;
+    }
+  } else {
+    // Run Control 
+    _robot_ctrl->runController();
 
-  // Update Visualization
-  _robot_ctrl->updateVisualization();
-
+    // Update Visualization
+    _robot_ctrl->updateVisualization();
+  }
 
   // Visualization (will make this into a separate function later)
   for (int leg = 0; leg < 4; leg++) {

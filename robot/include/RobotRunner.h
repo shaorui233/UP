@@ -15,10 +15,10 @@
 #include <gui_main_control_settings_t.hpp>
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
-#include "Controllers/GaitScheduler.h"
 #include "Controllers/LegController.h"
 #include "Dynamics/Quadruped.h"
 #include "JPosInitializer.h"
+
 #include "SimUtilities/GamepadCommand.h"
 #include "SimUtilities/VisualizationData.h"
 #include "Utilities/PeriodicTask.h"
@@ -74,10 +74,6 @@ class RobotRunner : public PeriodicTask {
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
   gui_main_control_settings_t main_control_settings;
-
-  // Gait Scheduler controls the nominal contact schedule for the feet
-  GaitScheduler<float>* _gaitScheduler;
-
   // Contact Estimator to calculate estimated forces and contacts
   ContactEstimator<double>* _contactEstimator;
 

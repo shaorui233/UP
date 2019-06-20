@@ -10,6 +10,10 @@
 
 class MIT_Controller: public RobotController{
   ControlFSM<float>* _controlFSM;
+
+  // Gait Scheduler controls the nominal contact schedule for the feet
+  GaitScheduler<float>* _gaitScheduler;
+
 };
 
 

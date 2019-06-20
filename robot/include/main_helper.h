@@ -5,6 +5,6 @@
 #include <RobotController.h>
 
 extern MasterConfig gMasterConfig;
-int main_handler(int argc, char** argv, RobotController* ctrl);
+int main_helper(int argc, char** argv, RobotController* ctrl);
 
 #endif  // ROBOT_MAIN_H
