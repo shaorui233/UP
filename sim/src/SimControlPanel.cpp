@@ -2,8 +2,8 @@
 #include <ControlParameters/ControlParameters.h>
 #include <QFileDialog>
 #include <QMessageBox>
-//#include "ui_SimControlPanel.h"
-#include "../../build/sim/build/sim/build/sim/sim_autogen/include/ui_SimControlPanel.h"
+#include "ui_SimControlPanel.h"
+
 
 /*!
  * Display an error messagebox with the given text

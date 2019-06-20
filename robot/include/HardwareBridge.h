@@ -28,6 +28,7 @@ class HardwareBridge {
         _visualizationLCM(getLcmUrl(255)) {
           _robotRunner = 
             new RobotRunner(robot_ctrl, &taskManager, 0.001f, "robot-control");
+    _userControlParameters = robot_ctrl->getUserControlParameters();
         }
   void prefaultStack();
   void setupScheduler();
@@ -63,6 +64,7 @@ class HardwareBridge {
   u64 _iterations = 0;
   std::thread _interfaceLcmThread;
   volatile bool _interfaceLcmQuit = false;
+  ControlParameters* _userControlParameters = nullptr;
 
   int _port;
 };
