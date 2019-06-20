@@ -6,9 +6,10 @@
  * driver.
  */
 
-#include <robot/include/main_helper.h>
+#include <main_helper.h>
+#include "MIT_Controller.hpp"
 
 int main(int argc, char** argv) {
-  main_helper(argc, argv, new WBC_Controller());
+  main_helper(argc, argv, new MIT_Controller());
   return 0;
 }

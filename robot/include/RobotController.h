@@ -22,10 +22,13 @@ public:
 
 
 protected:
-  FloatingBaseModel<float> _model;
+  Quadruped<float>* _quadruped;
+  FloatingBaseModel<float>* _model;
   LegController<float>* _legController;
   StateEstimatorContainer<float>* _stateEstimator;
+  StateEstimate<float>* _stateEstimate;
   GamepadCommand* _driverCommand;
+  RobotControlParameters* _controlParameters;
 
   VisualizationData* _visualizationData;
   RobotType _robotType;
