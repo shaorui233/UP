@@ -54,6 +54,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   void resetGameController() { _gameController.findNewController(); }
 
   bool IsPaused() { return _pause; }
+  bool wantTurbo() { return _turbo; }
 
  protected:
   void initializeGL() override;
@@ -139,6 +140,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   float _zoom = 3.0;
 
   bool _rotOrig = true;
+  bool _turbo = false;
 
   QMatrix4x4 _cameraMatrix;
   Vec3<float> _v0;
