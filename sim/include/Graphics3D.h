@@ -134,9 +134,9 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   float _rx_base = 0;
   float _ry_base = 0;
   float _rx = 0;
-  float _ry = -45;
+  float _ry = -36;
   float _pixel_to_rad = .3f;
-  float _zoom = 1;
+  float _zoom = 3.0;
 
   bool _rotOrig = true;
 
