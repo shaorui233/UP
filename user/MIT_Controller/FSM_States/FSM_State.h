@@ -48,10 +48,10 @@ class FSM_State {
             std::string stateStringIn);
 
   // Behavior to be carried out when entering a state
-  virtual void onEnter() {}
+  virtual void onEnter() = 0;// {}
 
   // Run the normal behavior for the state
-  virtual void run() {}
+  virtual void run() = 0; //{}
 
   // Manages state specific transitions
   virtual FSM_StateName checkTransition() { return FSM_StateName::INVALID; }
@@ -60,7 +60,7 @@ class FSM_State {
   virtual TransitionData<T> transition() { return transitionData; }
 
   // Behavior to be carried out when exiting a state
-  virtual void onExit() {}
+  virtual void onExit() = 0; // {}
 
   //
   void jointPDControl(int leg, Vec3<T> qDes, Vec3<T> qdDes);

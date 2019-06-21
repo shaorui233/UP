@@ -216,8 +216,8 @@ void FSM_State<T>::runBalanceController() {
     maxForces[leg] = contactStateScheduled[leg] * maxForce;
   }
 
-  double COM_weights_stance[4] = {1, 1, 10};
-  double Base_weights_stance[4] = {20, 10, 10};
+  double COM_weights_stance[3] = {1, 1, 10};
+  double Base_weights_stance[3] = {20, 10, 10};
   double pFeet[12], p_des[3], p_act[3], v_des[3], v_act[3], O_err[3], rpy[3],
       omegaDes[3];
   double se_xfb[13];
@@ -254,15 +254,19 @@ void FSM_State<T>::runBalanceController() {
     computeLegJacobianAndPosition(**&_data->_quadruped,
                                   _data->_legController->datas[leg].q,
                                   (Mat3<T>*)nullptr, &pFeetVec, 1);
+    //pFeetVecCOM = _data->_stateEstimator->getResult().rBody.transpose() *
+                  //(_data->_quadruped->getHipLocation(leg) + pFeetVec);
+
     pFeetVecCOM = _data->_stateEstimator->getResult().rBody.transpose() *
-                  (_data->_quadruped->getHipLocation(leg) + pFeetVec);
+                  (_data->_quadruped->getHipLocation(leg) + _data->_legController->datas[leg].p);
+
 
     pFeet[leg * 3] = (double)pFeetVecCOM[0];
     pFeet[leg * 3 + 1] = (double)pFeetVecCOM[1];
     pFeet[leg * 3 + 2] = (double)pFeetVecCOM[2];
   }
-
-  balanceController.set_alpha_control(0.1);
+  
+  balanceController.set_alpha_control(0.01);
   balanceController.set_friction(0.5);
   balanceController.set_mass(46.0);
   balanceController.set_wrench_weights(COM_weights_stance, Base_weights_stance);
