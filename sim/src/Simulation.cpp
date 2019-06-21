@@ -587,7 +587,7 @@ void Simulation::runAtSpeed(bool graphics) {
     double dt = _simParams.dynamics_dt;
     double dtLowLevelControl = _simParams.low_level_dt;
     double dtHighLevelControl = _simParams.high_level_dt;
-    _desiredSimSpeed = _simParams.simulation_speed;
+    _desiredSimSpeed = (_window && _window->wantTurbo()) ? 100.f : _simParams.simulation_speed;
     u64 nStepsPerFrame = (u64)(((1. / 60.) / dt) * _desiredSimSpeed);
     if (!_window->IsPaused() && steps < desiredSteps) {
       _simParams.lockMutex();

@@ -271,6 +271,10 @@ void Graphics3D::keyPressEvent(QKeyEvent *e) {
       _pause = true;
   }
 
+  if(e->key() == Qt::Key_T) {
+    _turbo = true;
+  }
+
   if (e->key() == Qt::Key_Tab) {
     _freeCamPos[0] = 0.f;
     _freeCamPos[1] = 0.f;
@@ -313,6 +317,10 @@ void Graphics3D::keyReleaseEvent(QKeyEvent *e) {
     _arrowsPressed[2] = false;
   else if (e->key() == Qt::Key_Left)
     _arrowsPressed[3] = false;
+
+  if(e->key() == Qt::Key_T) {
+    _turbo = false;
+  }
 }
 
 /*!
