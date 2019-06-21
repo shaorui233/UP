@@ -28,13 +28,5 @@ class VectorNavOrientationEstimator : public GenericEstimator<T> {
   virtual void setup() {}
 };
 
-template <typename T>
-class KvhOrientationEstimator : public GenericEstimator<T> {
- public:
-  virtual void run();
-  virtual void setup() {}
-};
-
-// todo KVH Orientation Estimator
 
 #endif  // PROJECT_ORIENTATIONESTIMATOR_H

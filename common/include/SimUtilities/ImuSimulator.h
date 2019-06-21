@@ -38,9 +38,6 @@ class ImuSimulator {
                        const FBModelStateDerivative<T>& robotStateD,
                        VectorNavData* data);
 
-  void updateKVH(const FBModelState<T>& robotState,
-                 const FBModelStateDerivative<T>& robotStateD,
-                 KvhImuData* data);
 
   void computeAcceleration(const FBModelState<T>& robotState,
                            const FBModelStateDerivative<T>& robotStateD,

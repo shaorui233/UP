@@ -37,11 +37,9 @@ TEST(ImuSimulator, passThrough) {
   xfbd.dBodyVelocity = v0;
 
   VectorNavData vn;
-  KvhImuData kvh;
 
   // update data
   imuSim.updateVectornav(xfb, xfbd, &vn);
-  imuSim.updateKVH(xfb, xfbd, &kvh);
 
   Vec3<float> imuZero(0, 0, 0);
   Vec3<float> imuGravity(0, 0, 9.81);
@@ -51,10 +49,8 @@ TEST(ImuSimulator, passThrough) {
       1;  // vectornave quaternion description sequence is (x, y, z, w)
 
   EXPECT_TRUE(almostEqual(imuZero, vn.gyro, .00001f));
-  EXPECT_TRUE(almostEqual(imuZero, kvh.gyro, .000001f));
   EXPECT_TRUE(almostEqual(imuLevel, vn.quat, .00001f));
   EXPECT_TRUE(almostEqual(imuGravity, vn.accelerometer, .00001f));
-  EXPECT_TRUE(almostEqual(imuGravity, kvh.accelerometer, .00001f));
 }
 
 // test with
@@ -89,11 +85,9 @@ TEST(ImuSimulator, orientation) {
   xfbd.dBodyVelocity = acceleration;
 
   VectorNavData vn;
-  KvhImuData kvh;
 
   // update data
   imuSim.updateVectornav(xfb, xfbd, &vn);
-  imuSim.updateKVH(xfb, xfbd, &kvh);
 
   Vec3<float> imuZero(0, 0, 0);
   Vec3<float> imuGravity(0, 0, 9.81);
@@ -104,9 +98,7 @@ TEST(ImuSimulator, orientation) {
   imuLevel << sim_quat[1], sim_quat[2], sim_quat[3], sim_quat[0];
 
   EXPECT_TRUE(almostEqual(imuZero, vn.gyro, .00001f));
-  EXPECT_TRUE(almostEqual(imuZero, kvh.gyro, .000001f));
   EXPECT_TRUE(almostEqual(imuLevel, vn.quat, .00001f));
-  EXPECT_TRUE(almostEqual(kvh.accelerometer, vn.accelerometer, .00001f));
   EXPECT_TRUE(vn.accelerometer[0] < .0001f);
 }
 
@@ -140,11 +132,9 @@ TEST(ImuSimulator, omega) {
   xfbd.dBodyVelocity = acceleration;
 
   VectorNavData vn;
-  KvhImuData kvh;
 
   // update data
   imuSim.updateVectornav(xfb, xfbd, &vn);
-  imuSim.updateKVH(xfb, xfbd, &kvh);
 
   Vec3<float> imuZero(0, 0, 0);
   Vec3<float> imuGravity(0, 0, 9.81);
@@ -154,9 +144,7 @@ TEST(ImuSimulator, omega) {
   Vec3<float> omegaB = xfb.bodyVelocity.head<3>().cast<float>();
 
   EXPECT_TRUE(almostEqual(omegaB, vn.gyro, .00001f));
-  EXPECT_TRUE(almostEqual(omegaB, kvh.gyro, .000001f));
   EXPECT_TRUE(almostEqual(imuLevel, vn.quat, .00001f));
-  EXPECT_TRUE(almostEqual(kvh.accelerometer, vn.accelerometer, .00001f));
 }
 
 // test running in a circle omega cross v terms
@@ -190,11 +178,9 @@ TEST(ImuSimulator, omegaCrossV) {
   xfbd.dBodyVelocity = acceleration;
 
   VectorNavData vn;
-  KvhImuData kvh;
 
   // update data
   imuSim.updateVectornav(xfb, xfbd, &vn);
-  imuSim.updateKVH(xfb, xfbd, &kvh);
 
   Vec3<float> imuZero(0, 0, 0);
   Vec3<float> imuGravity(0, 0, 9.81);
@@ -208,10 +194,8 @@ TEST(ImuSimulator, omegaCrossV) {
   Vec3<float> acc_ref(0, -6, 9.81);
 
   EXPECT_TRUE(almostEqual(omegaB, vn.gyro, .00001f));
-  EXPECT_TRUE(almostEqual(omegaB, kvh.gyro, .000001f));
   EXPECT_TRUE(almostEqual(imuLevel, vn.quat, .00001f));
-  EXPECT_TRUE(almostEqual(kvh.accelerometer, vn.accelerometer, .00001f));
-  EXPECT_TRUE(almostEqual(kvh.accelerometer, acc_ref, .0001f));
+  EXPECT_TRUE(almostEqual(vn.accelerometer, acc_ref, .0001f));
 }
 
 // test noise:
@@ -253,7 +237,6 @@ TEST(ImuSimulator, noise) {
   xfbd.dBodyVelocity = acceleration;
 
   VectorNavData vn;
-  KvhImuData kvh;
 
   Vec3<float> rpy_ref = ori::quatToRPY(quat.cast<float>());
   Vec3<float> rpy_avg(0, 0, 0);
@@ -261,7 +244,6 @@ TEST(ImuSimulator, noise) {
   constexpr size_t nIterations = 1000;
   for (size_t i = 0; i < nIterations; i++) {
     imuSimNoise.updateVectornav(xfb, xfbd, &vn);
-    imuSimNoise.updateKVH(xfb, xfbd, &kvh);
     Quat<float> sim_quat;
     sim_quat << vn.quat[3], vn.quat[0], vn.quat[1], vn.quat[2];
     Vec3<float> rpy = ori::quatToRPY(sim_quat);

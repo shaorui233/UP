@@ -45,7 +45,7 @@ void DrawList::loadFiles() {
  * Returns an index number that can later be used to update the position of the
  * robot.
  */
-size_t DrawList::addCheetah3() {
+size_t DrawList::addCheetah3(Vec4<float> color, bool useOld) {
   size_t i0 = _cheetah3LoadIndex;
   size_t j0 = _nTotal;
 
@@ -77,16 +77,16 @@ size_t DrawList::addCheetah3() {
   lowerOffset.translate(0, 0, 0);
 
   SolidColor bodyColor, abadColor, link1Color, link2Color;
-  bodyColor.rgba = Vec4<float>(.2, .2, .2, .6);
+  bodyColor.rgba = useOld ? Vec4<float>(.2, .2, .2, .6) : color;
   bodyColor.useSolidColor = true;
 
-  abadColor.rgba = Vec4<float>(.3, .2, .2, .6);
+  abadColor.rgba = useOld ? Vec4<float>(.3, .2, .2, .6) : color;
   abadColor.useSolidColor = true;
 
-  link1Color.rgba = Vec4<float>(.2, .3, .2, .6);
+  link1Color.rgba = useOld ? Vec4<float>(.2, .3, .2, .6) : color;
   link1Color.useSolidColor = true;
 
-  link2Color.rgba = Vec4<float>(.2, .2, .3, .6);
+  link2Color.rgba = useOld ? Vec4<float>(.2, .2, .3, .6) : color;
   link2Color.useSolidColor = true;
 
   // add bodies
@@ -126,7 +126,7 @@ size_t DrawList::addCheetah3() {
  * robot.
  * TODO check all this once the mini cheetah dynamics model exists again
  */
-size_t DrawList::addMiniCheetah() {
+size_t DrawList::addMiniCheetah(Vec4<float> color, bool useOld) {
   size_t i0 = _miniCheetahLoadIndex;  // todo don't hard code this
   size_t j0 = _nTotal;
 
@@ -168,16 +168,16 @@ size_t DrawList::addMiniCheetah() {
   lower.rotate(180, 0, 1, 0);
 
   SolidColor bodyColor, abadColor, link1Color, link2Color;
-  bodyColor.rgba = Vec4<float>(.2, .2, .2, .6);
+  bodyColor.rgba = useOld ? Vec4<float>(.2, .2, .2, .6) : color;
   bodyColor.useSolidColor = true;
 
-  abadColor.rgba = Vec4<float>(.3, .2, .2, .6);
+  abadColor.rgba = useOld ? Vec4<float>(.3, .2, .2, .6) : color;
   abadColor.useSolidColor = true;
 
-  link1Color.rgba = Vec4<float>(.2, .3, .2, .6);
+  link1Color.rgba = useOld ? Vec4<float>(.2, .3, .2, .6) : color;
   link1Color.useSolidColor = true;
 
-  link2Color.rgba = Vec4<float>(.2, .2, .3, .6);
+  link2Color.rgba = useOld ? Vec4<float>(.2, .2, .3, .6) : color;
   link2Color.useSolidColor = true;
 
   // add objects

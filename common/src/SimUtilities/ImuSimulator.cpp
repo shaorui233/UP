@@ -23,23 +23,6 @@ void ImuSimulator<T>::computeAcceleration(
              .template cast<float>();
 }
 
-template <typename T>
-void ImuSimulator<T>::updateKVH(const FBModelState<T> &robotState,
-                                const FBModelStateDerivative<T> &robotStateD,
-                                KvhImuData *data) {
-  // body orientation
-  RotMat<float> R_body = quaternionToRotationMatrix(
-      robotState.bodyOrientation.template cast<float>());
-
-  // acceleration
-  computeAcceleration(robotState, robotStateD, data->accelerometer,
-                      _kvhAccelerometerDistribution, R_body);
-
-  // gyro
-  fillEigenWithRandom(data->gyro, _mt, _kvhGyroDistribution);
-  data->gyro +=
-      robotState.bodyVelocity.template head<3>().template cast<float>();
-}
 
 template <typename T>
 void ImuSimulator<T>::updateVectornav(

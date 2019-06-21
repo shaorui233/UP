@@ -52,11 +52,14 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
   // init graphics
   if (_window) {
     printf("[Simulation] Setup Cheetah graphics...\n");
-    _simRobotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah()
-                                                    : window->setupCheetah3();
+    Vec4<float> truthColor, seColor;
+    truthColor << 0.2, 0.4, 0.2, 0.6;
+    seColor << 0.4, 0.2, 0.2, 0.6;
+    _simRobotID = _robot == RobotType::MINI_CHEETAH ? window->setupMiniCheetah(truthColor, true)
+                                                    : window->setupCheetah3(truthColor, true);
     _controllerRobotID = _robot == RobotType::MINI_CHEETAH
-                             ? window->setupMiniCheetah()
-                             : window->setupCheetah3();
+                             ? window->setupMiniCheetah(seColor, false)
+                             : window->setupCheetah3(seColor, false);
   }
 
   // init rigid body dynamics
@@ -388,14 +391,11 @@ void Simulation::highLevelControl() {
   _imuSimulator->updateCheaterState(_simulator->getState(),
                                     _simulator->getDState(),
                                     _sharedMemory().simToRobot.cheaterState);
-  if (_robot == RobotType::MINI_CHEETAH) {
-    _imuSimulator->updateVectornav(_simulator->getState(),
+
+  _imuSimulator->updateVectornav(_simulator->getState(),
                                    _simulator->getDState(),
                                    &_sharedMemory().simToRobot.vectorNav);
-  } else {
-    _imuSimulator->updateKVH(_simulator->getState(), _simulator->getDState(),
-                             &_sharedMemory().simToRobot.kvh);
-  }
+
 
   // send leg data to robot
   if (_robot == RobotType::MINI_CHEETAH) {

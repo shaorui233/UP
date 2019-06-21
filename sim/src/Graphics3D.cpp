@@ -114,12 +114,12 @@ Graphics3D::~Graphics3D() {}
 /*!
  * Configure the window for displaying cheetah 3
  */
-size_t Graphics3D::setupCheetah3() { return _drawList.addCheetah3(); }
+size_t Graphics3D::setupCheetah3(Vec4<float> color, bool useOld) { return _drawList.addCheetah3(color, useOld); }
 
 /*!
  * Configure the window for displaying mini cheetah
  */
-size_t Graphics3D::setupMiniCheetah() { return _drawList.addMiniCheetah(); }
+size_t Graphics3D::setupMiniCheetah(Vec4<float> color, bool useOld) { return _drawList.addMiniCheetah(color, useOld); }
 
 /*!
  * Update the camera matrix for the current zoom/orbit

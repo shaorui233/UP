@@ -31,8 +31,10 @@ RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx,
   }
   printf("[RobotInterface] Init LCM\n");
   printf("[RobotInterface] Init graphics\n");
-  _robotID = _robotType == RobotType::MINI_CHEETAH ? gfx->setupMiniCheetah()
-                                                   : gfx->setupCheetah3();
+  Vec4<float> robotColor;
+  robotColor << 0.2, 0.2, 0.6, 0.6;
+  _robotID = _robotType == RobotType::MINI_CHEETAH ? gfx->setupMiniCheetah(robotColor, true)
+                                                   : gfx->setupCheetah3(robotColor, true);
   printf("draw list has %lu items\n", _gfx->_drawList._kinematicXform.size());
   _gfx->_drawList._visualizationData = &_visualizationData;
   Checkerboard checker(10, 10, 10, 10);

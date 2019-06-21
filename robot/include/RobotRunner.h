@@ -43,7 +43,6 @@ class RobotRunner : public PeriodicTask {
 
   GamepadCommand* driverCommand;
   RobotType robotType;
-  KvhImuData* kvhImuData;
   VectorNavData* vectorNavData;
   CheaterState<double>* cheaterState;
   SpiData* spiData;

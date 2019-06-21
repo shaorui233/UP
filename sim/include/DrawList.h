@@ -54,8 +54,8 @@ class DrawList {
     _cameraOrigin = Vec3<double>::Zero();
     loadFiles();
   }
-  size_t addCheetah3();
-  size_t addMiniCheetah();
+  size_t addCheetah3(Vec4<float> color, bool useOld);
+  size_t addMiniCheetah(Vec4<float> color, bool useOld);
   void buildDrawList();
   void loadFiles();
   size_t addCheckerboard(Checkerboard &checkerBoard);

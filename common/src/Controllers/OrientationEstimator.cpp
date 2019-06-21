@@ -58,28 +58,9 @@ void VectorNavOrientationEstimator<T>::run() {
       this->_stateEstimatorData.result->aBody;
 }
 
-template <typename T>
-void KvhOrientationEstimator<T>::run() {
-  // Need to get the quaternion estimate
-  // this->_stateEstimatorData.result->orientation =
-  // this->_stateEstimatorData.vectorNavData->quat.template cast<T>();
-
-  // this->_stateEstimatorData.result->rBody =
-  // ori::quaternionToRotationMatrix(this->_stateEstimatorData.result->orientation);
-  // this->_stateEstimatorData.result->omegaBody =
-  // this->_stateEstimatorData.kvhImuData->gyro.template cast <T>();
-  // this->_stateEstimatorData.result->omegaWorld =
-  // this->_stateEstimatorData.result->rBody.transpose() *
-  // this->_stateEstimatorData.result->omegaBody;
-  // this->_stateEstimatorData.result->rpy =
-  // ori::quatToRPY(this->_stateEstimatorData.result->orientation);
-}
 
 template class CheaterOrientationEstimator<float>;
 template class CheaterOrientationEstimator<double>;
 
 template class VectorNavOrientationEstimator<float>;
 template class VectorNavOrientationEstimator<double>;
-
-template class KvhOrientationEstimator<float>;
-template class KvhOrientationEstimator<double>;

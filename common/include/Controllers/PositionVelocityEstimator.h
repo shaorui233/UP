@@ -32,4 +32,11 @@ class LinearKFPositionVelocityEstimator : public GenericEstimator<T> {
   Eigen::Matrix<T, 28, 18> _C;
 };
 
+template<typename T>
+class CheaterPositionVelocityEstimator : public GenericEstimator<T> {
+public:
+  virtual void run();
+  virtual void setup() {}
+};
+
 #endif  // PROJECT_POSITIONVELOCITYESTIMATOR_H

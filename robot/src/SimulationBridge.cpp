@@ -220,7 +220,6 @@ void SimulationBridge::runRobotControl() {
     _robotRunner->spiData = &_sharedMemory().simToRobot.spiData;
     _robotRunner->tiBoardData = _sharedMemory().simToRobot.tiBoardData;
     _robotRunner->robotType = _robot;
-    _robotRunner->kvhImuData = &_sharedMemory().simToRobot.kvh;
     _robotRunner->vectorNavData = &_sharedMemory().simToRobot.vectorNav;
     _robotRunner->cheaterState = &_sharedMemory().simToRobot.cheaterState;
     _robotRunner->spiCommand = &_sharedMemory().robotToSim.spiCommand;

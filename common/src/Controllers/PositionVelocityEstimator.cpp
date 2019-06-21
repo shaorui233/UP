@@ -137,12 +137,6 @@ void LinearKFPositionVelocityEstimator<T>::run() {
     pzs(i) = (1.0f - trust) * (p0(2) + p_f(2));
   }
 
-  for (int foot = 0; foot < 4; foot++) {
-    for (int j = 0; j < 3; j++) {
-      this->_stateEstimatorData.result->pFeetWorld[foot][j] =
-          _xhat[6 + (foot * 3) + j];
-    }
-  }
 
   Eigen::Matrix<T, 28, 1> y;
   y << _ps, _vs, pzs;
@@ -179,3 +173,16 @@ void LinearKFPositionVelocityEstimator<T>::run() {
 
 template class LinearKFPositionVelocityEstimator<float>;
 template class LinearKFPositionVelocityEstimator<double>;
+
+
+
+template <typename T>
+void CheaterPositionVelocityEstimator<T>::run() {
+  this->_stateEstimatorData.result->position = this->_stateEstimatorData.cheaterState->position.template cast<T>();
+  this->_stateEstimatorData.result->vWorld =
+      this->_stateEstimatorData.result->rBody.transpose().template cast<T>() * this->_stateEstimatorData.cheaterState->vBody.template cast<T>();
+  this->_stateEstimatorData.result->vBody = this->_stateEstimatorData.cheaterState->vBody.template cast<T>();
+}
+
+template class CheaterPositionVelocityEstimator<float>;
+template class CheaterPositionVelocityEstimator<double>;
