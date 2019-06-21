@@ -4,6 +4,7 @@
  */
 
 #include "FSM_State_JointPD.h"
+#include <Configuration.h>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -13,7 +14,8 @@
  */
 template <typename T>
 FSM_State_JointPD<T>::FSM_State_JointPD(ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::JOINT_PD, "JOINT_PD") {
+    : FSM_State<T>(_controlFSMData, FSM_StateName::JOINT_PD, "JOINT_PD"),
+_ini_jpos(cheetah::num_act_joint){
   // Do nothing here yet
 }
 
@@ -27,6 +29,13 @@ void FSM_State_JointPD<T>::onEnter() {
 
   // Reset counter
   iter = 0;
+
+  for(size_t leg(0); leg<4; ++leg){
+    for(size_t jidx(0); jidx <3; ++jidx){
+      _ini_jpos[3*leg + jidx] = FSM_State<T>::_data->_legController->datas[leg].q[jidx];
+    }
+  }
+  
 }
 
 /**
@@ -35,14 +44,19 @@ void FSM_State_JointPD<T>::onEnter() {
 template <typename T>
 void FSM_State_JointPD<T>::run() {
   // This is just a test, should be running whatever other code you want
+  static double progress(0.);
+  progress += 0.001;
+  double movement_duration(3.0);
+  double ratio = progress/movement_duration;
+  if(ratio > 1.) ratio = 1.;
   Vec3<T> qDes;
   qDes << 0, -1.052, 2.63;
   Vec3<T> qdDes;
   qdDes << 0, 0, 0;
-  this->jointPDControl(0, qDes, qdDes);
-  this->jointPDControl(1, qDes, qdDes);
-  this->jointPDControl(2, qDes, qdDes);
-  this->jointPDControl(3, qDes, qdDes);
+  this->jointPDControl(0, ratio*qDes + (1. - ratio)*_ini_jpos.head(3), qdDes);
+  this->jointPDControl(1, ratio*qDes + (1. - ratio)*_ini_jpos.segment(3, 3), qdDes);
+  this->jointPDControl(2, ratio*qDes + (1. - ratio)*_ini_jpos.segment(6, 3), qdDes);
+  this->jointPDControl(3, ratio*qDes + (1. - ratio)*_ini_jpos.segment(9, 3), qdDes);
 }
 
 /**

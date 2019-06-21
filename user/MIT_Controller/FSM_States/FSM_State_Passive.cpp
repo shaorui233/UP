@@ -67,7 +67,7 @@ FSM_StateName FSM_State_Passive<T>::checkTransition() {
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
-    case K_PASSIVE:  // normal c
+    case K_PASSIVE:  // normal c (0)
       // Normal operation for state based transitions
       break;
 

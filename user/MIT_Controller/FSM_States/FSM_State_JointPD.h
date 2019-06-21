@@ -30,6 +30,7 @@ class FSM_State_JointPD : public FSM_State<T> {
  private:
   // Keep track of the control iterations
   int iter = 0;
+  DVec<T> _ini_jpos;
 };
 
 #endif  // FSM_STATE_JOINTPD_H
