@@ -6,9 +6,8 @@
 #include "Utilities/Utilities_print.h"
 #include "Utilities/save_file.h"
 #include "Utilities/utilities.h"
-//#include "../robot/WBC_States/common/Utils/SplineOptimizer.h"
 #include <Configuration.h>
-#include "../robot/WBC_States/Bounding/CtrlSet/ImpulseCurve.hpp"
+#include "../user/WBC_Controller/WBC_States/Bounding/CtrlSet/ImpulseCurve.hpp"
 #include "Utilities/Timer.h"
 
 std::string folder_name = "/common/test/test_data/";
@@ -328,67 +327,7 @@ TEST(Spline, BSpline_1D_test) {
   }
   delete[] middle_pt;
 }
-/*
-TEST(Spline, BSpline_Opt) {
-  constexpr int dim_bs = 2;
-  constexpr int degree = 3;
-  constexpr int num_middle_pt = 1;
 
-  SplineOptimizer<double, dim_bs, num_middle_pt> spline_opt;
-  double ini_pt[dim_bs*(degree)];
-  double fin_pt[dim_bs*(degree)];
-  for(int i(0); i<dim_bs*degree; ++i){
-    ini_pt[i] = 0.;
-    fin_pt[i] = 0.;
-  }
-  fin_pt[0] = 0.0;
-  fin_pt[1] = 0.0;
-  //double** middle_pt = new double*[num_middle_pt];
-  double* middle_pt[num_middle_pt];
-  if(num_middle_pt>0){
-    for(int i(0); i<num_middle_pt; ++i){
-      middle_pt[i] = new double [dim_bs];
-    }
-    // Middle 1
-    middle_pt[0][0] = 0.08;
-
-    // Middle 2
-    middle_pt[0][1] = -0.05;
-  }
-  //printf("mid pt: %f, %f\n", middle_pt[0][0], middle_pt[0][1]);
-
-
-  Timer timer;
-  spline_opt.setParam(ini_pt, fin_pt, middle_pt, 0.1);
-  printf("computation time: %f\n", timer.getMs());
-  double curve_pt[dim_bs]; curve_pt[0] = 0.;
-  double curve_vel[dim_bs]; curve_vel[0] = 0.;
-  double curve_acc[dim_bs]; curve_acc[0] = 0.;
-
-
-  double t;
-  double dt(0.001);
-  Vec3<double> bs_pva;
-  for(int i(0); i<1001; ++i){
-    t = (double)i * dt;
-
-    spline_opt.getPos(t, curve_pt);
-    spline_opt.getVel(t, curve_vel);
-    spline_opt.getAcc(t, curve_acc);
-
-    saveVector(curve_pt, folder_name, "opt_spline_pos", dim_bs);
-    saveVector(curve_vel, folder_name, "opt_spline_vel", dim_bs);
-    saveVector(curve_acc, folder_name, "opt_spline_acc", dim_bs);
-    saveValue(t, folder_name, "opt_spline_time");
-  }
-
-  //exit(0);
-  for(int i(0); i<num_middle_pt; ++i){
-    delete [] middle_pt[i];
-  }
-  //delete [] middle_pt;
-}
-*/
 TEST(Spline, ImpulseCurve) {
   ImpulseCurve<double> curve;
 

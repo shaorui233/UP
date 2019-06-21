@@ -51,7 +51,7 @@ target_link_libraries(biomimetics inih dynacore_param_handler)
 add_executable(test-common ${test_sources} ${sources})
 target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread)
 target_link_libraries(test-common Goldfarb_Optimizer)
-#target_link_libraries(test-common WBC_state)
+target_link_libraries(test-common WBC_state)
 target_link_libraries(test-common JCQP)
 target_link_libraries(test-common casadi)
 
