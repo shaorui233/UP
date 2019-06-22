@@ -38,18 +38,38 @@ DynamicsSimulator<T>::DynamicsSimulator(FloatingBaseModel<T> &model,
  * @param tau : joint torques
  */
 template <typename T>
-void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau, T kp, T kd) {
+void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau, T kp, T kd ) {
   // fwd-kin on gc points
   // compute ground contact forces
   // aba
   // integrate
   forwardKinematics();           // compute forward kinematics
   updateCollisions(dt, kp, kd);  // process collisions
+  // Process Homing
+  if( _homing.active_flag) {
+
+    Mat3<T> R10_des = rpyToRotMat(_homing.rpy);              // R10_des
+    Mat3<T> R10_act = _model.getOrientation(5).transpose();  // R10
+    Mat3<T> eR01 = R10_des.transpose()*R10_act;              // eR * R01 = R01_des
+    
+    Vec4<T> equat = rotationMatrixToQuaternion(eR01.transpose());
+    Vec3<T> angle_axis = quatToso3(equat); // in world frame
+
+    Vec3<T> p = _model.getPosition(5);
+    Vec3<T> f = _homing.kp_lin*(_homing.position - p)-_homing.kd_lin*_model.getLinearVelocity(5);
+
+    // Note: External forces are spatial forces in the {0} frame. 
+    _model._externalForces.at(5) += forceToSpatialForce(f,p);
+    _model._externalForces.at(5).head(3) += _homing.kp_ang*angle_axis - _homing.kd_ang*_model.getAngularVelocity(5);
+
+  }
+
+
   runABA(tau);                   // dynamics algorithm
   integrate(dt);                 // step forward
 
   _model.setState(_state);
-  _model.resetExternalForces();  // clesetar external forces
+  _model.resetExternalForces();  // clear external forces
   _model.resetCalculationFlags();
 }
 

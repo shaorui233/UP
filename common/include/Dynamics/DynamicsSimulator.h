@@ -20,6 +20,19 @@ using namespace ori;
 using namespace spatial;
 #include <eigen3/Eigen/Dense>
 
+
+template <typename T>
+struct RobotHomingInfo {
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+  Vec3<T> position;
+  Vec3<T> rpy;  // body coordinates
+  double kp_lin;
+  double kd_lin;
+  double kp_ang;
+  double kd_ang;
+  bool active_flag;
+};
+
 /*!
  * Class (containing state) for dynamics simulation of a floating-base system
  */
@@ -48,6 +61,10 @@ class DynamicsSimulator {
   void setState(const FBModelState<T>& state) {
     _state = state;
     _model.setState(state);  // force recalculate dynamics
+  }
+
+  void setHoming(const RobotHomingInfo<T>& homing) {
+    _homing = homing;
   }
 
   /*!
@@ -109,6 +126,8 @@ class DynamicsSimulator {
   ContactConstraint<T>* _contact_constr;
   SVec<T> _lastBodyVelocity;
   bool _useSpringDamper;
+
+  RobotHomingInfo<T> _homing;
 };
 
 #endif  // PROJECT_DYNAMICSSIMULATOR_H

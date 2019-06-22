@@ -668,43 +668,79 @@ DVec<T> FloatingBaseModel<T>::coriolisForce() {
 }
 
 template <typename T>
-Mat3<T> FloatingBaseModel<T>::getOrientation(int body) {
+Mat3<T> FloatingBaseModel<T>::getOrientation(int link_idx) {
   forwardKinematics();
-  Mat3<T> Rai = _Xa[body].template block<3, 3>(0, 0);
+  Mat3<T> Rai = _Xa[link_idx].template block<3, 3>(0, 0);
   Rai.transposeInPlace();
   return Rai;
 }
 
+
 template <typename T>
-Vec3<T> FloatingBaseModel<T>::getLinearAcceleration(int body,
+Vec3<T> FloatingBaseModel<T>::getPosition(const int link_idx)
+{
+  forwardKinematics();
+  Mat6<T> Xai = invertSXform(_Xa[link_idx]); // from link to absolute
+  Vec3<T> link_pos = sXFormPoint(Xai, Vec3<T>::Zero());
+  return link_pos;
+}
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getPosition(const int link_idx, const Vec3<T> & local_pos)
+{
+  forwardKinematics();
+  Mat6<T> Xai = invertSXform(_Xa[link_idx]); // from link to absolute
+  Vec3<T> link_pos = sXFormPoint(Xai, local_pos);
+  return link_pos;
+}
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getLinearAcceleration(const int link_idx,
                                                     const Vec3<T> &point) {
   forwardAccelerationKinematics();
-  Mat3<T> R = getOrientation(body);
-  return R * spatialToLinearAcceleration(_a[body], _v[body], point);
+  Mat3<T> R = getOrientation(link_idx);
+  return R * spatialToLinearAcceleration(_a[link_idx], _v[link_idx], point);
 }
 
 template <typename T>
-Vec3<T> FloatingBaseModel<T>::getLinearVelocity(int body,
+Vec3<T> FloatingBaseModel<T>::getLinearAcceleration(const int link_idx) {
+  forwardAccelerationKinematics();
+  Mat3<T> R = getOrientation(link_idx);
+  return R * spatialToLinearAcceleration(_a[link_idx], _v[link_idx], Vec3<T>::Zero());
+}
+
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getLinearVelocity(const int link_idx,
                                                 const Vec3<T> &point) {
   forwardKinematics();
-  Mat3<T> Rai = getOrientation(body);
-  return Rai * spatialToLinearVelocity(_v[body], point);
+  Mat3<T> Rai = getOrientation(link_idx);
+  return Rai * spatialToLinearVelocity(_v[link_idx], point);
 }
 
 template <typename T>
-Vec3<T> FloatingBaseModel<T>::getAngularVelocity(int body) {
+Vec3<T> FloatingBaseModel<T>::getLinearVelocity(const int link_idx) {
   forwardKinematics();
-  Mat3<T> Rai = getOrientation(body);
+  Mat3<T> Rai = getOrientation(link_idx);
+  return Rai * spatialToLinearVelocity(_v[link_idx], Vec3<T>::Zero());
+}
+
+
+
+template <typename T>
+Vec3<T> FloatingBaseModel<T>::getAngularVelocity(const int link_idx) {
+  forwardKinematics();
+  Mat3<T> Rai = getOrientation(link_idx);
   // Vec3<T> v3 =
-  return Rai * _v[body].template head<3>();
+  return Rai * _v[link_idx].template head<3>();
   ;
 }
 
 template <typename T>
-Vec3<T> FloatingBaseModel<T>::getAngularAcceleration(int body) {
+Vec3<T> FloatingBaseModel<T>::getAngularAcceleration(const int link_idx) {
   forwardAccelerationKinematics();
-  Mat3<T> Rai = getOrientation(body);
-  return Rai * _a[body].template head<3>();
+  Mat3<T> Rai = getOrientation(link_idx);
+  return Rai * _a[link_idx].template head<3>();
 }
 
 /*!

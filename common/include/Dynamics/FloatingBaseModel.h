@@ -209,11 +209,19 @@ class FloatingBaseModel {
     _accelerationsUpToDate = false;
   }
 
-  Mat3<T> getOrientation(int body);
-  Vec3<T> getLinearVelocity(int body, const Vec3<T>& point);
-  Vec3<T> getLinearAcceleration(int body, const Vec3<T>& point);
-  Vec3<T> getAngularVelocity(int body);
-  Vec3<T> getAngularAcceleration(int body);
+  Vec3<T> getPosition(const int link_idx, const Vec3<T> & local_pos);
+  Vec3<T> getPosition(const int link_idx);
+
+
+  Mat3<T> getOrientation(const int link_idx);
+  Vec3<T> getLinearVelocity(const int link_idx, const Vec3<T>& point);
+  Vec3<T> getLinearVelocity(const int link_idx);
+
+  Vec3<T> getLinearAcceleration(const int link_idx, const Vec3<T>& point);
+  Vec3<T> getLinearAcceleration(const int link_idx);
+
+  Vec3<T> getAngularVelocity(const int link_idx);
+  Vec3<T> getAngularAcceleration(const int link_idx);
 
   void forwardKinematics();
   void biasAccelerations();

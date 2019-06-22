@@ -34,7 +34,14 @@ class SimulatorControlParameters : public ControlParameters {
         INIT_PARAMETER(floor_kd),
         INIT_PARAMETER(use_spring_damper),
         INIT_PARAMETER(sim_state_lcm),
-        INIT_PARAMETER(sim_lcm_ttl) {}
+        INIT_PARAMETER(sim_lcm_ttl),
+        INIT_PARAMETER(go_home),
+        INIT_PARAMETER(home_pos),
+        INIT_PARAMETER(home_rpy),
+        INIT_PARAMETER(home_kp_lin),
+        INIT_PARAMETER(home_kd_lin),
+        INIT_PARAMETER(home_kp_ang),
+        INIT_PARAMETER(home_kd_ang) {}
 
   DECLARE_PARAMETER(float, kvh_imu_accelerometer_noise)
   DECLARE_PARAMETER(float, kvh_imu_gyro_noise)
@@ -55,6 +62,15 @@ class SimulatorControlParameters : public ControlParameters {
   DECLARE_PARAMETER(s64, use_spring_damper)
   DECLARE_PARAMETER(s64, sim_state_lcm)
   DECLARE_PARAMETER(s64, sim_lcm_ttl)
+
+  DECLARE_PARAMETER(s64, go_home)
+  DECLARE_PARAMETER(Vec3<double>,home_pos)
+  DECLARE_PARAMETER(Vec3<double>,home_rpy)
+  DECLARE_PARAMETER(double, home_kp_lin)
+  DECLARE_PARAMETER(double, home_kd_lin)
+  DECLARE_PARAMETER(double, home_kp_ang)
+  DECLARE_PARAMETER(double, home_kd_ang)
+
 };
 
 #endif  // PROJECT_SIMULATORPARAMETERS_H

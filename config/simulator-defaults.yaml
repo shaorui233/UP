@@ -17,3 +17,10 @@ use_spring_damper                : 0
 vectornav_imu_accelerometer_noise: 0.005
 vectornav_imu_gyro_noise         : 0.005
 vectornav_imu_quat_noise         : 0.003
+go_home                          : 0
+home_pos                         : [0,0,.5]
+home_rpy                         : [0,0,0]
+home_kp_lin                      : 2500
+home_kd_lin                      : 300
+home_kp_ang                      : 250
+home_kd_ang                      : 60
