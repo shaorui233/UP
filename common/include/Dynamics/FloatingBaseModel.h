@@ -229,8 +229,8 @@ class FloatingBaseModel {
   void forwardAccelerationKinematics();
   void contactJacobians();
 
-  DVec<T> gravityForce();
-  DVec<T> coriolisForce();
+  DVec<T> generalizedGravityForce();
+  DVec<T> generalizedCoriolisForce();
   DMat<T> massMatrix();
   DVec<T> inverseDynamics(const FBModelStateDerivative<T>& dState);
   void runABA(const DVec<T>& tau, FBModelStateDerivative<T>& dstate);

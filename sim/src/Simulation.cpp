@@ -341,6 +341,18 @@ void Simulation::step(double dt, double dtLowLevelControl,
 
   // dynamics
   _currentSimTime += dt;
+
+  // Set Homing Information
+  RobotHomingInfo<double> homing;
+  homing.active_flag = _simParams.go_home;
+  homing.position = _simParams.home_pos;
+  homing.rpy = _simParams.home_rpy;
+  homing.kp_lin = _simParams.home_kp_lin;
+  homing.kd_lin = _simParams.home_kd_lin;
+  homing.kp_ang = _simParams.home_kp_ang;
+  homing.kd_ang = _simParams.home_kd_ang;
+  _simulator->setHoming(homing);
+
   _simulator->step(dt, _tau, _simParams.floor_kp, _simParams.floor_kd);
 }
 
@@ -591,7 +603,7 @@ void Simulation::runAtSpeed(bool graphics) {
     _desiredSimSpeed = (_window && _window->wantTurbo()) ? 100.f : _simParams.simulation_speed;
     u64 nStepsPerFrame = (u64)(((1. / 60.) / dt) * _desiredSimSpeed);
     if (!_window->IsPaused() && steps < desiredSteps) {
-      _simParams.lockMutex();
+      _simParams.lockMutex();   
       step(dt, dtLowLevelControl, dtHighLevelControl);
       _simParams.unlockMutex();
       steps++;

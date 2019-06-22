@@ -104,8 +104,8 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
   // Update Mass, Gravity, Coriolis
   _robot->contactJacobians();
   _robot->massMatrix();
-  _robot->gravityForce();
-  _robot->coriolisForce();
+  _robot->generalizedGravityForce();
+  _robot->generalizedCoriolisForce();
 
   // StateProvider variables update
   _sp->_Q[3] = _state.bodyPosition[0];

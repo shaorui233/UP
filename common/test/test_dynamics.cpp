@@ -196,8 +196,8 @@ TEST(Dynamics, inverseDynamicsNoContacts) {
 
   // Components of the equations
   DMat<double> H = cheetahModel.massMatrix();
-  DVec<double> Cqd = cheetahModel.coriolisForce();
-  DVec<double> G = cheetahModel.gravityForce();
+  DVec<double> Cqd = cheetahModel.generalizedCoriolisForce();
+  DVec<double> G = cheetahModel.generalizedGravityForce();
 
   // Compute ID two different ways
   DVec<double> genForce = cheetahModel.inverseDynamics(dx);
@@ -209,7 +209,7 @@ TEST(Dynamics, inverseDynamicsNoContacts) {
 
   EXPECT_TRUE(almostEqual(zero6x1, fReturn, .03));
   EXPECT_TRUE(almostEqual(tauref, tauReturn, .01));
-  EXPECT_TRUE(almostEqual(component_ID_result, genForce, .0001));
+  EXPECT_TRUE(almostEqual(component_ID_result, genForce, 1e-6));
 }
 
 /*!

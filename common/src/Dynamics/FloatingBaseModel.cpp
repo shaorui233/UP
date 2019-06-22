@@ -607,7 +607,7 @@ void FloatingBaseModel<T>::biasAccelerations() {
  * @return G (_nDof x 1 vector)
  */
 template <typename T>
-DVec<T> FloatingBaseModel<T>::gravityForce() {
+DVec<T> FloatingBaseModel<T>::generalizedGravityForce() {
   compositeInertias();
 
   SVec<T> aGravity;
@@ -633,7 +633,7 @@ DVec<T> FloatingBaseModel<T>::gravityForce() {
  * @return Cqd (_nDof x 1 vector)
  */
 template <typename T>
-DVec<T> FloatingBaseModel<T>::coriolisForce() {
+DVec<T> FloatingBaseModel<T>::generalizedCoriolisForce() {
   biasAccelerations();
 
   // Floating base force
