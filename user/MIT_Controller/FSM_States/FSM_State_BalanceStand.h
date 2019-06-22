@@ -13,7 +13,7 @@ class FSM_State_BalanceStand : public FSM_State<T> {
   FSM_State_BalanceStand(ControlFSMData<T>* _controlFSMData);
 
   // Behavior to be carried out when entering a state
-  void onEnter();
+  void onEnter() override;
 
   // Run the normal behavior for the state
   void run();
@@ -29,7 +29,7 @@ class FSM_State_BalanceStand : public FSM_State<T> {
 
  private:
   // Keep track of the control iterations
-  int iter = 0;
+  int _iter = 0;
 
   // Parses contact specific controls to the leg controller
   void BalanceStandStep();

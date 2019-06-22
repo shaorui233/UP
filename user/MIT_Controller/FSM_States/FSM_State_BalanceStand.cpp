@@ -60,7 +60,7 @@ void FSM_State_BalanceStand<T>::run() {
 template <typename T>
 FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
   // Get the next state
-  iter++;
+  _iter++;
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
@@ -80,16 +80,16 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
 
       }*/
 
-      // in place to show automatic non user requested transitions
-      if (iter >= 5458) {
+      // TEST: in place to show automatic non user requested transitions
+      /*if (_iter >= 5458) {
         this->nextStateName = FSM_StateName::LOCOMOTION;
         this->_data->controlParameters->control_mode = K_LOCOMOTION;
         this->transitionDuration = 0.0;
         this->_data->_gaitScheduler->gaitData._nextGait =
             GaitType::AMBLE;  // TROT; // Or get whatever is in
                               // main_control_settings
-        iter = 0;
-      }
+        _iter = 0;
+      }*/
       break;
 
     case K_LOCOMOTION:
@@ -135,8 +135,8 @@ TransitionData<T> FSM_State_BalanceStand<T>::transition() {
     case FSM_StateName::LOCOMOTION:
       BalanceStandStep();
 
-      iter++;
-      if (iter >= this->transitionDuration * 1000) {
+      _iter++;
+      if (_iter >= this->transitionDuration * 1000) {
         this->transitionData.done = true;
       } else {
         this->transitionData.done = false;
@@ -165,7 +165,7 @@ TransitionData<T> FSM_State_BalanceStand<T>::transition() {
  */
 template <typename T>
 void FSM_State_BalanceStand<T>::onExit() {
-  iter = 0;
+  _iter = 0;
 }
 
 /**

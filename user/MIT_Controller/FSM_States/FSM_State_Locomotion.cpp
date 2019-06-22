@@ -205,10 +205,9 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
       // Swing leg trajectory
       // TODO
       this->footstepLocations.col(leg)
-          << (this->_data->_quadruped->_maxLegLength / 7) *
-                 sin(this->_data->_gaitScheduler->gaitData.phaseSwing(leg) *
-                     3.14),
-          0, -this->_data->_quadruped->_maxLegLength / 2;
+          << 0., 0., 
+          -this->_data->_quadruped->_maxLegLength / 2. + 
+            sin(2.*M_PI * this->_data->_gaitScheduler->gaitData.phaseSwing(leg) );
 
       // Swing leg impedance control
       this->cartesianImpedanceControl(
