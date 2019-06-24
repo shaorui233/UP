@@ -148,6 +148,7 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
   x0.q[10] = -1.0;
   x0.q[11] = -2.715;
 
+
   setRobotState(x0);
   _robotDataSimulator->setState(x0);
 

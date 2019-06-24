@@ -38,7 +38,7 @@ BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot,
   _SettingParameter();
 
   if (Test<T>::_b_save_file) {
-    _folder_name = "/robot/WBC_States/sim_data/";
+    _folder_name = "/user/WBC_Controller/sim_data/";
     create_folder(_folder_name);
   }
   printf("[Bounding Test] Constructed\n");

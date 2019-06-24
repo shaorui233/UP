@@ -24,7 +24,7 @@ BodyCtrlTest<T>::BodyCtrlTest(FloatingBaseModel<T>* robot,
   _sp = StateProvider<T>::getStateProvider();
 
   _SettingParameter();
-  _folder_name = "/robot/WBC_States/sim_data/";
+  _folder_name = "/user/WBC_Controller/sim_data/";
   create_folder(_folder_name);
   printf("[Body Position Control Test] Constructed\n");
 }

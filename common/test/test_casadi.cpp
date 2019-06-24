@@ -6,6 +6,13 @@
 #include <fstream>
 #include <iostream>
 
+#include "Dynamics/DynamicsSimulator.h"
+#include "Dynamics/FloatingBaseModel.h"
+#include "Dynamics/MiniCheetah.h"
+#include "Dynamics/Quadruped.h"
+#include <Utilities/Utilities_print.h>
+
+
 using namespace casadi;
 using namespace std;
 
@@ -283,5 +290,204 @@ TEST(casadi, race_car) {
     file << "xlabel('decision variables');" << std::endl;
     file << "ylabel('constraints');" << std::endl;
     file << "print('jac_sp','-dpng');" << std::endl;
+  }
+}
+
+// dx/dt = f(x,u)
+MX simple_dyn(const MX& x, const MX& u, const MX& P, int i) { 
+  double I(0.21);
+  double M(8.91);
+  double g(9.81);
+
+  if( i<15 ){
+    return vertcat (vertcat(x(3), x(4), x(5)), 
+        vertcat(u(0)/M, u(1)/M -g), ((P(1) - x(1))*u(0) - (P(0) - x(0)) * u(1))/I );  // Velocity
+  }else{
+    return vertcat (vertcat(x(3), x(4), x(5)), 
+        vertcat(u(0)/M, u(1)/M -g), ((P(3) - x(1))*u(0) - (P(2) - x(0)) * u(1))/I );  // Velocity
+  }
+}
+
+DVec<double> simple_dyn_vec(const DVec<double> & x, 
+    const DVec<double>& u, const DVec<double>& P, int i) { 
+  double I(0.21);
+  double M(8.91);
+  double g(9.81);
+
+  DVec<double> ret(6);
+  if( i<15 ){
+    ret << x(3), x(4), x(5), 
+        u(0)/M, u(1)/M -g, ((P(1) - x(1))*u(0) - (P(0) - x(0)) * u(1))/I ;  // Velocity
+  }else{
+    ret << x(3), x(4), x(5), 
+        u(0)/M, u(1)/M -g, ((P(3) - x(1))*u(0) - (P(2) - x(0)) * u(1))/I ;  // Velocity
+  }
+
+  return ret;
+}
+
+// [x, y, theta, dot_x, dot_y, dot_theta]
+TEST(casadi, jump_opt) {
+  // Mass Matrix Test
+  //FloatingBaseModel<double> cheetah = buildMiniCheetah<double>().buildModel();
+  //FBModelState<double> state;
+  //state.q = DVec<double>::Zero(cheetah::num_act_joint);
+  //state.qd = DVec<double>::Zero(cheetah::num_act_joint);
+ 
+  //for(size_t i(0); i<4; ++i){
+    //state.q[1 + 3*i] = -M_PI/2.;
+    //state.q[2 + 3*i] = M_PI;
+  //}
+    //state.q[7] = M_PI/2.;
+    //state.q[10] = M_PI/2.;
+  //state.bodyPosition.setZero();
+  //state.bodyVelocity.setZero();
+  //state.bodyOrientation[0] = 1.;
+  //state.bodyOrientation[1] = 0.;
+  //state.bodyOrientation[2] = 0.;
+  //state.bodyOrientation[3] = 0.;
+
+  //cheetah.setState(state);
+  //cheetah.forwardKinematics();
+
+  //DMat<double> A = cheetah.massMatrix();
+  //std::cout<<A<<std::endl;
+  
+  // Jump optimization
+  // ----------------------
+  // An optimal control problem (OCP),
+  // solved with direct multiple-shooting.
+  //
+  // For more information see: http://labs.casadi.org/OCP
+
+  int N = 31;  // number of control intervals
+  int N_fc = 15;
+  //int N_air = 1;
+  //int N_hc = 15;
+  auto opti = casadi::Opti();  // Optimization problem
+
+  Slice all;
+  // ---- decision variables ---------
+  auto X = opti.variable(6, N+1);  // state trajectory
+  auto P = opti.variable(4);  // Landing Location
+  auto F = opti.variable(2, N);  // Reaction force (15: front, 1: air, 15: hind)
+  auto cost = opti.variable();
+
+  DVec<double> X0(6); X0.setZero();
+  X0<< 0.0, 0.2, 0.2, 0.5, -0.1, 0.1;
+
+  DVec<double> Xf(6); Xf.setZero();
+  //Xf<< 0.1, 0.2, -M_PI/4., 0.1, 0.3, 0.0;
+  Xf<< 0.5, 0.23, -M_PI/4., 0.8, 0.8, 0.1;
+
+  cost = (X(0,N) - Xf(0)) * (X(0,N) - Xf(0))
+    + (X(1,N) - Xf(1)) * (X(1,N) - Xf(1))
+    + (X(2,N) - Xf(2)) * (X(2,N) - Xf(2))
+    + (X(3,N) - Xf(3)) * (X(3,N) - Xf(3))
+    + (X(4,N) - Xf(4)) * (X(4,N) - Xf(4))
+    + (X(5,N) - Xf(5)) * (X(5,N) - Xf(5));
+  //
+  // ---- objective          ---------
+  opti.minimize(cost);  // race in minimal time
+
+  // ---- dynamic constraints --------
+  auto dt = 0.01;
+  double mu(0.5);
+
+  for (int k = 0; k < N; ++k) {
+    auto dX = simple_dyn(X(all, k), F(all, k), P, k);
+    auto X_next = X(all, k) + dt * dX;
+    opti.subject_to(X(all, k + 1) == X_next);  // close the gaps
+
+    // ---- contact constraints -----------
+    opti.subject_to(-mu * F(1,k) <= F(0, k) <= mu* F(1,k)); 
+    opti.subject_to(0<=F(1,k) <= 300.); 
+    // Kinematics constraints
+    opti.subject_to (-0.15 <= P(0) <= 0.15);
+    opti.subject_to (-0.15 <= P(2) <= 0.15);
+    opti.subject_to (P(1) == 0.);
+    opti.subject_to (P(3) == 0.);
+
+  }
+  opti.subject_to(F(1, N_fc) == 0.);
+
+  for(int i(0); i<6; ++i){
+    opti.subject_to(X(i, 1) == X0(i)); 
+  }
+  // ---- solve NLP              ------
+  opti.solver("ipopt");     // set numerical backend
+  auto sol = opti.solve();  // actual solve
+  //std::vector<double> result = std::vector<double>(sol.debug.value(X(0, all) ) );
+  
+  //for(int i(0); i<N; ++i){
+    //printf("xb: %f\n", result[i]);
+  //}
+
+
+
+  for(int k(0); k<N; ++k){
+    std::vector<double> x_std_vec = std::vector<double>(sol.value(X(all, k)));
+    std::vector<double> x_next_std_vec = std::vector<double>(sol.value(X(all, k+1)));
+    std::vector<double> f = std::vector<double>(sol.value(F(all, k)));
+    std::vector<double> p = std::vector<double>(sol.value(P(all)));
+
+    DVec<double> x_current(6);
+    DVec<double> x_next(6);
+    DVec<double> f_eigen(2); 
+    f_eigen[0] = f[0];
+    f_eigen[1] = f[1];
+
+    DVec<double> p_eigen(4); 
+    p_eigen[0] = p[0]; 
+    p_eigen[1] = p[1]; 
+    p_eigen[2] = p[2]; 
+    p_eigen[3] = p[3]; 
+
+    for(int i(0); i<6; ++i){
+      x_current[i] = x_std_vec[i];
+      x_next[i] = x_next_std_vec[i];
+    }
+    DVec<double> dx_eigen = simple_dyn_vec(x_current, f_eigen, p_eigen, k);
+    DVec<double> x_next_eigen = x_current + dt * dx_eigen;
+    EXPECT_TRUE(almostEqual(x_next, x_next_eigen, .0001));
+    pretty_print(x_next, std::cout, "x_next_casadi");
+    pretty_print(x_next_eigen, std::cout, "x_next_eigen");
+    printf("\n");
+  }
+
+  bool b_matlab_file(true);
+  if (b_matlab_file) {
+    ofstream file;
+    string filename = "jump_result.m";
+    file.open(filename.c_str());
+    file << "% Results file from " __FILE__ << endl;
+    file << "% Generated " __DATE__ " at " __TIME__ << endl;
+    file << endl;
+
+    //file << "t = linspace(0," << 0.31 << "," << N << ");" << endl;
+    file << "xb= " << std::vector<double>(sol.value(X(0, all) ) ) << ";" << endl;
+    file << "zb= " << std::vector<double>(sol.value(X(1, all))) << ";" << endl;
+    file << "theta= " << std::vector<double>(sol.value(X(2, all))) << ";" << endl;
+    file << "dot_xb= " << std::vector<double>(sol.value(X(3, all) ) ) << ";" << endl;
+    file << "dot_zb= " << std::vector<double>(sol.value(X(4, all))) << ";" << endl;
+    file << "dot_theta= " << std::vector<double>(sol.value(X(5, all))) << ";" << endl;
+
+    file << "Fx = " << std::vector<double>(sol.value(F(0, all) ) ) << ";" << endl;
+    file << "Fz = " << std::vector<double>(sol.value(F(1, all) ) )<< ";" << endl;
+
+    file << "P = " << std::vector<double>(sol.value(P(all) ) ) << ";" << endl;
+
+   //file << "figure;" << endl;
+    //file << "hold on;" << endl;
+    //file << "plot(xb, zb);" << endl;
+
+    //jacobian(opti.g(), opti.x()).sparsity().spy_matlab("jump_jac_g.m");
+
+    //file << "figure" << std::endl;
+    //file << "jump_jac_g;" << std::endl;
+    //file << "xlabel('decision variables');" << std::endl;
+    //file << "ylabel('constraints');" << std::endl;
+    //file << "print('jac_sp','-dpng');" << std::endl;
+    file.close();
   }
 }

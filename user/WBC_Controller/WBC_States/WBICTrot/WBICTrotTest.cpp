@@ -84,7 +84,7 @@ WBICTrotTest<T>::WBICTrotTest(FloatingBaseModel<T> *robot,
   _input_vel.setZero();
 
   if (Test<T>::_b_save_file) {
-    _folder_name = "/robot/WBC_States/sim_data/";
+    _folder_name = "/user/WBC_Controller/sim_data/";
     create_folder(_folder_name);
   }
   printf("[WBIC Trot Test] Constructed\n");

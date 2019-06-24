@@ -104,7 +104,7 @@ KinBoundingCtrl<T>::KinBoundingCtrl(BoundingTest<T>* bounding_test,
   //_wbic_data->_W_floating = DVec<T>::Constant(6, 0.01);
   _sp = StateProvider<T>::getStateProvider();
 
-  _folder_name = "/robot/WBC_States/sim_data/";
+  _folder_name = "/user/WBC_Controller/sim_data/";
   create_folder(_folder_name);
 
   _Fr_result.setZero();
