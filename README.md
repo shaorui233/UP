@@ -13,6 +13,7 @@ To build all code:
 mkdir build
 cd build
 cmake ..
+./../scripts/make_types.sh
 make -j4
 ```
 
