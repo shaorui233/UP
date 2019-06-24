@@ -5,6 +5,7 @@ add_library(JCQP SHARED
         eigenvalues.cpp
         CholeskyDenseSolver.cpp
         CholeskySparseSolver.cpp
+        SparseMatrixMath.cpp
         #OsqpTest.cpp
         #qpOASES.cpp
         #ThreadGroup.cpp

@@ -13,7 +13,7 @@ TEST(JCQP, test_example) {
   problem.u << 1, 2, 3;
   problem.l << -1, -2, -3;
   problem.q << 1, 2;
-  problem.run();
+  problem.runFromDense();
 
   Vector<double> soln = problem.getSolution();
   Vector<double> qf = 0.5 * soln.transpose() * problem.P * soln;
@@ -43,7 +43,7 @@ TEST(JCQP, test_result_dense) {
   problem.u << 1, 0.7, 0.7, -1, 0, 0;
   problem.l << -1000, -1000, -1000, -1000, -1000, -1000;
   problem.q << 0, 0;
-  problem.run();
+  problem.runFromDense();
 
   EXPECT_TRUE(fpEqual(problem.getSolution()[0], 0.3, .0001));
   EXPECT_TRUE(fpEqual(problem.getSolution()[1], 0.7, .0001));
@@ -56,11 +56,54 @@ TEST(JCQP, test_result_sparse) {
   problem.u << 1., 0.7, 0.7;
   problem.l << 1., 0., 0.;
   problem.q << 0, 0;
-  problem.run(-1, true);
+  problem.runFromDense(-1, true);
 
   EXPECT_TRUE(fpEqual(problem.getSolution()[0], 0.3, .0001));
   EXPECT_TRUE(fpEqual(problem.getSolution()[1], 0.7, .0001));
-  std::cout << "-----> sol: " << problem.getSolution().transpose() << "\n";
+}
+
+TEST(JCQP, test_sort_triples) {
+  std::vector<SparseTriple<double>> tris;
+  tris.push_back({1,1,1});
+  tris.push_back({0,1,0});
+  tris.push_back({0,0,1});
+  tris.push_back({0,0,0});
+
+  sortTriples(tris, true);
+  EXPECT_TRUE(tris[0].r == 0 && tris[0].c == 0);
+  EXPECT_TRUE(tris[1].r == 1 && tris[1].c == 0);
+  EXPECT_TRUE(tris[2].r == 0 && tris[2].c == 1);
+  EXPECT_TRUE(tris[3].r == 1 && tris[3].c == 1);
+
+  tris.push_back({10,1,1});
+  EXPECT_THROW(sortTriples(tris, true), std::runtime_error);
+
+  sortAndSumTriples(tris);
+  EXPECT_TRUE(tris[0].value == 10 + 1);
+
+  tris.clear();
+  tris.push_back({1,1,1});
+  tris.push_back({0,1,0});
+  tris.push_back({0,0,1});
+  tris.push_back({0,0,0});
+  tris.push_back({10,1,1});
+
+  sortAndSumTriples(tris);
+  EXPECT_TRUE(tris[0].value == 10 + 1);
+}
+
+TEST(JCQP, test_result_sparse_triples) {
+  QpProblem<double> problem(2,3);
+  problem.A_triples = {{1.,0,0}, {1.,0,1}, {1., 1, 0},
+                       {1.,2,1}};
+  problem.P_triples = {{4.,0,0}, {1.,0,1},
+                       {1.,1,0}, {2.,1,1}};
+  problem.u << 1., 0.7, 0.7;
+  problem.l << 1., 0., 0.;
+  problem.q << 0, 0;
+  problem.runFromTriples(-1, true);
+  EXPECT_TRUE(fpEqual(problem.getSolution()[0], 0.3, .0001));
+  EXPECT_TRUE(fpEqual(problem.getSolution()[1], 0.7, .0001));
 }
 
 TEST(JCQP, test_solver_dense_double) {
