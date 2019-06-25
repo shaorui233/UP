@@ -9,8 +9,6 @@
 #include <WBC_States/Bounding/TaskSet/LocalTailPosTask.hpp>
 #include <WBC_States/StateProvider.hpp>
 #include <WBC_States/common/ContactSet/SingleContact.hpp>
-#include <WBC_States/common/TaskSet/BodyOriTask.hpp>
-#include <WBC_States/common/TaskSet/JPosTask.hpp>
 
 #include <Utilities/save_file.h>
 #include <ParamHandler/ParamHandler.hpp>
@@ -23,12 +21,8 @@ KinBoundingCtrl<T>::KinBoundingCtrl(BoundingTest<T>* bounding_test,
                                     const FloatingBaseModel<T>* robot)
     : Controller<T>(robot),
       _bounding_test(bounding_test),
-      _b_jump(false),
-      _b_front_jump(false),
-      _b_hind_jump(false),
-      _front_jump_amp(1.0),
-      _hind_jump_amp(1.0),
-      _jump_disable_time(0.),
+      _jump_signal(false),
+      _b_jump_initiation(false),
       _step_width(0.05),
       _contact_vel_threshold(3.0),
       _K_time(0.5),
@@ -72,7 +66,6 @@ KinBoundingCtrl<T>::KinBoundingCtrl(BoundingTest<T>* bounding_test,
   _hl_foot_vel.setZero();
   _hl_foot_acc.setZero();
 
-  _jpos_task = new JPosTask<T>(Ctrl::_robot_sys);
   _local_roll_task = new LocalRollTask<T>(Ctrl::_robot_sys);
   _body_ryrz_task = new BodyRyRzTask<T>(Ctrl::_robot_sys);
 
@@ -94,8 +87,6 @@ KinBoundingCtrl<T>::KinBoundingCtrl(BoundingTest<T>* bounding_test,
   _hl_contact = new SingleContact<T>(Ctrl::_robot_sys, linkID::HL);
 
   _kin_wbc = new KinWBC<T>(cheetah::dim_config);
-
-  Ctrl::_task_list.push_back(_jpos_task);
   _wbic = new WBIC<T>(cheetah::dim_config, &(Ctrl::_contact_list),
                       &(Ctrl::_task_list));
 
@@ -146,6 +137,12 @@ void KinBoundingCtrl<T>::_ContactUpdate() {
     if (front_knee_vel_diff > _contact_vel_threshold ||
         (_front_time > 3.5 * _swing_time)) {
       _b_front_contact_est = true;
+
+      // Jump initiation
+      if(_jump_signal) {
+        printf("jump initiation\n");
+        _b_jump_initiation = true;
+      }
     }
   }
 
@@ -193,10 +190,6 @@ void KinBoundingCtrl<T>::_StatusCheck() {
                (2. * 2.0 * 0.7 * _front_current_stance);
       apex *= _impact_amp;
 
-      if (_b_jump) {  // jump
-        apex *= _front_jump_amp;
-        _b_front_jump = true;
-      }
 
       _front_z_impulse.setCurve(apex, _front_current_stance);
       _front_previous_stance = _front_current_stance;
@@ -231,12 +224,7 @@ void KinBoundingCtrl<T>::_StatusCheck() {
 
       Vec3<T> rpy = ori::quatToRPY(Ctrl::_robot_sys->_state.bodyOrientation);
       apex *= (1. - _K_pitch * rpy[1]);
-      if (_b_jump && _b_front_jump) {  // jump
-        apex *= _hind_jump_amp;
-        _b_jump = false;
-        _b_front_jump = false;
-        _jump_disable_time = 1.0;
-      }
+
       _hind_z_impulse.setCurve(apex, _hind_current_stance);
       _hind_previous_stance = _hind_current_stance;
 
@@ -332,10 +320,7 @@ template <typename T>
 void KinBoundingCtrl<T>::OneStep(void* _cmd) {
   Ctrl::_PreProcessing_Command();
 
-  _jump_disable_time -= Test<T>::dt;
-  // if( (fabs(_sp->_ori_command[0]) > 0.001) && (_jump_disable_time < 0.) ){
-  //_b_jump = true;
-  //}
+  
   // Initialize all
   Ctrl::_contact_list.clear();
   Ctrl::_task_list.clear();
@@ -345,6 +330,9 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd) {
   // Update Time
   Ctrl::_state_machine_time = _sp->_curr_time - _ctrl_start_time;
 
+  if(Ctrl::_state_machine_time > 2.5){ 
+    _jump_signal = true; 
+  }
   _front_time = _sp->_curr_time - _front_start_time;
   _hind_time = _sp->_curr_time - _hind_start_time;
 

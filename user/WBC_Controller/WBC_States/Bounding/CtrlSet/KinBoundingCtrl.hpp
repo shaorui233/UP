@@ -44,9 +44,8 @@ class KinBoundingCtrl : public Controller<T> {
 
   BoundingTest<T>* _bounding_test;
 
-  bool _b_jump;
-  bool _b_front_jump;
-  bool _b_hind_jump;
+  bool _jump_signal;
+  bool _b_jump_initiation;
 
   bool _b_first_stance;
   bool _b_front_swing;
@@ -60,9 +59,6 @@ class KinBoundingCtrl : public Controller<T> {
 
   std::queue<DVec<T> > _qdot_pre_queue;
 
-  T _front_jump_amp;
-  T _hind_jump_amp;
-  T _jump_disable_time;
   T _step_width;
 
   T _contact_vel_threshold;
@@ -105,7 +101,6 @@ class KinBoundingCtrl : public Controller<T> {
   Task<T>* _local_head_pos_task;
   Task<T>* _local_tail_pos_task;
 
-  Task<T>* _jpos_task;
   Task<T>* _local_roll_task;
   Task<T>* _body_ryrz_task;
 

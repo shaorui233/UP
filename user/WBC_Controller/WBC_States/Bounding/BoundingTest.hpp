@@ -11,7 +11,8 @@ namespace BoundingPhase {
 constexpr int lift_up = 0;
 constexpr int posture_keeping = 1;
 constexpr int bounding = 2;
-constexpr int NUM_BOUNDING_PHASE = 3;
+constexpr int bounding_jump = 3;
+constexpr int NUM_BOUNDING_PHASE = 4;
 };  // namespace BoundingPhase
 
 template <typename T>
@@ -29,6 +30,7 @@ class BoundingTest : public Test<T> {
   Vec3<T> _body_ang_vel;
 
   std::string _folder_name;
+  bool _stop;
 
  protected:
   virtual void _UpdateTestOneStep();
@@ -41,6 +43,7 @@ class BoundingTest : public Test<T> {
   Controller<T>* _body_up_ctrl;
   Controller<T>* _posture_keeping;
   Controller<T>* _bounding;
+  Controller<T>* _bounding_jump;
 
   StateProvider<T>* _sp;
 };

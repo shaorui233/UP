@@ -104,8 +104,6 @@ void KinBoundingCtrl<T>::CtrlInitialization(const std::string &category_name) {
                               _hind_foot_offset);
 
   _param_handler->getValue<T>(category_name, "swing_height", _swing_height);
-  _param_handler->getValue<T>(category_name, "front_jump_amp", _front_jump_amp);
-  _param_handler->getValue<T>(category_name, "hind_jump_amp", _hind_jump_amp);
   _param_handler->getValue<T>(category_name, "contact_vel_threshold",
                               _contact_vel_threshold);
 
@@ -156,15 +154,6 @@ void KinBoundingCtrl<T>::SetTestParameter(const std::string &test_file) {
     ((LocalTailPosTask<T> *)_local_tail_pos_task)->_Kd[i] = tmp_vec[i];
   }
 
-  _param_handler->getVector<T>("Kp", tmp_vec);
-  for (size_t i(0); i < tmp_vec.size(); ++i) {
-    ((JPosTask<T> *)_jpos_task)->_Kp[i] = tmp_vec[i];
-  }
-  _param_handler->getVector<T>("Kd", tmp_vec);
-  for (size_t i(0); i < tmp_vec.size(); ++i) {
-    ((JPosTask<T> *)_jpos_task)->_Kd[i] = tmp_vec[i];
-  }
-
   // Local Roll
   T tmp_value;
   _param_handler->getValue<T>("Kp_roll", tmp_value);
@@ -183,6 +172,12 @@ void KinBoundingCtrl<T>::LastVisit() {}
 template <typename T>
 bool KinBoundingCtrl<T>::EndOfPhase() {
   if (_sp->_mode == 12) {
+    _bounding_test->_stop = true;
+    return true;
+  }
+  if(_jump_signal && _b_jump_initiation){
+    _jump_signal = false;
+    _b_jump_initiation = false;
     return true;
   }
   return false;

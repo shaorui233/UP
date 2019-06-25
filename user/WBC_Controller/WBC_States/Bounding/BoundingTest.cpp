@@ -5,6 +5,7 @@
 #include <WBC_States/common/CtrlSet/PostureKeepingCtrl.hpp>
 
 #include <WBC_States/Bounding/CtrlSet/KinBoundingCtrl.hpp>
+#include <WBC_States/Bounding/CtrlSet/BoundingJumpCtrl.hpp>
 
 #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
 #include <ParamHandler/ParamHandler.hpp>
@@ -15,7 +16,7 @@
 template <typename T>
 BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot,
                               const RobotType& type)
-    : Test<T>(robot, type) {
+    : Test<T>(robot, type), _stop(false) {
   _body_pos.setZero();
   _body_vel.setZero();
   _body_acc.setZero();
@@ -29,10 +30,12 @@ BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot,
   _body_up_ctrl = new FullContactTransCtrl<T>(robot);
   _posture_keeping = new PostureKeepingCtrl<T>(robot);
   _bounding = new KinBoundingCtrl<T>(this, robot);
+  _bounding_jump = new BoundingJumpCtrl<T>(this, robot);
 
   Test<T>::_state_list.push_back(_body_up_ctrl);
   Test<T>::_state_list.push_back(_posture_keeping);
   Test<T>::_state_list.push_back(_bounding);
+  Test<T>::_state_list.push_back(_bounding_jump);
 
   _sp = StateProvider<T>::getStateProvider();
   _SettingParameter();
@@ -57,6 +60,7 @@ void BoundingTest<T>::_TestInitialization() {
   _body_up_ctrl->CtrlInitialization("CTRL_move_to_target_height");
   _posture_keeping->CtrlInitialization("CTRL_keep_posture");
   _bounding->CtrlInitialization("CTRL_bounding");
+  _bounding_jump->CtrlInitialization("CTRL_bounding_jump");
 }
 
 template <typename T>
@@ -64,8 +68,14 @@ int BoundingTest<T>::_NextPhase(const int& phase) {
   int next_phase = phase + 1;
   _sp->_num_contact = 0;
 
-  if (next_phase == BoundingPhase::NUM_BOUNDING_PHASE) {
+  if( _stop ){
     next_phase = BoundingPhase::posture_keeping;
+  }else{
+    if(phase == BoundingPhase::bounding){
+      next_phase = BoundingPhase::bounding_jump;
+    }else if(phase == BoundingPhase::bounding_jump){
+      next_phase = BoundingPhase::bounding;
+    }
   }
   printf("next phase: %i\n", next_phase);
   return next_phase;
