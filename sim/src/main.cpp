@@ -13,6 +13,7 @@
 #include "SimControlPanel.h"
 #include "Simulation.h"
 #include "Utilities/utilities.h"
+#include "Utilities/SegfaultHandler.h"
 
 #include <QApplication>
 #include <QSurfaceFormat>
@@ -25,6 +26,7 @@
  * Setup QT and run a simulation
  */
 int main(int argc, char *argv[]) {
+  install_segfault_handler();
   // set up Qt
   QApplication a(argc, argv);
 

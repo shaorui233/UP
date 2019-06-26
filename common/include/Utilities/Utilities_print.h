@@ -123,5 +123,6 @@ void pretty_print(const T *_vec, const char *title, size_t size) {
 enum class PrintColor { Default, Red, Green, Yellow, Blue, Magenta, Cyan };
 
 void printf_color(PrintColor color, const char *fmt, ...);
+void fprintf_color(PrintColor color, FILE* stream, const char *fmt, ...);
 
 #endif
