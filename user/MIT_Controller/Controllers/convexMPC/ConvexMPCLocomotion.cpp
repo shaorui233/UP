@@ -124,7 +124,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
 {
   dtMPC = 0.001 * iterationsBetweenMPC;
-  setup_problem(dtMPC, horizonLength, 0.6, 120);
+  setup_problem(dtMPC, horizonLength, 0.4, 120);
   rpy_comp[0] = 0;
   rpy_comp[1] = 0;
   rpy_comp[2] = 0;
@@ -407,6 +407,8 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     float* weights = Q;
     float alpha = 4e-5; // make setting eventually
 
+    printf("current posistion: %3.f %.3f %.3f\n", p[0], p[1], p[2]);
+
     if(alpha > 1e-4)
     {
 
@@ -495,7 +497,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
 
     //Timer t1;
     dtMPC = .001 * iterationsBetweenMPC;
-    setup_problem(dtMPC,horizonLength,0.6,120);
+    setup_problem(dtMPC,horizonLength,0.4,120);
     //t1.stopPrint("Setup MPC");
 
     Timer t2;

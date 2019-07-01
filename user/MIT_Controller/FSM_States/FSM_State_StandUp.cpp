@@ -43,6 +43,15 @@ template <typename T>
 void FSM_State_StandUp<T>::run() {
   // float h0 = 0.2;
   // float heightDes = h0 + (0.45 - h0) * ((iter / 1000.0) / 0.5);
+  if(this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH) {
+    T hMax = 0.25;
+    T heightDesired = std::min(hMax, iter * hMax / T(500));
+    for(int i = 0; i < 4; i++) {
+      this->_data->_legController->commands[i].kpCartesian = Vec3<T>(500, 500, 500).asDiagonal();
+      this->_data->_legController->commands[i].kdCartesian = Vec3<T>(20, 20, 20).asDiagonal();
+      this->_data->_legController->commands[i].pDes = Vec3<T>(0,this->_data->_quadruped->getSideSign(i)*0.1,-heightDesired);
+    }
+  }
 }
 
 /**
@@ -62,12 +71,16 @@ FSM_StateName FSM_State_StandUp<T>::checkTransition() {
       // Normal operation for state based transitions
 
       // After 0.5s, the robot should be standing and can go to balance
-      if (iter / 1000.0 > 0.5) {
-        this->nextStateName = FSM_StateName::BALANCE_STAND;
+//      if (iter / 1000.0 > 0.5) {
+//        this->nextStateName = FSM_StateName::BALANCE_STAND;
+//
+//        // Notify the control parameters of the mode switch
+//        this->_data->controlParameters->control_mode = K_BALANCE_STAND;
+//      }
+      break;
 
-        // Notify the control parameters of the mode switch
-        this->_data->controlParameters->control_mode = K_BALANCE_STAND;
-      }
+    case K_LOCOMOTION:
+      this->nextStateName = FSM_StateName::LOCOMOTION;
       break;
 
     case K_PASSIVE:  // normal c
@@ -99,6 +112,10 @@ TransitionData<T> FSM_State_StandUp<T>::transition() {
       break;
 
     case FSM_StateName::BALANCE_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::LOCOMOTION:
       this->transitionData.done = true;
       break;
 

@@ -1,6 +1,7 @@
 #ifndef FSM_STATE_LOCOMOTION_H
 #define FSM_STATE_LOCOMOTION_H
 
+#include <Controllers/convexMPC/ConvexMPCLocomotion.h>
 #include "FSM_State.h"
 
 /**
@@ -30,6 +31,7 @@ class FSM_State_Locomotion : public FSM_State<T> {
  private:
   // Keep track of the control iterations
   int iter = 0;
+  ConvexMPCLocomotion cMPCOld;
 
   // Parses contact specific controls to the leg controller
   void LocomotionControlStep();

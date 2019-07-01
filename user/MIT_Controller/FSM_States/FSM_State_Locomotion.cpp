@@ -74,7 +74,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
       }*/
 
       // in place to show automatic non user requested transitions
-      if (iter >= 1387) {  // 2058) {
+      /*if (iter >= 1387) {  // 2058) {
         // Set the next state to be BALANCE_STAND
         this->nextStateName = FSM_StateName::BALANCE_STAND;
 
@@ -92,6 +92,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
         // Reset iteration counter
         iter = 0;
       }
+       */
       break;
 
     case K_BALANCE_STAND:
@@ -182,51 +183,52 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   // estimateContact();
 
   // Run the balancing controllers to get GRF and next step locations
-  this->runControls();
-
-  // Calculate appropriate control actions for each leg to be sent out
-  for (int leg = 0; leg < 4; leg++) {
-    // The actual contact logic should come from the contact estimator later
-    // rather than schedule
-    if (this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
-      // Leg is in contact
-
-      // Impedance control for the stance leg
-      StanceLegImpedanceControl(leg);
-
-      // Stance leg Ground Reaction Force command
-      this->_data->_legController->commands[leg].forceFeedForward =
-          this->footFeedForwardForces.col(leg);
-
-    } else if (!this->_data->_gaitScheduler->gaitData.contactStateScheduled(
-                   leg)) {
-      // Leg is not in contact
-
-      // Swing leg trajectory
-      // TODO
-      this->footstepLocations.col(leg)
-          << 0., 0., 
-          -this->_data->_quadruped->_maxLegLength / 2. + 
-            sin(2.*M_PI * this->_data->_gaitScheduler->gaitData.phaseSwing(leg) );
-
-      // Swing leg impedance control
-      this->cartesianImpedanceControl(
-          leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),
-          this->_data->controlParameters->stand_kp_cartesian,
-          this->_data->controlParameters->stand_kd_cartesian);
-
-      // Feedforward torques for swing leg tracking
-      // TODO
-
-    } else {
-      std::cout << "[CONTROL ERROR] Undefined scheduled contact state\n"
-                << std::endl;
-    }
-
-    // Singularity barrier calculation (maybe an overall safety checks
-    // function?)
-    // TODO
-  }
+  cMPCOld.run<T>(*this->_data);
+//  this->runControls();
+//
+//  // Calculate appropriate control actions for each leg to be sent out
+//  for (int leg = 0; leg < 4; leg++) {
+//    // The actual contact logic should come from the contact estimator later
+//    // rather than schedule
+//    if (this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
+//      // Leg is in contact
+//
+//      // Impedance control for the stance leg
+//      StanceLegImpedanceControl(leg);
+//
+//      // Stance leg Ground Reaction Force command
+//      this->_data->_legController->commands[leg].forceFeedForward =
+//          this->footFeedForwardForces.col(leg);
+//
+//    } else if (!this->_data->_gaitScheduler->gaitData.contactStateScheduled(
+//                   leg)) {
+//      // Leg is not in contact
+//
+//      // Swing leg trajectory
+//      // TODO
+//      this->footstepLocations.col(leg)
+//          << 0., 0.,
+//          -this->_data->_quadruped->_maxLegLength / 2. +
+//            sin(2.*M_PI * this->_data->_gaitScheduler->gaitData.phaseSwing(leg) );
+//
+//      // Swing leg impedance control
+//      this->cartesianImpedanceControl(
+//          leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),
+//          this->_data->controlParameters->stand_kp_cartesian,
+//          this->_data->controlParameters->stand_kd_cartesian);
+//
+//      // Feedforward torques for swing leg tracking
+//      // TODO
+//
+//    } else {
+//      std::cout << "[CONTROL ERROR] Undefined scheduled contact state\n"
+//                << std::endl;
+//    }
+//
+//    // Singularity barrier calculation (maybe an overall safety checks
+//    // function?)
+//    // TODO
+//  }
 }
 
 /**
