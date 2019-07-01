@@ -9,6 +9,12 @@ using Eigen::Array4f;
 using Eigen::Array4i;
 
 
+template<typename T>
+struct CMPC_Result {
+  LegControllerCommand<T> commands[4];
+  Vec4<T> contactPhase;
+};
+
 
 class Gait
 {
@@ -65,6 +71,7 @@ private:
   Vec3<float> rpy_int;
   Vec3<float> rpy_comp;
   Vec3<float> pFoot[4];
+  CMPC_Result<float> result;
 
 };
 

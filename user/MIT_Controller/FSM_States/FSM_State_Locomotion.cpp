@@ -6,6 +6,7 @@
  */
 
 #include "FSM_State_Locomotion.h"
+#include <Utilities/Timer.h>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -183,7 +184,9 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   // estimateContact();
 
   // Run the balancing controllers to get GRF and next step locations
+  Timer t;
   cMPCOld.run<T>(*this->_data);
+  printf("entire run time %.3f\n", t.getMs());
 //  this->runControls();
 //
 //  // Calculate appropriate control actions for each leg to be sent out

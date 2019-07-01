@@ -21,7 +21,7 @@ class RobotState
         Matrix<fpt,3,3> I_body;
         Quaternionf q;
         fpt yaw;
-        fpt m = 11;
+        fpt m = 9;
     //private:
 };
 #endif

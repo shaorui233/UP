@@ -120,7 +120,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
   standing(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(10,10,10,10),"Standing"),
   trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
   walking(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(5,5,5,5), "Walking"),
-  walking2(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(7,7,7,7), "Walking2"),
+  walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
 {
   dtMPC = 0.001 * iterationsBetweenMPC;
@@ -243,7 +243,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     Vec3<float> offset(0, side_sign[i] * .065, 0);
 
     Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
-    Vec3<float> pYawCorrected = coordinateRotation(CoordinateAxis::Z, -stateCommand->data.stateDes[5] * gait->_stance * dtMPC / 2) * pRobotFrame;
+    Vec3<float> pYawCorrected = coordinateRotation(CoordinateAxis::Z, -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
 
 
     Vec3<float> Pf = seResult.position +
@@ -321,6 +321,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Vec3<float> pDesLeg = seResult.rBody * (pDesFootWorld - seResult.position) - data._quadruped->getHipLocation(foot);
       Vec3<float> vDesLeg = seResult.rBody * (vDesFootWorld - seResult.vWorld);
 
+
+
 //      Vec3<float> pFootBody = data._legController->datas[foot].p + data._quadruped->getHipLocation(foot);
 //      for(int i = 0; i<4; i++) todo removed
 //      {
@@ -346,6 +348,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
       //singularity barrier
       data._legController->commands[foot].tauFeedForward[2] = 50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
+
+      Vec3<float> pErr = data._legController->datas[foot].p - data._legController->commands[foot].pDes;
+      printf("[%d] %.3f %.3f %.3f\n", foot, pErr[0], pErr[1], pErr[2]);
 //            vec3 perr = pDesLeg - hw_i->leg_controller->leg_datas[foot].p;
 //            vec3 verr = vDesLeg - hw_i->leg_controller->leg_datas[foot].v;
 //            cout << "FOOT: " << foot << "\nperr: " << perr(2) << "\npdes: " << pDesLeg(2) << "\n";
@@ -378,6 +383,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   }
 
   // se->set_contact_state(se_contactState); todo removed
+  data._stateEstimator->setContactPhase(se_contactState);
 
 }
 
@@ -426,7 +432,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                (float)stand_traj[5]/*+(float)stateCommand->data.stateDes[11]*/,
                                (float)stand_traj[0]/*+(float)fsm->main_control_settings.p_des[0]*/,
                                (float)stand_traj[1]/*+(float)fsm->main_control_settings.p_des[1]*/,
-                               (float)0.2/*fsm->main_control_settings.p_des[2]*/,
+                               (float)0.26/*fsm->main_control_settings.p_des[2]*/,
                                0,0,0,0,0,0};
 
       for(int i = 0; i < horizonLength; i++)
@@ -461,7 +467,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                (float)stateCommand->data.stateDes[5],    // 2
                                xStart,                                   // 3
                                yStart,                                   // 4
-                               (float)0.2,      // 5
+                               (float)0.26,      // 5
                                0,                                        // 6
                                0,                                        // 7
                                (float)stateCommand->data.stateDes[11],  // 8

@@ -158,13 +158,15 @@ void Graphics3D::updateCameraMatrix() {
     _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
     _cameraMatrix.rotate(_ry, 1, 0, 0);
     _cameraMatrix.rotate(_rx, 0, 0, 1);
-    _cameraMatrix.translate(-_drawList.getCameraOrigin()[0],
-                            -_drawList.getCameraOrigin()[1], 0);
+    _cameraTarget = _cameraTarget * 0.9 + _drawList.getCameraOrigin() * 0.1;
+    _cameraMatrix.translate(-_cameraTarget[0],
+                            -_cameraTarget[1], 0);
   }
 }
 
 void Graphics3D::initializeGL() {
   std::cout << "[Graphics3D] Initialize OpenGL...\n";
+  _cameraTarget.setZero();
   initializeOpenGLFunctions();
   // create GPU shaders
   _colorArrayProgram = new QOpenGLShaderProgram(this);
@@ -439,7 +441,6 @@ void Graphics3D::configOpenGLPass(int pass) {
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
       // update camera math
-      updateCameraMatrix();
 
       glDisable(GL_CULL_FACE);
 
@@ -484,6 +485,7 @@ void Graphics3D::paintGL() {
     last_frame_ms = now;
   }
   QPainter painter2(this);
+  updateCameraMatrix();
 
   int passes[] = {0, 1, 2, 3, 4};
   for (int pass : passes) {

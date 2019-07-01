@@ -144,6 +144,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
 
   QMatrix4x4 _cameraMatrix;
   Vec3<float> _v0;
+  Vec3<double> _cameraTarget;
   FirstOrderIIRFilter<Vec3<float>, float> _freeCamFilter;
 
   float _freeCamMove[3] = {0, 0, 0};
