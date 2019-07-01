@@ -198,6 +198,31 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
   }
 }
 
+template<typename T>
+void LegController<T>::setLcm(leg_control_data_lcmt *lcmData, leg_control_command_lcmt *lcmCommand) {
+    for(int leg = 0; leg < 4; leg++) {
+        for(int axis = 0; axis < 3; axis++) {
+            int idx = leg*3 + axis;
+            lcmData->q[idx] = datas[leg].q[axis];
+            lcmData->qd[idx] = datas[leg].qd[axis];
+            lcmData->p[idx] = datas[leg].p[axis];
+            lcmData->v[idx] = datas[leg].v[axis];
+            lcmData->tau_est[idx] = datas[leg].tauEstimate[axis];
+
+            lcmCommand->tau_ff[idx] = commands[leg].tauFeedForward[axis];
+            lcmCommand->f_ff[idx] = commands[leg].forceFeedForward[axis];
+            lcmCommand->q_des[idx] = commands[leg].qDes[axis];
+            lcmCommand->qd_des[idx] = commands[leg].qdDes[axis];
+            lcmCommand->p_des[idx] = commands[leg].pDes[axis];
+            lcmCommand->v_des[idx] = commands[leg].vDes[axis];
+            lcmCommand->kp_cartesian[idx] = commands[leg].kpCartesian(axis, axis);
+            lcmCommand->kd_cartesian[idx] = commands[leg].kdCartesian(axis, axis);
+            lcmCommand->kp_joint[idx] = commands[leg].kpJoint(axis, axis);
+            lcmCommand->kd_joint[idx] = commands[leg].kdJoint(axis, axis);
+        }
+    }
+}
+
 template struct LegControllerCommand<double>;
 template struct LegControllerCommand<float>;
 

@@ -23,7 +23,9 @@
 #include "SimUtilities/VisualizationData.h"
 #include "Utilities/PeriodicTask.h"
 #include "cheetah_visualization_lcmt.hpp"
+#include "state_estimator_lcmt.hpp"
 #include <RobotController.h>
+#include <lcm-cpp.hpp>
 
 class RobotRunner : public PeriodicTask {
  public:
@@ -60,10 +62,6 @@ class RobotRunner : public PeriodicTask {
 
   void setupStep();
   void finalizeStep();
-  void testDebugVisualization();
-  void StepLocationVisualization();
-  void BodyPathVisualization();
-  void BodyPathArrowVisualization();
 
   JPosInitializer<float>* _jpos_initializer;
   Quadruped<float> _quadruped;
@@ -72,9 +70,11 @@ class RobotRunner : public PeriodicTask {
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
-  gui_main_control_settings_t main_control_settings;
+  lcm::LCM _lcm;
+  leg_control_command_lcmt leg_control_command_lcm;
+  state_estimator_lcmt state_estimator_lcm;
+  leg_control_data_lcmt leg_control_data_lcm;
   // Contact Estimator to calculate estimated forces and contacts
-  ContactEstimator<double>* _contactEstimator;
 
   FloatingBaseModel<float> _model;
   u64 _iterations = 0;

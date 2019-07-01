@@ -12,6 +12,8 @@
 #define PROJECT_LEGCONTROLLER_H
 
 #include <eigen3/Eigen/Dense>
+#include "leg_control_command_lcmt.hpp"
+#include "leg_control_data_lcmt.hpp"
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/SpineBoard.h"
 #include "SimUtilities/ti_boardcontrol.h"
@@ -57,6 +59,7 @@ class LegController {
   void updateCommand(SpiCommand* spiCommand);
   void updateCommand(TiBoardCommand* tiBoardCommand);
   void setEnabled(bool enabled) { _legsEnabled = enabled; };
+  void setLcm(leg_control_data_lcmt* data, leg_control_command_lcmt* command);
 
   /*!
    * Set the maximum torque.  This only works on cheetah 3!
