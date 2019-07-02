@@ -18,10 +18,6 @@ class ImuSimulator {
   explicit ImuSimulator(SimulatorControlParameters& simSettings, u64 seed = 0)
       : _simSettings(simSettings),
         _mt(seed),
-        _kvhGyroDistribution(-simSettings.kvh_imu_gyro_noise,
-                             simSettings.kvh_imu_gyro_noise),
-        _kvhAccelerometerDistribution(-simSettings.kvh_imu_accelerometer_noise,
-                                      simSettings.kvh_imu_gyro_noise),
         _vectornavGyroDistribution(-simSettings.vectornav_imu_gyro_noise,
                                    simSettings.vectornav_imu_gyro_noise),
         _vectornavAccelerometerDistribution(
@@ -52,8 +48,6 @@ class ImuSimulator {
  private:
   SimulatorControlParameters& _simSettings;
   std::mt19937 _mt;
-  std::uniform_real_distribution<float> _kvhGyroDistribution;
-  std::uniform_real_distribution<float> _kvhAccelerometerDistribution;
   std::uniform_real_distribution<float> _vectornavGyroDistribution;
   std::uniform_real_distribution<float> _vectornavAccelerometerDistribution;
   std::uniform_real_distribution<float> _vectornavQuatDistribution;

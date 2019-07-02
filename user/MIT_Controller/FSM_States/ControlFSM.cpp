@@ -25,7 +25,8 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
                           LegController<T>* _legController,
                           GaitScheduler<T>* _gaitScheduler,
                           DesiredStateCommand<T>* _desiredStateCommand,
-                          RobotControlParameters* controlParameters) {
+                          RobotControlParameters* controlParameters,
+                          VisualizationData* visualizationData) {
   // Add the pointers to the ControlFSMData struct
   data._quadruped = _quadruped;
   data._stateEstimator = _stateEstimator;
@@ -33,6 +34,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   data._gaitScheduler = _gaitScheduler;
   data._desiredStateCommand = _desiredStateCommand;
   data.controlParameters = controlParameters;
+  data.visualizationData = visualizationData;
 
   // Initialize and add all of the FSM States to the state list
   statesList.invalid = nullptr;

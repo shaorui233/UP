@@ -40,6 +40,7 @@ private:
   int _nIterations;
   float _phase;
 
+
 };
 
 
@@ -72,6 +73,7 @@ private:
   Vec3<float> rpy_comp;
   Vec3<float> pFoot[4];
   CMPC_Result<float> result;
+  float trajAll[12*36];
 
 };
 

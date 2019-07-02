@@ -1,3 +1,8 @@
+/*!
+ * @file FootSwingTrajectory.h
+ * Utility to generate foot swing trajectories.
+ */
+
 #ifndef CHEETAH_SOFTWARE_FOOTSWINGTRAJECTORY_H
 #define CHEETAH_SOFTWARE_FOOTSWINGTRAJECTORY_H
 

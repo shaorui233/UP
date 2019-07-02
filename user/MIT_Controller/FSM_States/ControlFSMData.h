@@ -20,6 +20,7 @@ struct ControlFSMData {
   GaitScheduler<T>* _gaitScheduler;
   DesiredStateCommand<T>* _desiredStateCommand;
   RobotControlParameters* controlParameters;
+  VisualizationData* visualizationData;
 };
 
 template struct ControlFSMData<double>;

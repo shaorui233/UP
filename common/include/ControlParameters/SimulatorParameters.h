@@ -19,8 +19,6 @@ class SimulatorControlParameters : public ControlParameters {
  public:
   SimulatorControlParameters()
       : ControlParameters("simulator-parameters"),
-        INIT_PARAMETER(kvh_imu_accelerometer_noise),
-        INIT_PARAMETER(kvh_imu_gyro_noise),
         INIT_PARAMETER(vectornav_imu_accelerometer_noise),
         INIT_PARAMETER(vectornav_imu_gyro_noise),
         INIT_PARAMETER(vectornav_imu_quat_noise),
@@ -43,8 +41,6 @@ class SimulatorControlParameters : public ControlParameters {
         INIT_PARAMETER(home_kp_ang),
         INIT_PARAMETER(home_kd_ang) {}
 
-  DECLARE_PARAMETER(float, kvh_imu_accelerometer_noise)
-  DECLARE_PARAMETER(float, kvh_imu_gyro_noise)
   DECLARE_PARAMETER(float, vectornav_imu_accelerometer_noise)
   DECLARE_PARAMETER(float, vectornav_imu_gyro_noise)
   DECLARE_PARAMETER(float, vectornav_imu_quat_noise)

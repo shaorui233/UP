@@ -17,8 +17,7 @@ TEST(ImuSimulator, passThrough) {
   simParams.vectornav_imu_quat_noise = 0.f;
   simParams.vectornav_imu_accelerometer_noise = 0.f;
   simParams.vectornav_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_accelerometer_noise = 0.f;
+
 
   ImuSimulator<double> imuSim(simParams, 0);
 
@@ -62,8 +61,6 @@ TEST(ImuSimulator, orientation) {
   simParams.vectornav_imu_quat_noise = 0.f;
   simParams.vectornav_imu_accelerometer_noise = 0.f;
   simParams.vectornav_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_accelerometer_noise = 0.f;
 
   ImuSimulator<double> imuSim(simParams, 0);
 
@@ -109,8 +106,6 @@ TEST(ImuSimulator, omega) {
   simParams.vectornav_imu_quat_noise = 0.f;
   simParams.vectornav_imu_accelerometer_noise = 0.f;
   simParams.vectornav_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_accelerometer_noise = 0.f;
 
   ImuSimulator<double> imuSim(simParams, 0);
 
@@ -154,8 +149,6 @@ TEST(ImuSimulator, omegaCrossV) {
   simParams.vectornav_imu_quat_noise = 0.f;
   simParams.vectornav_imu_accelerometer_noise = 0.f;
   simParams.vectornav_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_accelerometer_noise = 0.f;
 
   ImuSimulator<double> imuSim(simParams, 0);
 
@@ -204,15 +197,12 @@ TEST(ImuSimulator, noise) {
   simParamsNoise.vectornav_imu_quat_noise = 0.005f;
   simParamsNoise.vectornav_imu_accelerometer_noise = 0.002f;
   simParamsNoise.vectornav_imu_gyro_noise = 0.005f;
-  simParamsNoise.kvh_imu_gyro_noise = 0.005f;
-  simParamsNoise.kvh_imu_accelerometer_noise = 0.005f;
 
   SimulatorControlParameters simParams;
   simParams.vectornav_imu_quat_noise = 0.f;
   simParams.vectornav_imu_accelerometer_noise = 0.f;
   simParams.vectornav_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_gyro_noise = 0.f;
-  simParams.kvh_imu_accelerometer_noise = 0.f;
+
 
   ImuSimulator<double> imuSimNoise(simParamsNoise, 0);
 

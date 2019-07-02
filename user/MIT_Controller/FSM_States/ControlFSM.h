@@ -47,7 +47,8 @@ class ControlFSM {
              StateEstimatorContainer<T>* _stateEstimator,
              LegController<T>* _legController, GaitScheduler<T>* _gaitScheduler,
              DesiredStateCommand<T>* _desiredStateCommand,
-             RobotControlParameters* controlParameters);
+             RobotControlParameters* controlParameters,
+             VisualizationData* visualizationData);
 
   // Initializes the Control FSM instance
   void initialize();

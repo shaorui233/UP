@@ -1,7 +1,12 @@
 #include <include/Math/Interpolation.h>
 #include "../../include/Controllers/FootSwingTrajectory.h"
 
-
+/*!
+ * Compute foot swing trajectory with a bezier curve
+ * @tparam T
+ * @param phase
+ * @param swingTime
+ */
 template <typename T>
 void FootSwingTrajectory<T>::computeSwingTrajectoryBezier(T phase, T swingTime) {
   _p = Interpolate::cubicBezier<Vec3<T>>(_p0, _pf, phase);

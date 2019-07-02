@@ -4,6 +4,9 @@
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
 
+#define DRAW_DEBUG_SWINGS
+#define DRAW_DEBUG_PATH
+
 
 ///////////////
 // GAIT
@@ -144,6 +147,10 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     gaitNumber -= 10;
     omniMode = true;
   }
+
+//  auto* debugSphere = data.visualizationData->addSphere();
+//  debugSphere->color = {1,1,1,0.5};
+//  debugSphere->radius = 1;
 
   auto& seResult = data._stateEstimator->getResult();
   auto& stateCommand = data._desiredStateCommand;
@@ -299,6 +306,23 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 //  StateEstimator* se = hw_i->state_estimator;
   Vec4<float> se_contactState(0,0,0,0);
 
+#ifdef DRAW_DEBUG_PATH
+  auto* trajectoryDebug = data.visualizationData->addPath();
+  if(trajectoryDebug) {
+    trajectoryDebug->num_points = 10;
+    trajectoryDebug->color = {0.2, 0.2, 0.7, 0.5};
+    for(int i = 0; i < 10; i++) {
+      trajectoryDebug->position[i][0] = trajAll[12*i + 3];
+      trajectoryDebug->position[i][1] = trajAll[12*i + 4];
+      trajectoryDebug->position[i][2] = trajAll[12*i + 5];
+      auto* ball = data.visualizationData->addSphere();
+      ball->radius = 0.01;
+      ball->position = trajectoryDebug->position[i];
+      ball->color = {1.0, 0.2, 0.2, 0.5};
+    }
+  }
+#endif
+
   for(int foot = 0; foot < 4; foot++)
   {
     float contactState = contactStates[foot];
@@ -310,8 +334,31 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
         firstSwing[foot] = false;
         footSwingTrajectories[foot].setInitialPosition(pFoot[foot]);
       }
-//            cout << "Swing state: " << swingState << "\n";
+
+#ifdef DRAW_DEBUG_SWINGS
+      auto* debugPath = data.visualizationData->addPath();
+      if(debugPath) {
+        debugPath->num_points = 100;
+        debugPath->color = {0.2,1,0.2,0.5};
+        float step = (1.f - swingState) / 100.f;
+        for(int i = 0; i < 100; i++) {
+          footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState + i * step, swingTimes[foot]);
+          debugPath->position[i] = footSwingTrajectories[foot].getPosition();
+        }
+      }
       footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState, swingTimes[foot]);
+      auto* actualSphere = data.visualizationData->addSphere();
+      auto* goalSphere = data.visualizationData->addSphere();
+      goalSphere->position = footSwingTrajectories[foot].getPosition();
+      actualSphere->position = pFoot[foot];
+      goalSphere->radius = 0.02;
+      actualSphere->radius = 0.02;
+      goalSphere->color = {0.2, 1, 0.2, 0.7};
+      actualSphere->color = {0.8, 0.2, 0.2, 0.7};
+#endif
+      footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState, swingTimes[foot]);
+
+
 //      footSwingTrajectories[foot]->updateFF(hw_i->leg_controller->leg_datas[foot].q,
 //                                          hw_i->leg_controller->leg_datas[foot].qd, 0); // velocity dependent friction compensation todo removed
       //hw_i->leg_controller->leg_datas[foot].qd, fsm->main_control_settings.variable[2]);
@@ -349,8 +396,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       //singularity barrier
       data._legController->commands[foot].tauFeedForward[2] = 50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
 
-      Vec3<float> pErr = data._legController->datas[foot].p - data._legController->commands[foot].pDes;
-      printf("[%d] %.3f %.3f %.3f\n", foot, pErr[0], pErr[1], pErr[2]);
+      //Vec3<float> pErr = data._legController->datas[foot].p - data._legController->commands[foot].pDes;
+      //printf("[%d] %.3f %.3f %.3f\n", foot, pErr[0], pErr[1], pErr[2]);
 //            vec3 perr = pDesLeg - hw_i->leg_controller->leg_datas[foot].p;
 //            vec3 verr = vDesLeg - hw_i->leg_controller->leg_datas[foot].v;
 //            cout << "FOOT: " << foot << "\nperr: " << perr(2) << "\npdes: " << pDesLeg(2) << "\n";
@@ -424,7 +471,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
     Vec3<float> v_des_world = omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
     //float trajInitial[12] = {0,0,0, 0,0,.25, 0,0,0,0,0,0};
-    float trajAll[12*36];
+
     if(current_gait == 4)
     {
       float trajInitial[12] = {(float)stateCommand->data.stateDes[3],

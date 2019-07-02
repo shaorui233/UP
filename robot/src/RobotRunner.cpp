@@ -68,6 +68,7 @@ void RobotRunner::run() {
   // Run the state estimator step
   _stateEstimator->run(cheetahMainVisualization);
   cheetahMainVisualization->p = _stateEstimate.position;
+  visualizationData->clear();
 
   // Update the data from the robot
   setupStep();
