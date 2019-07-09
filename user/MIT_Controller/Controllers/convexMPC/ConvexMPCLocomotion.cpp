@@ -4,8 +4,8 @@
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
 
-#define DRAW_DEBUG_SWINGS
-#define DRAW_DEBUG_PATH
+//#define DRAW_DEBUG_SWINGS
+//#define DRAW_DEBUG_PATH
 
 
 ///////////////
@@ -119,7 +119,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
   trotting(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(5,5,5,5),"Trotting"),
   bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(5,5,5,5),"Bounding"),
   pronking(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(4,4,4,4),"Pronking"),
-  galloping(horizonLength, Vec4<int>(0,2,5,7),Vec4<int>(4,4,4,4),"Galloping"),
+  galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(6,6,6,6),"Galloping"),
   standing(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(10,10,10,10),"Standing"),
   trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
   walking(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(5,5,5,5), "Walking"),
@@ -142,7 +142,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
 template<>
 void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   bool omniMode = false;
-  gaitNumber = 9;
+  gaitNumber = data.userParameters->cmpc_gait;
   if(gaitNumber >= 10) {
     gaitNumber -= 10;
     omniMode = true;
@@ -242,40 +242,43 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   }
 
   // foot placement
-
-  float side_sign[4] = {-1, 1, -1, 1};
-  for(int i = 0; i < 4; i++)
-  {
-    footSwingTrajectories[i].setHeight(.1);
-    Vec3<float> offset(0, side_sign[i] * .065, 0);
-
-    Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
-    Vec3<float> pYawCorrected = coordinateRotation(CoordinateAxis::Z, -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
-
-
-    Vec3<float> Pf = seResult.position +
-      seResult.rBody.transpose() * pYawCorrected;
-
-    float p_rel_max = 0.3f;
-    float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
-                    .03f*(seResult.vWorld[0]-v_des_world[0]) +
-                    (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[2]);
-    float pfy_rel = seResult.vWorld[1] * .5 * gait->_stance * dtMPC +
-                    .03f*(seResult.vWorld[1]-v_des_world[1]) +
-                    (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[2]);
-    pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
-    pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
-    Pf[0] +=  pfx_rel;
-    Pf[1] +=  pfy_rel;
-    Pf[2] = -0.01;
-    footSwingTrajectories[i].setFinalPosition(Pf);
-  }
-
-  // swing timess
   swingTimes[0] = dtMPC * gait->_swing;
   swingTimes[1] = dtMPC * gait->_swing;
   swingTimes[2] = dtMPC * gait->_swing;
   swingTimes[3] = dtMPC * gait->_swing;
+  float side_sign[4] = {-1, 1, -1, 1};
+  for(int i = 0; i < 4; i++)
+  {
+    //if(firstSwing[i]) {
+      footSwingTrajectories[i].setHeight(.1);
+      Vec3<float> offset(0, side_sign[i] * .065, 0);
+
+      Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
+      Vec3<float> pYawCorrected = coordinateRotation(CoordinateAxis::Z, -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
+
+
+      Vec3<float> Pf = seResult.position +
+                       seResult.rBody.transpose() * pYawCorrected;// + seResult.vWorld * swingTimes[i];
+
+      float p_rel_max = 0.3f;
+      float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
+                      .03f*(seResult.vWorld[0]-v_des_world[0]) +
+                      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[2]);
+      float pfy_rel = seResult.vWorld[1] * .5 * gait->_stance * dtMPC +
+                      .03f*(seResult.vWorld[1]-v_des_world[1]) +
+                      (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[2]);
+      pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
+      pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
+      Pf[0] +=  pfx_rel;
+      Pf[1] +=  pfy_rel;
+      Pf[2] = -0.01;
+      footSwingTrajectories[i].setFinalPosition(Pf);
+    //}
+
+  }
+
+  // swing timess
+
 //  for(int i = 0; i < 4; i++)
 //  {
 //    footSwingController[i]->setSwingTime(swingTimes[i]);

@@ -6,6 +6,8 @@
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
 #include "FSM_States/ControlFSM.h"
+#include "MIT_UserParameters.h"
+#include <gui_main_control_settings_t.hpp>
 
 class MIT_Controller: public RobotController{
 public:
@@ -16,7 +18,7 @@ public:
   virtual void runController();
   virtual void updateVisualization(){}
   virtual ControlParameters* getUserControlParameters() {
-    return nullptr;
+    return &userParameters;
   }
 
 
@@ -25,6 +27,9 @@ protected:
   // Gait Scheduler controls the nominal contact schedule for the feet
   DesiredStateCommand<float>* _desiredStateCommand;
   GaitScheduler<float>* _gaitScheduler;
+  MIT_UserParameters userParameters;
+
+  gui_main_control_settings_t main_control_settings;
 };
 
 

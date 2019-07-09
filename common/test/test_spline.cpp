@@ -62,7 +62,7 @@ TEST(Spline, BezierCurve_test) {
   bc2.SetParam(ctrl_pt, end_time);
 
   // std::string folder_name = "/common/test/test_data/";
-  create_folder(folder_name);
+  //create_folder(folder_name);
   double t;
   double dt = 0.005;
   for (int i(0); i < 1001; ++i) {
@@ -74,9 +74,9 @@ TEST(Spline, BezierCurve_test) {
       bc2.getCurvePoint(t - mid_time, curve_pt);
       bc2.getCurveVelocity(t - mid_time, curve_vel);
     }
-    saveVector(curve_pt, folder_name, "bezier_pos", dim);
-    saveVector(curve_vel, folder_name, "bezier_vel", dim);
-    saveValue(t, folder_name, "bz_time");
+//    saveVector(curve_pt, folder_name, "bezier_pos", dim);
+//    saveVector(curve_vel, folder_name, "bezier_vel", dim);
+//    saveValue(t, folder_name, "bz_time");
   }
 
   bc.getCurvePoint(0., curve_pt);
@@ -318,8 +318,8 @@ TEST(Spline, BSpline_1D_test) {
     bs_pva[0] = curve_pt[0];
     bs_pva[1] = curve_vel[0];
     bs_pva[2] = curve_acc[0];
-    saveVector(bs_pva, folder_name, "bspline_1d");
-    saveValue(t, folder_name, "bs_time_1d");
+//    saveVector(bs_pva, folder_name, "bspline_1d");
+//    saveValue(t, folder_name, "bs_time_1d");
   }
 
   for (int i(0); i < num_middle_pt; ++i) {
@@ -344,8 +344,8 @@ TEST(Spline, ImpulseCurve) {
 
     curve_pt = curve.getValue(t);
     sum += (curve_pt * dt);
-    saveValue(curve_pt, folder_name, "curve_pos");
-    saveValue(t, folder_name, "curve_time");
+//    saveValue(curve_pt, folder_name, "curve_pos");
+//    saveValue(t, folder_name, "curve_time");
   }
   double integrated_value = 0.7 * apex_value * time;
 

@@ -95,16 +95,25 @@ void c2qp(Matrix<fpt,13,13> Ac, Matrix<fpt,13,12> Bc,fpt dt,s16 horizon)
 #ifdef K_PRINT_EVERYTHING
   cout<<"Adt: \n"<<Adt<<"\nBdt:\n"<<Bdt<<endl;
 #endif
+  if(horizon > 19) {
+    throw std::runtime_error("horizon is too long!");
+  }
+
+  Matrix<fpt,13,13> powerMats[20];
+  powerMats[0].setIdentity();
+  for(int i = 1; i < horizon+1; i++) {
+    powerMats[i] = Adt * powerMats[i-1];
+  }
 
   for(s16 r = 0; r < horizon; r++)
   {
-    A_qp.block(13*r,0,13,13) = Adt.pow(r+1);
+    A_qp.block(13*r,0,13,13) = powerMats[r+1];//Adt.pow(r+1);
     for(s16 c = 0; c < horizon; c++)
     {
       if(r >= c)
       {
         s16 a_num = r-c;
-        B_qp.block(13*r,12*c,13,12) = Adt.pow(a_num) * Bdt;
+        B_qp.block(13*r,12*c,13,12) = powerMats[a_num] /*Adt.pow(a_num)*/ * Bdt;
       }
     }
   }

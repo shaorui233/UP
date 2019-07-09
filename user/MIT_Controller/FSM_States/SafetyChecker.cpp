@@ -14,9 +14,9 @@
  */
 template <typename T>
 bool SafetyChecker<T>::checkSafeOrientation() {
-  if (abs(data->_stateEstimator->getResult().rpy(0)) >= 1.3 ||
-      abs(data->_stateEstimator->getResult().rpy(1)) >= 1.3) {
-    return true;
+  if (abs(data->_stateEstimator->getResult().rpy(0)) >= 1 ||
+      abs(data->_stateEstimator->getResult().rpy(1)) >= 1) {
+    return false;
   } else {
     return true;
   }

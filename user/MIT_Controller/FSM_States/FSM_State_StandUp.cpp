@@ -48,7 +48,7 @@ void FSM_State_StandUp<T>::run() {
     T heightDesired = std::min(hMax, iter * hMax / T(500));
     for(int i = 0; i < 4; i++) {
       this->_data->_legController->commands[i].kpCartesian = Vec3<T>(500, 500, 500).asDiagonal();
-      this->_data->_legController->commands[i].kdCartesian = Vec3<T>(20, 20, 20).asDiagonal();
+      this->_data->_legController->commands[i].kdCartesian = Vec3<T>(8, 8, 8).asDiagonal();
       this->_data->_legController->commands[i].pDes = Vec3<T>(0,this->_data->_quadruped->getSideSign(i)*0.1,-heightDesired);
     }
   }

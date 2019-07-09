@@ -52,12 +52,12 @@ class DesiredStateCommand {
   T minRoll = -0.4;
   T maxPitch = 0.4;
   T minPitch = -0.4;
-  T maxVelX = 3.0;
-  T minVelX = -3.0;
-  T maxVelY = 2.0;
-  T minVelY = -2.0;
-  T maxTurnRate = 4.0;
-  T minTurnRate = -4.0;
+  T maxVelX = 1.0;
+  T minVelX = -1.0;
+  T maxVelY = 0.5;
+  T minVelY = -0.5;
+  T maxTurnRate = 2.0;
+  T minTurnRate = -2.0;
 
   // Holds the instantaneous desired state and future desired state trajectory
   DesiredStateData<T> data;
