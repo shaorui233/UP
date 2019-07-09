@@ -64,6 +64,7 @@ private:
   Mat3<float> Kp, Kd, Kp_stance, Kd_stance;
   bool firstRun = true;
   bool firstSwing[4];
+  float swingTimeRemaining[4];
   float stand_traj[6];
   int current_gait;
   int gaitNumber;

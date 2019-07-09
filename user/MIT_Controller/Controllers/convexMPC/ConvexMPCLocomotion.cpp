@@ -4,7 +4,7 @@
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
 
-//#define DRAW_DEBUG_SWINGS
+#define DRAW_DEBUG_SWINGS
 //#define DRAW_DEBUG_PATH
 
 
@@ -249,6 +249,12 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   float side_sign[4] = {-1, 1, -1, 1};
   for(int i = 0; i < 4; i++)
   {
+
+    if(firstSwing[i]) {
+      swingTimeRemaining[i] = swingTimes[i];
+    } else {
+      swingTimeRemaining[i] -= 0.001f;
+    }
     //if(firstSwing[i]) {
       footSwingTrajectories[i].setHeight(.1);
       Vec3<float> offset(0, side_sign[i] * .065, 0);
@@ -258,7 +264,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
 
       Vec3<float> Pf = seResult.position +
-                       seResult.rBody.transpose() * pYawCorrected;// + seResult.vWorld * swingTimes[i];
+                       seResult.rBody.transpose() * pYawCorrected + seResult.vWorld * swingTimeRemaining[i];
 
       float p_rel_max = 0.3f;
       float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
@@ -349,6 +355,12 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
           debugPath->position[i] = footSwingTrajectories[foot].getPosition();
         }
       }
+      auto* finalSphere = data.visualizationData->addSphere();
+      if(finalSphere) {
+        finalSphere->position = footSwingTrajectories[foot].getPosition();
+        finalSphere->radius = 0.02;
+        finalSphere->color = {0.6, 0.6, 0.2, 0.7};
+      }
       footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState, swingTimes[foot]);
       auto* actualSphere = data.visualizationData->addSphere();
       auto* goalSphere = data.visualizationData->addSphere();
@@ -409,6 +421,13 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     else // foot is in stance
     {
       firstSwing[foot] = true;
+
+#ifdef DRAW_DEBUG_SWINGS
+      auto* actualSphere = data.visualizationData->addSphere();
+      actualSphere->position = pFoot[foot];
+      actualSphere->radius = 0.02;
+      actualSphere->color = {0.2, 0.2, 0.8, 0.7};
+#endif
 
       Vec3<float> pDesFootWorld = footSwingTrajectories[foot].getPosition();
       Vec3<float> vDesFootWorld = footSwingTrajectories[foot].getVelocity();
