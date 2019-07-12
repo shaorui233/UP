@@ -4,6 +4,7 @@
 #include <Controllers/convexMPC/ConvexMPCLocomotion.h>
 #include "FSM_State.h"
 
+template<typename T> class WBC_Ctrl;
 /**
  *
  */
@@ -32,6 +33,7 @@ class FSM_State_Locomotion : public FSM_State<T> {
   // Keep track of the control iterations
   int iter = 0;
   ConvexMPCLocomotion cMPCOld;
+  WBC_Ctrl<T> * wbc_ctrl;
 
   // Parses contact specific controls to the leg controller
   void LocomotionControlStep();

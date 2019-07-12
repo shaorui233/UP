@@ -7,6 +7,7 @@
 
 #include "FSM_State_Locomotion.h"
 #include <Utilities/Timer.h>
+#include <Controllers/WBC_Ctrl/WBC_Ctrl.hpp>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -24,6 +25,7 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
   this->footstepLocations = Mat34<T>::Zero();
+  wbc_ctrl = new WBC_Ctrl<T>(_controlFSMData->_quadruped->buildModel());
 }
 
 template <typename T>
@@ -186,6 +188,14 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   // Run the balancing controllers to get GRF and next step locations
   //Timer t;
   cMPCOld.run<T>(*this->_data);
+
+  wbc_ctrl->run(
+      cMPCOld.pBody_des, cMPCOld.vBody_des, cMPCOld.aBody_des,
+      cMPCOld.pBody_RPY_des, cMPCOld.vBody_Ori_des, 
+      cMPCOld.pFoot_des, cMPCOld.vFoot_des, cMPCOld.aFoot_des,
+      cMPCOld.Fr_des, cMPCOld.contact_state,
+      *this->_data);
+
   //printf("entire run time %.3f\n", t.getMs());
 //  this->runControls();
 //

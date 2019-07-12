@@ -1,4 +1,5 @@
 include_directories("./")
+include_directories("./Controllers")
 include_directories("../../robot/include")
 include_directories("../../common/include/")
 include_directories("../../third-party/")
@@ -15,4 +16,5 @@ file(GLOB_RECURSE sources "*.cpp" "*.h" "*.hpp")
 add_executable(mit_ctrl ${sources})
 target_link_libraries(mit_ctrl robot biomimetics)
 target_link_libraries(mit_ctrl dynacore_param_handler qpOASES)
+target_link_libraries(mit_ctrl Goldfarb_Optimizer) 
 

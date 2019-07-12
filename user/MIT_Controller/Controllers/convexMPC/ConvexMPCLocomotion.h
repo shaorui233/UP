@@ -51,6 +51,22 @@ public:
 
   template<typename T>
   void run(ControlFSMData<T>& data);
+
+  Vec3<float> pBody_des;
+  Vec3<float> vBody_des;
+  Vec3<float> aBody_des;
+
+  Vec3<float> pBody_RPY_des;
+  Vec3<float> vBody_Ori_des;
+
+  Vec3<float> pFoot_des[4];
+  Vec3<float> vFoot_des[4];
+  Vec3<float> aFoot_des[4];
+
+  Vec3<float> Fr_des[4];
+
+  Vec4<float> contact_state;
+
 private:
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);
   int iterationsBetweenMPC = 30;

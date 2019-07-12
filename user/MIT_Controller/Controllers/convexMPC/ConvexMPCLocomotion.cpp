@@ -380,7 +380,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
       Vec3<float> pDesFootWorld = footSwingTrajectories[foot].getPosition();
       Vec3<float> vDesFootWorld = footSwingTrajectories[foot].getVelocity();
-      Vec3<float> pDesLeg = seResult.rBody * (pDesFootWorld - seResult.position) - data._quadruped->getHipLocation(foot);
+      Vec3<float> pDesLeg = seResult.rBody * (pDesFootWorld - seResult.position) 
+        - data._quadruped->getHipLocation(foot);
       Vec3<float> vDesLeg = seResult.rBody * (vDesFootWorld - seResult.vWorld);
 
 
@@ -445,7 +446,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 //      footSwingTrajectories[foot]->updateFF(hw_i->leg_controller->leg_datas[foot].q,
 //                                          hw_i->leg_controller->leg_datas[foot].qd, 0); todo removed
       // hw_i->leg_controller->leg_commands[foot].tau_ff += 0*footSwingController[foot]->getTauFF();
-      data._legController->commands[foot].tauFeedForward[2] = 50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
+      data._legController->commands[foot].tauFeedForward[2] = 
+        50*(data._legController->datas[foot].q(2)<.1)*
+        exp(1./(0.01 + fabs(data._legController->datas[foot].q(2)) ) );
 //            cout << "Foot " << foot << " force: " << f_ff[foot].transpose() << "\n";
       se_contactState[foot] = contactState;
     }
