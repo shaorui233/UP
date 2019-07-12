@@ -482,7 +482,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     float* weights = Q;
     float alpha = 4e-5; // make setting eventually
 
-    printf("current posistion: %3.f %.3f %.3f\n", p[0], p[1], p[2]);
+    //printf("current posistion: %3.f %.3f %.3f\n", p[0], p[1], p[2]);
 
     if(alpha > 1e-4)
     {
@@ -579,7 +579,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     //cout << "dtMPC: " << dtMPC << "\n";
     update_problem_data_floats(p,v,q,w,r,yaw,weights,trajAll,alpha,mpcTable);
     //t2.stopPrint("Run MPC");
-    printf("MPC Solve time %f ms\n", t2.getMs());
+    //printf("MPC Solve time %f ms\n", t2.getMs());
 
     for(int leg = 0; leg < 4; leg++)
     {

@@ -14,7 +14,8 @@
  */
 template <typename T>
 FSM_State_StandUp<T>::FSM_State_StandUp(ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::STAND_UP, "STAND_UP") {
+    : FSM_State<T>(_controlFSMData, FSM_StateName::STAND_UP, "STAND_UP"),
+_ini_foot_pos(4){
   // Do nothing
   // Set the pre controls safety checks
   this->checkSafeOrientation = false;
@@ -34,6 +35,10 @@ void FSM_State_StandUp<T>::onEnter() {
 
   // Reset iteration counter
   iter = 0;
+
+  for(size_t leg(0); leg<4; ++leg){
+    _ini_foot_pos[leg] = this->_data->_legController->datas[leg].p;
+  }
 }
 
 /**
@@ -45,11 +50,16 @@ void FSM_State_StandUp<T>::run() {
   // float heightDes = h0 + (0.45 - h0) * ((iter / 1000.0) / 0.5);
   if(this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH) {
     T hMax = 0.25;
-    T heightDesired = std::min(hMax, iter * hMax / T(500));
+    //T heightDesired = std::min(hMax, iter * hMax / T(500));
+    T progress = iter/T(500);
+    if (progress > 1.){ progress = 1.; }
     for(int i = 0; i < 4; i++) {
       this->_data->_legController->commands[i].kpCartesian = Vec3<T>(500, 500, 500).asDiagonal();
       this->_data->_legController->commands[i].kdCartesian = Vec3<T>(8, 8, 8).asDiagonal();
-      this->_data->_legController->commands[i].pDes = Vec3<T>(0,this->_data->_quadruped->getSideSign(i)*0.1,-heightDesired);
+
+      this->_data->_legController->commands[i].pDes = _ini_foot_pos[i];
+      this->_data->_legController->commands[i].pDes[2] = 
+        progress*(-hMax) + (1. - progress) * _ini_foot_pos[i][2];
     }
   }
 }
