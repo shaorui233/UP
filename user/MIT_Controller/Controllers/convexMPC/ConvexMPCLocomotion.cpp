@@ -216,7 +216,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
 
   for(int i = 0; i < 4; i++) {
-    pFoot[i] = seResult.position + seResult.rBody.transpose() * (data._quadruped->getHipLocation(i) + data._legController->datas[i].p);
+    pFoot[i] = seResult.position + 
+      seResult.rBody.transpose() * (data._quadruped->getHipLocation(i) + 
+          data._legController->datas[i].p);
   }
 
   if(gait != &standing) {
@@ -240,6 +242,24 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     }
     firstRun = false;
   }
+  
+  // Update For WBC
+  pBody_des[0] = world_position_desired[0];
+  pBody_des[1] = world_position_desired[1];
+  pBody_des[2] = 0.26;
+
+  vBody_des[0] = v_des_world[0];
+  vBody_des[1] = v_des_world[1];
+  vBody_des[2] = 0.;
+
+  pBody_RPY_des[0] = 0.;
+  pBody_RPY_des[1] = 0.; 
+  pBody_RPY_des[2] = stateCommand->data.stateDes[5];
+
+  vBody_Ori_des[0] = 0.;
+  vBody_Ori_des[1] = 0.;
+  vBody_Ori_des[2] = stateCommand->data.stateDes[11];
+
 
   // foot placement
   swingTimes[0] = dtMPC * gait->_swing;
@@ -385,6 +405,10 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Vec3<float> vDesLeg = seResult.rBody * (vDesFootWorld - seResult.vWorld);
 
 
+      // Update for WBC
+      pFoot_des[foot] = pDesFootWorld;
+      vFoot_des[foot] = vDesFootWorld;
+      aFoot_des[foot] = footSwingTrajectories[foot].getAcceleration();
 
 //      Vec3<float> pFootBody = data._legController->datas[foot].p + data._quadruped->getHipLocation(foot);
 //      for(int i = 0; i<4; i++) todo removed
@@ -451,6 +475,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
         exp(1./(0.01 + fabs(data._legController->datas[foot].q(2)) ) );
 //            cout << "Foot " << foot << " force: " << f_ff[foot].transpose() << "\n";
       se_contactState[foot] = contactState;
+
+      // Update for WBC
+      Fr_des[foot] = f_ff[foot];
     }
   }
 

@@ -22,6 +22,8 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model){
   _foot_task[1] = new LinkPosTask<T>(&_model, linkID::FL);
   _foot_task[2] = new LinkPosTask<T>(&_model, linkID::HR);
   _foot_task[3] = new LinkPosTask<T>(&_model, linkID::HL);
+
+
 }
 
 template<typename T>
@@ -36,7 +38,12 @@ void WBC_Ctrl<T>::run(
     const Vec3<T>* Fr_des, const Vec4<T> & contact_state,
     ControlFSMData<T> & data){
 
-  printf("WBC_Ctrl\n");
+  static int count(0);
+  ++count;
+  if(count%1000 ==0) {
+    printf("WBC_Ctrl\n");
+  }
+
   (void)data;
   _CleanUp();
 
@@ -57,6 +64,8 @@ void WBC_Ctrl<T>::run(
       _task_list.push_back(_foot_task[leg]);
     }
   }
+
+  // Update Model
 }
 
 template<typename T>
