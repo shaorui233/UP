@@ -5,6 +5,8 @@
 #include <Dynamics/FloatingBaseModel.h>
 #include <Dynamics/Quadruped.h>
 #include "cppTypes.h"
+#include <WBC/WBIC/WBIC.hpp>
+#include <WBC/WBLC/KinWBC.hpp>
 
 template <typename T> class ContactSpec;
 template <typename T> class Task;
@@ -28,6 +30,14 @@ class WBC_Ctrl{
 
   private:
     void _CleanUp();
+    void _UpdateModel(const StateEstimate<T> & state_est, const LegControllerData<T> * leg_data);
+    void _UpdateLegCMD(LegControllerCommand<T> * cmd);
+    void _ComputeWBC();
+    void _print_summary();
+
+    KinWBC<T>* _kin_wbc;
+    WBIC<T>* _wbic;
+    WBIC_ExtraData<T>* _wbic_data;
 
     FloatingBaseModel<T> _model;
     Task<T>* _body_pos_task;
@@ -38,5 +48,21 @@ class WBC_Ctrl{
 
     std::vector<ContactSpec<T> * > _contact_list;
     std::vector<Task<T> * > _task_list;
+
+    DMat<T> _A;
+    DMat<T> _Ainv;
+    DVec<T> _grav;
+    DVec<T> _coriolis;
+
+    FBModelState<T> _state;
+
+    DVec<T> _full_config;
+    DVec<T> _tau_ff;
+    DVec<T> _des_jpos;
+    DVec<T> _des_jvel;
+    DVec<T> _des_jacc;
+
+
+    std::vector<T> _Kp_joint, _Kd_joint;
 };
 #endif

@@ -260,6 +260,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   vBody_Ori_des[1] = 0.;
   vBody_Ori_des[2] = stateCommand->data.stateDes[11];
 
+  contact_state = gait->getContactState();
 
   // foot placement
   swingTimes[0] = dtMPC * gait->_swing;

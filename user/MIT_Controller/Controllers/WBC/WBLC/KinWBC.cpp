@@ -13,27 +13,30 @@ bool KinWBC<T>::FindConfiguration(
     const DVec<T>& curr_config, const std::vector<Task<T>*>& task_list,
     const std::vector<ContactSpec<T>*>& contact_list, DVec<T>& jpos_cmd,
     DVec<T>& jvel_cmd, DVec<T>& jacc_cmd) {
-  // Contact Jacobian Setup
-  DMat<T> Jc, Jc_i;
-  contact_list[0]->getContactJacobian(Jc);
-  size_t num_rows = Jc.rows();
 
-  for (size_t i(1); i < contact_list.size(); ++i) {
-    contact_list[i]->getContactJacobian(Jc_i);
-    size_t num_new_rows = Jc_i.rows();
-    Jc.conservativeResize(num_rows + num_new_rows, num_qdot_);
-    Jc.block(num_rows, 0, num_new_rows, num_qdot_) = Jc_i;
-    num_rows += num_new_rows;
+  // Contact Jacobian Setup
+  DMat<T> Nc(num_qdot_, num_qdot_); Nc.setIdentity();
+  if(contact_list.size() > 0){
+    DMat<T> Jc, Jc_i;
+    contact_list[0]->getContactJacobian(Jc);
+    size_t num_rows = Jc.rows();
+
+    for (size_t i(1); i < contact_list.size(); ++i) {
+      contact_list[i]->getContactJacobian(Jc_i);
+      size_t num_new_rows = Jc_i.rows();
+      Jc.conservativeResize(num_rows + num_new_rows, num_qdot_);
+      Jc.block(num_rows, 0, num_new_rows, num_qdot_) = Jc_i;
+      num_rows += num_new_rows;
+    }
+
+    // Projection Matrix
+    _BuildProjectionMatrix(Jc, Nc);
   }
 
-  // Projection Matrix
-  DMat<T> Nc;
-  _BuildProjectionMatrix(Jc, Nc);
-
+  // First Task
   DVec<T> delta_q, qdot, qddot, JtDotQdot;
   DMat<T> Jt, JtPre, JtPre_pinv, N_nx, N_pre;
 
-  // First Task
   Task<T>* task = task_list[0];
   task->getTaskJacobian(Jt);
   task->getTaskJacobianDotQdot(JtDotQdot);
