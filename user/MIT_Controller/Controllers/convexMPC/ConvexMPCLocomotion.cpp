@@ -4,7 +4,7 @@
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
 
-#define DRAW_DEBUG_SWINGS
+//#define DRAW_DEBUG_SWINGS
 //#define DRAW_DEBUG_PATH
 
 
@@ -122,6 +122,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
   galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(6,6,6,6),"Galloping"),
   standing(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(10,10,10,10),"Standing"),
   trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
+  //trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(2,2,2,2),"Trot Running"),
   walking(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(5,5,5,5), "Walking"),
   walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
@@ -235,7 +236,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     for(int i = 0; i < 4; i++)
     {
 
-      footSwingTrajectories[i].setHeight(0.1);
+      footSwingTrajectories[i].setHeight(0.05);
       footSwingTrajectories[i].setInitialPosition(pFoot[i]);
       footSwingTrajectories[i].setFinalPosition(pFoot[i]);
 
@@ -277,7 +278,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       swingTimeRemaining[i] -= 0.001f;
     }
     //if(firstSwing[i]) {
-      footSwingTrajectories[i].setHeight(.1);
+      footSwingTrajectories[i].setHeight(.05);
       Vec3<float> offset(0, side_sign[i] * .065, 0);
 
       Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
@@ -298,7 +299,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
       Pf[0] +=  pfx_rel;
       Pf[1] +=  pfy_rel;
-      Pf[2] = -0.01;
+      //Pf[2] = -0.01;
+      Pf[2] = 0.0;
       footSwingTrajectories[i].setFinalPosition(Pf);
     //}
 

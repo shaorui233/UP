@@ -5,3 +5,4 @@ __collection-name__: user-parameters
 #testValue2 : 102
 
 cmpc_gait : 9
+use_wbc : 1

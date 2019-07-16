@@ -15,7 +15,8 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
   _tau_ff(cheetah::num_act_joint),
   _des_jpos(cheetah::num_act_joint),
   _des_jvel(cheetah::num_act_joint),
-  _des_jacc(cheetah::num_act_joint)
+  _des_jacc(cheetah::num_act_joint),
+_wbcLCM(getLcmUrl(255))
 {
   _full_config.setZero();
 
@@ -96,7 +97,58 @@ void WBC_Ctrl<T>::run(
   //_print_summary();
   //pretty_print(contact_state, std::cout, "contact_state");
   //pretty_print(pBody_RPY_des, std::cout, "RPY_des");
+
+  _LCM_PublishData(pBody_des, vBody_des, quat_des, 
+      pFoot_des, vFoot_des, aFoot_des, Fr_des, contact_state);
 }
+
+template<typename T>
+void WBC_Ctrl<T>::_LCM_PublishData(
+    const Vec3<T> & pBody_des, const Vec3<T> & vBody_des, 
+    const Quat<T> & quat_des, 
+    const Vec3<T>* pFoot_des, const Vec3<T>* vFoot_des, const Vec3<T>* aFoot_des,
+    const Vec3<T>* Fr_des, const Vec4<T> & contact_state)
+{
+  (void)contact_state;
+  //int iter(0);
+  //for(size_t leg(0); leg<4; ++leg){
+    //_Fr_result[leg].setZero();
+    //if(contact_state[leg]>0.){
+      //for(size_t i(0); i<3; ++i){
+        //_Fr_result[leg][i] = _wbic_data->_Fr[3*iter + i];
+        //++iter;
+      //}
+    //}
+  //}
+
+  for(size_t i(0); i<3; ++i){
+    for(size_t leg(0); leg<4; ++leg){
+      _wbc_data_lcm.Fr_des[3*leg + i] = Fr_des[leg][i];
+      _wbc_data_lcm.Fr[3*leg + i] = _Fr_result[leg][i];
+
+      _wbc_data_lcm.foot_pos_cmd[3*leg + i] = pFoot_des[leg][i];
+      _wbc_data_lcm.foot_vel_cmd[3*leg + i] = vFoot_des[leg][i];
+      _wbc_data_lcm.foot_acc_cmd[3*leg + i] = aFoot_des[leg][i];
+
+      _wbc_data_lcm.jpos_cmd[3*leg + i] = _des_jpos[3*leg + i];
+      _wbc_data_lcm.jvel_cmd[3*leg + i] = _des_jvel[3*leg + i];
+      _wbc_data_lcm.jacc_cmd[3*leg + i] = _des_jacc[3*leg + i];
+    }
+
+    _wbc_data_lcm.body_pos_cmd[i] = pBody_des[i];
+    _wbc_data_lcm.body_vel_cmd[i] = vBody_des[i];
+    _wbc_data_lcm.body_ori_cmd[i] = quat_des[i];
+
+    _wbc_data_lcm.body_pos[i] = _state.bodyPosition[i];
+    _wbc_data_lcm.body_vel[i] = _state.bodyVelocity[i+3];
+    _wbc_data_lcm.body_ori[i] = _state.bodyOrientation[i];
+  }
+  _wbc_data_lcm.body_ori_cmd[3] = quat_des[3];
+  _wbc_data_lcm.body_ori[3] = _state.bodyOrientation[3];
+
+  _wbcLCM.publish("wbc_lcm_data", &_wbc_data_lcm);
+}
+
 template <typename T>
 void WBC_Ctrl<T>::_print_summary() {
   pretty_print(_tau_ff, std::cout, "tau_ff");

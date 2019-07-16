@@ -189,16 +189,18 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   //Timer t;
   cMPCOld.run<T>(*this->_data);
 
-  wbc_ctrl->run(
-      cMPCOld.pBody_des, cMPCOld.vBody_des, cMPCOld.aBody_des,
-      cMPCOld.pBody_RPY_des, cMPCOld.vBody_Ori_des, 
-      cMPCOld.pFoot_des, cMPCOld.vFoot_des, cMPCOld.aFoot_des,
-      cMPCOld.Fr_des, cMPCOld.contact_state,
-      *this->_data);
+  if(this->_data->userParameters->use_wbc > 0.9){
+    wbc_ctrl->run(
+        cMPCOld.pBody_des, cMPCOld.vBody_des, cMPCOld.aBody_des,
+        cMPCOld.pBody_RPY_des, cMPCOld.vBody_Ori_des, 
+        cMPCOld.pFoot_des, cMPCOld.vFoot_des, cMPCOld.aFoot_des,
+        cMPCOld.Fr_des, cMPCOld.contact_state,
+        *this->_data);
 
+  }
   //printf("entire run time %.3f\n", t.getMs());
-//  this->runControls();
-//
+  //  this->runControls();
+  //
 //  // Calculate appropriate control actions for each leg to be sent out
 //  for (int leg = 0; leg < 4; leg++) {
 //    // The actual contact logic should come from the contact estimator later

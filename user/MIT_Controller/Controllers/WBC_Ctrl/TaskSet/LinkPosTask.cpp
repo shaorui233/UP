@@ -15,8 +15,8 @@ LinkPosTask<T>::LinkPosTask(const FloatingBaseModel<T>* robot, int link_idx,
   TK::Jt_ = DMat<T>::Zero(TK::dim_task_, cheetah::dim_config);
   TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
 
-  _Kp = DVec<T>::Constant(TK::dim_task_, 100.);
-  _Kd = DVec<T>::Constant(TK::dim_task_, 5.);
+  _Kp = DVec<T>::Constant(TK::dim_task_, 70.);
+  _Kd = DVec<T>::Constant(TK::dim_task_, 3.);
 }
 
 template <typename T>

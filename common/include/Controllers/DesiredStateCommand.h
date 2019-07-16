@@ -52,10 +52,10 @@ class DesiredStateCommand {
   T minRoll = -0.4;
   T maxPitch = 0.4;
   T minPitch = -0.4;
-  //T maxVelX = 1.0;
-  //T minVelX = -1.0;
-  T maxVelX = 3.0;
-  T minVelX = -3.0;
+  T maxVelX = 1.0;
+  T minVelX = -1.0;
+  //T maxVelX = 5.0;
+  //T minVelX = -5.0;
   T maxVelY = 0.5;
   T minVelY = -0.5;
   T maxTurnRate = 2.0;
