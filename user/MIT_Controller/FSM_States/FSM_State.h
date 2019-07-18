@@ -15,6 +15,7 @@
 #define K_BALANCE_STAND 3
 #define K_LOCOMOTION 4
 #define K_LOCOMOTION_TEST 5
+#define K_BOUNDING 6
 
 // Specific control states
 #define K_JOINT_PD 10
@@ -32,7 +33,8 @@ enum class FSM_StateName {
   IMPEDANCE_CONTROL,
   STAND_UP,
   BALANCE_STAND,
-  LOCOMOTION
+  LOCOMOTION,
+  BOUNDING
 };
 
 /**

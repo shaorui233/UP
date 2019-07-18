@@ -194,7 +194,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
   // integrate position setpoint
   Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
-  Vec3<float> v_des_world = omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
+  Vec3<float> v_des_world = 
+    omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
   Vec3<float> v_robot = seResult.vWorld;
 
 
