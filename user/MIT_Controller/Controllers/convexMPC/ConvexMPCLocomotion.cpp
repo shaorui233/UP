@@ -291,8 +291,15 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Vec3<float> pYawCorrected = coordinateRotation(CoordinateAxis::Z, -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
 
 
+
+      Vec3<float> des_vel;
+      des_vel[0] = stateCommand->data.stateDes(6);
+      des_vel[1] = stateCommand->data.stateDes(7);
+      des_vel[2] = stateCommand->data.stateDes(8);
       Vec3<float> Pf = seResult.position +
-                       seResult.rBody.transpose() * pYawCorrected;
+                       seResult.rBody.transpose() * pYawCorrected 
+                       + des_vel * swingTimeRemaining[i];
+
       //+ seResult.vWorld * swingTimeRemaining[i];
 
       float p_rel_max = 0.3f;
