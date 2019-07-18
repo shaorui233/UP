@@ -51,7 +51,7 @@ void DesiredStateCommand<T>::convertToStateCommands() {
   // Y position
   data.stateDes(1) = stateEstimate->position(1) + dt * data.stateDes(7);
   //data.stateDes(1) = data.pre_stateDes(1) + dt * data.stateDes(7);
-
+  
   // Z position height
   data.stateDes(2) = 0.45;
 
