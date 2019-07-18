@@ -9,6 +9,8 @@
 #include <cppTypes.h>
 #include <iostream>
 #include "SimUtilities/GamepadCommand.h"
+#include "../../../user/MIT_Controller/MIT_UserParameters.h"
+#include <gui_main_control_settings_t.hpp>
 
 /**
  *
@@ -38,12 +40,18 @@ class DesiredStateCommand {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // Initialize with the GamepadCommand struct
-  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate, float _dt) {
+  DesiredStateCommand(GamepadCommand* command, gui_main_control_settings_t* rc_command,
+                      MIT_UserParameters* _parameters,
+      StateEstimate<T>* sEstimate, float _dt) {
     gamepadCommand = command;
+    rcCommand = rc_command;
     stateEstimate = sEstimate;
+    parameters = _parameters;
 
     data.stateDes.setZero();
     data.pre_stateDes.setZero();
+    leftAnalogStick.setZero();
+    rightAnalogStick.setZero();
 
     dt = _dt;
   }
@@ -68,12 +76,18 @@ class DesiredStateCommand {
   T maxTurnRate = 2.0;
   T minTurnRate = -2.0;
 
+  Vec2<float> leftAnalogStick;
+  Vec2<float> rightAnalogStick;
+
   // Holds the instantaneous desired state and future desired state trajectory
   DesiredStateData<T> data;
 
  private:
   GamepadCommand* gamepadCommand;
+  gui_main_control_settings_t* rcCommand;
   StateEstimate<T>* stateEstimate;
+  MIT_UserParameters* parameters;
+
 
   // Dynamics matrix for discrete time approximation
   Mat12<T> A;
@@ -83,6 +97,7 @@ class DesiredStateCommand {
 
   // Value cutoff for the analog stick deadband
   T deadbandRegion = 0.075;
+  const T filter = 0.01;
 
   // Choose how often to print info, every N iterations
   int printNum = 5;  // N*(0.001s) in simulation time

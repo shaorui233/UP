@@ -33,13 +33,28 @@ void DesiredStateCommand<T>::convertToStateCommands() {
     data.pre_stateDes(5) = stateEstimate->rpy(2);
     b_firstVisit = false;
   }
+
+  Vec2<float> joystickLeft, joystickRight;
+
+  if(parameters->use_rc) {
+    joystickLeft[0] = rcCommand->rpy_des[0];
+    joystickLeft[1] = rcCommand->rpy_des[1];
+    joystickRight[0] = rcCommand->rpy_des[2];
+    joystickRight[1] = rcCommand->p_des[2];
+  } else {
+    joystickLeft = gamepadCommand->leftStickAnalog;
+    joystickRight = gamepadCommand->rightStickAnalog;
+  }
+
+  leftAnalogStick = leftAnalogStick * (T(1) - filter) + joystickLeft * filter;
+  rightAnalogStick = rightAnalogStick * (T(1) - filter) + joystickRight * filter;
   // Forward linear velocity
   data.stateDes(6) =
-      deadband(gamepadCommand->leftStickAnalog[1], minVelX, maxVelX);
+      deadband(leftAnalogStick[1], minVelX, maxVelX);
 
   // Lateral linear velocity
   data.stateDes(7) =
-      deadband(gamepadCommand->leftStickAnalog[0], minVelY, maxVelY);
+      deadband(leftAnalogStick[0], minVelY, maxVelY);
 
   // VErtical linear velocity
   data.stateDes(8) = 0.0;
@@ -63,14 +78,14 @@ void DesiredStateCommand<T>::convertToStateCommands() {
 
   // Yaw turn rate
   data.stateDes(11) =
-      deadband(gamepadCommand->rightStickAnalog[0], minTurnRate, maxTurnRate);
+      deadband(rightAnalogStick[0], minTurnRate, maxTurnRate);
 
   // Roll
   data.stateDes(3) = 0.0;
 
   // Pitch
   data.stateDes(4) =
-      deadband(gamepadCommand->rightStickAnalog[1], minPitch, maxPitch);
+      deadband(rightAnalogStick[1], minPitch, maxPitch);
 
   // Yaw
   //data.stateDes(5) = stateEstimate->rpy(2) + dt * data.stateDes(11);

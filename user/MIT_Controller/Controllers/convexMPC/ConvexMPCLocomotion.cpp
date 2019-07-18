@@ -297,8 +297,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       des_vel[1] = stateCommand->data.stateDes(7);
       des_vel[2] = stateCommand->data.stateDes(8);
       Vec3<float> Pf = seResult.position +
-                       seResult.rBody.transpose() * pYawCorrected 
-                       + des_vel * swingTimeRemaining[i];
+                       seResult.rBody.transpose() * (pYawCorrected
+                       + des_vel * swingTimeRemaining[i]);
 
       //+ seResult.vWorld * swingTimeRemaining[i];
 
