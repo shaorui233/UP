@@ -46,7 +46,7 @@ private:
 
 class ConvexMPCLocomotion {
 public:
-  ConvexMPCLocomotion();
+  ConvexMPCLocomotion(float _dt, int _iterations_between_mpc);
   void initialize();
 
   template<typename T>
@@ -69,8 +69,9 @@ public:
 
 private:
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);
-  int iterationsBetweenMPC = 30;
+  int iterationsBetweenMPC;
   int horizonLength;
+  float dt;
   float dtMPC;
   int iterationCounter = 0;
   Vec3<float> f_ff[4];

@@ -20,7 +20,7 @@ enum BFlipPhase {
 template <typename T>
 class BackFlipTest : public Test<T> {
  public:
-  BackFlipTest(FloatingBaseModel<T>*, const RobotType&);
+  BackFlipTest(FloatingBaseModel<T>*, const RobotType&, float _dt);
   virtual ~BackFlipTest();
 
  protected:

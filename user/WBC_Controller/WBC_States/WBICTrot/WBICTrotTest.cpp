@@ -16,8 +16,8 @@
 
 template <typename T>
 WBICTrotTest<T>::WBICTrotTest(FloatingBaseModel<T> *robot,
-                              const RobotType &type)
-    : Test<T>(robot, type),
+                              const RobotType &type, float _dt)
+    : Test<T>(robot, type, _dt),
       _des_jpos(cheetah::num_act_joint),
       _des_jvel(cheetah::num_act_joint),
       _des_jacc(cheetah::num_act_joint),
@@ -43,21 +43,21 @@ WBICTrotTest<T>::WBICTrotTest(FloatingBaseModel<T> *robot,
   Test<T>::_state_list.clear();
 
   body_up_ctrl_ = new FullContactTransCtrl<T>(robot);
-  body_ctrl_ = new WBIC_FullContactCtrl<T>(this, robot);
+  body_ctrl_ = new WBIC_FullContactCtrl<T>(this, robot, _dt);
 
   frhl_swing_start_trans_ctrl_ =
-      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FR, linkID::HL, 1);
+      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FR, linkID::HL, 1, _dt);
   frhl_swing_ctrl_ =
-      new WBIC_TwoLegSwingCtrl<T>(this, robot, linkID::FR, linkID::HL);
+      new WBIC_TwoLegSwingCtrl<T>(this, robot, linkID::FR, linkID::HL, _dt);
   frhl_swing_end_trans_ctrl_ =
-      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FR, linkID::HL, -1);
+      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FR, linkID::HL, -1, _dt);
 
   flhr_swing_start_trans_ctrl_ =
-      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FL, linkID::HR, 1);
+      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FL, linkID::HR, 1, _dt);
   flhr_swing_ctrl_ =
-      new WBIC_TwoLegSwingCtrl<T>(this, robot, linkID::FL, linkID::HR);
+      new WBIC_TwoLegSwingCtrl<T>(this, robot, linkID::FL, linkID::HR, _dt);
   flhr_swing_end_trans_ctrl_ =
-      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FL, linkID::HR, -1);
+      new WBIC_TwoContactTransCtrl<T>(this, robot, linkID::FL, linkID::HR, -1, _dt);
 
   Test<T>::_state_list.push_back(body_up_ctrl_);
   Test<T>::_state_list.push_back(body_ctrl_);

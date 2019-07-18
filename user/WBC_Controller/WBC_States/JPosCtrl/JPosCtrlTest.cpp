@@ -5,8 +5,9 @@
 
 template <typename T>
 JPosCtrlTest<T>::JPosCtrlTest(FloatingBaseModel<T>* robot,
-                              const RobotType& robot_type)
-    : Test<T>(robot, robot_type) {
+                              const RobotType& robot_type,
+                              float _dt)
+    : Test<T>(robot, robot_type, _dt) {
   Test<T>::_phase = JPosCtrlPhase::JPCTRL_move_to_target;
   Test<T>::_state_list.clear();
 

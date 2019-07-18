@@ -8,7 +8,7 @@
 template <typename T>
 class JPosInitializer {
  public:
-  JPosInitializer(T end_time);
+  JPosInitializer(T end_time, float dt);
   ~JPosInitializer();
 
   bool IsInitialized(LegController<T>*);

@@ -20,7 +20,7 @@ class WBICTrotTest;
 template <typename T>
 class WBIC_FullContactCtrl : public Controller<T> {
  public:
-  WBIC_FullContactCtrl(WBICTrotTest<T>*, const FloatingBaseModel<T>*);
+  WBIC_FullContactCtrl(WBICTrotTest<T>*, const FloatingBaseModel<T>*, float _dt);
   virtual ~WBIC_FullContactCtrl();
 
   virtual void OneStep(void* _cmd);
@@ -32,6 +32,7 @@ class WBIC_FullContactCtrl : public Controller<T> {
   virtual void SetTestParameter(const std::string& test_file);
 
  protected:
+  T dt;
   WBICTrotTest<T>* _trot_test;
   DVec<T> _Kp, _Kd;
   std::vector<T> _Kp_joint;

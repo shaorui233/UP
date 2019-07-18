@@ -14,7 +14,8 @@
 
 template <typename T>
 BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T>* robot,
-                              DataReader* data_reader)
+                              DataReader* data_reader,
+                              float _dt)
     : Controller<T>(robot),
       _data_reader(data_reader),
       _Kp(cheetah::num_act_joint),
@@ -22,6 +23,7 @@ BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T>* robot,
       _des_jpos(cheetah::num_act_joint),
       _des_jvel(cheetah::num_act_joint),
       _jtorque(cheetah::num_act_joint),
+      dt(_dt),
       _end_time(3.5),
       _dim_contact(0),
       _ctrl_start_time(0.) {
@@ -204,7 +206,7 @@ void BackFlipCtrl<T>::LastVisit() {}
 
 template <typename T>
 bool BackFlipCtrl<T>::EndOfPhase() {
-  if (Ctrl::_state_machine_time > (_end_time - 2. * Test<T>::dt)) {
+  if (Ctrl::_state_machine_time > (_end_time - 2. * dt)) {
     return true;
   }
 

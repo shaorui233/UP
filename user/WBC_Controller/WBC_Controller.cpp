@@ -37,13 +37,13 @@ void WBC_Controller::initializeController() {
 
   // Run the requested test from the string
   if (test_name == "body_ctrl") {
-    _wbc_state = new BodyCtrlTest<float>(_model, _robotType);
+    _wbc_state = new BodyCtrlTest<float>(_model, _robotType, _controlParameters->controller_dt);
   } else if (test_name == "wbic_trot") {
-    _wbc_state = new WBICTrotTest<float>(_model, _robotType);
+    _wbc_state = new WBICTrotTest<float>(_model, _robotType, _controlParameters->controller_dt);
   } else if (test_name == "bounding") {
-    _wbc_state = new BoundingTest<float>(_model, _robotType);
+    _wbc_state = new BoundingTest<float>(_model, _robotType, _controlParameters->controller_dt);
   } else if (test_name == "back_flip") {
-    _wbc_state = new BackFlipTest<float>(_model, _robotType);
+    _wbc_state = new BackFlipTest<float>(_model, _robotType, _controlParameters->controller_dt);
   }
 }
 

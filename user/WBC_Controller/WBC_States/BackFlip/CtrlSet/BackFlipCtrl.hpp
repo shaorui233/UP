@@ -23,7 +23,7 @@ class DataReader;
 template <typename T>
 class BackFlipCtrl : public Controller<T> {
  public:
-  BackFlipCtrl(const FloatingBaseModel<T>*, DataReader*);
+  BackFlipCtrl(const FloatingBaseModel<T>*, DataReader*, float _dt);
   virtual ~BackFlipCtrl();
 
   virtual void OneStep(void* _cmd);
@@ -41,6 +41,8 @@ class BackFlipCtrl : public Controller<T> {
   DVec<T> _des_jpos;
   DVec<T> _des_jvel;
   DVec<T> _jtorque;
+
+  T dt;
 
   std::vector<T> _Kp_joint, _Kd_joint;
 

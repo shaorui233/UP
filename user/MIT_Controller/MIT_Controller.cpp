@@ -2,17 +2,17 @@
 #include "rt/rt_interface_lcm.h"
 MIT_Controller::MIT_Controller():RobotController(){  }
 
-#define RC_ESTOP
+//#define RC_ESTOP
 /**
  * Initializes the Control FSM.
  */
 void MIT_Controller::initializeController() {
   // Initialize a new GaitScheduler object
-  _gaitScheduler = new GaitScheduler<float>();
+  _gaitScheduler = new GaitScheduler<float>(_controlParameters->controller_dt);
 
   // Initialize the DesiredStateCommand object
   _desiredStateCommand =
-      new DesiredStateCommand<float>(_driverCommand, _stateEstimate);
+      new DesiredStateCommand<float>(_driverCommand, _stateEstimate, _controlParameters->controller_dt);
 
   // Initialize a new ContactEstimator object
   //_contactEstimator = new ContactEstimator<double>();

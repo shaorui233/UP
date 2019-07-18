@@ -15,8 +15,10 @@
 template <typename T>
 WBIC_TwoLegSwingCtrl<T>::WBIC_TwoLegSwingCtrl(WBICTrotTest<T>* test,
                                               const FloatingBaseModel<T>* robot,
-                                              size_t cp1, size_t cp2)
+                                              size_t cp1, size_t cp2,
+                                              float _dt)
     : Controller<T>(robot),
+      dt(_dt),
       _trot_test(test),
       _cp1(cp1),
       _cp2(cp2),
@@ -369,7 +371,7 @@ void WBIC_TwoLegSwingCtrl<T>::LastVisit() {
 
 template <typename T>
 bool WBIC_TwoLegSwingCtrl<T>::EndOfPhase() {
-  if (Ctrl::_state_machine_time > (_end_time - 2. * Test<T>::dt)) {
+  if (Ctrl::_state_machine_time > (_end_time - 2. * dt)) {
     return true;
   }
   return false;

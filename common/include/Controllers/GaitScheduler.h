@@ -87,7 +87,7 @@ template <typename T>
 class GaitScheduler {
  public:
   // Constructors for the GaitScheduler
-  GaitScheduler();
+  GaitScheduler(float _dt);
   ~GaitScheduler(){};
 
   // Initialize the Gait Scheduler
@@ -110,7 +110,7 @@ class GaitScheduler {
   // Quadruped<T>& _quadruped;
 
   // Control loop timestep change
-  T dt = 0.001;
+  T dt;
 
   // Phase change at each step
   T dphase;
