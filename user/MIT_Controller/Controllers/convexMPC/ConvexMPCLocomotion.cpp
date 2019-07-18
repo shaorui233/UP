@@ -486,7 +486,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       se_contactState[foot] = contactState;
 
       // Update for WBC
-      Fr_des[foot] = -f_ff[foot];
+      //Fr_des[foot] = -f_ff[foot];
     }
   }
 
@@ -640,6 +640,8 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
         f[axis] = get_solution(leg*3 + axis);
 
       f_ff[leg] = -seResult.rBody * f;
+      // Update for WBC
+      Fr_des[leg] = f;      
     }
   }
 
