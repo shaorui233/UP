@@ -5,7 +5,7 @@
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
 
-//#define DRAW_DEBUG_SWINGS
+#define DRAW_DEBUG_SWINGS
 //#define DRAW_DEBUG_PATH
 
 
@@ -288,7 +288,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
 
       Vec3<float> Pf = seResult.position +
-                       seResult.rBody.transpose() * pYawCorrected + seResult.vWorld * swingTimeRemaining[i];
+                       seResult.rBody.transpose() * pYawCorrected;
+      //+ seResult.vWorld * swingTimeRemaining[i];
 
       float p_rel_max = 0.3f;
       float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
@@ -441,7 +442,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
         data._legController->commands[foot].kdCartesian = Kd;
 
         //singularity barrier
-        data._legController->commands[foot].tauFeedForward[2] = 50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
+        data._legController->commands[foot].tauFeedForward[2] = 
+          50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
       }
       //Vec3<float> pErr = data._legController->datas[foot].p - data._legController->commands[foot].pDes;
       //printf("[%d] %.3f %.3f %.3f\n", foot, pErr[0], pErr[1], pErr[2]);
@@ -466,6 +468,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Vec3<float> pDesLeg = seResult.rBody * (pDesFootWorld - seResult.position) - data._quadruped->getHipLocation(foot);
       Vec3<float> vDesLeg = seResult.rBody * (vDesFootWorld - seResult.vWorld);
       //cout << "Foot " << foot << " relative velocity desired: " << vDesLeg.transpose() << "\n";
+
       if(!data.userParameters->use_wbc){
         data._legController->commands[foot].pDes = pDesLeg;
         data._legController->commands[foot].vDes = vDesLeg;
@@ -570,21 +573,8 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       //std::cout << "pdes_world: " << world_position_desired.transpose() << "\n";
       //printf("perr \t%.3f\t%.3f\n", p[0] - world_position_desired[0], p[1] - world_position_desired[1]);
 
-      //float trajInitial[12] = {(float)rpy_comp[0],  // 0
-                               //(float)rpy_comp[1][>-hw_i->state_estimator->se_ground_pitch<],    // 1
-                               //(float)stateCommand->data.stateDes[5],    // 2
-                               //xStart,                                   // 3
-                               //yStart,                                   // 4
-                               //(float)0.26,      // 5
-                               //0,                                        // 6
-                               //0,                                        // 7
-                               //(float)stateCommand->data.stateDes[11],  // 8
-                               //v_des_world[0],                           // 9
-                               //v_des_world[1],                           // 10
-                               //0};                                       // 11
-
-      float trajInitial[12] = {(float)0., // 0
-                               (float)0., // 1
+      float trajInitial[12] = {(float)rpy_comp[0],  // 0
+                               (float)rpy_comp[1],    // 1
                                (float)stateCommand->data.stateDes[5],    // 2
                                xStart,                                   // 3
                                yStart,                                   // 4
@@ -595,6 +585,19 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                v_des_world[0],                           // 9
                                v_des_world[1],                           // 10
                                0};                                       // 11
+
+      //float trajInitial[12] = {(float)0., // 0
+                               //(float)0., // 1
+                               //(float)stateCommand->data.stateDes[5],    // 2
+                               //xStart,                                   // 3
+                               //yStart,                                   // 4
+                               //(float)0.26,      // 5
+                               //0,                                        // 6
+                               //0,                                        // 7
+                               //(float)stateCommand->data.stateDes[11],  // 8
+                               //v_des_world[0],                           // 9
+                               //v_des_world[1],                           // 10
+                               //0};                                       // 11
        for(int i = 0; i < horizonLength; i++)
       {
         for(int j = 0; j < 12; j++)

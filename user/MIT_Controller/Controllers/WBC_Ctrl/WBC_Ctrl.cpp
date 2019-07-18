@@ -69,6 +69,7 @@ void WBC_Ctrl<T>::run(
     const Vec3<T>* Fr_des, const Vec4<T> & contact_state,
     ControlFSMData<T> & data){
 
+  _ParameterSetup(data.userParameters);
   ++_iter;
   // First visit
   static bool first_visit(true);
@@ -108,7 +109,7 @@ void WBC_Ctrl<T>::run(
   }
 
   // WBC Computation
-  _ComputeWBC(data.userParameters->wbc_base_Fr_weight);
+  _ComputeWBC();
 
   // Update Leg Command
   _UpdateLegCMD(data._legController->commands);
@@ -119,6 +120,21 @@ void WBC_Ctrl<T>::run(
 
   _LCM_PublishData(pBody_des, vBody_des, quat_des, 
       pFoot_des, vFoot_des, aFoot_des, Fr_des, contact_state);
+}
+template<typename T>
+void WBC_Ctrl<T>::_ParameterSetup(const MIT_UserParameters* param){
+  _wbic_data->_W_floating = DVec<T>::Constant(6, param->wbc_base_Fr_weight);
+
+  for(size_t i(0); i<3; ++i){
+    ((BodyPosTask<T>*)_body_pos_task)->_Kp[i] = param->Kp_body[i];
+    ((BodyPosTask<T>*)_body_pos_task)->_Kd[i] = param->Kp_body[i];
+
+    ((BodyOriTask<T>*)_body_ori_task)->_Kp[i] = param->Kp_ori[i];
+    ((BodyOriTask<T>*)_body_ori_task)->_Kd[i] = param->Kp_ori[i];
+
+    _Kp_joint[i] = param->Kp_joint[i];
+    _Kd_joint[i] = param->Kd_joint[i];
+  }
 }
 
 template<typename T>
@@ -193,12 +209,11 @@ void WBC_Ctrl<T>::_print_summary() {
 
 
 template <typename T>
-void WBC_Ctrl<T>::_ComputeWBC(const T & base_Fr_weight) {
+void WBC_Ctrl<T>::_ComputeWBC() {
   _kin_wbc->FindConfiguration(_full_config, _task_list, _contact_list,
                               _des_jpos, _des_jvel, _des_jacc);
 
   // WBIC
-  _wbic_data->_W_floating = DVec<T>::Constant(6, base_Fr_weight);
   _wbic->UpdateSetting(_A, _Ainv, _coriolis, _grav);
   _wbic->MakeTorque(_tau_ff, _wbic_data);
 }

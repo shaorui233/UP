@@ -8,3 +8,11 @@ cmpc_gait : 9
 use_wbc : 1
 wbc_base_Fr_weight: 0.1
 
+Kp_body: [ 0, 0, 0 ]
+Kd_body: [0.0, 0.0, 0.0]
+
+Kp_ori: [ 0, 0, 0 ]
+Kd_ori: [0.0, 0.0, 0.0]
+
+Kp_joint: [4, 4, 4]
+Kd_joint: [0.8, 0.8, 0.8]

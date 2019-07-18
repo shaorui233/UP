@@ -17,6 +17,7 @@ template <typename T> class KinWBC;
 template <typename T> class WBIC;
 template <typename T> class WBIC_ExtraData;
 
+class MIT_UserParameters;
 
 template<typename T>
 class WBC_Ctrl{
@@ -35,12 +36,13 @@ class WBC_Ctrl{
     void _CleanUp();
     void _UpdateModel(const StateEstimate<T> & state_est, const LegControllerData<T> * leg_data);
     void _UpdateLegCMD(LegControllerCommand<T> * cmd);
-    void _ComputeWBC(const T & base_Fr_weight);
+    void _ComputeWBC();
     void _print_summary();
     void _LCM_PublishData(
         const Vec3<T> & pBody_des, const Vec3<T> & vBody_des, const Quat<T> & quat_des, 
         const Vec3<T>* pFoot_des, const Vec3<T>* vFoot_des, const Vec3<T>* aFoot_des,
         const Vec3<T>* Fr_des, const Vec4<T> & contact_state);
+    void _ParameterSetup(const MIT_UserParameters* param);
 
     KinWBC<T>* _kin_wbc;
     WBIC<T>* _wbic;
