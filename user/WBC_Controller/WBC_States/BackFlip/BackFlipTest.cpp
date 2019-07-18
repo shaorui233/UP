@@ -12,8 +12,9 @@
 
 template <typename T>
 BackFlipTest<T>::BackFlipTest(FloatingBaseModel<T>* robot,
-                              const RobotType& type)
-    : Test<T>(robot, type) {
+                              const RobotType& type,
+                              float _dt)
+    : Test<T>(robot, type, _dt) {
   Test<T>::_phase = BFlipPhase::BFlip_body_up_ctrl;
   Test<T>::_state_list.clear();
 
@@ -22,7 +23,7 @@ BackFlipTest<T>::BackFlipTest(FloatingBaseModel<T>* robot,
   body_up_ctrl_ = new FullContactTransCtrl<T>(robot);
   // backflip_pre_ = new BackFlipCtrl<T>(robot, _data_reader);
   // //JPosCtrl<T>(robot);
-  backflip_ctrl_ = new BackFlipCtrl<T>(robot, _data_reader);
+  backflip_ctrl_ = new BackFlipCtrl<T>(robot, _data_reader, _dt);
   backflip_landing_ =
       new FullContactTransCtrl<T>(robot);  // new JPosCtrl<T>(robot);
   body_ctrl_ = new BodyCtrl<T>(robot);

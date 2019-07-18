@@ -9,8 +9,9 @@
 
 template <typename T>
 BodyCtrlTest<T>::BodyCtrlTest(FloatingBaseModel<T>* robot,
-                              const RobotType& type)
-    : Test<T>(robot, type) {
+                              const RobotType& type,
+                              float _dt)
+    : Test<T>(robot, type, _dt) {
   //_phase = BodyCtrlPhase::BDCTRL_body_ctrl;
   Test<T>::_phase = BodyCtrlPhase::BDCTRL_body_up_ctrl;
   Test<T>::_state_list.clear();

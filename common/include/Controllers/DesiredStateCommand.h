@@ -38,12 +38,14 @@ class DesiredStateCommand {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // Initialize with the GamepadCommand struct
-  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate) {
+  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate, float _dt) {
     gamepadCommand = command;
     stateEstimate = sEstimate;
 
     data.stateDes.setZero();
     data.pre_stateDes.setZero();
+
+    dt = _dt;
   }
 
   void convertToStateCommands();
@@ -77,7 +79,7 @@ class DesiredStateCommand {
   Mat12<T> A;
 
   // Control loop timestep change
-  T dt = 0.001;
+  T dt;
 
   // Value cutoff for the analog stick deadband
   T deadbandRegion = 0.075;

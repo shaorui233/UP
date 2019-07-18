@@ -14,8 +14,10 @@
 
 template <typename T>
 WBIC_FullContactCtrl<T>::WBIC_FullContactCtrl(WBICTrotTest<T>* trot_test,
-                                              const FloatingBaseModel<T>* robot)
+                                              const FloatingBaseModel<T>* robot,
+                                              float _dt)
     : Controller<T>(robot),
+      dt(_dt),
       _trot_test(trot_test),
       _Kp(cheetah::num_act_joint),
       _Kd(cheetah::num_act_joint),
@@ -175,7 +177,7 @@ void WBIC_FullContactCtrl<T>::LastVisit() {}
 
 template <typename T>
 bool WBIC_FullContactCtrl<T>::EndOfPhase() {
-  if (Ctrl::_state_machine_time > (_end_time - 2. * Test<T>::dt) &&
+  if (Ctrl::_state_machine_time > (_end_time - 2. * dt) &&
       (_sp->_mode == 11)) {
     return true;
   }

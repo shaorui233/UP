@@ -28,7 +28,7 @@ void KinBoundingCtrl<T>::FirstVisit() {
   _hind_z_impulse.setCurve(apex, _nominal_stance_time);
 
   _nominal_gait_period = _swing_time + _nominal_stance_time;
-  _front_swing_time = _nominal_gait_period / 2. - 2. * Test<T>::dt;
+  _front_swing_time = _nominal_gait_period / 2. - 2. * dt;
 
   _front_previous_stance = _nominal_stance_time;
   _front_previous_swing = _swing_time;

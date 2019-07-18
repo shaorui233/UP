@@ -115,8 +115,10 @@ void Gait::setIterations(int iterationsPerMPC, int currentIteration)
 // Controller
 ////////////////////
 
-ConvexMPCLocomotion::ConvexMPCLocomotion() :
+ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc) :
+  iterationsBetweenMPC(_iterations_between_mpc),
   horizonLength(10),
+  dt(_dt),
   trotting(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(5,5,5,5),"Trotting"),
   bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(5,5,5,5),"Bounding"),
   pronking(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(4,4,4,4),"Pronking"),
@@ -128,7 +130,9 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
   walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
 {
-  dtMPC = 0.001 * iterationsBetweenMPC;
+  dtMPC = dt * iterationsBetweenMPC;
+  printf("[Convex MPC] dt: %.3f iterations: %d, dtMPC: %.3f\n",
+      dt, iterationsBetweenMPC, dtMPC);
   setup_problem(dtMPC, horizonLength, 0.4, 120);
   rpy_comp[0] = 0;
   rpy_comp[1] = 0;
@@ -203,11 +207,11 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   //Integral-esque pitche and roll compensation
   if(fabs(v_robot[0]) > .2)   //avoid dividing by zero
   {
-    rpy_int[1] += 0.001*(stateCommand->data.stateDes[4] /*-hw_i->state_estimator->se_ground_pitch*/ - seResult.rpy[1])/v_robot[0];
+    rpy_int[1] += dt*(stateCommand->data.stateDes[4] /*-hw_i->state_estimator->se_ground_pitch*/ - seResult.rpy[1])/v_robot[0];
   }
   if(fabs(v_robot[1]) > 0.1)
   {
-    rpy_int[0] += 0.001*(stateCommand->data.stateDes[3] /*-hw_i->state_estimator->se_ground_pitch*/ - seResult.rpy[0])/v_robot[1];
+    rpy_int[0] += dt*(stateCommand->data.stateDes[3] /*-hw_i->state_estimator->se_ground_pitch*/ - seResult.rpy[0])/v_robot[1];
   }
 
   rpy_int[0] = fminf(fmaxf(rpy_int[0], -.25), .25);
@@ -225,7 +229,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   }
 
   if(gait != &standing) {
-    world_position_desired += .001 * Vec3<float>(v_des_world[0], v_des_world[1], 0);
+    world_position_desired += dt * Vec3<float>(v_des_world[0], v_des_world[1], 0);
   }
 
   // some first time initialization
@@ -277,7 +281,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     if(firstSwing[i]) {
       swingTimeRemaining[i] = swingTimes[i];
     } else {
-      swingTimeRemaining[i] -= 0.001f;
+      swingTimeRemaining[i] -= dt;
     }
     //if(firstSwing[i]) {
       footSwingTrajectories[i].setHeight(.05);
@@ -294,10 +298,10 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       float p_rel_max = 0.3f;
       float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[0]-v_des_world[0]) +
-                      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[2]);
+                      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
       float pfy_rel = seResult.vWorld[1] * .5 * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[1]-v_des_world[1]) +
-                      (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[2]);
+                      (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[11]);
       pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
       pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
       Pf[0] +=  pfx_rel;
@@ -506,7 +510,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<double>& data) {
 }
 
 void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float> &data, bool omniMode) {
-  iterationsBetweenMPC = 30;
+  //iterationsBetweenMPC = 30;
   if((iterationCounter % iterationsBetweenMPC) == 0)
   {
     auto seResult = data._stateEstimator->getResult();
@@ -626,7 +630,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
 
 
     //Timer t1;
-    dtMPC = .001 * iterationsBetweenMPC;
+    dtMPC = dt * iterationsBetweenMPC;
     setup_problem(dtMPC,horizonLength,0.4,120);
     //t1.stopPrint("Setup MPC");
 

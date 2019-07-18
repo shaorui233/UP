@@ -4,11 +4,11 @@
 #include <Configuration.h>
 
 template <typename T>
-JPosInitializer<T>::JPosInitializer(T end_time)
+JPosInitializer<T>::JPosInitializer(T end_time, float dt)
     : _b_first_visit(true),
       _end_time(end_time),
       _curr_time(0.),
-      _dt(0.001),
+      _dt(dt),
       _ini_jpos(cheetah::num_act_joint) {
   _UpdateParam();
 }

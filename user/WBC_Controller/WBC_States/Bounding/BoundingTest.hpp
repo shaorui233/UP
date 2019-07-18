@@ -18,7 +18,7 @@ constexpr int NUM_BOUNDING_PHASE = 4;
 template <typename T>
 class BoundingTest : public Test<T> {
  public:
-  BoundingTest(FloatingBaseModel<T>*, const RobotType&);
+  BoundingTest(FloatingBaseModel<T>*, const RobotType&, float _dt);
   virtual ~BoundingTest();
 
   Vec3<T> _body_pos;

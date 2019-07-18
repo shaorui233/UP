@@ -51,7 +51,7 @@ void FSM_State_StandUp<T>::run() {
   if(this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH) {
     T hMax = 0.25;
     //T heightDesired = std::min(hMax, iter * hMax / T(500));
-    T progress = iter/T(500);
+    T progress = 2 * iter * this->_data->controlParameters->controller_dt;
     if (progress > 1.){ progress = 1.; }
     for(int i = 0; i < 4; i++) {
       this->_data->_legController->commands[i].kpCartesian = Vec3<T>(500, 500, 500).asDiagonal();

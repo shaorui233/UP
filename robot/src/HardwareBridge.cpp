@@ -207,14 +207,6 @@ void MiniCheetahHardwareBridge::run() {
 
   //_robotRunner = new RobotRunner(&taskManager, 0.001f, "robot-control");
 
-  _robotRunner->driverCommand = &_gamepadCommand;
-  _robotRunner->spiData = &_spiData;
-  _robotRunner->spiCommand = &_spiCommand;
-  _robotRunner->robotType = RobotType::MINI_CHEETAH;
-  _robotRunner->vectorNavData = &_vectorNavData;
-  _robotRunner->controlParameters = &_robotParams;
-  _robotRunner->visualizationData = &_visualizationData;
-  _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
 
   while (!_robotParams.isFullyInitialized()) {
     printf("[Hardware Bridge] Waiting for robot parameters...\n");
@@ -229,6 +221,18 @@ void MiniCheetahHardwareBridge::run() {
   }
 
   printf("[Hardware Bridge] Got all parameters, starting up!\n");
+
+  _robotRunner =
+      new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control");
+
+  _robotRunner->driverCommand = &_gamepadCommand;
+  _robotRunner->spiData = &_spiData;
+  _robotRunner->spiCommand = &_spiCommand;
+  _robotRunner->robotType = RobotType::MINI_CHEETAH;
+  _robotRunner->vectorNavData = &_vectorNavData;
+  _robotRunner->controlParameters = &_robotParams;
+  _robotRunner->visualizationData = &_visualizationData;
+  _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
 
   _robotRunner->init();
   _firstRun = false;

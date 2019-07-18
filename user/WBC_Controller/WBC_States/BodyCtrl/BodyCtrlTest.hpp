@@ -16,7 +16,7 @@ enum BodyCtrlPhase {
 template <typename T>
 class BodyCtrlTest : public Test<T> {
  public:
-  BodyCtrlTest(FloatingBaseModel<T>*, const RobotType&);
+  BodyCtrlTest(FloatingBaseModel<T>*, const RobotType&, float _dt);
   virtual ~BodyCtrlTest();
 
  protected:

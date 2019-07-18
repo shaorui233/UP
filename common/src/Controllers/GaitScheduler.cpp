@@ -60,8 +60,9 @@ template struct GaitData<float>;
  * Constructor to automatically setup a basic gait
  */
 template <typename T>
-GaitScheduler<T>::GaitScheduler() {
+GaitScheduler<T>::GaitScheduler(float _dt) {
   initialize();
+  dt = _dt;
 }
 
 /**

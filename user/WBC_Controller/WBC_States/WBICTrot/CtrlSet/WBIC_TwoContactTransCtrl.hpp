@@ -22,7 +22,7 @@ class WBIC_TwoContactTransCtrl : public Controller<T> {
  public:
   WBIC_TwoContactTransCtrl(WBICTrotTest<T>* test,
                            const FloatingBaseModel<T>* robot, size_t cp1,
-                           size_t cp2, int transit_dir);
+                           size_t cp2, int transit_dir, float _dt);
   virtual ~WBIC_TwoContactTransCtrl();
 
   virtual void OneStep(void* _cmd);
@@ -35,6 +35,8 @@ class WBIC_TwoContactTransCtrl : public Controller<T> {
 
  protected:
   void _SetContact(const size_t& cp_idx, const T& upper_lim);
+
+  T dt;
 
   WBICTrotTest<T>* _trot_test;
   size_t _cp1, _cp2;

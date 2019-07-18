@@ -22,7 +22,7 @@ template <typename T>
 class WBIC_TwoLegSwingCtrl : public Controller<T> {
  public:
   WBIC_TwoLegSwingCtrl(WBICTrotTest<T>* test, const FloatingBaseModel<T>*,
-                       size_t cp1, size_t cp2);
+                       size_t cp1, size_t cp2, float _dt);
   virtual ~WBIC_TwoLegSwingCtrl();
 
   virtual void OneStep(void* _cmd);
@@ -38,6 +38,7 @@ class WBIC_TwoLegSwingCtrl : public Controller<T> {
                       Vec3<T>& foot_loc);
 
  protected:
+  T dt;
   T _step_time;
   void _GetSinusoidalSwingTrajectory(const Vec3<T>& ini, const Vec3<T>& fin,
                                      const T& t, Vec3<T>& pos_des,

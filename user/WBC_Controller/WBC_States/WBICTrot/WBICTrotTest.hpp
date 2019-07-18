@@ -31,7 +31,7 @@ constexpr int NUM_TROT_PHASE = 9;
 template <typename T>
 class WBICTrotTest : public Test<T> {
  public:
-  WBICTrotTest(FloatingBaseModel<T>*, const RobotType&);
+  WBICTrotTest(FloatingBaseModel<T>*, const RobotType&, float _dt);
   virtual ~WBICTrotTest();
 
   DVec<T> _jpos_des_pre;

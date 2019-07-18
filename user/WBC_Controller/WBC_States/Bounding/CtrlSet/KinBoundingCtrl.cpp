@@ -18,8 +18,10 @@
 
 template <typename T>
 KinBoundingCtrl<T>::KinBoundingCtrl(BoundingTest<T>* bounding_test,
-                                    const FloatingBaseModel<T>* robot)
+                                    const FloatingBaseModel<T>* robot,
+                                    float _dt)
     : Controller<T>(robot),
+      dt(_dt),
       _bounding_test(bounding_test),
       _jump_signal(false),
       _b_jump_initiation(false),
@@ -199,7 +201,7 @@ void KinBoundingCtrl<T>::_StatusCheck() {
                         0.5 * Ctrl::_robot_sys->_pGC[linkID::FR] -
                         0.5 * Ctrl::_robot_sys->_pGC[linkID::FL];
 
-      _front_swing_time = _swing_time - 2. * Test<T>::dt;
+      _front_swing_time = _swing_time - 2. * dt;
 
       // Front time reset
       _front_time = 0.;
@@ -349,7 +351,7 @@ void KinBoundingCtrl<T>::OneStep(void* _cmd) {
     Ctrl::_task_list.push_back(_local_roll_task);
     Ctrl::_task_list.push_back(_body_ryrz_task);
   } else {
-    _aerial_duration += Test<T>::dt;
+    _aerial_duration += dt;
   }
 
   _setupTaskAndContactList();
@@ -469,7 +471,7 @@ void KinBoundingCtrl<T>::_leg_task_setup() {
 
   if (_b_front_swing) {
     t = _front_time;
-    if (_front_time > _swing_time - 2. * Test<T>::dt) {
+    if (_front_time > _swing_time - 2. * dt) {
       t = 0.;
     }
 
@@ -521,7 +523,7 @@ void KinBoundingCtrl<T>::_leg_task_setup() {
 
   if (_b_hind_swing) {
     t = _hind_time;
-    if (_hind_time > _swing_time - 2. * Test<T>::dt) {
+    if (_hind_time > _swing_time - 2. * dt) {
       t = 0.;
     }
 

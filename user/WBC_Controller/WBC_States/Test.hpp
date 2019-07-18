@@ -8,10 +8,10 @@
 template <typename T>
 class Test {
  public:
-  Test(FloatingBaseModel<T>* robot, const RobotType& robot_type);
+  Test(FloatingBaseModel<T>* robot, const RobotType& robot_type, float _dt);
   virtual ~Test();
 
-  constexpr static T dt = 0.001;
+  T dt;
   void GetCommand(const Cheetah_Data<T>* data, LegControllerCommand<T>* command,
                   Cheetah_Extra_Data<T>* ext_data);
 
@@ -52,6 +52,4 @@ class Test {
   StateProvider<T>* _sp;
 };
 
-template <typename T>
-constexpr T Test<T>::dt;
 #endif

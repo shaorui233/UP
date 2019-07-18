@@ -3,8 +3,9 @@
 #include <ParamHandler/ParamHandler.hpp>
 
 template <typename T>
-Test<T>::Test(FloatingBaseModel<T>* robot, const RobotType& robot_type)
-    : _b_first_visit(true),
+Test<T>::Test(FloatingBaseModel<T>* robot, const RobotType& robot_type, float _dt)
+    : dt(_dt),
+      _b_first_visit(true),
       _b_save_file(false),
       _robot(robot),
       _count(0),
@@ -133,7 +134,7 @@ void Test<T>::GetCommand(const Cheetah_Data<T>* data,
   _UpdateExtraData(ext_data);
 
   ++_count;
-  _sp->_curr_time += cheetah::servo_rate;
+  _sp->_curr_time += dt;
 }
 
 template <typename T>

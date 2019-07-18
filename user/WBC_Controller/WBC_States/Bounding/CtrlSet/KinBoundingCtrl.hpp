@@ -24,7 +24,7 @@ class BoundingTest;
 template <typename T>
 class KinBoundingCtrl : public Controller<T> {
  public:
-  KinBoundingCtrl(BoundingTest<T>*, const FloatingBaseModel<T>*);
+  KinBoundingCtrl(BoundingTest<T>*, const FloatingBaseModel<T>*, float _dt);
   virtual ~KinBoundingCtrl();
 
   virtual void OneStep(void* _cmd);
@@ -40,6 +40,7 @@ class KinBoundingCtrl : public Controller<T> {
   virtual void SetTestParameter(const std::string& test_file);
 
  protected:
+  T dt;
   std::vector<T> _Kp_joint, _Kd_joint;
 
   BoundingTest<T>* _bounding_test;

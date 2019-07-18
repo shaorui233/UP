@@ -15,8 +15,9 @@
 
 template <typename T>
 BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot,
-                              const RobotType& type)
-    : Test<T>(robot, type), _stop(false) {
+                              const RobotType& type,
+                              float _dt)
+    : Test<T>(robot, type, _dt), _stop(false) {
   _body_pos.setZero();
   _body_vel.setZero();
   _body_acc.setZero();
@@ -29,7 +30,7 @@ BoundingTest<T>::BoundingTest(FloatingBaseModel<T>* robot,
 
   _body_up_ctrl = new FullContactTransCtrl<T>(robot);
   _posture_keeping = new PostureKeepingCtrl<T>(robot);
-  _bounding = new KinBoundingCtrl<T>(this, robot);
+  _bounding = new KinBoundingCtrl<T>(this, robot, _dt);
   _bounding_jump = new BoundingJumpCtrl<T>(this, robot);
 
   Test<T>::_state_list.push_back(_body_up_ctrl);

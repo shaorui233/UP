@@ -22,15 +22,15 @@ public:
   virtual ControlParameters* getUserControlParameters() = 0;
 
 protected:
-  Quadruped<float>* _quadruped;
-  FloatingBaseModel<float>* _model;
-  LegController<float>* _legController;
-  StateEstimatorContainer<float>* _stateEstimator;
-  StateEstimate<float>* _stateEstimate;
-  GamepadCommand* _driverCommand;
-  RobotControlParameters* _controlParameters;
+  Quadruped<float>* _quadruped = nullptr;
+  FloatingBaseModel<float>* _model = nullptr;
+  LegController<float>* _legController = nullptr;
+  StateEstimatorContainer<float>* _stateEstimator = nullptr;
+  StateEstimate<float>* _stateEstimate = nullptr;
+  GamepadCommand* _driverCommand = nullptr;
+  RobotControlParameters* _controlParameters = nullptr;
 
-  VisualizationData* _visualizationData;
+  VisualizationData* _visualizationData = nullptr;
   RobotType _robotType;
 };
 

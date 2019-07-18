@@ -37,7 +37,7 @@ void RobotRunner::init() {
 
   // Initialize the model and robot data
   _model = _quadruped.buildModel();
-  _jpos_initializer = new JPosInitializer<float>(3.);
+  _jpos_initializer = new JPosInitializer<float>(3., controlParameters->controller_dt);
   
   // Always initialize the leg controller and state entimator
   _legController = new LegController<float>(_quadruped);
