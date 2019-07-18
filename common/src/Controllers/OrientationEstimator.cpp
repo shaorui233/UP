@@ -42,13 +42,17 @@ void VectorNavOrientationEstimator<T>::run() {
       this->_stateEstimatorData.vectorNavData->quat[1];
   this->_stateEstimatorData.result->orientation[3] =
       this->_stateEstimatorData.vectorNavData->quat[2];
+
   this->_stateEstimatorData.result->rBody = ori::quaternionToRotationMatrix(
       this->_stateEstimatorData.result->orientation);
+
   this->_stateEstimatorData.result->omegaBody =
       this->_stateEstimatorData.vectorNavData->gyro.template cast<T>();
+
   this->_stateEstimatorData.result->omegaWorld =
       this->_stateEstimatorData.result->rBody.transpose() *
       this->_stateEstimatorData.result->omegaBody;
+
   this->_stateEstimatorData.result->rpy =
       ori::quatToRPY(this->_stateEstimatorData.result->orientation);
   this->_stateEstimatorData.result->aBody =

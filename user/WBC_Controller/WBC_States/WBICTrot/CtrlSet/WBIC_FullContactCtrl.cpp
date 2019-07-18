@@ -145,7 +145,6 @@ void WBIC_FullContactCtrl<T>::_task_setup() {
   Quat<T> des_quat;
   des_quat.setZero();
   des_quat = ori::rpyToQuat(rpy_des);
-
   DVec<T> ang_acc_des(_body_ori_task->getDim());
   ang_acc_des.setZero();
   _body_ori_task->UpdateTask(&(des_quat), ang_vel_des, ang_acc_des);

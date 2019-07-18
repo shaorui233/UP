@@ -26,6 +26,13 @@ template <typename T>
 void DesiredStateCommand<T>::convertToStateCommands() {
   data.zero();
 
+  static bool b_firstVisit(true);
+  if(b_firstVisit){
+    data.pre_stateDes(0) = stateEstimate->position(0);
+    data.pre_stateDes(1) = stateEstimate->position(1);
+    data.pre_stateDes(5) = stateEstimate->rpy(2);
+    b_firstVisit = false;
+  }
   // Forward linear velocity
   data.stateDes(6) =
       deadband(gamepadCommand->leftStickAnalog[1], minVelX, maxVelX);
@@ -39,9 +46,11 @@ void DesiredStateCommand<T>::convertToStateCommands() {
 
   // X position
   data.stateDes(0) = stateEstimate->position(0) + dt * data.stateDes(6);
+  //data.stateDes(0) = data.pre_stateDes(0) + dt * data.stateDes(6);
 
   // Y position
   data.stateDes(1) = stateEstimate->position(1) + dt * data.stateDes(7);
+  //data.stateDes(1) = data.pre_stateDes(1) + dt * data.stateDes(7);
 
   // Z position height
   data.stateDes(2) = 0.45;
@@ -64,7 +73,10 @@ void DesiredStateCommand<T>::convertToStateCommands() {
       deadband(gamepadCommand->rightStickAnalog[1], minPitch, maxPitch);
 
   // Yaw
-  data.stateDes(5) = stateEstimate->rpy(2) + dt * data.stateDes(11);
+  //data.stateDes(5) = stateEstimate->rpy(2) + dt * data.stateDes(11);
+  data.stateDes(5) = data.pre_stateDes(5) + dt * data.stateDes(11);
+
+  data.pre_stateDes = data.stateDes;
 }
 
 /**

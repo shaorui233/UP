@@ -3,16 +3,16 @@
 #include <eigen3/Eigen/LU>
 #include <eigen3/Eigen/SVD>
 
-template <typename T>
+  template <typename T>
 WBIC<T>::WBIC(size_t num_qdot, const std::vector<ContactSpec<T>*>* contact_list,
-              const std::vector<Task<T>*>* task_list)
-    : WBC<T>(num_qdot), _dim_floating(6) {
-  _contact_list = contact_list;
-  _task_list = task_list;
+    const std::vector<Task<T>*>* task_list)
+  : WBC<T>(num_qdot), _dim_floating(6) {
+    _contact_list = contact_list;
+    _task_list = task_list;
 
-  _eye = DMat<T>::Identity(WB::num_qdot_, WB::num_qdot_);
-  _eye_floating = DMat<T>::Identity(_dim_floating, _dim_floating);
-}
+    _eye = DMat<T>::Identity(WB::num_qdot_, WB::num_qdot_);
+    _eye_floating = DMat<T>::Identity(_dim_floating, _dim_floating);
+  }
 
 template <typename T>
 void WBIC<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
@@ -96,7 +96,7 @@ void WBIC<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
   }
 
   // std::cout << "f: " << f << std::endl;
-  // std::cout << "x: " << z << std::endl;
+  //std::cout << "x: " << z << std::endl;
 
   // DVec<T> check_eq = _dyn_CE * _data->_opt_result + _dyn_ce0;
   // pretty_print(check_eq, std::cout, "equality constr");
@@ -127,14 +127,14 @@ template <typename T>
 void WBIC<T>::_SetEqualityConstraint(const DVec<T>& qddot) {
   if (_dim_rf > 0) {
     _dyn_CE.block(0, 0, _dim_eq_cstr, _dim_floating) =
-        WB::A_.block(0, 0, _dim_floating, _dim_floating);
+      WB::A_.block(0, 0, _dim_floating, _dim_floating);
     _dyn_CE.block(0, _dim_floating, _dim_eq_cstr, _dim_rf) =
-        -WB::Sv_ * _Jc.transpose();
+      -WB::Sv_ * _Jc.transpose();
     _dyn_ce0 = -WB::Sv_ * (WB::A_ * qddot + WB::cori_ + WB::grav_ -
-                           _Jc.transpose() * _Fr_des);
+        _Jc.transpose() * _Fr_des);
   } else {
     _dyn_CE.block(0, 0, _dim_eq_cstr, _dim_floating) =
-        WB::A_.block(0, 0, _dim_floating, _dim_floating);
+      WB::A_.block(0, 0, _dim_floating, _dim_floating);
     _dyn_ce0 = -WB::Sv_ * (WB::A_ * qddot + WB::cori_ + WB::grav_);
   }
 
@@ -210,10 +210,11 @@ void WBIC<T>::_ContactBuilding() {
 
     // Fr desired
     _Fr_des.segment(dim_accumul_rf, dim_new_rf) =
-        (*_contact_list)[i]->getRFDesired();
+      (*_contact_list)[i]->getRFDesired();
     dim_accumul_rf += dim_new_rf;
     dim_accumul_uf += dim_new_uf;
   }
+  //pretty_print(_Fr_des, std::cout, "[WBIC] Fr des");
   // pretty_print(_Jc, std::cout, "[WBIC] Jc");
   // pretty_print(_JcDotQdot, std::cout, "[WBIC] JcDot Qdot");
   // pretty_print(_Uf, std::cout, "[WBIC] Uf");
@@ -228,7 +229,7 @@ void WBIC<T>::_GetSolution(const DVec<T>& qddot, DVec<T>& cmd) {
     for (size_t i(0); i < _dim_rf; ++i)
       _data->_Fr[i] = z[i + _dim_floating] + _Fr_des[i];
     tot_tau =
-        WB::A_ * qddot + WB::cori_ + WB::grav_ - _Jc.transpose() * _data->_Fr;
+      WB::A_ * qddot + WB::cori_ + WB::grav_ - _Jc.transpose() * _data->_Fr;
 
   } else {
     tot_tau = WB::A_ * qddot + WB::cori_ + WB::grav_;
@@ -264,8 +265,8 @@ void WBIC<T>::_SetCost() {
 
 template <typename T>
 void WBIC<T>::UpdateSetting(const DMat<T>& A, const DMat<T>& Ainv,
-                            const DVec<T>& cori, const DVec<T>& grav,
-                            void* extra_setting) {
+    const DVec<T>& cori, const DVec<T>& grav,
+    void* extra_setting) {
   WB::A_ = A;
   WB::Ainv_ = Ainv;
   WB::cori_ = cori;

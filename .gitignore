@@ -13,6 +13,9 @@ lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
 lcm-types/python/*
+lcm_data/lcm_log
+lcm_data/matlab_log
+lcm_data/matlab_log_archive
 optimization_data
 sim_data
 test_data

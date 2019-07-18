@@ -18,6 +18,7 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
   _des_jacc(cheetah::num_act_joint),
 _wbcLCM(getLcmUrl(255))
 {
+  _iter = 0;
   _full_config.setZero();
 
   _model = model;
@@ -39,11 +40,18 @@ _wbcLCM(getLcmUrl(255))
   _wbic = new WBIC<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
 
   _wbic_data = new WBIC_ExtraData<T>();
-  _wbic_data->_W_floating = DVec<T>::Constant(6, 5.);
+  _wbic_data->_W_floating = DVec<T>::Constant(6, 0.1);
   _wbic_data->_W_rf = DVec<T>::Constant(12, 1.);
 
-  _Kp_joint.resize(cheetah::num_leg_joint, 3.0);
-  _Kd_joint.resize(cheetah::num_leg_joint, 1.0);
+  _Kp_joint.resize(cheetah::num_leg_joint, 5.);
+  _Kd_joint.resize(cheetah::num_leg_joint, 1.5);
+
+  //_Kp_joint.resize(cheetah::num_leg_joint, 3.);
+  //_Kd_joint.resize(cheetah::num_leg_joint, 0.5);
+
+
+  //_Kp_joint.resize(cheetah::num_leg_joint, 0.);
+  //_Kd_joint.resize(cheetah::num_leg_joint, 0.);
 
   _state.q = DVec<T>::Zero(cheetah::num_act_joint);
   _state.qd = DVec<T>::Zero(cheetah::num_act_joint);
@@ -61,6 +69,15 @@ void WBC_Ctrl<T>::run(
     const Vec3<T>* Fr_des, const Vec4<T> & contact_state,
     ControlFSMData<T> & data){
 
+  ++_iter;
+  // First visit
+  static bool first_visit(true);
+  if(first_visit){
+    _quat_ini = data._stateEstimator->getResult().orientation;
+    _body_des_ini = pBody_des;
+    first_visit = false;
+  }
+
   // Update Model
   _UpdateModel(data._stateEstimator->getResult(), data._legController->datas);
 
@@ -68,11 +85,13 @@ void WBC_Ctrl<T>::run(
   _CleanUp();
 
   // Task & Contact Set
-  Vec3<T> empty_vec3; empty_vec3.setZero();
+  Vec3<T> zero_vec3; zero_vec3.setZero();
 
   Quat<T> quat_des = ori::rpyToQuat(pBody_RPY_des);
-  _body_ori_task->UpdateTask(&quat_des, vBody_Ori_des, empty_vec3);
+  //pretty_print(pBody_RPY_des, std::cout, "rpy_des");
+  _body_ori_task->UpdateTask(&quat_des, vBody_Ori_des, zero_vec3);
   _body_pos_task->UpdateTask(&pBody_des, vBody_des, aBody_des);
+
   _task_list.push_back(_body_ori_task);
   _task_list.push_back(_body_pos_task);
 
@@ -89,7 +108,7 @@ void WBC_Ctrl<T>::run(
   }
 
   // WBC Computation
-  _ComputeWBC();
+  _ComputeWBC(data.userParameters->wbc_base_Fr_weight);
 
   // Update Leg Command
   _UpdateLegCMD(data._legController->commands);
@@ -110,18 +129,31 @@ void WBC_Ctrl<T>::_LCM_PublishData(
     const Vec3<T>* Fr_des, const Vec4<T> & contact_state)
 {
   (void)contact_state;
-  //int iter(0);
-  //for(size_t leg(0); leg<4; ++leg){
-    //_Fr_result[leg].setZero();
-    //if(contact_state[leg]>0.){
-      //for(size_t i(0); i<3; ++i){
-        //_Fr_result[leg][i] = _wbic_data->_Fr[3*iter + i];
-        //++iter;
-      //}
-    //}
-  //}
+  int iter(0);
+  for(size_t leg(0); leg<4; ++leg){
+    _Fr_result[leg].setZero();
+    if(contact_state[leg]>0.){
+      for(size_t i(0); i<3; ++i){
+        _Fr_result[leg][i] = _wbic_data->_Fr[3*iter + i];
+      }
+      ++iter;
+    }
+  }
 
   for(size_t i(0); i<3; ++i){
+    _wbc_data_lcm.foot_pos[i] = _model._pGC[linkID::FR][i];
+    _wbc_data_lcm.foot_vel[i] = _model._vGC[linkID::FR][i];
+
+    _wbc_data_lcm.foot_pos[i + 3] = _model._pGC[linkID::FL][i];
+    _wbc_data_lcm.foot_vel[i + 3] = _model._vGC[linkID::FL][i];
+
+    _wbc_data_lcm.foot_pos[i + 6] = _model._pGC[linkID::HR][i];
+    _wbc_data_lcm.foot_vel[i + 6] = _model._vGC[linkID::HR][i];
+
+    _wbc_data_lcm.foot_pos[i + 9] = _model._pGC[linkID::HL][i];
+    _wbc_data_lcm.foot_vel[i + 9] = _model._vGC[linkID::HL][i];
+
+
     for(size_t leg(0); leg<4; ++leg){
       _wbc_data_lcm.Fr_des[3*leg + i] = Fr_des[leg][i];
       _wbc_data_lcm.Fr[3*leg + i] = _Fr_result[leg][i];
@@ -133,6 +165,9 @@ void WBC_Ctrl<T>::_LCM_PublishData(
       _wbc_data_lcm.jpos_cmd[3*leg + i] = _des_jpos[3*leg + i];
       _wbc_data_lcm.jvel_cmd[3*leg + i] = _des_jvel[3*leg + i];
       _wbc_data_lcm.jacc_cmd[3*leg + i] = _des_jacc[3*leg + i];
+
+      _wbc_data_lcm.jpos[3*leg + i] = _state.q[3*leg + i];
+      _wbc_data_lcm.jvel[3*leg + i] = _state.qd[3*leg + i];
     }
 
     _wbc_data_lcm.body_pos_cmd[i] = pBody_des[i];
@@ -158,11 +193,12 @@ void WBC_Ctrl<T>::_print_summary() {
 
 
 template <typename T>
-void WBC_Ctrl<T>::_ComputeWBC() {
+void WBC_Ctrl<T>::_ComputeWBC(const T & base_Fr_weight) {
   _kin_wbc->FindConfiguration(_full_config, _task_list, _contact_list,
                               _des_jpos, _des_jvel, _des_jacc);
 
   // WBIC
+  _wbic_data->_W_floating = DVec<T>::Constant(6, base_Fr_weight);
   _wbic->UpdateSetting(_A, _Ainv, _coriolis, _grav);
   _wbic->MakeTorque(_tau_ff, _wbic_data);
 }
@@ -171,6 +207,7 @@ void WBC_Ctrl<T>::_ComputeWBC() {
 template<typename T>
 void WBC_Ctrl<T>::_UpdateLegCMD(LegControllerCommand<T> * cmd){
   for (size_t leg(0); leg < cheetah::num_leg; ++leg) {
+    cmd[leg].zero();
     for (size_t jidx(0); jidx < cheetah::num_leg_joint; ++jidx) {
       cmd[leg].tauFeedForward[jidx] = _tau_ff[cheetah::num_leg_joint * leg + jidx];
       cmd[leg].qDes[jidx] = _des_jpos[cheetah::num_leg_joint * leg + jidx];
@@ -187,10 +224,11 @@ void WBC_Ctrl<T>::_UpdateModel(const StateEstimate<T> & state_est,
     const LegControllerData<T> * leg_data){
 
   _state.bodyOrientation = state_est.orientation;
+  //_state.bodyOrientation = ori::rpyToQuat(state_est.rpy);
   _state.bodyPosition = state_est.position;
   for(size_t i(0); i<3; ++i){
-    _state.bodyVelocity[i] = state_est.vBody[i];
-    _state.bodyVelocity[i+3] = state_est.omegaBody[i];
+    _state.bodyVelocity[i] = state_est.omegaBody[i];
+    _state.bodyVelocity[i+3] = state_est.vBody[i];
 
     for(size_t leg(0); leg<4; ++leg){
       _state.q[3*leg + i] = leg_data[leg].q[i];
@@ -201,6 +239,7 @@ void WBC_Ctrl<T>::_UpdateModel(const StateEstimate<T> & state_est,
   }
   _model.setState(_state);
 
+  //_model.forwardKinematics();
   _model.contactJacobians();
   _model.massMatrix();
   _model.generalizedGravityForce();
@@ -210,6 +249,10 @@ void WBC_Ctrl<T>::_UpdateModel(const StateEstimate<T> & state_est,
   _grav = _model.getGravityForce();
   _coriolis = _model.getCoriolisForce();
   _Ainv = _A.inverse();
+
+  if(_iter%100 ==0){
+  //pretty_print(_state.bodyVelocity, std::cout, "body vel");
+  }
 }
 
 template<typename T>

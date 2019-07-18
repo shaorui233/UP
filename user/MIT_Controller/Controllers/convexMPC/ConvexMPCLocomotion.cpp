@@ -1,5 +1,6 @@
 #include <iostream>
 #include <Utilities/Timer.h>
+#include <Utilities/Utilities_print.h>
 
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
@@ -121,8 +122,8 @@ ConvexMPCLocomotion::ConvexMPCLocomotion() :
   pronking(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(4,4,4,4),"Pronking"),
   galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(6,6,6,6),"Galloping"),
   standing(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(10,10,10,10),"Standing"),
-  trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
-  //trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(2,2,2,2),"Trot Running"),
+  //trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
+  trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(2.5,2.5,2.5,2.5),"Trot Running"),
   walking(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(5,5,5,5), "Walking"),
   walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
@@ -431,19 +432,21 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 //      }
 
       //cout << "Foot " << foot << " relative velocity desired: " << vDesLeg.transpose() << "\n";
-      data._legController->commands[foot].pDes = pDesLeg;
-      data._legController->commands[foot].vDes = vDesLeg;
-      data._legController->commands[foot].kpCartesian = Kp;
-      data._legController->commands[foot].kdCartesian = Kd;
 
-      //singularity barrier
-      data._legController->commands[foot].tauFeedForward[2] = 50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
+      if(!data.userParameters->use_wbc){
+        data._legController->commands[foot].pDes = pDesLeg;
+        data._legController->commands[foot].vDes = vDesLeg;
+        data._legController->commands[foot].kpCartesian = Kp;
+        data._legController->commands[foot].kdCartesian = Kd;
 
+        //singularity barrier
+        data._legController->commands[foot].tauFeedForward[2] = 50*(data._legController->datas[foot].q(2)<.1)*data._legController->datas[foot].q(2);
+      }
       //Vec3<float> pErr = data._legController->datas[foot].p - data._legController->commands[foot].pDes;
       //printf("[%d] %.3f %.3f %.3f\n", foot, pErr[0], pErr[1], pErr[2]);
-//            vec3 perr = pDesLeg - hw_i->leg_controller->leg_datas[foot].p;
-//            vec3 verr = vDesLeg - hw_i->leg_controller->leg_datas[foot].v;
-//            cout << "FOOT: " << foot << "\nperr: " << perr(2) << "\npdes: " << pDesLeg(2) << "\n";
+      //            vec3 perr = pDesLeg - hw_i->leg_controller->leg_datas[foot].p;
+      //            vec3 verr = vDesLeg - hw_i->leg_controller->leg_datas[foot].v;
+      //            cout << "FOOT: " << foot << "\nperr: " << perr(2) << "\npdes: " << pDesLeg(2) << "\n";
       //cout << "Tau ff: " << footSwingController[foot]->getTauFF().transpose() << "\n";
     }
     else // foot is in stance
@@ -462,25 +465,27 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Vec3<float> pDesLeg = seResult.rBody * (pDesFootWorld - seResult.position) - data._quadruped->getHipLocation(foot);
       Vec3<float> vDesLeg = seResult.rBody * (vDesFootWorld - seResult.vWorld);
       //cout << "Foot " << foot << " relative velocity desired: " << vDesLeg.transpose() << "\n";
-      data._legController->commands[foot].pDes = pDesLeg;
-      data._legController->commands[foot].vDes = vDesLeg;
-      data._legController->commands[foot].kpCartesian = Kp_stance;
-      data._legController->commands[foot].kdCartesian = Kd_stance;
+      if(!data.userParameters->use_wbc){
+        data._legController->commands[foot].pDes = pDesLeg;
+        data._legController->commands[foot].vDes = vDesLeg;
+        data._legController->commands[foot].kpCartesian = Kp_stance;
+        data._legController->commands[foot].kdCartesian = Kd_stance;
 
-      data._legController->commands[foot].forceFeedForward = f_ff[foot];
-      data._legController->commands[foot].kdJoint = Mat3<float>::Identity() * 0.2;
+        data._legController->commands[foot].forceFeedForward = f_ff[foot];
+        data._legController->commands[foot].kdJoint = Mat3<float>::Identity() * 0.2;
 
-//      footSwingTrajectories[foot]->updateFF(hw_i->leg_controller->leg_datas[foot].q,
-//                                          hw_i->leg_controller->leg_datas[foot].qd, 0); todo removed
-      // hw_i->leg_controller->leg_commands[foot].tau_ff += 0*footSwingController[foot]->getTauFF();
-      data._legController->commands[foot].tauFeedForward[2] = 
-        50*(data._legController->datas[foot].q(2)<.1)*
-        exp(1./(0.01 + fabs(data._legController->datas[foot].q(2)) ) );
-//            cout << "Foot " << foot << " force: " << f_ff[foot].transpose() << "\n";
+        //      footSwingTrajectories[foot]->updateFF(hw_i->leg_controller->leg_datas[foot].q,
+        //                                          hw_i->leg_controller->leg_datas[foot].qd, 0); todo removed
+        // hw_i->leg_controller->leg_commands[foot].tau_ff += 0*footSwingController[foot]->getTauFF();
+        data._legController->commands[foot].tauFeedForward[2] = 
+          50*(data._legController->datas[foot].q(2)<.1)*
+          exp(1./(0.01 + fabs(data._legController->datas[foot].q(2)) ) );
+      }
+      //            cout << "Foot " << foot << " force: " << f_ff[foot].transpose() << "\n";
       se_contactState[foot] = contactState;
 
       // Update for WBC
-      Fr_des[foot] = f_ff[foot];
+      Fr_des[foot] = -f_ff[foot];
     }
   }
 
@@ -564,8 +569,21 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       //std::cout << "pdes_world: " << world_position_desired.transpose() << "\n";
       //printf("perr \t%.3f\t%.3f\n", p[0] - world_position_desired[0], p[1] - world_position_desired[1]);
 
-      float trajInitial[12] = {(float)rpy_comp[0],  // 0
-                               (float)rpy_comp[1]/*-hw_i->state_estimator->se_ground_pitch*/,    // 1
+      //float trajInitial[12] = {(float)rpy_comp[0],  // 0
+                               //(float)rpy_comp[1][>-hw_i->state_estimator->se_ground_pitch<],    // 1
+                               //(float)stateCommand->data.stateDes[5],    // 2
+                               //xStart,                                   // 3
+                               //yStart,                                   // 4
+                               //(float)0.26,      // 5
+                               //0,                                        // 6
+                               //0,                                        // 7
+                               //(float)stateCommand->data.stateDes[11],  // 8
+                               //v_des_world[0],                           // 9
+                               //v_des_world[1],                           // 10
+                               //0};                                       // 11
+
+      float trajInitial[12] = {(float)0., // 0
+                               (float)0., // 1
                                (float)stateCommand->data.stateDes[5],    // 2
                                xStart,                                   // 3
                                yStart,                                   // 4
@@ -576,7 +594,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                v_des_world[0],                           // 9
                                v_des_world[1],                           // 10
                                0};                                       // 11
-      for(int i = 0; i < horizonLength; i++)
+       for(int i = 0; i < horizonLength; i++)
       {
         for(int j = 0; j < 12; j++)
           trajAll[12*i+j] = trajInitial[j];

@@ -220,68 +220,68 @@ void KinBoundingCtrl<T>::_lcm_data_sending() {
     _wbc_data_lcm.jacc_cmd[i] = _des_jacc[i];
   }
 
-  _wbc_data_lcm.body_ori[3] = Ctrl::_robot_sys->_state.bodyOrientation[3];
-  for (size_t i(0); i < 3; ++i) {
-    _wbc_data_lcm.body_ori[i] = Ctrl::_robot_sys->_state.bodyOrientation[i];
-    _wbc_data_lcm.body_ang_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i];
+  //_wbc_data_lcm.body_ori[3] = Ctrl::_robot_sys->_state.bodyOrientation[3];
+  //for (size_t i(0); i < 3; ++i) {
+    //_wbc_data_lcm.body_ori[i] = Ctrl::_robot_sys->_state.bodyOrientation[i];
+    //_wbc_data_lcm.body_ang_vel[i] = Ctrl::_robot_sys->_state.bodyVelocity[i];
 
-    _wbc_data_lcm.fr_foot_pos_cmd[i] = _fr_foot_pos[i];
-    _wbc_data_lcm.fl_foot_pos_cmd[i] = _fl_foot_pos[i];
-    _wbc_data_lcm.hr_foot_pos_cmd[i] = _hr_foot_pos[i];
-    _wbc_data_lcm.hl_foot_pos_cmd[i] = _hl_foot_pos[i];
+    //_wbc_data_lcm.fr_foot_pos_cmd[i] = _fr_foot_pos[i];
+    //_wbc_data_lcm.fl_foot_pos_cmd[i] = _fl_foot_pos[i];
+    //_wbc_data_lcm.hr_foot_pos_cmd[i] = _hr_foot_pos[i];
+    //_wbc_data_lcm.hl_foot_pos_cmd[i] = _hl_foot_pos[i];
 
-    _wbc_data_lcm.fr_foot_vel_cmd[i] = _fr_foot_vel[i];
-    _wbc_data_lcm.fl_foot_vel_cmd[i] = _fl_foot_vel[i];
-    _wbc_data_lcm.hr_foot_vel_cmd[i] = _hr_foot_vel[i];
-    _wbc_data_lcm.hl_foot_vel_cmd[i] = _hl_foot_vel[i];
+    //_wbc_data_lcm.fr_foot_vel_cmd[i] = _fr_foot_vel[i];
+    //_wbc_data_lcm.fl_foot_vel_cmd[i] = _fl_foot_vel[i];
+    //_wbc_data_lcm.hr_foot_vel_cmd[i] = _hr_foot_vel[i];
+    //_wbc_data_lcm.hl_foot_vel_cmd[i] = _hl_foot_vel[i];
 
-    _wbc_data_lcm.fr_foot_local_pos[i] =
-        _fr_foot_pos[i] - _fr_foot_local_task->getPosError()[i];
-    _wbc_data_lcm.fl_foot_local_pos[i] =
-        _fl_foot_pos[i] - _fl_foot_local_task->getPosError()[i];
-    _wbc_data_lcm.hr_foot_local_pos[i] =
-        _hr_foot_pos[i] - _hr_foot_local_task->getPosError()[i];
-    _wbc_data_lcm.hl_foot_local_pos[i] =
-        _hl_foot_pos[i] - _hl_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.fr_foot_local_pos[i] =
+        //_fr_foot_pos[i] - _fr_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.fl_foot_local_pos[i] =
+        //_fl_foot_pos[i] - _fl_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.hr_foot_local_pos[i] =
+        //_hr_foot_pos[i] - _hr_foot_local_task->getPosError()[i];
+    //_wbc_data_lcm.hl_foot_local_pos[i] =
+        //_hl_foot_pos[i] - _hl_foot_local_task->getPosError()[i];
 
-    _wbc_data_lcm.fr_foot_local_vel[i] =
-        (Ctrl::_robot_sys->_vGC[linkID::FR])[i] -
-        (Ctrl::_robot_sys->_vGC[linkID::FR_abd])[i];
-    _wbc_data_lcm.fl_foot_local_vel[i] =
-        (Ctrl::_robot_sys->_vGC[linkID::FL])[i] -
-        (Ctrl::_robot_sys->_vGC[linkID::FL_abd])[i];
-    _wbc_data_lcm.hr_foot_local_vel[i] =
-        (Ctrl::_robot_sys->_vGC[linkID::HR])[i] -
-        (Ctrl::_robot_sys->_vGC[linkID::HR_abd])[i];
-    _wbc_data_lcm.hl_foot_local_vel[i] =
-        (Ctrl::_robot_sys->_vGC[linkID::HL])[i] -
-        (Ctrl::_robot_sys->_vGC[linkID::HL_abd])[i];
+    //_wbc_data_lcm.fr_foot_local_vel[i] =
+        //(Ctrl::_robot_sys->_vGC[linkID::FR])[i] -
+        //(Ctrl::_robot_sys->_vGC[linkID::FR_abd])[i];
+    //_wbc_data_lcm.fl_foot_local_vel[i] =
+        //(Ctrl::_robot_sys->_vGC[linkID::FL])[i] -
+        //(Ctrl::_robot_sys->_vGC[linkID::FL_abd])[i];
+    //_wbc_data_lcm.hr_foot_local_vel[i] =
+        //(Ctrl::_robot_sys->_vGC[linkID::HR])[i] -
+        //(Ctrl::_robot_sys->_vGC[linkID::HR_abd])[i];
+    //_wbc_data_lcm.hl_foot_local_vel[i] =
+        //(Ctrl::_robot_sys->_vGC[linkID::HL])[i] -
+        //(Ctrl::_robot_sys->_vGC[linkID::HL_abd])[i];
 
-    if ((!_b_front_swing) && (!_b_hind_swing)) {
-      _wbc_data_lcm.fr_Fr_des[i] = _fr_contact->getRFDesired()[i];
-      _wbc_data_lcm.fl_Fr_des[i] = _fl_contact->getRFDesired()[i];
-      _wbc_data_lcm.hr_Fr_des[i] = _hr_contact->getRFDesired()[i];
-      _wbc_data_lcm.hl_Fr_des[i] = _hl_contact->getRFDesired()[i];
+    //if ((!_b_front_swing) && (!_b_hind_swing)) {
+      //_wbc_data_lcm.fr_Fr_des[i] = _fr_contact->getRFDesired()[i];
+      //_wbc_data_lcm.fl_Fr_des[i] = _fl_contact->getRFDesired()[i];
+      //_wbc_data_lcm.hr_Fr_des[i] = _hr_contact->getRFDesired()[i];
+      //_wbc_data_lcm.hl_Fr_des[i] = _hl_contact->getRFDesired()[i];
 
-      _wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
-      _wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i + 3];
-      _wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i + 6];
-      _wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i + 9];
-    } else if ((!_b_front_swing)) {
-      _wbc_data_lcm.fr_Fr_des[i] = _fr_contact->getRFDesired()[i];
-      _wbc_data_lcm.fl_Fr_des[i] = _fl_contact->getRFDesired()[i];
+      //_wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
+      //_wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i + 3];
+      //_wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i + 6];
+      //_wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i + 9];
+    //} else if ((!_b_front_swing)) {
+      //_wbc_data_lcm.fr_Fr_des[i] = _fr_contact->getRFDesired()[i];
+      //_wbc_data_lcm.fl_Fr_des[i] = _fl_contact->getRFDesired()[i];
 
-      _wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
-      _wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i + 3];
-    } else if ((!_b_hind_swing)) {
-      _wbc_data_lcm.hr_Fr_des[i] = _hr_contact->getRFDesired()[i];
-      _wbc_data_lcm.hl_Fr_des[i] = _hl_contact->getRFDesired()[i];
+      //_wbc_data_lcm.fr_Fr[i] = _wbic_data->_Fr[i];
+      //_wbc_data_lcm.fl_Fr[i] = _wbic_data->_Fr[i + 3];
+    //} else if ((!_b_hind_swing)) {
+      //_wbc_data_lcm.hr_Fr_des[i] = _hr_contact->getRFDesired()[i];
+      //_wbc_data_lcm.hl_Fr_des[i] = _hl_contact->getRFDesired()[i];
 
-      _wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i];
-      _wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i + 3];
-    }
-  }
-  _wbcLCM.publish("wbc_lcm_data", &_wbc_data_lcm);
+      //_wbc_data_lcm.hr_Fr[i] = _wbic_data->_Fr[i];
+      //_wbc_data_lcm.hl_Fr[i] = _wbic_data->_Fr[i + 3];
+    //}
+  //}
+  //_wbcLCM.publish("wbc_lcm_data", &_wbc_data_lcm);
 }
 
 template <typename T>

@@ -35,7 +35,7 @@ class WBC_Ctrl{
     void _CleanUp();
     void _UpdateModel(const StateEstimate<T> & state_est, const LegControllerData<T> * leg_data);
     void _UpdateLegCMD(LegControllerCommand<T> * cmd);
-    void _ComputeWBC();
+    void _ComputeWBC(const T & base_Fr_weight);
     void _print_summary();
     void _LCM_PublishData(
         const Vec3<T> & pBody_des, const Vec3<T> & vBody_des, const Quat<T> & quat_des, 
@@ -57,6 +57,9 @@ class WBC_Ctrl{
     std::vector<ContactSpec<T> * > _contact_list;
     std::vector<Task<T> * > _task_list;
 
+    Quat<T> _quat_ini;
+    Vec3<T> _body_des_ini;
+
     DMat<T> _A;
     DMat<T> _Ainv;
     DVec<T> _grav;
@@ -70,6 +73,7 @@ class WBC_Ctrl{
     DVec<T> _des_jvel;
     DVec<T> _des_jacc;
 
+    long long _iter;
 
     std::vector<T> _Kp_joint, _Kd_joint;
 

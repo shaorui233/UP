@@ -32,5 +32,5 @@ struct wbc_test_data_t
     float jpos[12];
     float jvel[12];
 
-     float vision_loc[3];
+    float vision_loc[3];
 }

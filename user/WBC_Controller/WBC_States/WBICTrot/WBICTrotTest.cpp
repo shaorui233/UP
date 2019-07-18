@@ -277,6 +277,12 @@ void WBICTrotTest<T>::_UpdateTestOneStep() {
     _body_vel = Rot.transpose() * _input_vel;
     _body_pos += _body_vel * Test<T>::dt;
 
+    // TEST
+    //_body_vel.setZero();
+    //_body_ori_rpy.setZero();
+    //_body_pos[0] = 0.;
+    //_body_pos[1] = 0.;
+
   } else {  // Vision Data
     Vec3<T> des_loc;
     des_loc.setZero();

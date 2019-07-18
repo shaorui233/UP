@@ -21,6 +21,8 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(
     : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION") {
   // Set the safety checks
   this->turnOnAllSafetyChecks();
+  // Turn off Foot pos command since it is set in WBC as operational task
+  this->checkPDesFoot = false;
 
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
