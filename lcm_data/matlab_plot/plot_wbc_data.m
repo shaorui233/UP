@@ -3,13 +3,14 @@ clc
 clear all
 %%
 addpath('./functions')
-load('./../matlab_log/data.mat')
-fig = fn_open_figures(6);
+load('./../matlab_log/data_exp_run5_freq.mat')
+fig = fn_open_figures(7);
 
 %%
 st_idx = 1;
 end_idx = length(wbc_lcm_data.lcm_timestamp);%-85000;
-time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
+%time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
+time = wbc_lcm_data.lcm_timestamp;
 
 figure(fig(1))
 for i =1:12
@@ -44,6 +45,7 @@ for i =1:12
     grid on
     axis tight
 end
+xlabel('JPos')
 
 % Body pos
 figure(fig(4))
@@ -73,4 +75,12 @@ for i = 1:4
         plot(time(st_idx:end_idx), wbc_lcm_data.body_ori(st_idx:end_idx,i))
     plot(time(st_idx:end_idx), wbc_lcm_data.body_ori_cmd(st_idx:end_idx,i))
     axis tight
+end
+
+
+figure(fig(7))
+
+for i = 1:3
+    subplot(3,1,i)
+    plot(state_estimator.rpy(:,i))
 end

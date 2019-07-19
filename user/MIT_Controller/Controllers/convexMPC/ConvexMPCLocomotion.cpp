@@ -124,10 +124,9 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc)
   bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(3,3,3,3),"Bounding"),
   pronking(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(4,4,4,4),"Pronking"),
   //galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(6,6,6,6),"Galloping"),
-  galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(5,5,5,5),"Galloping"),
+  galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(3,3,3,3),"Galloping"),
   standing(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(10,10,10,10),"Standing"),
   trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
-  //trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(2.5,2.5,2.5,2.5),"Trot Running"),
   walking(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(5,5,5,5), "Walking"),
   walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
@@ -256,7 +255,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   // Update For WBC
   pBody_des[0] = world_position_desired[0];
   pBody_des[1] = world_position_desired[1];
-  pBody_des[2] = 0.26;
+  pBody_des[2] = 0.29;
 
   vBody_des[0] = v_des_world[0];
   vBody_des[1] = v_des_world[1];
@@ -278,7 +277,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   swingTimes[2] = dtMPC * gait->_swing;
   swingTimes[3] = dtMPC * gait->_swing;
   float side_sign[4] = {-1, 1, -1, 1};
-  float interleave_y[4] = {-0.1, 0.1, 0.05, -0.05};
+  float interleave_y[4] = {-0.08, 0.08, 0.01, -0.01};
   float interleave_gain = -0.2;
   float v_abs = std::fabs(seResult.vBody[0]);
   for(int i = 0; i < 4; i++)
@@ -560,7 +559,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                (float)stand_traj[5]/*+(float)stateCommand->data.stateDes[11]*/,
                                (float)stand_traj[0]/*+(float)fsm->main_control_settings.p_des[0]*/,
                                (float)stand_traj[1]/*+(float)fsm->main_control_settings.p_des[1]*/,
-                               (float)0.26/*fsm->main_control_settings.p_des[2]*/,
+                               (float)0.29/*fsm->main_control_settings.p_des[2]*/,
                                0,0,0,0,0,0};
 
       for(int i = 0; i < horizonLength; i++)
@@ -595,7 +594,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                (float)stateCommand->data.stateDes[5],    // 2
                                xStart,                                   // 3
                                yStart,                                   // 4
-                               (float)0.26,      // 5
+                               (float)0.29,      // 5
                                0,                                        // 6
                                0,                                        // 7
                                (float)stateCommand->data.stateDes[11],  // 8
@@ -608,7 +607,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
                                //(float)stateCommand->data.stateDes[5],    // 2
                                //xStart,                                   // 3
                                //yStart,                                   // 4
-                               //(float)0.26,      // 5
+                               //(float)0.29,      // 5
                                //0,                                        // 6
                                //0,                                        // 7
                                //(float)stateCommand->data.stateDes[11],  // 8
