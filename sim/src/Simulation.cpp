@@ -525,7 +525,7 @@ void Simulation::addCollisionPlane(double mu, double resti, double height,
     _window->lockGfxMutex();
     Checkerboard checker(sizeX, sizeY, checkerX, checkerY);
 
-    size_t graphicsID = _window->_drawList.addCheckerboard(checker);
+    size_t graphicsID = _window->_drawList.addCheckerboard(checker, true);
     _window->_drawList.buildDrawList();
     _window->_drawList.updateCheckerboard(height, graphicsID);
     _window->unlockGfxMutex();

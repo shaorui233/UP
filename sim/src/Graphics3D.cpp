@@ -127,6 +127,8 @@ size_t Graphics3D::setupMiniCheetah(Vec4<float> color, bool useOld) { return _dr
 
 void Graphics3D::updateCameraMatrix() {
   _cameraMatrix.setToIdentity();
+  Vec3<float> cameraPos;
+  cameraPos.setZero();
   _cameraMatrix.perspective(
       60.f, float(size().width()) / float(size().height()), .001f, 50.f);
 
@@ -154,6 +156,7 @@ void Graphics3D::updateCameraMatrix() {
     _cameraMatrix.rotate(_ry, 1, 0, 0);
     _cameraMatrix.rotate(_rx, 0, 0, 1);
     _cameraMatrix.translate(_freeCamPos[0], _freeCamPos[1], _freeCamPos[2]);
+    cameraPos = Vec3<float>(_freeCamPos[0], _freeCamPos[1], 0);
   } else {
     _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
     _cameraMatrix.rotate(_ry, 1, 0, 0);
@@ -161,7 +164,11 @@ void Graphics3D::updateCameraMatrix() {
     _cameraTarget = _cameraTarget * 0.9 + _drawList.getCameraOrigin() * 0.1;
     _cameraMatrix.translate(-_cameraTarget[0],
                             -_cameraTarget[1], 0);
+    cameraPos = Vec3<float>(-_cameraTarget[0],
+                            -_cameraTarget[1], 0);
   }
+
+  _drawList.doScrolling(cameraPos);
 }
 
 void Graphics3D::initializeGL() {

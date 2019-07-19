@@ -81,6 +81,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   GamepadCommand _driverCommand;
 
   std::mutex _gfxMutex;
+  void scrollGround();
   void updateCameraMatrix();
   void renderDrawlist();
   void configOpenGLPass(int pass);
