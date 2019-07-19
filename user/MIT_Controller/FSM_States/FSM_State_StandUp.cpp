@@ -46,13 +46,13 @@ void FSM_State_StandUp<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_StandUp<T>::run() {
-  // float h0 = 0.2;
-  // float heightDes = h0 + (0.45 - h0) * ((iter / 1000.0) / 0.5);
+
   if(this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH) {
     T hMax = 0.25;
-    //T heightDesired = std::min(hMax, iter * hMax / T(500));
     T progress = 2 * iter * this->_data->controlParameters->controller_dt;
+
     if (progress > 1.){ progress = 1.; }
+
     for(int i = 0; i < 4; i++) {
       this->_data->_legController->commands[i].kpCartesian = Vec3<T>(500, 500, 500).asDiagonal();
       this->_data->_legController->commands[i].kdCartesian = Vec3<T>(8, 8, 8).asDiagonal();
@@ -92,6 +92,11 @@ FSM_StateName FSM_State_StandUp<T>::checkTransition() {
     case K_LOCOMOTION:
       this->nextStateName = FSM_StateName::LOCOMOTION;
       break;
+
+    case K_BOUNDING:
+      this->nextStateName = FSM_StateName::BOUNDING;
+      break;
+
 
     case K_PASSIVE:  // normal c
       this->nextStateName = FSM_StateName::PASSIVE;

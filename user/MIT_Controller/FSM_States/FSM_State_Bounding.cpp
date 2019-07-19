@@ -7,7 +7,7 @@
 
 #include "FSM_State_Bounding.h"
 #include <Utilities/Timer.h>
-#include <Controllers/WBC_Ctrl/WBC_LocalCtrl.hpp>
+#include <Controllers/BoundingCtrl/BoundingCtrl.hpp>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -26,7 +26,7 @@ FSM_State_Bounding<T>::FSM_State_Bounding(
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
   this->footstepLocations = Mat34<T>::Zero();
-  wbc_ctrl = new WBC_LocalCtrl<T>(_controlFSMData->_quadruped->buildModel());
+  bounding_ctrl = new BoundingCtrl<T>(_controlFSMData->_quadruped->buildModel());
 }
 
 template <typename T>
@@ -61,43 +61,7 @@ FSM_StateName FSM_State_Bounding<T>::checkTransition() {
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
     case K_BOUNDING:
-      // Normal operation for state based transitions
-
-      // Need a working state estimator for automatic state based transition
-      /*if (velocity < v_min) {
-        this->nextStateName = FSM_StateName::BALANCE_STAND;
-
-        // Transition over the duration of one period
-        this->transitionDuration =
-      this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-
-        // Notify the gait scheduler that the robot is transitioning to stand
-        this->_data->_gaitScheduler->gaitData._nextGait =
-      GaitType::TRANSITION_TO_STAND;
-
-      }*/
-
-      // in place to show automatic non user requested transitions
-      /*if (iter >= 1387) {  // 2058) {
-        // Set the next state to be BALANCE_STAND
-        this->nextStateName = FSM_StateName::BALANCE_STAND;
-
-        // Transition time is 1 gait period
-        this->transitionDuration =
-            this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-
-        // Signal the gait scheduler that we are transitioning to standing
-        this->_data->_gaitScheduler->gaitData._nextGait =
-            GaitType::TRANSITION_TO_STAND;
-
-        // Notify the control parameters of the mode switch
-        this->_data->controlParameters->control_mode = K_BALANCE_STAND;
-
-        // Reset iteration counter
-        iter = 0;
-      }
-       */
-      break;
+       break;
 
     case K_BALANCE_STAND:
       // Requested change to BALANCE_STAND
@@ -188,7 +152,7 @@ void FSM_State_Bounding<T>::BoundingControlStep() {
 
   // Run the balancing controllers to get GRF and next step locations
 
-  wbc_ctrl->run(*this->_data);
+  bounding_ctrl->run(*this->_data);
 }
 
 // template class FSM_State_Bounding<double>;

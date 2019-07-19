@@ -1,16 +1,15 @@
-#ifndef BODY_POS_TASK
-#define BODY_POS_TASK
+#ifndef LOCAL_TAIL_POS_TASK
+#define LOCAL_TAIL_POS_TASK
 
-// (X, Y, Z)
 #include <WBC/Task.hpp>
 
 template <typename T> class FloatingBaseModel;
 
 template <typename T>
-class BodyPosTask : public Task<T> {
+class LocalTailPosTask : public Task<T> {
  public:
-  BodyPosTask(const FloatingBaseModel<T>*);
-  virtual ~BodyPosTask();
+  LocalTailPosTask(const FloatingBaseModel<T>*);
+  virtual ~LocalTailPosTask();
 
   DVec<T> _Kp_kin;
   DVec<T> _Kp, _Kd;
@@ -25,6 +24,8 @@ class BodyPosTask : public Task<T> {
   virtual bool _UpdateTaskJDotQdot();
   virtual bool _AdditionalUpdate() { return true; }
 
+  int link_idx_;
+  bool virtual_depend_;
   const FloatingBaseModel<T>* _robot_sys;
 };
 

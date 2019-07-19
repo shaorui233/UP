@@ -6,9 +6,10 @@ __collection-name__: user-parameters
 
 cmpc_gait : 9
 use_wbc : 1
+#use_wbc : 0
 wbc_base_Fr_weight: 0.1
 
-use_rc : 0
+use_rc : 1
 
 Kp_body: [ 3, 3, 3 ]
 Kd_body: [50.0, 50.0, 50.0]

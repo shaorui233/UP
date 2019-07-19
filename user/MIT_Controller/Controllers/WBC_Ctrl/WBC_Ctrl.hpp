@@ -11,12 +11,6 @@
 #include <lcm-cpp.hpp>
 #include "wbc_test_data_t.hpp"
 
-template <typename T> class ContactSpec;
-template <typename T> class Task;
-template <typename T> class KinWBC;
-template <typename T> class WBIC;
-template <typename T> class WBIC_ExtraData;
-
 class MIT_UserParameters;
 
 template<typename T>

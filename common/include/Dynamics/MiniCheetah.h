@@ -39,6 +39,9 @@ Quadruped<T> buildMiniCheetah() {
   cheetah._motorR = 0.173;
   cheetah._jointDamping = .01;
   cheetah._jointDryFriction = .2;
+  //cheetah._jointDamping = .0;
+  //cheetah._jointDryFriction = .0;
+
 
   // rotor inertia if the rotor is oriented so it spins around the z-axis
   Mat3<T> rotorRotationalInertiaZ;

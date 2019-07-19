@@ -265,9 +265,9 @@ void WBC_Ctrl<T>::_UpdateModel(const StateEstimate<T> & state_est,
   _coriolis = _model.getCoriolisForce();
   _Ainv = _A.inverse();
 
-  if(_iter%100 ==0){
+  //if(_iter%100 ==0){
   //pretty_print(_state.bodyVelocity, std::cout, "body vel");
-  }
+  //}
 }
 
 template<typename T>
