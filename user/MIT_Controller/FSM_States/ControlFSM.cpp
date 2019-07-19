@@ -46,6 +46,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.standUp = new FSM_State_StandUp<T>(&data);
   statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
   statesList.locomotion = new FSM_State_Locomotion<T>(&data);
+  statesList.bounding = new FSM_State_Bounding<T>(&data);
 
   safetyChecker = new SafetyChecker<T>(&data);
 
@@ -222,6 +223,10 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 
     case FSM_StateName::LOCOMOTION:
       return statesList.locomotion;
+
+    case FSM_StateName::BOUNDING:
+      return statesList.bounding;
+
 
     default:
       return statesList.invalid;

@@ -11,11 +11,10 @@
 template <typename T>
 BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
   _curr_time(0.),
-      _step_width(0.05),
+      _step_width(0.07),
       _K_time(0.5),
-      _swing_height(0.05),
+      _swing_height(0.08),
       _dim_contact(0),
-      _step_length_lim(0.3),
       _fr_foot_vel(3),
       _fr_foot_acc(3),
       _fl_foot_vel(3),
@@ -30,6 +29,7 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
       _des_jacc(cheetah::num_act_joint),
       _wbcLCM(getLcmUrl(255)) {
 
+  _full_config = DVec<T>::Zero(cheetah::num_act_joint + 7);
   _model = robot;
   // Start from front swing & hind stance
   _b_front_swing = true;
@@ -70,7 +70,11 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
   _wbic_data->_W_floating = DVec<T>::Constant(6, 5.);
   //_wbic_data->_W_floating = DVec<T>::Constant(6, 0.01);
 
-  printf("[Bounding Control] Constructed\n");
+  _Kp_joint.resize(cheetah::num_leg_joint, 4.);
+  _Kd_joint.resize(cheetah::num_leg_joint, 0.8);
+
+  _state.q = DVec<T>::Zero(cheetah::num_act_joint);
+  _state.qd = DVec<T>::Zero(cheetah::num_act_joint);
 }
 
 template <typename T>
@@ -160,8 +164,6 @@ void BoundingCtrl<T>::_StatusCheck() {
                (2. * 2.0 * 0.7 * _hind_current_stance);
       apex *= _impact_amp;
 
-      Vec3<T> rpy = ori::quatToRPY(_model._state.bodyOrientation);
-      apex *= (1. - _K_pitch * rpy[1]);
 
       _hind_z_impulse.setCurve(apex, _hind_current_stance);
       _hind_previous_stance = _hind_current_stance;
@@ -237,10 +239,23 @@ void BoundingCtrl<T>::_setupTaskAndContactList() {
 template <typename T>
 void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
   dt = data.controlParameters->controller_dt;
+
+  static bool first_visit(true);
+  if(first_visit){
+    _curr_time = 0.;
+    FirstVisit();
+    first_visit = false;
+  }
+
+  _curr_time += dt;
   _vel_des[0] = data._desiredStateCommand->data.stateDes(6);
   _vel_des[1] = data._desiredStateCommand->data.stateDes(7);
   _vel_des[2] = 0.;
-  // Initialize all
+
+  // Update Model
+  _UpdateModel(data._stateEstimator->getResult(), data._legController->datas);
+
+  // Clear all
   _contact_list.clear();
   _task_list.clear();
 
@@ -262,11 +277,13 @@ void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
 
   _setupTaskAndContactList();
 
-  DVec<T> gamma = DVec<T>::Zero(cheetah::num_act_joint);
   _contact_update();
   _body_task_setup();
   _leg_task_setup();
-  _compute_torque_wbic(gamma);
+  _compute_torque_wbic(_tau_ff);
+
+  // Update Leg Command
+  _UpdateLegCMD(data._legController->commands);
 }
 
 template<typename T>
@@ -275,6 +292,7 @@ void BoundingCtrl<T>::_UpdateModel(const StateEstimate<T> & state_est,
 
   _state.bodyOrientation = state_est.orientation;
   _state.bodyPosition = state_est.position;
+
   for(size_t i(0); i<3; ++i){
     _state.bodyVelocity[i] = state_est.omegaBody[i];
     _state.bodyVelocity[i+3] = state_est.vBody[i];
@@ -556,7 +574,6 @@ BoundingCtrl<T>::~BoundingCtrl() {
   delete _kin_wbc;
   delete _wbic;
   delete _wbic_data;
-  delete _param_handler;
 
   typename std::vector<Task<T> *>::iterator iter = _task_list.begin();
   while (iter < _task_list.end()) {
@@ -575,6 +592,21 @@ BoundingCtrl<T>::~BoundingCtrl() {
 
 template <typename T>
 void BoundingCtrl<T>::_lcm_data_sending() {
+}
+
+template<typename T>
+void BoundingCtrl<T>::_UpdateLegCMD(LegControllerCommand<T> * cmd){
+  for (size_t leg(0); leg < cheetah::num_leg; ++leg) {
+    cmd[leg].zero();
+    for (size_t jidx(0); jidx < cheetah::num_leg_joint; ++jidx) {
+      cmd[leg].tauFeedForward[jidx] = _tau_ff[cheetah::num_leg_joint * leg + jidx];
+      cmd[leg].qDes[jidx] = _des_jpos[cheetah::num_leg_joint * leg + jidx];
+      cmd[leg].qdDes[jidx] = _des_jvel[cheetah::num_leg_joint * leg + jidx];
+
+      cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+      cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
+    }
+  }
 }
 
 template class BoundingCtrl<double>;

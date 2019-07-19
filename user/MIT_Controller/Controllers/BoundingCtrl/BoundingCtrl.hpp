@@ -4,7 +4,6 @@
 #include <FSM_States/ControlFSMData.h>
 #include <Dynamics/FloatingBaseModel.h>
 #include <Dynamics/Quadruped.h>
-#include <ParamHandler/ParamHandler.hpp>
 #include <lcm-cpp.hpp>
 #include <WBC/WBIC/WBIC.hpp>
 #include <WBC/WBLC/KinWBC.hpp>
@@ -34,6 +33,7 @@ class BoundingCtrl{
   void _StatusCheck();
   void _setupTaskAndContactList();
   void _ContactUpdate();
+  void _UpdateLegCMD(LegControllerCommand<T> * cmd);
 
   void _lcm_data_sending();
   void _save_file();
@@ -55,8 +55,7 @@ class BoundingCtrl{
   T _step_width;
 
   T _contact_vel_threshold;
-  T _K_time;
-  T _K_pitch;
+  T _K_time = 0.0;
   T _impact_amp;
   T _swing_height;
 
@@ -74,9 +73,11 @@ class BoundingCtrl{
   T _nominal_gait_period;
   T _gait_period;
 
-  T _swing_time;
+  T _swing_time = 0.18;
   T _stance_time;
-  T _nominal_stance_time;
+  T _nominal_stance_time = 0.15;
+  T _step_length_lim = 0.3;
+
   int _dim_contact;
 
   T _front_start_time;
@@ -84,8 +85,6 @@ class BoundingCtrl{
 
   T _front_time;
   T _hind_time;
-
-  T _step_length_lim;
 
   Task<T>* _local_head_pos_task;
   Task<T>* _local_tail_pos_task;
@@ -122,7 +121,7 @@ class BoundingCtrl{
   WBIC<T>* _wbic;
   WBIC_ExtraData<T>* _wbic_data;
 
-  T _target_leg_height;
+  T _target_leg_height = 0.28;
   T _total_mass;
 
   ImpulseCurve<T> _front_z_impulse;
@@ -145,6 +144,7 @@ class BoundingCtrl{
 
   DVec<T> _Fr_des;
 
+  DVec<T> _tau_ff;
   DVec<T> _des_jpos;
   DVec<T> _des_jvel;
   DVec<T> _des_jacc;
@@ -153,7 +153,6 @@ class BoundingCtrl{
   std::vector<Task<T>*> _task_list;
   std::vector<ContactSpec<T>*> _contact_list;
 
-  ParamHandler* _param_handler;
   lcm::LCM _wbcLCM;
   wbc_test_data_t _wbc_data_lcm;
 

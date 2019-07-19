@@ -22,6 +22,7 @@ FSM_State_Bounding<T>::FSM_State_Bounding(
         FSM_StateName::BOUNDING, "BOUNDING") {
   // Set the safety checks
   this->turnOnAllSafetyChecks();
+  this->checkPDesFoot = false;
 
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();

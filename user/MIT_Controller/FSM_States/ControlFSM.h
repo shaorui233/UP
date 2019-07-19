@@ -17,6 +17,7 @@
 #include "../FSM_States/FSM_State_Locomotion.h"
 #include "../FSM_States/FSM_State_Passive.h"
 #include "../FSM_States/FSM_State_StandUp.h"
+#include "../FSM_States/FSM_State_Bounding.h"
 
 /**
  * Enumerate all of the operating modes
@@ -35,6 +36,7 @@ struct FSM_StatesList {
   FSM_State_StandUp<T>* standUp;
   FSM_State_BalanceStand<T>* balanceStand;
   FSM_State_Locomotion<T>* locomotion;
+  FSM_State_Bounding<T>* bounding;
 };
 
 /**
