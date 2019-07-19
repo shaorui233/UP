@@ -46,6 +46,9 @@ void DesiredStateCommand<T>::convertToStateCommands() {
     joystickRight = gamepadCommand->rightStickAnalog;
   }
 
+  joystickLeft[1] *= -1.f;
+  joystickRight[1] *= -1.f;
+
   leftAnalogStick = leftAnalogStick * (T(1) - filter) + joystickLeft * filter;
   rightAnalogStick = rightAnalogStick * (T(1) - filter) + joystickRight * filter;
   // Forward linear velocity
