@@ -278,6 +278,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   swingTimes[2] = dtMPC * gait->_swing;
   swingTimes[3] = dtMPC * gait->_swing;
   float side_sign[4] = {-1, 1, -1, 1};
+  float interleave_y[4] = {-0.1, 0.1, 0.05, -0.05};
+  float interleave_gain = -0.2;
+  float v_abs = std::fabs(seResult.vBody[0]);
   for(int i = 0; i < 4; i++)
   {
 
@@ -315,7 +318,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
       pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
       Pf[0] +=  pfx_rel;
-      Pf[1] +=  pfy_rel;
+      Pf[1] +=  pfy_rel + interleave_y[i] * v_abs * interleave_gain;
       //Pf[2] = -0.01;
       Pf[2] = 0.0;
       footSwingTrajectories[i].setFinalPosition(Pf);
