@@ -16,8 +16,8 @@ LocalPosTask<T>::LocalPosTask(const FloatingBaseModel<T>* robot, int link_idx,
   TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
 
   _Kp_kin = DVec<T>::Constant(TK::dim_task_, 1.);
-  _Kp = DVec<T>::Constant(TK::dim_task_, 20.);
-  _Kd = DVec<T>::Constant(TK::dim_task_, 1.);
+  _Kp = DVec<T>::Constant(TK::dim_task_, 120.);
+  _Kd = DVec<T>::Constant(TK::dim_task_, 5.);
 }
 
 template <typename T>

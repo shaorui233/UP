@@ -14,6 +14,8 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
       _step_width(0.07),
       _K_time(0.5),
       _swing_height(0.08),
+      _front_foot_offset(0.02),
+      _hind_foot_offset(-0.05),
       _dim_contact(0),
       _fr_foot_vel(3),
       _fr_foot_acc(3),
@@ -29,6 +31,7 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
       _des_jacc(cheetah::num_act_joint),
       _wbcLCM(getLcmUrl(255)) {
 
+  _vel_des.setZero();
   _full_config = DVec<T>::Zero(cheetah::num_act_joint + 7);
   _model = robot;
   // Start from front swing & hind stance
@@ -79,17 +82,11 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
 
 template <typename T>
 void BoundingCtrl<T>::_ContactUpdate() {
-  if (_b_front_swing) {
-    _b_front_contact_est = false;
-  } else {
-    _b_front_contact_est = true;
-  }
+  if (_b_front_swing) {  _b_front_contact_est = false;
+  } else {  _b_front_contact_est = true; }
 
-  if (_b_hind_swing) {
-    _b_hind_contact_est = false;
-  } else {
-    _b_hind_contact_est = true;
-  }
+  if (_b_hind_swing) { _b_hind_contact_est = false;
+  } else {  _b_hind_contact_est = true;  }
 
   if (_b_front_swing && (_front_time > 0.6 * _swing_time)) {
     if (_front_time > _swing_time) {
@@ -130,7 +127,6 @@ void BoundingCtrl<T>::_StatusCheck() {
 
       T apex = _total_mass * 9.81 * (_swing_time + _front_current_stance) /
                (2. * 2.0 * 0.7 * _front_current_stance);
-      apex *= _impact_amp;
 
 
       _front_z_impulse.setCurve(apex, _front_current_stance);
@@ -162,7 +158,6 @@ void BoundingCtrl<T>::_StatusCheck() {
 
       T apex = _total_mass * 9.81 * (_swing_time + _hind_current_stance) /
                (2. * 2.0 * 0.7 * _hind_current_stance);
-      apex *= _impact_amp;
 
 
       _hind_z_impulse.setCurve(apex, _hind_current_stance);
@@ -191,6 +186,9 @@ void BoundingCtrl<T>::_StatusCheck() {
     _fin_fr = _vel_des * _stance_time / 2. * scale;
     _fin_fl = _vel_des * _stance_time / 2. * scale;
 
+    _fin_fr[0] += _front_foot_offset;
+    _fin_fl[0] += _front_foot_offset;
+
     _front_start_time = _curr_time;
     _front_time = 0.;
   }
@@ -205,6 +203,9 @@ void BoundingCtrl<T>::_StatusCheck() {
 
     _fin_hr = _vel_des * _stance_time / 2. * scale;
     _fin_hl = _vel_des * _stance_time / 2. * scale;
+
+    _fin_hr[0] += _hind_foot_offset;
+    _fin_hl[0] += _hind_foot_offset;
 
     _hind_start_time = _curr_time;
     _hind_time = 0.;
@@ -238,7 +239,12 @@ void BoundingCtrl<T>::_setupTaskAndContactList() {
 
 template <typename T>
 void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
+
   dt = data.controlParameters->controller_dt;
+  _curr_time += dt;
+  _vel_des[0] = data._desiredStateCommand->data.stateDes(6);
+  _vel_des[1] = data._desiredStateCommand->data.stateDes(7);
+  _vel_des[2] = 0.;
 
   static bool first_visit(true);
   if(first_visit){
@@ -246,11 +252,6 @@ void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
     FirstVisit();
     first_visit = false;
   }
-
-  _curr_time += dt;
-  _vel_des[0] = data._desiredStateCommand->data.stateDes(6);
-  _vel_des[1] = data._desiredStateCommand->data.stateDes(7);
-  _vel_des[2] = 0.;
 
   // Update Model
   _UpdateModel(data._stateEstimator->getResult(), data._legController->datas);
@@ -381,11 +382,8 @@ void BoundingCtrl<T>::_leg_task_setup() {
   _hr_foot_pos.setZero();
   _hl_foot_pos.setZero();
 
-  // T leg_height = -_target_leg_height;
-  DVec<T> vel_des(3);
-  vel_des.setZero();
-  DVec<T> acc_des(3);
-  acc_des.setZero();
+  DVec<T> vel_des(3); vel_des.setZero();
+  DVec<T> acc_des(3); acc_des.setZero();
 
   DVec<T> Fr_des(3);
   Fr_des.setZero();
@@ -510,7 +508,8 @@ void BoundingCtrl<T>::_leg_task_setup() {
 
 template <typename T>
 void BoundingCtrl<T>::FirstVisit() {
-  T apex = _total_mass * 9.81 * (_swing_time + _nominal_stance_time) /
+  T apex = _total_mass * 9.81 * 
+    (_swing_time + _nominal_stance_time) /
            (2. * 2.0 * 0.7 * _nominal_stance_time);
 
   _front_z_impulse.setCurve(apex, _nominal_stance_time);

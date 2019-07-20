@@ -56,9 +56,11 @@ class BoundingCtrl{
 
   T _contact_vel_threshold;
   T _K_time = 0.0;
-  T _impact_amp;
   T _swing_height;
 
+  T _front_foot_offset;
+  T _hind_foot_offset;
+ 
   T _aerial_duration;
   T _front_swing_time;
 

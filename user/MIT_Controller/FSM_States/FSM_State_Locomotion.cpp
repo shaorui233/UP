@@ -121,6 +121,11 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
 
       break;
 
+    case K_STAND_UP:
+      this->nextStateName = FSM_StateName::STAND_UP;
+      this->transitionDuration = 0.;
+      break;
+
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
                 << K_LOCOMOTION << " to "
@@ -158,6 +163,10 @@ TransitionData<T> FSM_State_Locomotion<T>::transition() {
 
       this->transitionData.done = true;
 
+      break;
+
+    case FSM_StateName::STAND_UP:
+      this->transitionData.done = true;
       break;
 
     default:

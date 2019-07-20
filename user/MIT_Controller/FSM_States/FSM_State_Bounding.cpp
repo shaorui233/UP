@@ -82,6 +82,12 @@ FSM_StateName FSM_State_Bounding<T>::checkTransition() {
 
       break;
 
+    case K_STAND_UP:
+      this->nextStateName = FSM_StateName::STAND_UP;
+      this->transitionDuration = 0.;
+      break;
+
+
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
                 << K_BOUNDING << " to "
@@ -120,6 +126,11 @@ TransitionData<T> FSM_State_Bounding<T>::transition() {
       this->transitionData.done = true;
 
       break;
+
+    case FSM_StateName::STAND_UP:
+      this->transitionData.done = true;
+      break;
+
 
     default:
       std::cout << "[CONTROL FSM] Something went wrong in transition"

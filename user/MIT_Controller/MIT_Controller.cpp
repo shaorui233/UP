@@ -2,7 +2,7 @@
 #include "rt/rt_interface_lcm.h"
 MIT_Controller::MIT_Controller():RobotController(){  }
 
-#define RC_ESTOP
+//#define RC_ESTOP
 /**
  * Initializes the Control FSM.
  */
