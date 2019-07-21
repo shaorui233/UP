@@ -7,7 +7,7 @@
 
 #include "FSM_State_Bounding.h"
 #include <Utilities/Timer.h>
-#include <Controllers/BoundingCtrl/BoundingCtrl.hpp>
+#include <Controllers/WBC_Ctrl/BoundingCtrl/BoundingCtrl.hpp>
 
 /**
  * Constructor for the FSM State that passes in state specific info to

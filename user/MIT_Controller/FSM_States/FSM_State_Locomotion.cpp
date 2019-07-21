@@ -7,7 +7,7 @@
 
 #include "FSM_State_Locomotion.h"
 #include <Utilities/Timer.h>
-#include <Controllers/WBC_Ctrl/WBC_Ctrl.hpp>
+#include <Controllers/WBC_Ctrl/LocomotionCtrl/LocomotionCtrl.hpp>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -30,7 +30,8 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
   this->footstepLocations = Mat34<T>::Zero();
-  wbc_ctrl = new WBC_Ctrl<T>(_controlFSMData->_quadruped->buildModel());
+  _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
+  _wbc_data = new LocomotionCtrlData<T>();
 }
 
 template <typename T>
@@ -204,12 +205,22 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   cMPCOld.run<T>(*this->_data);
 
   if(this->_data->userParameters->use_wbc > 0.9){
-    wbc_ctrl->run(
-        cMPCOld.pBody_des, cMPCOld.vBody_des, cMPCOld.aBody_des,
-        cMPCOld.pBody_RPY_des, cMPCOld.vBody_Ori_des, 
-        cMPCOld.pFoot_des, cMPCOld.vFoot_des, cMPCOld.aFoot_des,
-        cMPCOld.Fr_des, cMPCOld.contact_state,
-        *this->_data);
+    _wbc_data->pBody_des = cMPCOld.pBody_des;
+    _wbc_data->vBody_des = cMPCOld.vBody_des;
+    _wbc_data->aBody_des = cMPCOld.aBody_des;
+
+    _wbc_data->pBody_RPY_des = cMPCOld.pBody_RPY_des;
+    _wbc_data->vBody_Ori_des = cMPCOld.vBody_Ori_des;
+    
+    for(size_t i(0); i<4; ++i){
+      _wbc_data->pFoot_des[i] = cMPCOld.pFoot_des[i];
+      _wbc_data->vFoot_des[i] = cMPCOld.vFoot_des[i];
+      _wbc_data->aFoot_des[i] = cMPCOld.aFoot_des[i];
+      _wbc_data->Fr_des[i] = cMPCOld.Fr_des[i]; 
+    }
+    _wbc_data->contact_state = cMPCOld.contact_state;
+
+    _wbc_ctrl->run(_wbc_data, *this->_data);
 
   }
   //printf("entire run time %.3f\n", t.getMs());
