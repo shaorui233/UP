@@ -164,7 +164,8 @@ void FSM_State_Bounding<T>::BoundingControlStep() {
 
   // Run the balancing controllers to get GRF and next step locations
 
-  bounding_ctrl->run(*this->_data);
+  void* dummy = nullptr;
+  bounding_ctrl->run(dummy, *this->_data);
 }
 
 // template class FSM_State_Bounding<double>;

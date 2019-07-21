@@ -3,7 +3,7 @@
 
 #include "FSM_State.h"
 
-template<typename T> class BoundingCtrl;
+template<typename T> class WBC_Ctrl;
 /**
  *
  */
@@ -31,7 +31,7 @@ class FSM_State_Bounding : public FSM_State<T> {
  private:
   // Keep track of the control iterations
   int iter = 0;
-  BoundingCtrl<T> * bounding_ctrl;
+  WBC_Ctrl<T> * bounding_ctrl;
 
   // Parses contact specific controls to the leg controller
   void BoundingControlStep();

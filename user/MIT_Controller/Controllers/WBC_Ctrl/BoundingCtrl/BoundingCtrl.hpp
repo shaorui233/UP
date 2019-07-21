@@ -1,50 +1,33 @@
 #ifndef BOUNDING_CTRL
 #define BOUNDING_CTRL
 
-#include <FSM_States/ControlFSMData.h>
-#include <Dynamics/FloatingBaseModel.h>
-#include <Dynamics/Quadruped.h>
-#include <lcm-cpp.hpp>
-#include <WBC/WBIC/WBIC.hpp>
-#include <WBC/WBLC/KinWBC.hpp>
-
-
+#include <WBC_Ctrl/WBC_Ctrl.hpp>
 #include "ImpulseCurve.hpp"
-#include "wbc_test_data_t.hpp"
 
 class MIT_UserParameters;
 
 template <typename T>
-class BoundingCtrl{
+class BoundingCtrl : public WBC_Ctrl<T> {
  public:
   BoundingCtrl(FloatingBaseModel<T> );
-  ~BoundingCtrl();
-
-  void FirstVisit();
-
-  void run(ControlFSMData<T> & data);
+  virtual ~BoundingCtrl();
 
  protected:
+  virtual void _ContactTaskUpdate(void * input, ControlFSMData<T> & data);
   void _body_task_setup();
   void _leg_task_setup();
   void _contact_update();
-  void _compute_torque_wbic(DVec<T>& gamma);
+  void _FirstVisit();
 
   void _StatusCheck();
   void _setupTaskAndContactList();
   void _ContactUpdate();
-  void _UpdateLegCMD(LegControllerCommand<T> * cmd);
 
   void _lcm_data_sending();
   void _save_file();
-  void _UpdateModel(const StateEstimate<T> & state_est, 
-      const LegControllerData<T> * leg_data);
-
-
 
   T _curr_time;
   T dt;
-  std::vector<T> _Kp_joint, _Kd_joint;
 
   bool _b_front_swing;
   bool _b_hind_swing;
@@ -120,9 +103,6 @@ class BoundingCtrl{
   ContactSpec<T>* _hr_contact;
   ContactSpec<T>* _hl_contact;
 
-  WBIC<T>* _wbic;
-  WBIC_ExtraData<T>* _wbic_data;
-
   T _target_leg_height = 0.28;
   T _total_mass;
 
@@ -143,29 +123,7 @@ class BoundingCtrl{
   Vec3<T> _fin_hl;
 
   Vec3<T> _vel_des;
-
   DVec<T> _Fr_des;
-
-  DVec<T> _tau_ff;
-  DVec<T> _des_jpos;
-  DVec<T> _des_jvel;
-  DVec<T> _des_jacc;
-
-  KinWBC<T>* _kin_wbc;
-  std::vector<Task<T>*> _task_list;
-  std::vector<ContactSpec<T>*> _contact_list;
-
-  lcm::LCM _wbcLCM;
-  wbc_test_data_t _wbc_data_lcm;
-
-  FloatingBaseModel<T> _model;
-  FBModelState<T> _state;
-  DVec<T> _full_config;
-  DMat<T> _A;
-  DMat<T> _Ainv;
-  DVec<T> _grav;
-  DVec<T> _coriolis;
-
 };
 
 #endif

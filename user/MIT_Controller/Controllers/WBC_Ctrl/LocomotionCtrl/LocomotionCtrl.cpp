@@ -46,8 +46,8 @@ void LocomotionCtrl<T>::_ContactTaskUpdate(void* input, ControlFSMData<T> & data
   // Task & Contact Set
   Vec3<T> zero_vec3; zero_vec3.setZero();
 
-  Quat<T> quat_des = ori::rpyToQuat(_input_data->pBody_RPY_des);
-  _body_ori_task->UpdateTask(&quat_des, _input_data->vBody_Ori_des, zero_vec3);
+  _quat_des = ori::rpyToQuat(_input_data->pBody_RPY_des);
+  _body_ori_task->UpdateTask(&_quat_des, _input_data->vBody_Ori_des, zero_vec3);
   _body_pos_task->UpdateTask(
       &(_input_data->pBody_des), 
       _input_data->vBody_des, 
@@ -100,57 +100,57 @@ void LocomotionCtrl<T>::_CleanUp(){
 template<typename T>
 void LocomotionCtrl<T>::_LCM_PublishData() {
 
-  //int iter(0);
-  //for(size_t leg(0); leg<4; ++leg){
-    //_Fr_result[leg].setZero();
-    //if(contact_state[leg]>0.){
-      //for(size_t i(0); i<3; ++i){
-        //_Fr_result[leg][i] = _wbic_data->_Fr[3*iter + i];
-      //}
-      //++iter;
-    //}
-  //}
+  int iter(0);
+  for(size_t leg(0); leg<4; ++leg){
+    _Fr_result[leg].setZero();
+    if(_input_data->contact_state[leg]>0.){
+      for(size_t i(0); i<3; ++i){
+        _Fr_result[leg][i] = WBCtrl::_wbic_data->_Fr[3*iter + i];
+      }
+      ++iter;
+    }
+  }
 
-  //for(size_t i(0); i<3; ++i){
-    //_wbc_data_lcm.foot_pos[i] = _model._pGC[linkID::FR][i];
-    //_wbc_data_lcm.foot_vel[i] = _model._vGC[linkID::FR][i];
+  for(size_t i(0); i<3; ++i){
+    WBCtrl::_wbc_data_lcm.foot_pos[i] = WBCtrl::_model._pGC[linkID::FR][i];
+    WBCtrl::_wbc_data_lcm.foot_vel[i] = WBCtrl::_model._vGC[linkID::FR][i];
 
-    //_wbc_data_lcm.foot_pos[i + 3] = _model._pGC[linkID::FL][i];
-    //_wbc_data_lcm.foot_vel[i + 3] = _model._vGC[linkID::FL][i];
+    WBCtrl::_wbc_data_lcm.foot_pos[i + 3] = WBCtrl::_model._pGC[linkID::FL][i];
+    WBCtrl::_wbc_data_lcm.foot_vel[i + 3] = WBCtrl::_model._vGC[linkID::FL][i];
 
-    //_wbc_data_lcm.foot_pos[i + 6] = _model._pGC[linkID::HR][i];
-    //_wbc_data_lcm.foot_vel[i + 6] = _model._vGC[linkID::HR][i];
+    WBCtrl::_wbc_data_lcm.foot_pos[i + 6] = WBCtrl::_model._pGC[linkID::HR][i];
+    WBCtrl::_wbc_data_lcm.foot_vel[i + 6] = WBCtrl::_model._vGC[linkID::HR][i];
 
-    //_wbc_data_lcm.foot_pos[i + 9] = _model._pGC[linkID::HL][i];
-    //_wbc_data_lcm.foot_vel[i + 9] = _model._vGC[linkID::HL][i];
+    WBCtrl::_wbc_data_lcm.foot_pos[i + 9] = WBCtrl::_model._pGC[linkID::HL][i];
+    WBCtrl::_wbc_data_lcm.foot_vel[i + 9] = WBCtrl::_model._vGC[linkID::HL][i];
 
 
-    //for(size_t leg(0); leg<4; ++leg){
-      //_wbc_data_lcm.Fr_des[3*leg + i] = Fr_des[leg][i];
-      //_wbc_data_lcm.Fr[3*leg + i] = _Fr_result[leg][i];
+    for(size_t leg(0); leg<4; ++leg){
+      WBCtrl::_wbc_data_lcm.Fr_des[3*leg + i] = _input_data->Fr_des[leg][i];
+      WBCtrl::_wbc_data_lcm.Fr[3*leg + i] = _Fr_result[leg][i];
 
-      //_wbc_data_lcm.foot_pos_cmd[3*leg + i] = pFoot_des[leg][i];
-      //_wbc_data_lcm.foot_vel_cmd[3*leg + i] = vFoot_des[leg][i];
-      //_wbc_data_lcm.foot_acc_cmd[3*leg + i] = aFoot_des[leg][i];
+      WBCtrl::_wbc_data_lcm.foot_pos_cmd[3*leg + i] = _input_data->pFoot_des[leg][i];
+      WBCtrl::_wbc_data_lcm.foot_vel_cmd[3*leg + i] = _input_data->vFoot_des[leg][i];
+      WBCtrl::_wbc_data_lcm.foot_acc_cmd[3*leg + i] = _input_data->aFoot_des[leg][i];
 
-      //_wbc_data_lcm.jpos_cmd[3*leg + i] = _des_jpos[3*leg + i];
-      //_wbc_data_lcm.jvel_cmd[3*leg + i] = _des_jvel[3*leg + i];
-      //_wbc_data_lcm.jacc_cmd[3*leg + i] = _des_jacc[3*leg + i];
+      WBCtrl::_wbc_data_lcm.jpos_cmd[3*leg + i] = WBCtrl::_des_jpos[3*leg + i];
+      WBCtrl::_wbc_data_lcm.jvel_cmd[3*leg + i] = WBCtrl::_des_jvel[3*leg + i];
+      WBCtrl::_wbc_data_lcm.jacc_cmd[3*leg + i] = WBCtrl::_des_jacc[3*leg + i];
 
-      //_wbc_data_lcm.jpos[3*leg + i] = _state.q[3*leg + i];
-      //_wbc_data_lcm.jvel[3*leg + i] = _state.qd[3*leg + i];
-    //}
+      WBCtrl::_wbc_data_lcm.jpos[3*leg + i] = WBCtrl::_state.q[3*leg + i];
+      WBCtrl::_wbc_data_lcm.jvel[3*leg + i] = WBCtrl::_state.qd[3*leg + i];
+    }
 
-    //_wbc_data_lcm.body_pos_cmd[i] = pBody_des[i];
-    //_wbc_data_lcm.body_vel_cmd[i] = vBody_des[i];
-    //_wbc_data_lcm.body_ori_cmd[i] = quat_des[i];
+    WBCtrl::_wbc_data_lcm.body_pos_cmd[i] = _input_data->pBody_des[i];
+    WBCtrl::_wbc_data_lcm.body_vel_cmd[i] = _input_data->vBody_des[i];
+    WBCtrl::_wbc_data_lcm.body_ori_cmd[i] = _quat_des[i];
 
-    //_wbc_data_lcm.body_pos[i] = _state.bodyPosition[i];
-    //_wbc_data_lcm.body_vel[i] = _state.bodyVelocity[i+3];
-    //_wbc_data_lcm.body_ori[i] = _state.bodyOrientation[i];
-  //}
-  //_wbc_data_lcm.body_ori_cmd[3] = quat_des[3];
-  //_wbc_data_lcm.body_ori[3] = _state.bodyOrientation[3];
+    WBCtrl::_wbc_data_lcm.body_pos[i] = WBCtrl::_state.bodyPosition[i];
+    WBCtrl::_wbc_data_lcm.body_vel[i] = WBCtrl::_state.bodyVelocity[i+3];
+    WBCtrl::_wbc_data_lcm.body_ori[i] = WBCtrl::_state.bodyOrientation[i];
+  }
+  WBCtrl::_wbc_data_lcm.body_ori_cmd[3] = _quat_des[3];
+  WBCtrl::_wbc_data_lcm.body_ori[3] = WBCtrl::_state.bodyOrientation[3];
 
   WBCtrl::_wbcLCM.publish("wbc_lcm_data", &(WBCtrl::_wbc_data_lcm) );
 }

@@ -10,6 +10,7 @@
 
 template <typename T>
 BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
+  WBC_Ctrl<T>(robot),
   _curr_time(0.),
       _step_width(0.07),
       _K_time(0.5),
@@ -25,15 +26,10 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
       _hr_foot_acc(3),
       _hl_foot_vel(3),
       _hl_foot_acc(3),
-      _total_mass(9.),
-      _des_jpos(cheetah::num_act_joint),
-      _des_jvel(cheetah::num_act_joint),
-      _des_jacc(cheetah::num_act_joint),
-      _wbcLCM(getLcmUrl(255)) {
+      _total_mass(9.){
 
   _vel_des.setZero();
-  _full_config = DVec<T>::Zero(cheetah::num_act_joint + 7);
-  _model = robot;
+  
   // Start from front swing & hind stance
   _b_front_swing = true;
   _b_hind_swing = false;
@@ -50,34 +46,21 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
   _hl_foot_vel.setZero();
   _hl_foot_acc.setZero();
 
-  _local_roll_task = new LocalRollTask<T>(&_model);
-  _body_ryrz_task = new BodyRyRzTask<T>(&_model);
+  _local_roll_task = new LocalRollTask<T>(&(WBCtrl::_model));
+  _body_ryrz_task = new BodyRyRzTask<T>(&(WBCtrl::_model));
 
-  _fr_foot_local_task = new LocalPosTask<T>(&_model, linkID::FR, linkID::FR_abd);
-  _fl_foot_local_task = new LocalPosTask<T>(&_model, linkID::FL, linkID::FL_abd);
-  _hr_foot_local_task = new LocalPosTask<T>(&_model, linkID::HR, linkID::HR_abd);
-  _hl_foot_local_task = new LocalPosTask<T>(&_model, linkID::HL, linkID::HL_abd);
+  _fr_foot_local_task = new LocalPosTask<T>(&(WBCtrl::_model), linkID::FR, linkID::FR_abd);
+  _fl_foot_local_task = new LocalPosTask<T>(&(WBCtrl::_model), linkID::FL, linkID::FL_abd);
+  _hr_foot_local_task = new LocalPosTask<T>(&(WBCtrl::_model), linkID::HR, linkID::HR_abd);
+  _hl_foot_local_task = new LocalPosTask<T>(&(WBCtrl::_model), linkID::HL, linkID::HL_abd);
 
-  _local_head_pos_task = new LocalHeadPosTask<T>(&_model);
-  _local_tail_pos_task = new LocalTailPosTask<T>(&_model);
+  _local_head_pos_task = new LocalHeadPosTask<T>(&(WBCtrl::_model));
+  _local_tail_pos_task = new LocalTailPosTask<T>(&(WBCtrl::_model));
 
-  _fr_contact = new SingleContact<T>(&_model, linkID::FR);
-  _fl_contact = new SingleContact<T>(&_model, linkID::FL);
-  _hr_contact = new SingleContact<T>(&_model, linkID::HR);
-  _hl_contact = new SingleContact<T>(&_model, linkID::HL);
-
-  _kin_wbc = new KinWBC<T>(cheetah::dim_config);
-  _wbic = new WBIC<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
-
-  _wbic_data = new WBIC_ExtraData<T>();
-  _wbic_data->_W_floating = DVec<T>::Constant(6, 5.);
-  //_wbic_data->_W_floating = DVec<T>::Constant(6, 0.01);
-
-  _Kp_joint.resize(cheetah::num_leg_joint, 4.);
-  _Kd_joint.resize(cheetah::num_leg_joint, 0.8);
-
-  _state.q = DVec<T>::Zero(cheetah::num_act_joint);
-  _state.qd = DVec<T>::Zero(cheetah::num_act_joint);
+  _fr_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::FR);
+  _fl_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::FL);
+  _hr_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::HR);
+  _hl_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::HL);
 }
 
 template <typename T>
@@ -132,10 +115,10 @@ void BoundingCtrl<T>::_StatusCheck() {
       _front_z_impulse.setCurve(apex, _front_current_stance);
       _front_previous_stance = _front_current_stance;
 
-      _ini_front_body = 0.5 * _model._pGC[linkID::FR_abd] +
-                        0.5 * _model._pGC[linkID::FL_abd] -
-                        0.5 * _model._pGC[linkID::FR] -
-                        0.5 * _model._pGC[linkID::FL];
+      _ini_front_body = 0.5 * (WBCtrl::_model)._pGC[linkID::FR_abd] +
+                        0.5 * (WBCtrl::_model)._pGC[linkID::FL_abd] -
+                        0.5 * (WBCtrl::_model)._pGC[linkID::FR] -
+                        0.5 * (WBCtrl::_model)._pGC[linkID::FL];
 
       _front_swing_time = _swing_time - 2. * dt;
 
@@ -163,10 +146,10 @@ void BoundingCtrl<T>::_StatusCheck() {
       _hind_z_impulse.setCurve(apex, _hind_current_stance);
       _hind_previous_stance = _hind_current_stance;
 
-      _ini_hind_body = 0.5 * _model._pGC[linkID::HR_abd] +
-                       0.5 * _model._pGC[linkID::HL_abd] -
-                       0.5 * _model._pGC[linkID::HR] -
-                       0.5 * _model._pGC[linkID::HL];
+      _ini_hind_body = 0.5 * (WBCtrl::_model)._pGC[linkID::HR_abd] +
+                       0.5 * (WBCtrl::_model)._pGC[linkID::HL_abd] -
+                       0.5 * (WBCtrl::_model)._pGC[linkID::HR] -
+                       0.5 * (WBCtrl::_model)._pGC[linkID::HL];
 
       // Hind time reset
       _hind_time = 0.;
@@ -178,10 +161,10 @@ void BoundingCtrl<T>::_StatusCheck() {
   if ((!_b_front_swing) && (_front_time > (_front_current_stance))) {
     _b_front_swing = true;
 
-    _ini_fr = _model._pGC[linkID::FR] -
-              _model._pGC[linkID::FR_abd];
-    _ini_fl = _model._pGC[linkID::FL] -
-              _model._pGC[linkID::FL_abd];
+    _ini_fr = (WBCtrl::_model)._pGC[linkID::FR] -
+              (WBCtrl::_model)._pGC[linkID::FR_abd];
+    _ini_fl = (WBCtrl::_model)._pGC[linkID::FL] -
+              (WBCtrl::_model)._pGC[linkID::FL_abd];
 
     _fin_fr = _vel_des * _stance_time / 2. * scale;
     _fin_fl = _vel_des * _stance_time / 2. * scale;
@@ -196,10 +179,10 @@ void BoundingCtrl<T>::_StatusCheck() {
   if ((!_b_hind_swing) && (_hind_time > (_hind_current_stance))) {
     _b_hind_swing = true;
 
-    _ini_hr = _model._pGC[linkID::HR] -
-              _model._pGC[linkID::HR_abd];
-    _ini_hl = _model._pGC[linkID::HL] -
-              _model._pGC[linkID::HL_abd];
+    _ini_hr = (WBCtrl::_model)._pGC[linkID::HR] -
+              (WBCtrl::_model)._pGC[linkID::HR_abd];
+    _ini_hl = (WBCtrl::_model)._pGC[linkID::HL] -
+              (WBCtrl::_model)._pGC[linkID::HL_abd];
 
     _fin_hr = _vel_des * _stance_time / 2. * scale;
     _fin_hl = _vel_des * _stance_time / 2. * scale;
@@ -215,30 +198,31 @@ void BoundingCtrl<T>::_StatusCheck() {
 template <typename T>
 void BoundingCtrl<T>::_setupTaskAndContactList() {
   if (_b_front_swing) {
-    _task_list.push_back(_fl_foot_local_task);
-    _task_list.push_back(_fr_foot_local_task);
+    WBCtrl::_task_list.push_back(_fl_foot_local_task);
+    WBCtrl::_task_list.push_back(_fr_foot_local_task);
   } else {
-    _task_list.push_back(_local_head_pos_task);
+    WBCtrl::_task_list.push_back(_local_head_pos_task);
 
     // Contact
-    _contact_list.push_back(_fr_contact);
-    _contact_list.push_back(_fl_contact);
+    WBCtrl::_contact_list.push_back(_fr_contact);
+    WBCtrl::_contact_list.push_back(_fl_contact);
   }
 
   if (_b_hind_swing) {
-    _task_list.push_back(_hr_foot_local_task);
-    _task_list.push_back(_hl_foot_local_task);
+    WBCtrl::_task_list.push_back(_hr_foot_local_task);
+    WBCtrl::_task_list.push_back(_hl_foot_local_task);
   } else {
-     _task_list.push_back(_local_tail_pos_task);
+    WBCtrl::_task_list.push_back(_local_tail_pos_task);
 
     // Contact
-    _contact_list.push_back(_hr_contact);
-    _contact_list.push_back(_hl_contact);
+    WBCtrl::_contact_list.push_back(_hr_contact);
+    WBCtrl::_contact_list.push_back(_hl_contact);
   }
 }
 
 template <typename T>
-void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
+void BoundingCtrl<T>::_ContactTaskUpdate(void * input, ControlFSMData<T> & data) {
+  (void)input;
 
   dt = data.controlParameters->controller_dt;
   _curr_time += dt;
@@ -249,16 +233,13 @@ void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
   static bool first_visit(true);
   if(first_visit){
     _curr_time = 0.;
-    FirstVisit();
+    _FirstVisit();
     first_visit = false;
   }
-
-  // Update Model
-  _UpdateModel(data._stateEstimator->getResult(), data._legController->datas);
-
+  
   // Clear all
-  _contact_list.clear();
-  _task_list.clear();
+  WBCtrl::_contact_list.clear();
+  WBCtrl::_task_list.clear();
 
   _front_time = _curr_time - _front_start_time;
   _hind_time = _curr_time - _hind_start_time;
@@ -270,8 +251,8 @@ void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
 
   if ((!_b_front_swing) || (!_b_hind_swing)) {
     _aerial_duration = 0.;
-    _task_list.push_back(_local_roll_task);
-    _task_list.push_back(_body_ryrz_task);
+    WBCtrl::_task_list.push_back(_local_roll_task);
+    WBCtrl::_task_list.push_back(_body_ryrz_task);
   } else {
     _aerial_duration += dt;
   }
@@ -281,56 +262,6 @@ void BoundingCtrl<T>::run(ControlFSMData<T> & data) {
   _contact_update();
   _body_task_setup();
   _leg_task_setup();
-  _compute_torque_wbic(_tau_ff);
-
-  // Update Leg Command
-  _UpdateLegCMD(data._legController->commands);
-}
-
-template<typename T>
-void BoundingCtrl<T>::_UpdateModel(const StateEstimate<T> & state_est, 
-    const LegControllerData<T> * leg_data){
-
-  _state.bodyOrientation = state_est.orientation;
-  _state.bodyPosition = state_est.position;
-
-  for(size_t i(0); i<3; ++i){
-    _state.bodyVelocity[i] = state_est.omegaBody[i];
-    _state.bodyVelocity[i+3] = state_est.vBody[i];
-
-    for(size_t leg(0); leg<4; ++leg){
-      _state.q[3*leg + i] = leg_data[leg].q[i];
-      _state.qd[3*leg + i] = leg_data[leg].qd[i];
-
-      _full_config[3*leg + i + 6] = _state.q[3*leg + i];
-    }
-  }
-  _model.setState(_state);
-
-  //_model.forwardKinematics();
-  _model.contactJacobians();
-  _model.massMatrix();
-  _model.generalizedGravityForce();
-  _model.generalizedCoriolisForce();
-
-  _A = _model.getMassMatrix();
-  _grav = _model.getGravityForce();
-  _coriolis = _model.getCoriolisForce();
-  _Ainv = _A.inverse();
-
-  //if(_iter%100 ==0){
-  //pretty_print(_state.bodyVelocity, std::cout, "body vel");
-  //}
-}
-
-template <typename T>
-void BoundingCtrl<T>::_compute_torque_wbic(DVec<T>& gamma) {
-  _kin_wbc->FindConfiguration(_full_config, _task_list, _contact_list,
-                              _des_jpos, _des_jvel, _des_jacc);
-
-  // WBIC
-  _wbic->UpdateSetting(_A, _Ainv, _coriolis, _grav);
-  _wbic->MakeTorque(gamma, _wbic_data);
 }
 
 template <typename T>
@@ -428,10 +359,10 @@ void BoundingCtrl<T>::_leg_task_setup() {
     _fl_foot_local_task->UpdateTask(&(_fl_foot_pos), _fl_foot_vel, _fl_foot_acc);
   } else {  // Front Leg Stance
 
-    _wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
+    WBCtrl::_wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
 
-    _wbic_data->_W_rf[2] = 50.0;
-    _wbic_data->_W_rf[5] = 50.0;
+    WBCtrl::_wbic_data->_W_rf[2] = 50.0;
+    WBCtrl::_wbic_data->_W_rf[5] = 50.0;
 
     Fr_des[2] = _front_z_impulse.getValue(_front_time);
     _fr_contact->setRFDesired(Fr_des);
@@ -481,19 +412,19 @@ void BoundingCtrl<T>::_leg_task_setup() {
 
   } else {
     if (_b_front_swing) {  // Hind stance only
-      _wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
-      _wbic_data->_W_rf[2] = 50.0;
-      _wbic_data->_W_rf[5] = 50.0;
+      WBCtrl::_wbic_data->_W_rf = DVec<T>::Constant(6, 1.0);
+      WBCtrl::_wbic_data->_W_rf[2] = 50.0;
+      WBCtrl::_wbic_data->_W_rf[5] = 50.0;
 
       Fr_des[2] = _hind_z_impulse.getValue(_hind_time);
       _hr_contact->setRFDesired(Fr_des);
       _hl_contact->setRFDesired(Fr_des);
     } else {  // Front and Hind stance
-      _wbic_data->_W_rf = DVec<T>::Constant(12, 1.0);
-      _wbic_data->_W_rf[2] = 50.0;
-      _wbic_data->_W_rf[5] = 50.0;
-      _wbic_data->_W_rf[8] = 50.0;
-      _wbic_data->_W_rf[11] = 50.0;
+      WBCtrl::_wbic_data->_W_rf = DVec<T>::Constant(12, 1.0);
+      WBCtrl::_wbic_data->_W_rf[2] = 50.0;
+      WBCtrl::_wbic_data->_W_rf[5] = 50.0;
+      WBCtrl::_wbic_data->_W_rf[8] = 50.0;
+      WBCtrl::_wbic_data->_W_rf[11] = 50.0;
 
       Fr_des[2] = _front_z_impulse.getValue(_front_time);
       _fr_contact->setRFDesired(Fr_des);
@@ -507,7 +438,7 @@ void BoundingCtrl<T>::_leg_task_setup() {
 }
 
 template <typename T>
-void BoundingCtrl<T>::FirstVisit() {
+void BoundingCtrl<T>::_FirstVisit() {
   T apex = _total_mass * 9.81 * 
     (_swing_time + _nominal_stance_time) /
            (2. * 2.0 * 0.7 * _nominal_stance_time);
@@ -528,18 +459,18 @@ void BoundingCtrl<T>::FirstVisit() {
 
   _aerial_duration = 0.;
 
-  _ini_fr = _model._pGC[linkID::FR] -
-            _model._pGC[linkID::FR_abd];
-  _ini_fl = _model._pGC[linkID::FL] -
-            _model._pGC[linkID::FL_abd];
+  _ini_fr = (WBCtrl::_model)._pGC[linkID::FR] -
+            (WBCtrl::_model)._pGC[linkID::FR_abd];
+  _ini_fl = (WBCtrl::_model)._pGC[linkID::FL] -
+            (WBCtrl::_model)._pGC[linkID::FL_abd];
 
   _fin_fr = _ini_fr + _vel_des * _nominal_stance_time / 2.;
   _fin_fl = _ini_fl + _vel_des * _nominal_stance_time / 2.;
 
-  _ini_hr = _model._pGC[linkID::HR] -
-            _model._pGC[linkID::HR_abd];
-  _ini_hl = _model._pGC[linkID::HL] -
-            _model._pGC[linkID::HL_abd];
+  _ini_hr = (WBCtrl::_model)._pGC[linkID::HR] -
+            (WBCtrl::_model)._pGC[linkID::HR_abd];
+  _ini_hl = (WBCtrl::_model)._pGC[linkID::HL] -
+            (WBCtrl::_model)._pGC[linkID::HL_abd];
 
   _fin_hr = _ini_hr + _vel_des * _nominal_stance_time / 2.;
   _fin_hl = _ini_hl + _vel_des * _nominal_stance_time / 2.;
@@ -547,66 +478,32 @@ void BoundingCtrl<T>::FirstVisit() {
   _front_start_time = _curr_time;
   _hind_start_time = _curr_time;
 
-  _ini_front_body = 0.5 * _model._pGC[linkID::FR_abd] +
-                    0.5 * _model._pGC[linkID::FL_abd] -
-                    0.5 * _model._pGC[linkID::FR] -
-                    0.5 * _model._pGC[linkID::FL];
+  _ini_front_body = 0.5 * (WBCtrl::_model)._pGC[linkID::FR_abd] +
+                    0.5 * (WBCtrl::_model)._pGC[linkID::FL_abd] -
+                    0.5 * (WBCtrl::_model)._pGC[linkID::FR] -
+                    0.5 * (WBCtrl::_model)._pGC[linkID::FL];
 
-  _ini_hind_body = 0.5 * _model._pGC[linkID::HR_abd] +
-                   0.5 * _model._pGC[linkID::HL_abd] -
-                   0.5 * _model._pGC[linkID::HR] -
-                   0.5 * _model._pGC[linkID::HL];
+  _ini_hind_body = 0.5 * (WBCtrl::_model)._pGC[linkID::HR_abd] +
+                   0.5 * (WBCtrl::_model)._pGC[linkID::HL_abd] -
+                   0.5 * (WBCtrl::_model)._pGC[linkID::HR] -
+                   0.5 * (WBCtrl::_model)._pGC[linkID::HL];
 }
 
 template <typename T>
 void BoundingCtrl<T>::_contact_update() {
   typename std::vector<ContactSpec<T> *>::iterator iter =
-      _contact_list.begin();
-  while (iter < _contact_list.end()) {
+      WBCtrl::_contact_list.begin();
+  while (iter < WBCtrl::_contact_list.end()) {
     (*iter)->UpdateContactSpec();
     ++iter;
   }
 }
 
 template <typename T>
-BoundingCtrl<T>::~BoundingCtrl() {
-  delete _kin_wbc;
-  delete _wbic;
-  delete _wbic_data;
-
-  typename std::vector<Task<T> *>::iterator iter = _task_list.begin();
-  while (iter < _task_list.end()) {
-    delete (*iter);
-    ++iter;
-  }
-  _task_list.clear();
-
-  typename std::vector<ContactSpec<T> *>::iterator iter2 = _contact_list.begin();
-  while (iter2 < _contact_list.end()) {
-    delete (*iter2);
-    ++iter2;
-  }
-  _contact_list.clear();
-}
+BoundingCtrl<T>::~BoundingCtrl() {  }
 
 template <typename T>
-void BoundingCtrl<T>::_lcm_data_sending() {
-}
-
-template<typename T>
-void BoundingCtrl<T>::_UpdateLegCMD(LegControllerCommand<T> * cmd){
-  for (size_t leg(0); leg < cheetah::num_leg; ++leg) {
-    cmd[leg].zero();
-    for (size_t jidx(0); jidx < cheetah::num_leg_joint; ++jidx) {
-      cmd[leg].tauFeedForward[jidx] = _tau_ff[cheetah::num_leg_joint * leg + jidx];
-      cmd[leg].qDes[jidx] = _des_jpos[cheetah::num_leg_joint * leg + jidx];
-      cmd[leg].qdDes[jidx] = _des_jvel[cheetah::num_leg_joint * leg + jidx];
-
-      cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
-      cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
-    }
-  }
-}
+void BoundingCtrl<T>::_lcm_data_sending() {}
 
 template class BoundingCtrl<double>;
 template class BoundingCtrl<float>;

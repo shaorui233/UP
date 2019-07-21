@@ -34,6 +34,20 @@ WBC_Ctrl<T>::~WBC_Ctrl(){
   delete _kin_wbc;
   delete _wbic;
   delete _wbic_data;
+
+  typename std::vector<Task<T> *>::iterator iter = _task_list.begin();
+  while (iter < _task_list.end()) {
+    delete (*iter);
+    ++iter;
+  }
+  _task_list.clear();
+
+  typename std::vector<ContactSpec<T> *>::iterator iter2 = _contact_list.begin();
+  while (iter2 < _contact_list.end()) {
+    delete (*iter2);
+    ++iter2;
+  }
+  _contact_list.clear();
 }
 
 template <typename T>

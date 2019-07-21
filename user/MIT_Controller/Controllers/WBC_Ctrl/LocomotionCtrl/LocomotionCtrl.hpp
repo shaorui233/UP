@@ -43,6 +43,7 @@ class LocomotionCtrl: public WBC_Ctrl<T>{
     ContactSpec<T>* _foot_contact[4];
 
     Vec3<T> _Fr_result[4];
+    Quat<T> _quat_des;
 };
 
 #endif
