@@ -25,6 +25,7 @@ class WBC_Ctrl{
 
   protected:
     virtual void _ContactTaskUpdate(void * input, ControlFSMData<T> & data) = 0;
+    virtual void _LCM_PublishData(){}
     void _UpdateModel(const StateEstimate<T> & state_est, const LegControllerData<T> * leg_data);
     void _UpdateLegCMD(LegControllerCommand<T> * cmd);
     void _ComputeWBC();

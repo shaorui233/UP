@@ -70,8 +70,6 @@ void LocomotionCtrl<T>::_ContactTaskUpdate(void* input, ControlFSMData<T> & data
       WBCtrl::_task_list.push_back(_foot_task[leg]);
     }
   }
-
-  _LCM_PublishData();
 }
 
 template<typename T>
@@ -99,10 +97,10 @@ void LocomotionCtrl<T>::_CleanUp(){
 
 template<typename T>
 void LocomotionCtrl<T>::_LCM_PublishData() {
-
   int iter(0);
   for(size_t leg(0); leg<4; ++leg){
     _Fr_result[leg].setZero();
+    
     if(_input_data->contact_state[leg]>0.){
       for(size_t i(0); i<3; ++i){
         _Fr_result[leg][i] = WBCtrl::_wbic_data->_Fr[3*iter + i];

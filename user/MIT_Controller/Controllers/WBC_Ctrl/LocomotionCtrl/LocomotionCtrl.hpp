@@ -32,7 +32,7 @@ class LocomotionCtrl: public WBC_Ctrl<T>{
         void * input, ControlFSMData<T> & data);
     void _ParameterSetup(const MIT_UserParameters* param);
     void _CleanUp();
-    void _LCM_PublishData();
+    virtual void _LCM_PublishData();
 
     LocomotionCtrlData<T>* _input_data;
 
