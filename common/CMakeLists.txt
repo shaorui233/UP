@@ -35,11 +35,6 @@ include_directories("../third-party/inih")       # inih includes
 include_directories("../third-party/osqp/include")       # osqp includes
 include_directories("../third-party/ParamHandler")
 include_directories(${CMAKE_BINARY_DIR})
-
-# Casadi include
-include_directories(SYSTEM "../third-party/casadi/")
-include_directories(${CMAKE_BINARY_DIR}/third-party/casadi/)
-
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
 file(GLOB_RECURSE test_sources "test/test_*.cpp")             # test cpp files
 
@@ -51,9 +46,21 @@ target_link_libraries(biomimetics inih dynacore_param_handler)
 add_executable(test-common ${test_sources} ${sources})
 target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread)
 target_link_libraries(test-common Goldfarb_Optimizer)
-#target_link_libraries(test-common WBC_state)
 target_link_libraries(test-common JCQP)
-target_link_libraries(test-common casadi)
+
+
+# Casadi include
+#include_directories(SYSTEM "../third-party/casadi/")
+#include_directories(${CMAKE_BINARY_DIR}/third-party/casadi/)
+#target_link_libraries(test-common casadi)
+
+if(IPOPT_OPTION)
+link_directories("../third-party/CoinIpopt/build/lib")
+include_directories(SYSTEM "../third-party/CoinIpopt/build/include/coin")
+find_library(ipopt NAMES libipopt.so PATHS
+  "../third-party/CoinIpopt/build/lib")
+target_link_libraries(test-common ${ipopt})# liblapack blas m dl ipoptamplinterface)
+endif(IPOPT_OPTION)
 
 add_test(NAME example_test COMMAND test-common)
 

@@ -16,6 +16,12 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 set(BUILD_TYPE_RELEASE TRUE)
 
+option(IPOPT_OPTION "ipopt option" OFF)
+if(IPOPT_OPTION)
+  message("**** Ipopt option is on ****")
+  add_definitions(-DIPOPT_OPTION)
+endif(IPOPT_OPTION)
+
 if(MINI_CHEETAH_BUILD)
   SET (THIS_COM "../" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake

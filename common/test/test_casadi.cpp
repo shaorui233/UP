@@ -1,6 +1,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#define CASADI_UNIT_TEST 0
+
+#if (CASADI_UNIT_TEST)
+
 #include <casadi/casadi.hpp>
 #include <ctime>
 #include <fstream>
@@ -491,3 +495,4 @@ TEST(casadi, jump_opt) {
     file.close();
   }
 }
+#endif

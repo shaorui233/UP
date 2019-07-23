@@ -57,6 +57,12 @@ BoundingCtrl<T>::BoundingCtrl(FloatingBaseModel<T> robot):
   _local_head_pos_task = new LocalHeadPosTask<T>(&(WBCtrl::_model));
   _local_tail_pos_task = new LocalTailPosTask<T>(&(WBCtrl::_model));
 
+  //((LocalHeadPosTask<T>*)_local_head_pos_task)->_Kp[0] = 0.;
+  //((LocalHeadPosTask<T>*)_local_head_pos_task)->_Kp[1] = 0.;
+
+  //((LocalTailPosTask<T>*)_local_tail_pos_task)->_Kp[0] = 0.;
+  //((LocalTailPosTask<T>*)_local_tail_pos_task)->_Kp[1] = 0.;
+
   _fr_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::FR);
   _fl_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::FL);
   _hr_contact = new SingleContact<T>(&(WBCtrl::_model), linkID::HR);
@@ -173,6 +179,8 @@ void BoundingCtrl<T>::_StatusCheck() {
     _fin_fl[0] += _front_foot_offset;
 
     _front_start_time = _curr_time;
+
+    _head_pos_ini = -0.5*_ini_fr - 0.5 * _ini_fl;
     _front_time = 0.;
   }
   // If stance time is over switch to swing
@@ -191,6 +199,7 @@ void BoundingCtrl<T>::_StatusCheck() {
     _fin_hl[0] += _hind_foot_offset;
 
     _hind_start_time = _curr_time;
+    _tail_pos_ini = -0.5*_ini_hr - 0.5 * _ini_hl;
     _hind_time = 0.;
   }
 }
@@ -226,8 +235,8 @@ void BoundingCtrl<T>::_ContactTaskUpdate(void * input, ControlFSMData<T> & data)
 
   dt = data.controlParameters->controller_dt;
   _curr_time += dt;
-  _vel_des[0] = data._desiredStateCommand->data.stateDes(6);
-  _vel_des[1] = data._desiredStateCommand->data.stateDes(7);
+  _vel_des[0] = data._desiredStateCommand->data.stateDes(6) ;
+  _vel_des[1] = data._desiredStateCommand->data.stateDes(7) ;
   _vel_des[2] = 0.;
 
   static bool first_visit(true);
@@ -294,9 +303,13 @@ void BoundingCtrl<T>::_body_task_setup() {
   acc_des.setZero();
 
   if (!_b_front_swing) { 
+    pos_des[0] = _head_pos_ini[0] + _vel_des[0] * _front_time;
+    pos_des[1] = _head_pos_ini[1] + _vel_des[1] * _front_time;
     _local_head_pos_task->UpdateTask(&pos_des, vel_des, acc_des);
   }
   if (!_b_hind_swing) {
+    pos_des[0] = _tail_pos_ini[0] + _vel_des[0] * _hind_time;
+    pos_des[1] = _tail_pos_ini[1] + _vel_des[1] * _hind_time;
     _local_tail_pos_task->UpdateTask(&pos_des, vel_des, acc_des);
   }
 }

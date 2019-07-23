@@ -4,6 +4,6 @@ add_subdirectory(inih)
 add_subdirectory(osqp)
 add_subdirectory(vectornav)
 add_subdirectory(JCQP)
-add_subdirectory(casadi)
+#add_subdirectory(casadi)
 add_subdirectory(qpOASES)
 

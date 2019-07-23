@@ -122,6 +122,9 @@ class BoundingCtrl : public WBC_Ctrl<T> {
   Vec3<T> _fin_hr;
   Vec3<T> _fin_hl;
 
+  Vec3<T> _head_pos_ini;
+  Vec3<T> _tail_pos_ini;
+
   Vec3<T> _vel_des;
   DVec<T> _Fr_des;
 };
