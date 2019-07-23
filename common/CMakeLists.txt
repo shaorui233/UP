@@ -60,6 +60,7 @@ include_directories(SYSTEM "../third-party/CoinIpopt/build/include/coin")
 find_library(ipopt NAMES libipopt.so PATHS
   "../third-party/CoinIpopt/build/lib")
 target_link_libraries(test-common ${ipopt})# liblapack blas m dl ipoptamplinterface)
+target_link_libraries(test-common WBC_Ctrl)# liblapack blas m dl ipoptamplinterface)
 endif(IPOPT_OPTION)
 
 add_test(NAME example_test COMMAND test-common)

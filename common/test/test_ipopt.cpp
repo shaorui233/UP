@@ -10,6 +10,7 @@
 #include <cassert>
 
 #include <Utilities/Timer.h>
+#include <./../user/MIT_Controller/Controllers/WBC_Ctrl/BoundingCtrl/JumpNLP.hpp>
 
 using namespace Ipopt;
 
@@ -290,7 +291,38 @@ TEST(ipopt, example){
     std::cout << "*** The final value of the objective function is " << final_obj << '.' << std::endl;
   }
   printf("computation time: %f\n", tick.getMs());
+}
+
+TEST(ipopt, jumpNLP){
+  Timer tick;
+  // Create an instance of your nlp...
+  SmartPtr<TNLP> jump_nlp = new JumpNLP();
+
+  // Create an instance of the IpoptApplication
+  //
+  // We are using the factory, since this allows us to compile this
+  // example with an Ipopt Windows DLL
+  static SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
+
+  // Initialize the IpoptApplication and process the options
+  ApplicationReturnStatus status;
+  status = app->Initialize();
+  app->Options()->SetIntegerValue("file_print_level", 0);
+  app->Options()->SetIntegerValue("print_level", 0);
+
+  status = app->OptimizeTNLP(jump_nlp);
+
+  if (status == Solve_Succeeded) {
+    // Retrieve some statistics about the solve
+    Index iter_count = app->Statistics()->IterationCount();
+    std::cout << "*** The problem solved in " << iter_count << " iterations!" << std::endl;
+
+    Number final_obj = app->Statistics()->FinalObjective();
+    std::cout << "*** The final value of the objective function is " << final_obj << '.' << std::endl;
+  }
+  printf("[jump nlp] computation time: %f\n", tick.getMs());
   exit(0);
 }
+
 
 #endif

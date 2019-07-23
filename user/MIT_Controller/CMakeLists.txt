@@ -11,10 +11,18 @@ include_directories("/usr/local/include/lcm/")   # lcm includes
 include_directories("/usr/local/include/eigen3")   # lcm includes
 include_directories(${CMAKE_BINARY_DIR})
 
-file(GLOB_RECURSE sources "*.cpp" "*.h" "*.hpp")
+file(GLOB_RECURSE sources 
+"FSM_States/*.cpp" 
+"Controllers/BalanceController/*.cpp" 
+"Controllers/convexMPC/*.cpp")
 
-add_executable(mit_ctrl ${sources})
+add_subdirectory(Controllers/WBC)
+add_subdirectory(Controllers/WBC_Ctrl)
+
+add_executable(mit_ctrl ${sources} MIT_Controller.cpp main.cpp)
 target_link_libraries(mit_ctrl robot biomimetics)
 target_link_libraries(mit_ctrl dynacore_param_handler qpOASES)
 target_link_libraries(mit_ctrl Goldfarb_Optimizer) 
+target_link_libraries(mit_ctrl WBC_Ctrl) 
+
 
