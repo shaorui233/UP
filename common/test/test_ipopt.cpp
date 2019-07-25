@@ -277,8 +277,8 @@ TEST(ipopt, example){
   // Initialize the IpoptApplication and process the options
   ApplicationReturnStatus status;
   status = app->Initialize();
-  app->Options()->SetIntegerValue("file_print_level", 0);
-  app->Options()->SetIntegerValue("print_level", 0);
+  //app->Options()->SetIntegerValue("file_print_level", 0);
+  //app->Options()->SetIntegerValue("print_level", 0);
 
   status = app->OptimizeTNLP(mynlp);
 
@@ -296,7 +296,7 @@ TEST(ipopt, example){
 TEST(ipopt, jumpNLP){
   Timer tick;
   // Create an instance of your nlp...
-  SmartPtr<TNLP> jump_nlp = new JumpNLP();
+  SmartPtr<TNLP> jump_nlp = new JumpNLP<double>();
 
   // Create an instance of the IpoptApplication
   //
@@ -307,8 +307,8 @@ TEST(ipopt, jumpNLP){
   // Initialize the IpoptApplication and process the options
   ApplicationReturnStatus status;
   status = app->Initialize();
-  app->Options()->SetIntegerValue("file_print_level", 0);
-  app->Options()->SetIntegerValue("print_level", 0);
+  //app->Options()->SetIntegerValue("file_print_level", 0);
+  //app->Options()->SetIntegerValue("print_level", 0);
 
   status = app->OptimizeTNLP(jump_nlp);
 

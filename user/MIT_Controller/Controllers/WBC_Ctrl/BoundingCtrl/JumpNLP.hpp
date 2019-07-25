@@ -4,14 +4,58 @@
 #ifdef IPOPT_OPTION
 
 #include <IpTNLP.hpp>
+#include "cppTypes.h"
 
 using namespace Ipopt;
 
+template<typename T>
 class JumpNLP: public TNLP{
   public:
-    JumpNLP(){}
+    JumpNLP();
     virtual ~JumpNLP(){}
 
+    // (x, z, theta, xdot, zdot, theta_dot)
+    int n_state = 6;
+    int stance_tick = 13;
+    int swing_tick = 15;
+    int n_step;
+
+    // state * (num_step + 1) + 
+    // front reaction force (x, z) + 
+    // hind reaction force (x, z) +
+    // hind foot location
+    int n_opt = 2;
+
+    // initial + 
+    // dynamics + 
+    // front foot friction cone (-mu*fr_z < fr_x < mu*fr_z) + 
+    // hind foot friction cone (-mu*fr_z < fr_x < mu*fr_z) + 
+    // leg length
+    int n_constr = 1;
+
+    T v_des = 1.;
+    T w_des = 1.0;
+    T theta_des = -0.05;
+    T dt = 0.01;
+
+    Vec3<T> ini_pos; // x, z, theta
+    Vec3<T> ini_vel; // d(x, z, theta)
+    Vec2<T> Fr_foot_loc; // foot(x, z)
+
+  protected:
+    T _half_body = 0.19;
+    T _leg_max = 0.3;
+    T _mu = 0.5;
+    T _grav = 9.81;
+    T _body_mass = 9.;
+    T _Iy = 0.271426;
+
+    T _min_height = 0.18;
+
+    void _print_problem_setup();
+
+
+  public:
     /* --------------------------IPOPT Methods-------------------------- */
 
     /**@name Overloaded from TNLP */

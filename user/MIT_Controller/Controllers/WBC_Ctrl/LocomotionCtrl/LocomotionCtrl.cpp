@@ -146,6 +146,8 @@ void LocomotionCtrl<T>::_LCM_PublishData() {
     WBCtrl::_wbc_data_lcm.body_pos[i] = WBCtrl::_state.bodyPosition[i];
     WBCtrl::_wbc_data_lcm.body_vel[i] = WBCtrl::_state.bodyVelocity[i+3];
     WBCtrl::_wbc_data_lcm.body_ori[i] = WBCtrl::_state.bodyOrientation[i];
+
+    WBCtrl::_wbc_data_lcm.body_ang_vel[i] = WBCtrl::_state.bodyVelocity[i];
   }
   WBCtrl::_wbc_data_lcm.body_ori_cmd[3] = _quat_des[3];
   WBCtrl::_wbc_data_lcm.body_ori[3] = WBCtrl::_state.bodyOrientation[3];

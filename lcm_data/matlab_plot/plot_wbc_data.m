@@ -3,12 +3,15 @@ clc
 clear all
 %%
 addpath('./functions')
-load('./../matlab_log/data_exp_run5_freq.mat')
-fig = fn_open_figures(7);
+%load('./../matlab_log/data_exp_run4.mat')
+%load('./../matlab_log/data_exp_run5_freq.mat')
+load('./../matlab_log/data_exp_bounding.mat')
+fig = fn_open_figures(8);
 
 %%
-st_idx = 40000;
-end_idx = st_idx + 1000; %length(wbc_lcm_data.lcm_timestamp);%-85000;
+st_idx = 4000;
+end_idx = length(wbc_lcm_data.lcm_timestamp);%-85000;
+%end_idx = st_idx + 1000; %length(wbc_lcm_data.lcm_timestamp);%-85000;
 %time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
 time = wbc_lcm_data.lcm_timestamp;
 
@@ -28,8 +31,15 @@ figure(fig(2))
 for i =1:12
     subplot(4,3,i)
 hold on
+j = mod(i,3);
+if j==0 
 plot(time(st_idx:end_idx), wbc_lcm_data.foot_pos(st_idx:end_idx,i))
 plot(time(st_idx:end_idx), wbc_lcm_data.foot_pos_cmd(st_idx:end_idx,i))
+else
+   plot(time(st_idx:end_idx), wbc_lcm_data.foot_pos(st_idx:end_idx,i) - wbc_lcm_data.body_pos(st_idx:end_idx,j))
+plot(time(st_idx:end_idx), wbc_lcm_data.foot_pos_cmd(st_idx:end_idx,i) - wbc_lcm_data.body_pos(st_idx:end_idx,j)) 
+end
+
 grid on
 axis tight
 end
@@ -66,6 +76,7 @@ for i = 1:3
     plot(time(st_idx:end_idx), wbc_lcm_data.body_vel_cmd(st_idx:end_idx,i))
     axis tight
 end
+xlabel('Body Vel')
 
 % Body ori
 figure(fig(6))
@@ -77,10 +88,20 @@ for i = 1:4
     axis tight
 end
 
-
+% Body Ang vel
 figure(fig(7))
+for i = 1:3
+    subplot(3,1,i)
+    hold on
+        plot(hw_vectornav.w(:,i))
+    axis tight
+end
+xlabel('body ang vel')
+
+figure(fig(8))
 
 for i = 1:3
     subplot(3,1,i)
     plot(state_estimator.rpy(:,i))
 end
+xlabel('RPY')

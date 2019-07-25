@@ -8,12 +8,13 @@ struct wbc_test_data_t
     float body_ori_cmd[4];
     float body_pos_cmd[3];
     float body_vel_cmd[3];
+    float body_ang_vel_cmd[3];
 
     float body_pos[3];
     float body_vel[3];
 
     float body_ori[4];
-    float body_ang_vel[4];
+    float body_ang_vel[3];
 
     float foot_pos_cmd[12];
     float foot_vel_cmd[12];
