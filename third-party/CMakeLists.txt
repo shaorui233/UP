@@ -6,4 +6,4 @@ add_subdirectory(vectornav)
 add_subdirectory(JCQP)
 #add_subdirectory(casadi)
 add_subdirectory(qpOASES)
-
+add_subdirectory(lord_imu)
