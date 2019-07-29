@@ -20,13 +20,24 @@ namespace Ui {
 class SimControlPanel;
 }
 
+enum class SimulationWindowState {
+  STOPPED,
+  RUNNING,
+  ERROR
+};
+
 class SimControlPanel : public QMainWindow {
   Q_OBJECT
 
  public:
   explicit SimControlPanel(QWidget* parent = nullptr);
-
   ~SimControlPanel();
+
+
+
+public slots:
+  void update_ui();
+  void errorCallback(std::string errorMessage);
 
  private slots:
 
@@ -70,8 +81,22 @@ class SimControlPanel : public QMainWindow {
 
  private:
   void updateUiEnable();
+  bool isStopped() {
+    return _state == SimulationWindowState::STOPPED;
+  }
+
+  bool isError() {
+    return _state == SimulationWindowState::ERROR;
+  }
+
+  bool isRunning() {
+    return _state == SimulationWindowState::RUNNING;
+  }
+
+
   std::thread _simThread;
-  bool _started = false;
+  //bool _started = false;
+  SimulationWindowState _state = SimulationWindowState::STOPPED;
   Ui::SimControlPanel* ui;
   Simulation* _simulation = nullptr;
   PeriodicTaskManager* _interfaceTaskManager = nullptr;

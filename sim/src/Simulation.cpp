@@ -16,8 +16,9 @@
  * the robot to connect. Use firstRun() instead!
  */
 Simulation::Simulation(RobotType robot, Graphics3D* window,
-                       SimulatorControlParameters& params, ControlParameters& userParams)
+                       SimulatorControlParameters& params, ControlParameters& userParams, std::function<void(void)> uiUpdate)
     : _simParams(params), _userParams(userParams), _tau(12) {
+  _uiUpdate = uiUpdate;
   // init parameters
   printf("[Simulation] Load parameters...\n");
   _simParams
@@ -242,12 +243,8 @@ void Simulation::sendControlParameter(const std::string& name,
   // wait for robot code to finish
   if (_sharedMemory().waitForRobotWithTimeout()) {
   } else {
-    _wantStop = true;
-    _running = false;
-    _connected = false;
-    printf(
-        "[ERROR] Timed out waiting for message from robot!  Did it crash?\n");
-    request.requestNumber = response.requestNumber;
+    handleControlError();
+    request.requestNumber = response.requestNumber; // so if we come back we won't be off by 1
     _robotMutex.unlock();
     return;
   }
@@ -259,6 +256,27 @@ void Simulation::sendControlParameter(const std::string& name,
   assert(response.requestNumber == request.requestNumber);
   assert(response.parameterKind == request.parameterKind);
   assert(std::string(response.name) == request.name);
+}
+
+/*!
+ * Report a control error.  This doesn't throw and exception and will return so you can clean up
+ */
+void Simulation::handleControlError() {
+  _wantStop = true;
+  _running = false;
+  _connected = false;
+  _uiUpdate();
+  if(!_sharedMemory().robotToSim.errorMessage[0]) {
+    printf(
+      "[ERROR] Control code timed-out!\n");
+    _errorCallback("Control code has stopped responding without giving an error message.\nIt has likely crashed - "
+                   "check the output of the control code for more information");
+
+  } else {
+    printf("[ERROR] Control code has an error!\n");
+    _errorCallback("Control code has an error:\n" + std::string(_sharedMemory().robotToSim.errorMessage));
+  }
+
 }
 
 /*!
@@ -284,6 +302,7 @@ void Simulation::firstRun() {
   }
   printf("Success! the robot is alive\n");
   _connected = true;
+  _uiUpdate();
   _robotMutex.unlock();
 
   // send all control parameters
@@ -395,6 +414,8 @@ void Simulation::lowLevelControl() {
   }
 }
 
+
+
 void Simulation::highLevelControl() {
   // send joystick data to robot:
   _sharedMemory().simToRobot.gamepadCommand = _window->getDriverCommand();
@@ -441,11 +462,7 @@ void Simulation::highLevelControl() {
   // next try waiting at most 1 second:
   if (_sharedMemory().waitForRobotWithTimeout()) {
   } else {
-    _wantStop = true;
-    _running = false;
-    _connected = false;
-    printf(
-        "[ERROR] Timed out waiting for message from robot!  Did it crash?\n");
+    handleControlError();
     _robotMutex.unlock();
     return;
   }
@@ -576,7 +593,8 @@ void Simulation::addCollisionMesh(double mu, double resti, double grid_size,
  * desired speed
  * @param dt
  */
-void Simulation::runAtSpeed(bool graphics) {
+void Simulation::runAtSpeed(std::function<void(std::string)> errorCallback, bool graphics) {
+  _errorCallback = errorCallback;
   firstRun();  // load the control parameters
 
   // if we requested to stop, stop.

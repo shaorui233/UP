@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include "ui_SimControlPanel.h"
+#include "JoystickTest.h"
 
 
 /*!
@@ -93,14 +94,47 @@ SimControlPanel::~SimControlPanel() {
 }
 
 /*!
+ * External notification of UI update needed
+ */
+void SimControlPanel::update_ui() {
+  updateUiEnable();
+}
+
+/*!
  * Enable/disable buttons as needed based on what is running
  */
 void SimControlPanel::updateUiEnable() {
-  ui->startButton->setEnabled(!_started);
-  ui->stopButton->setEnabled(_started);
-  ui->joystickButton->setEnabled(_started);
-  ui->robotTable->setEnabled(_started);
-  ui->goHomeButton->setEnabled(_started);
+  ui->startButton->setEnabled(!(isRunning() || isError()));
+  ui->stopButton->setEnabled(isRunning() || isError());
+  ui->joystickButton->setEnabled(isRunning() || isError());
+  ui->robotTable->setEnabled(isRunning() || isError());
+  ui->goHomeButton->setEnabled(isRunning() || isError());
+
+  switch(_state) {
+    case SimulationWindowState::STOPPED:
+      ui->simulatorStateLabel->setText("Simulator State: Stopped");
+      ui->stopButton->setText("Stop");
+      break;
+    case SimulationWindowState::RUNNING:
+      ui->simulatorStateLabel->setText("Simulator State: Running");
+      ui->stopButton->setText("Stop");
+      break;
+    case SimulationWindowState::ERROR:
+      ui->simulatorStateLabel->setText("Simulator State: Error");
+      ui->stopButton->setText("Reset Error");
+      break;
+  }
+
+  if((isRunning() || isError()) && _simulation) {
+    if(_simulation->isRobotConnected()) {
+      ui->simulatorConnectedLabel->setText("Sim Connection: Yes");
+    } else {
+      ui->simulatorConnectedLabel->setText("Sim Connection: No");
+    }
+  } else {
+    ui->simulatorConnectedLabel->setText("Sim Connection: N/A");
+  }
+
 }
 
 /*!
@@ -108,6 +142,15 @@ void SimControlPanel::updateUiEnable() {
  */
 void SimControlPanel::updateTerrainLabel() {
   ui->terrainFileLabel->setText(QString(_terrainFileName.c_str()));
+}
+
+/*!
+ * Simulation error
+ */
+void SimControlPanel::errorCallback(std::string errorMessage) {
+  _state = SimulationWindowState::ERROR; // go to error state
+  updateUiEnable(); // update UI
+  createErrorMessage("Simulation Error\n" + errorMessage); // display error dialog
 }
 
 /*!
@@ -143,17 +186,51 @@ void SimControlPanel::on_startButton_clicked() {
 
   if (_simulationMode) {
     // run a simulation
-    printf("[SimControlPanel] Initialize simulator...\n");
-    _simulation = new Simulation(robotType, _graphicsWindow, _parameters, _userParameters);
-    loadSimulationParameters(_simulation->getSimParams());
-    loadRobotParameters(_simulation->getRobotParams());
 
-    // terrain
-    printf("[SimControlParameter] Load terrain...\n");
-    _simulation->loadTerrainFile(_terrainFileName);
+    try {
+      printf("[SimControlPanel] Initialize simulator...\n");
+      _simulation = new Simulation(robotType, _graphicsWindow, _parameters, _userParameters,
+        // this will allow the simulation thread to poke us when there's a state change
+        [this](){
+        QMetaObject::invokeMethod(this,"update_ui");
+      });
+      loadSimulationParameters(_simulation->getSimParams());
+      loadRobotParameters(_simulation->getRobotParams());
+
+      // terrain
+      printf("[SimControlParameter] Load terrain...\n");
+      _simulation->loadTerrainFile(_terrainFileName);
+    } catch (std::exception& e) {
+      createErrorMessage("FATAL: Exception thrown during simulator setup\n" + std::string(e.what()));
+      throw e;
+    }
+
+
+
 
     // start sim
-    _simThread = std::thread([this]() { _simulation->runAtSpeed(); });
+    _simThread = std::thread(
+
+      // simulation function
+      [this]() {
+
+        // error callback function
+        std::function<void(std::string)> error_function = [this](std::string str) {
+          // Qt will take care of doing the call in the UI event loop
+          QMetaObject::invokeMethod(this, [=]() {
+            this->errorCallback(str);
+          });
+        };
+
+        try {
+          // pass error callback to simulator
+          _simulation->runAtSpeed(error_function);
+        } catch (std::exception &e) {
+          // also catch exceptions
+          error_function("Exception thrown in simulation thread: " + std::string(e.what()));
+        }
+
+      });
 
     // graphics start
     _graphicsWindow->setAnimating(true);
@@ -167,7 +244,7 @@ void SimControlPanel::on_startButton_clicked() {
     _graphicsWindow->setAnimating(true);
   }
 
-  _started = true;
+  _state = SimulationWindowState::RUNNING;
   updateUiEnable();
 }
 
@@ -197,7 +274,7 @@ void SimControlPanel::on_stopButton_clicked() {
   _robotInterface = nullptr;
   _interfaceTaskManager = nullptr;
 
-  _started = false;
+  _state = SimulationWindowState::STOPPED;
   updateUiEnable();
 }
 
@@ -235,7 +312,12 @@ void SimControlPanel::loadUserParameters(ControlParameters& params) {
  * Attempt to reset the joystick if a new one is connected
  */
 void SimControlPanel::on_joystickButton_clicked() {
-  _graphicsWindow->resetGameController();
+  if(isRunning()) {
+    _graphicsWindow->resetGameController();
+    JoystickTestWindow* window = new JoystickTestWindow(_graphicsWindow->getGameController());
+    window->exec();
+    delete window;
+  }
 }
 
 void SimControlPanel::on_driverButton_clicked() {}
@@ -511,7 +593,7 @@ void SimControlPanel::on_userControlTable_cellChanged(int row, int column) {
                     .c_str()));
     _ignoreTableCallbacks = false;
   } else {
-    if(_started) {
+    if(isRunning() || isError()) {
       if (_simulationMode) {
         if (_simulation && _simulation->isRobotConnected()) {
           _simulation->sendControlParameter(
@@ -546,7 +628,7 @@ void SimControlPanel::on_loadUserButton_clicked() {
   _userParameters.unlockMutex();
   _loadedUserSettings = true;
 
-  if(_started) {
+  if(isRunning() || isError()) {
     if (_simulationMode) {
       if (_simulation && _simulation->isRobotConnected()) {
         for (auto& kv : _userParameters.collection._map) {

@@ -14,7 +14,6 @@
 #include <iostream>
 
 #include <RobotController.h>
-#include "Utilities/SegfaultHandler.h"
 
 MasterConfig gMasterConfig;
 
@@ -29,7 +28,6 @@ void printUsage() {
 }
 
 int main_helper(int argc, char** argv, RobotController* ctrl) {
-  install_segfault_handler();
   if (argc != 3) {
     printUsage();
     return EXIT_FAILURE;
