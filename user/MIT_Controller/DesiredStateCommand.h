@@ -1,3 +1,10 @@
+/*!
+ * @file DesiredStateCommand.h
+ * @brief Logic to convert a joystick command into a desired trajectory for the robot
+ *
+ * This will generate a state trajectory which can easily be used for model predictive controllers
+ */
+
 /*========================= Gamepad Control ==========================*/
 /**
  *
@@ -5,12 +12,14 @@
 #ifndef DESIRED_STATE_COMMAND_H
 #define DESIRED_STATE_COMMAND_H
 
-#include <Controllers/StateEstimatorContainer.h>
-#include <cppTypes.h>
 #include <iostream>
+
+#include "Controllers/StateEstimatorContainer.h"
+#include "cppTypes.h"
+
 #include "SimUtilities/GamepadCommand.h"
-#include "../../../user/MIT_Controller/MIT_UserParameters.h"
-#include <gui_main_control_settings_t.hpp>
+#include "MIT_UserParameters.h"
+#include "gui_main_control_settings_t.hpp"
 
 /**
  *

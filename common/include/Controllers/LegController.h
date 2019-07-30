@@ -2,7 +2,7 @@
  *  @brief Common Leg Control Interface and Leg Control Algorithms
  *
  *  Implements low-level leg control for Mini Cheetah and Cheetah 3 Robots
- *  Abstracts away the difference between the SPIne and the TI Boards
+ *  Abstracts away the difference between the SPIne and the TI Boards (the low level leg control boards)
  *  All quantities are in the "leg frame" which has the same orientation as the
  * body frame, but is shifted so that 0,0,0 is at the ab/ad pivot (the "hip
  * frame").
@@ -11,14 +11,16 @@
 #ifndef PROJECT_LEGCONTROLLER_H
 #define PROJECT_LEGCONTROLLER_H
 
-#include <eigen3/Eigen/Dense>
+#include "cppTypes.h"
 #include "leg_control_command_lcmt.hpp"
 #include "leg_control_data_lcmt.hpp"
 #include "Dynamics/Quadruped.h"
 #include "SimUtilities/SpineBoard.h"
 #include "SimUtilities/ti_boardcontrol.h"
-#include "cppTypes.h"
 
+/*!
+ * Data sent from the control algorithm to the legs.
+ */
 template <typename T>
 struct LegControllerCommand {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -30,6 +32,9 @@ struct LegControllerCommand {
   Mat3<T> kpCartesian, kdCartesian, kpJoint, kdJoint;
 };
 
+/*!
+ * Data returned from the legs to the control code.
+ */
 template <typename T>
 struct LegControllerData {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -45,6 +50,9 @@ struct LegControllerData {
   Quadruped<T>* quadruped;
 };
 
+/*!
+ * Controller for 4 legs of a quadruped.  Works for both Mini Cheetah and Cheetah 3
+ */
 template <typename T>
 class LegController {
  public:

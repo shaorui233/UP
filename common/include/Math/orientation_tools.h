@@ -19,8 +19,6 @@
 #include "Math/MathUtilities.h"
 #include "cppTypes.h"
 
-#include <eigen3/Eigen/Dense>
-
 #include <cmath>
 #include <iostream>
 #include <type_traits>

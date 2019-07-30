@@ -1,11 +1,13 @@
-/*! @file CollisionBox.h
- *  @brief Collision logic for a box
+/*!
+ * @file CollisionBox.h
+ * @brief Collision logic for a box
  */
 
 #ifndef COLLISION_BOX_H
 #define COLLISION_BOX_H
 
 #include <vector>
+
 #include "Collision/Collision.h"
 #include "Utilities/utilities.h"
 #include "cppTypes.h"

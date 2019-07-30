@@ -9,7 +9,13 @@
 #include "cppTypes.h"
 #include "gamepad_lcmt.hpp"
 
+/*!
+ * The state of the gamepad
+ */
 struct GamepadCommand {
+  /*!
+   * Construct a gamepad and set to zero.
+   */
   GamepadCommand() { zero(); }
 
   bool leftBumper, rightBumper, leftTriggerButton, rightTriggerButton, back,
@@ -18,6 +24,9 @@ struct GamepadCommand {
   Vec2<float> leftStickAnalog, rightStickAnalog;
   float leftTriggerAnalog, rightTriggerAnalog;
 
+  /*!
+   * Set all values to zero
+   */
   void zero() {
     leftBumper = false;
     rightBumper = false;
@@ -38,6 +47,10 @@ struct GamepadCommand {
     rightStickAnalog = Vec2<float>::Zero();
   }
 
+  /*!
+   * Set the values from an LCM message
+   * @param lcmt : LCM message
+   */
   void set(const gamepad_lcmt* lcmt) {
     leftBumper = lcmt->leftBumper;
     rightBumper = lcmt->rightBumper;
@@ -59,6 +72,10 @@ struct GamepadCommand {
     }
   }
 
+  /*!
+   * Copy the values into an LCM message
+   * @param lcmt : LCM message
+   */
   void get(gamepad_lcmt* lcmt) {
     lcmt->leftBumper = leftBumper;
     lcmt->rightBumper = rightBumper;
@@ -83,6 +100,7 @@ struct GamepadCommand {
   /*!
    * The Logitech F310's seem to do a bad job of returning to zero exactly, so a
    * deadband around zero is useful when integrating joystick commands
+   * @param f : The deadband
    */
   void applyDeadband(float f) {
     eigenDeadband(leftStickAnalog, f);
@@ -91,6 +109,10 @@ struct GamepadCommand {
     rightTriggerAnalog = deadband(rightTriggerAnalog, f);
   }
 
+  /*!
+   * Represent as human-readable string.
+   * @return string representing state
+   */
   std::string toString() {
     std::string result =
         "Result:\nleftBumper: " + boolToString(leftBumper) + "\n" +

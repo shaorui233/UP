@@ -1,6 +1,17 @@
+/*!
+ * @file ContactImpulse.cpp
+ * @brief Implementation of impulse-based contact dynamics
+ *
+ * These are the default contact dynamics of the simulator.
+ */
+
 #include "Collision/ContactImpulse.h"
 #include "Utilities/Utilities_print.h"
 
+/*!
+ * Update the q_dot values of a model based on impulse based contact dynamics
+ * @param state : states to update
+ */
 template <typename T>
 void ContactImpulse<T>::UpdateQdot(FBModelState<T>& state) {
   CC::_nContact = CC::_CheckContact();

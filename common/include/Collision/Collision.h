@@ -2,7 +2,7 @@
  *  @brief Virtual class of Collision logic
  *
  * To make a child class, you need to implement virtual function,
- * ContactDetection
+ * ContactDetection, which checks if a point is in contact with the geometry
  */
 
 #ifndef COLLISION_H
@@ -27,9 +27,9 @@ class Collision {
   /*!
    * virtual function for contact detection
    * @param cp_pos : contact point in the global frame
-   * @return penetration : Size of the penetration to normal direction to the
+   * @param penetration : Size of the penetration to normal direction to the
    * collision object
-   * @return cp_frame : Local frame that has normal axis (z) perpendicular the
+   * @param cp_frame : Local frame that has normal axis (z) perpendicular the
    * contact surface
    */
   virtual bool ContactDetection(const Vec3<T>& cp_pos, T& penetration,

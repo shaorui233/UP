@@ -1,3 +1,8 @@
+/*!
+ * @file CollisionBox.cpp
+ * @brief Collision logic for a box
+ */
+
 #include "Collision/CollisionBox.h"
 #include "Utilities/utilities.h"
 

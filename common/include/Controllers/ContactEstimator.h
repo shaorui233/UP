@@ -13,13 +13,25 @@
 
 #include "Controllers/StateEstimatorContainer.h"
 
+/*!
+ * A "passthrough" contact estimator which returns the expected contact state
+ */
 template <typename T>
 class ContactEstimator : public GenericEstimator<T> {
  public:
+
+  /*!
+   * Set the estimated contact by copying the exptected contact state into the
+   * estimated contact state
+   */
   virtual void run() {
     this->_stateEstimatorData.result->contactEstimate =
         *this->_stateEstimatorData.contactPhase;
   }
+
+  /*!
+   * Set up the contact estimator
+   */
   virtual void setup() {}
 };
 

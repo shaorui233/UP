@@ -1,11 +1,17 @@
+/*! @file ti_boardcontrol.h
+ *  @brief TI Board Code, used to simulate the TI board
+ *
+ *  This is mostly a copy of the exact code that runs on the TI Board
+ */
+
 #ifndef TI_BOARDCONTROL_H
 #define TI_BOARDCONTROL_H
 
 #include "cTypes.h"
 
-// class for a simulated TI board
-// replaces the old TI board control code, which required keeping track of the
-// command/data state data.
+/*!
+ * Command sent to TI board
+ */
 struct TiBoardCommand {
   float position_des[3];
   float velocity_des[3];
@@ -17,6 +23,9 @@ struct TiBoardCommand {
   float max_torque;
 };
 
+/*!
+ * Data received from TI board
+ */
 struct TiBoardData {
   float position[3];
   float velocity[3];
@@ -30,6 +39,9 @@ struct TiBoardData {
   u32 microtime_ti;
 };
 
+/*!
+ * TI Board control code
+ */
 class TI_BoardControl {
  public:
   TI_BoardControl() = default;

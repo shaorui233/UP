@@ -5,15 +5,17 @@
 #include "SimUtilities/SpineBoard.h"
 #include <stdio.h>
 
+/*!
+ * Spine board setup (per board)
+ */
 void SpineBoard::init(float sideSign, s32 board) {
-  printf(
-      "[Cheetah Control] Hello! I am the SPINE board for leg %d (0-indexed) "
-      "with side sign %.3f\n",
-      board, sideSign);
   this->board_num = board;
   this->side_sign = sideSign;
 }
 
+/*!
+ * Reset all data for the board
+ */
 void SpineBoard::resetData() {
   if (data == nullptr) {
     printf(
@@ -32,6 +34,9 @@ void SpineBoard::resetData() {
   data->spi_driver_status = 0;
 }
 
+/*!
+ * Reset all commands for the board
+ */
 void SpineBoard::resetCommand() {
   if (cmd == nullptr) {
     printf(
@@ -59,6 +64,9 @@ void SpineBoard::resetCommand() {
   cmd->tau_knee_ff[board_num] = 0.f;
 }
 
+/*!
+ * Run spine board control
+ */
 void SpineBoard::run() {
   iter_counter++;
   if (cmd == nullptr || data == nullptr) {
@@ -126,10 +134,4 @@ void SpineBoard::run() {
     if (torque_out[i] < -torque_limits[i]) torque_out[i] = -torque_limits[i];
   }
 
-  //    if(! (iter_counter % 100))
-  //    {
-  //        printf("SPINE BOARD %d: flags: 0x%hx, torque out: %.3f %.3f %.3f\n",
-  //        board_num, cmd->flags[board_num],
-  //               torque_out[0], torque_out[1], torque_out[2]);
-  //    }
 }

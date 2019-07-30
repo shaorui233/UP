@@ -4,15 +4,19 @@
  * consider using Driver Inputs or adding to the Robot Debug Data instead.
  */
 
+#include <utility>
+
 #include "ControlParameters/ControlParameters.h"
 #include "INIReader.h"
 #include "ParamHandler.hpp"
 #include "Utilities/utilities.h"
 
-#include <utility>
 
 #define YAML_COLLECTION_NAME_KEY "__collection-name__"
 
+/*!
+ * Convert control parameter data types into strings
+ */
 std::string controlParameterValueKindToString(
     ControlParameterValueKind valueKind) {
   switch (valueKind) {
@@ -31,6 +35,9 @@ std::string controlParameterValueKindToString(
   }
 }
 
+/*!
+ * Convert a control parameter value into a human readable string.
+ */
 std::string controlParameterValueToString(ControlParameterValue value,
                                           ControlParameterValueKind kind) {
   std::string result;
@@ -64,6 +71,10 @@ std::string controlParameterValueToString(ControlParameterValue value,
   return result;
 }
 
+/*!
+ * Check if all parameters have had their value set
+ * @return if all set
+ */
 bool ControlParameterCollection::checkIfAllSet() {
   for (auto& kv : _map) {
     if (!kv.second->_set) {
@@ -73,12 +84,18 @@ bool ControlParameterCollection::checkIfAllSet() {
   return true;
 }
 
+/*!
+ * Mark all parameters as not set
+ */
 void ControlParameterCollection::clearAllSet() {
   for (auto& kv : _map) {
     kv.second->_set = false;
   }
 }
 
+/*!
+ * Remove all parameters
+ */
 void ControlParameterCollection::deleteAll() {
   for(auto& kv : _map) {
     delete kv.second;
@@ -86,6 +103,9 @@ void ControlParameterCollection::deleteAll() {
   _map.clear();
 }
 
+/*!
+ * Write a list of uninitialized parameters to a string
+ */
 std::string ControlParameters::generateUnitializedList() {
   std::string result;
   for (auto& kv : collection._map) {
@@ -97,6 +117,9 @@ std::string ControlParameters::generateUnitializedList() {
   return result;
 }
 
+/*!
+ * Print all parameters to a string that can be used for an INI file
+ */
 std::string ControlParameterCollection::printToIniString() {
   std::string result = ";; Generated on " + getCurrentTimeAndDate() + "\n";
 
@@ -154,6 +177,9 @@ std::string ControlParameterCollection::printToIniString() {
   return result;
 }
 
+/*!
+ * Print all parameters to a string which can be used as a YAML file
+ */
 std::string ControlParameterCollection::printToYamlString() {
   std::string result = "# Generated on " + getCurrentTimeAndDate() + "\n";
 
@@ -193,14 +219,26 @@ std::string ControlParameterCollection::printToYamlString() {
   return result;
 }
 
+/*!
+ * Write all parameters and values to an INI file
+ * @param path : the file name
+ */
 void ControlParameters::writeToIniFile(const std::string& path) {
   writeStringToFile(path, collection.printToIniString());
 }
 
+/*!
+ * Write all parameters and values to a YAML file
+ * @param path : the file name
+ */
 void ControlParameters::writeToYamlFile(const std::string& path) {
   writeStringToFile(path, collection.printToYamlString());
 }
 
+/*!
+ * Load values from an INI file
+ * @param path : the file name
+ */
 void ControlParameters::initializeFromIniFile(const std::string& path) {
   INIReader iniReader(path);
   if (iniReader.ParseError() < 0) {
@@ -254,6 +292,11 @@ void ControlParameters::initializeFromIniFile(const std::string& path) {
   }
 }
 
+/*!
+ * Determine the kind of a control parameter from a string representation
+ * @param str : the string (like "2", or "[2,3,3]")
+ * @return the kind
+ */
 ControlParameterValueKind getControlParameterValueKindFromString(const std::string& str) {
   if(str.find('[') != std::string::npos) {
     // vec type
@@ -277,6 +320,9 @@ ControlParameterValueKind getControlParameterValueKindFromString(const std::stri
   }
 }
 
+/*!
+ * Add and initialize parameters from a YAML file
+ */
 void ControlParameters::defineAndInitializeFromYamlFile(const std::string &path) {
   ParamHandler paramHandler(path);
 
@@ -362,6 +408,10 @@ void ControlParameters::defineAndInitializeFromYamlFile(const std::string &path)
   }
 }
 
+/*!
+ * Set parameters from a YAML file
+ * @param path : the file name
+ */
 void ControlParameters::initializeFromYamlFile(const std::string& path) {
   ParamHandler paramHandler(path);
 

@@ -1,14 +1,20 @@
+/*! @file PositionVelocityEstimator.cpp
+ *  @brief All State Estimation Algorithms
+ *
+ *  This file will contain all state estimation algorithms.
+ *  PositionVelocityEstimators should compute:
+ *  - body position/velocity in world/body frames
+ *  - foot positions/velocities in body/world frame
+ */
+
 #include "Controllers/PositionVelocityEstimator.h"
 
+/*!
+ * Initialize the state estimator
+ */
 template <typename T>
 void LinearKFPositionVelocityEstimator<T>::setup() {
-  printf("beans 0x%lx\n", (uint64_t)this);
-  printf("beans2 0x%lx\n", (uint64_t) & (this->_stateEstimatorData));
-  printf("beans3 0x%lx\n", (uint64_t)(this->_stateEstimatorData.parameters));
-  printf("beans4 0x%lx\n",
-         (uint64_t) & (this->_stateEstimatorData.parameters->controller_dt));
   T dt = this->_stateEstimatorData.parameters->controller_dt;
-  printf("Initialize LinearKF State Estimator with dt = %.3f\n", dt);
   _xhat.setZero();
   _ps.setZero();
   _vs.setZero();
@@ -50,6 +56,9 @@ void LinearKFPositionVelocityEstimator<T>::setup() {
 template <typename T>
 LinearKFPositionVelocityEstimator<T>::LinearKFPositionVelocityEstimator() {}
 
+/*!
+ * Run state estimator
+ */
 template <typename T>
 void LinearKFPositionVelocityEstimator<T>::run() {
   T process_noise_pimu =
@@ -175,7 +184,9 @@ template class LinearKFPositionVelocityEstimator<float>;
 template class LinearKFPositionVelocityEstimator<double>;
 
 
-
+/*!
+ * Run cheater estimator to copy cheater state into state estimate
+ */
 template <typename T>
 void CheaterPositionVelocityEstimator<T>::run() {
   this->_stateEstimatorData.result->position = this->_stateEstimatorData.cheaterState->position.template cast<T>();

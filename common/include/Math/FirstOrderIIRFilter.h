@@ -51,6 +51,9 @@ class FirstOrderIIRFilter {
    */
   T get() { return _state; }
 
+  /*!
+   * Reset the filter to zero.
+   */
   void reset() { _state *= T2(0); }
 
  private:

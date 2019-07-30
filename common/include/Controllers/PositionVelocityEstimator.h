@@ -12,6 +12,10 @@
 
 #include "Controllers/StateEstimatorContainer.h"
 
+/*!
+ * Position and velocity estimator based on a Kalman Filter.
+ * This is the algorithm used in Mini Cheetah and Cheetah 3.
+ */
 template <typename T>
 class LinearKFPositionVelocityEstimator : public GenericEstimator<T> {
  public:
@@ -32,6 +36,10 @@ class LinearKFPositionVelocityEstimator : public GenericEstimator<T> {
   Eigen::Matrix<T, 28, 18> _C;
 };
 
+/*!
+ * "Cheater" position and velocity estimator which will return the correct position and
+ * velocity when running in simulation.
+ */
 template<typename T>
 class CheaterPositionVelocityEstimator : public GenericEstimator<T> {
 public:

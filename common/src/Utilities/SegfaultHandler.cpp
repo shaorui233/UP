@@ -1,20 +1,29 @@
 /*!
- * Segfault handler to print stack trace on crash.
+ * @file SegfaultHandler.cpp
+ * @brief Handler for segfaults.
+ * This will catch a segfault, print a stack trace, and put an error code in the shared memory
+ * (if it is connected), so that the simulator can provide a reasonable error message for why the
+ * robot code disappears.
  */
 
-#include "include/Utilities/SegfaultHandler.h"
+#include "Utilities/SegfaultHandler.h"
+#include "Utilities/Utilities_print.h"
+
 #include <cstdio>
 #include <execinfo.h>
 #include <csignal>
 #include <cstdlib>
 #include <unistd.h>
 #include <cstring>
-#include <include/Utilities/Utilities_print.h>
+
 
 static char* error_message_buffer;
 
+/*!
+ * Called on segfault.  Prints stack trace, flushes output, and sends error code to sim
+ * @param sig : signal (should be SIGSEGV = 11)
+ */
 static void segfault_handler(int sig) {
-
   void* stack_frames[200];
   int size = backtrace(stack_frames, 200);
   fprintf_color(PrintColor::Red, stderr, "CRASH: Caught %d (%s)\n",
@@ -29,8 +38,9 @@ static void segfault_handler(int sig) {
   exit(1);
 }
 
-
-
+/*!
+ * Install the segfault handler function
+ */
 void install_segfault_handler(char* error_message) {
   signal(SIGSEGV, segfault_handler);
   error_message_buffer = error_message;

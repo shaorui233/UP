@@ -73,6 +73,12 @@ void DynamicsSimulator<T>::step(T dt, const DVec<T> &tau, T kp, T kd ) {
   _model.resetCalculationFlags();
 }
 
+/*!
+ * Run spring-damper collisions
+ * @param dt : timestep
+ * @param kp : spring constant
+ * @param kd : damping constant
+ */
 template <typename T>
 void DynamicsSimulator<T>::updateCollisions(T dt, T kp, T kd) {
   _model.forwardKinematics();

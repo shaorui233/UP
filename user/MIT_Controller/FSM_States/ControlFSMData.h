@@ -3,7 +3,7 @@
 
 #include <ControlParameters/RobotParameters.h>
 #include <MIT_UserParameters.h>
-#include "Controllers/DesiredStateCommand.h"
+#include "DesiredStateCommand.h"
 #include "Controllers/GaitScheduler.h"
 #include "Controllers/LegController.h"
 #include "Controllers/StateEstimatorContainer.h"

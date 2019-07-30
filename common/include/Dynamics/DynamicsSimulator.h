@@ -8,6 +8,7 @@
 #ifndef PROJECT_DYNAMICSSIMULATOR_H
 #define PROJECT_DYNAMICSSIMULATOR_H
 
+#include "cppTypes.h"
 #include "Collision/CollisionBox.h"
 #include "Collision/CollisionMesh.h"
 #include "Collision/CollisionPlane.h"
@@ -18,9 +19,10 @@
 
 using namespace ori;
 using namespace spatial;
-#include <eigen3/Eigen/Dense>
 
-
+/*!
+ * Parameters used to move the robot to a "home" position
+ */
 template <typename T>
 struct RobotHomingInfo {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -63,6 +65,10 @@ class DynamicsSimulator {
     _model.setState(state);  // force recalculate dynamics
   }
 
+  /*!
+   * Set the homing parameters of the simulator
+   * @param homing : homing parameters
+   */
   void setHoming(const RobotHomingInfo<T>& homing) {
     _homing = homing;
   }
@@ -88,19 +94,40 @@ class DynamicsSimulator {
     _model._externalForces = forces;
   }
 
-  // ! Add a collision plane.
+  /*!
+   * Add a collision plane (xy plane)
+   * @param mu : friction coefficient
+   * @param rest : restitution coefficient
+   * @param height : height of plane
+   */
   void addCollisionPlane(T mu, T rest, T height) {
     _contact_constr->AddCollision(new CollisionPlane<T>(mu, rest, height));
   }
 
-  // ! Add a collision box
+  /*!
+   * Add a box
+   * @param mu : friction coefficient
+   * @param rest : restitution coefficient
+   * @param depth : depth of box
+   * @param width : width of box
+   * @param height : height of box
+   * @param pos : position of center of box
+   * @param ori : orientation of box (rotation matrix)
+   */
   void addCollisionBox(T mu, T rest, T depth, T width, T height,
                        const Vec3<T>& pos, const Mat3<T>& ori) {
     _contact_constr->AddCollision(
         new CollisionBox<T>(mu, rest, depth, width, height, pos, ori));
   }
 
-  // ! Add a collision Mesh
+  /*!
+   * Add a height map mesh
+   * @param mu : friction coefficient
+   * @param rest : restitution coefficient
+   * @param grid_size : size of each grid (must be square)
+   * @param left_corner_loc : location of 0,0 coordinate
+   * @param height_map : height map data
+   */
   void addCollisionMesh(T mu, T rest, T grid_size,
                         const Vec3<T>& left_corner_loc,
                         const DMat<T>& height_map) {
@@ -108,13 +135,31 @@ class DynamicsSimulator {
         new CollisionMesh<T>(mu, rest, grid_size, left_corner_loc, height_map));
   }
 
+  /*!
+   * Get the number of bodies (not including rotors)
+   * @return number of bodies
+   */
   size_t getNumBodies() { return _model._nDof; }
 
+  /*!
+   * Get the number of maximum possible ground contact points
+   * @return The number of maximum possible ground contact points
+   */
   const size_t& getTotalNumGC() { return _model._nGroundContact; }
+
+  /*!
+   * Get the force at a given contact point
+   * @param idx : The index of the contact point
+   * @return The force at the contact point (global frame)
+   */
   const Vec3<T>& getContactForce(size_t idx) {
     return _contact_constr->getGCForce(idx);
   }
 
+  /*!
+   * Get the floating base model which is being simulated
+   * @return floating base model
+   */
   const FloatingBaseModel<T>& getModel() { return _model; }
 
  private:

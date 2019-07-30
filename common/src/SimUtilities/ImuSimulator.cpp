@@ -1,4 +1,4 @@
-/*! @file ImuSimulator.h
+/*! @file ImuSimulator.cpp
  *  @brief Simulated IMU
  */
 #include "SimUtilities/ImuSimulator.h"
@@ -6,6 +6,14 @@
 #include "Math/orientation_tools.h"
 #include "Utilities/utilities.h"
 
+/*!
+ * Compute acceleration that accelerometer will report
+ * @param robotState : state of model
+ * @param robotStateD : state derivative of model
+ * @param acc : result acceleration
+ * @param dist : random distribution
+ * @param R_body : orientation of body
+ */
 template <typename T>
 void ImuSimulator<T>::computeAcceleration(
     const FBModelState<T> &robotState,
@@ -23,7 +31,9 @@ void ImuSimulator<T>::computeAcceleration(
              .template cast<float>();
 }
 
-
+/*!
+ * Compute acceleration, gyro, and orientation readings from VectorNav
+ */
 template <typename T>
 void ImuSimulator<T>::updateVectornav(
     const FBModelState<T> &robotState,
@@ -33,11 +43,6 @@ void ImuSimulator<T>::updateVectornav(
       robotState.bodyOrientation.template cast<float>());
 
   Quat<float> ori_quat;
-  // printf("imu ori: %f, %f, %f, %f\n",
-  // robotState.bodyOrientation[0],
-  // robotState.bodyOrientation[1],
-  // robotState.bodyOrientation[2],
-  // robotState.bodyOrientation[3] );
 
   // acceleration
   computeAcceleration(robotState, robotStateD, data->accelerometer,
@@ -53,15 +58,9 @@ void ImuSimulator<T>::updateVectornav(
     Vec3<float> omegaNoise;
     fillEigenWithRandom(omegaNoise, _mt, _vectornavQuatDistribution);
     Quat<float> floatQuat = robotState.bodyOrientation.template cast<float>();
-    // data->quat = integrateQuat(floatQuat, omegaNoise, 1.0f);
     ori_quat = integrateQuat(floatQuat, omegaNoise, 1.0f);
-    // printf("imu noised ori: %f, %f, %f, %f\n",
-    // robotState.bodyOrientation[0],
-    // robotState.bodyOrientation[1],
-    // robotState.bodyOrientation[2],
-    // robotState.bodyOrientation[3] );
+
   } else {
-    // data->quat = robotState.bodyOrientation.template cast<float>();
     ori_quat = robotState.bodyOrientation.template cast<float>();
   }
   data->quat[3] = ori_quat[0];
@@ -70,6 +69,9 @@ void ImuSimulator<T>::updateVectornav(
   data->quat[2] = ori_quat[3];
 }
 
+/*!
+ * Update cheater state from simulator state
+ */
 template <typename T>
 void ImuSimulator<T>::updateCheaterState(
     const FBModelState<T> &robotState,

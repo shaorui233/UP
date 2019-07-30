@@ -18,6 +18,9 @@
 
 #include <vector>
 
+/*!
+ * Basic parameters for a cheetah-shaped robot
+ */
 namespace cheetah {
 constexpr size_t num_act_joint = 12;
 constexpr size_t num_q = 19;
@@ -26,6 +29,9 @@ constexpr size_t num_leg = 4;
 constexpr size_t num_leg_joint = 3;
 }  // namespace cheetah
 
+/*!
+ * Link indices for cheetah-shaped robots
+ */
 namespace linkID {
 constexpr size_t FR = 9;   // Front Right Foot
 constexpr size_t FL = 11;  // Front Left Foot
@@ -70,6 +76,11 @@ class Quadruped {
   bool buildModel(FloatingBaseModel<T>& model);
   std::vector<ActuatorModel<T>> buildActuatorModels();
 
+  /*!
+   * Get if the i-th leg is on the left (+) or right (-) of the robot.
+   * @param leg : the leg index
+   * @return The side sign (-1 for right legs, +1 for left legs)
+   */
   static T getSideSign(int leg) {
     const T sideSigns[4] = {-1, 1, -1, 1};
     assert(leg >= 0 && leg < 4);
@@ -78,6 +89,7 @@ class Quadruped {
 
   /*!
    * Get location of the hip for the given leg in robot frame
+   * @param leg : the leg index
    */
   Vec3<T> getHipLocation(int leg) {
     assert(leg >= 0 && leg < 4);

@@ -3,7 +3,7 @@
  *
  */
 
-#include "Controllers/DesiredStateCommand.h"
+#include "DesiredStateCommand.h"
 
 /*=========================== Gait Data ===============================*/
 /**

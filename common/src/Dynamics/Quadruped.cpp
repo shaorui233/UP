@@ -221,6 +221,9 @@ Vec3<T> withLegSigns(const Eigen::MatrixBase<T2>& v, int legID) {
   }
 }
 
+/*!
+ * Build actuator models for a leg
+ */
 template <typename T>
 std::vector<ActuatorModel<T>> Quadruped<T>::buildActuatorModels() {
   std::vector<ActuatorModel<T>> models;

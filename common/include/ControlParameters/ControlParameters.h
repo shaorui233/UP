@@ -3,14 +3,11 @@
  *  These are designed to be updated infrequently.  For high frequency data,
  * consider using Driver Inputs or adding to the Robot Debug Data instead.
  *
- * ControlParameter: a single value, either a double, float, or s64.  Each
+ * ControlParameter: a single value, either a double, float, vec3, or s64.  Each
  * control parameter must have a unique name Control parameters know their type
  * as well as if they've been initialized or not ControlParameters must be
  * initialized, either from reading from a file, reading from LCM, or some other
- * way (TODO consider supporting Vec3's?) All control parameters must go in a
- * ControlParameters (for now, just robot settings and sim settings)
- *
- * TODO - what should happen when this fails?
+ * way
  *
  * See test_ControlParameters for an example of how this works
  */
@@ -31,6 +28,9 @@
   type name;                          \
   ControlParameter param_##name;
 
+/*!
+ * Data types supported for control parameters
+ */
 enum class ControlParameterValueKind : u64 {
   FLOAT = 0,
   DOUBLE = 1,
@@ -44,6 +44,9 @@ ControlParameterValueKind getControlParameterValueKindFromString(const std::stri
 std::string controlParameterValueKindToString(
     ControlParameterValueKind valueKind);
 
+/*!
+ * Pointer to control parameter data
+ */
 union ControlParameterValuePtr {
   float* f;
   double* d;
@@ -52,6 +55,9 @@ union ControlParameterValuePtr {
   double* vec3d;
 };
 
+/*!
+ * Value of a control parameter
+ */
 union ControlParameterValue {
   float f;
   double d;
@@ -74,8 +80,10 @@ class ControlParameterCollection {
 
   /*!
    * Use this to add a parameter for the first time in the
-   * RobotControlParameters or SimulatorControlParameters This should only be
-   * used during initialization of a ControlParameter
+   * RobotControlParameters or SimulatorControlParameters. This should only be
+   * used during initialization of a ControlParameter.
+   *
+   * Throws exception if you try to add a parameter twice.
    */
   void addParameter(ControlParameter* param, const std::string& name) {
     if (mapContains(_map, name)) {
@@ -83,7 +91,7 @@ class ControlParameterCollection {
           "[ERROR] ControlParameterCollection %s: tried to add parameter %s "
           "twice!\n",
           _name.c_str(), name.c_str());
-      throw std::runtime_error("control parameter error");
+      throw std::runtime_error("Control parameter error [" + _name + "]: parameter " + name + " appears twice!");
     }
     _map[name] = param;
   }
@@ -91,13 +99,14 @@ class ControlParameterCollection {
   /*!
    * Lookup a control parameter by its name.
    * This does not modify the set field of the control parameter!
+   *
+   * Throws exception if parameter isn't found
    */
   ControlParameter& lookup(const std::string& name) {
     if (mapContains(_map, name)) {
       return *_map[name];
     } else {
-      // for now:
-      throw std::runtime_error("parameter " + name +
+      throw std::runtime_error("Control parameter " + name +
                                " wasn't found in parameter collection " +
                                _name);
     }
@@ -117,12 +126,19 @@ class ControlParameterCollection {
   std::string _name;
 };
 
+/*!
+ * A single control parameter.  Note that this representation doesn't store the value, just a pointer
+ * to an existing variable.
+ */
 class ControlParameter {
  public:
+
   /*!
-   * Constructors for control parameters:
-   * Set the type and add to collection.
-   * Doesn't "initialize" the parameter - this must be done separately.
+   * Construct control parameter for a double
+   * @param name : name of parameter
+   * @param value : reference to value
+   * @param collection : collection to add to
+   * @param units : name of units
    */
   ControlParameter(const std::string& name, double& value,
                    ControlParameterCollection& collection,
@@ -135,6 +151,13 @@ class ControlParameter {
     collection.addParameter(this, name);
   }
 
+  /*!
+   * Construct control parameter for a float
+   * @param name : name of parameter
+   * @param value : reference to value
+   * @param collection : collection to add to
+   * @param units : name of units
+   */
   ControlParameter(const std::string& name, float& value,
                    ControlParameterCollection& collection,
                    const std::string& units = "") {
@@ -146,6 +169,13 @@ class ControlParameter {
     collection.addParameter(this, name);
   }
 
+  /*!
+   * Construct control parameter for an s64
+   * @param name : name of parameter
+   * @param value : reference to value
+   * @param collection : collection to add to
+   * @param units : name of units
+   */
   ControlParameter(const std::string& name, s64& value,
                    ControlParameterCollection& collection,
                    const std::string& units = "") {
@@ -157,6 +187,13 @@ class ControlParameter {
     collection.addParameter(this, name);
   }
 
+  /*!
+   * Construct control parameter for a list of 3 floats
+   * @param name : name of parameter
+   * @param value : reference to value
+   * @param collection : collection to add to
+   * @param units : name of units
+   */
   ControlParameter(const std::string& name, Vec3<float>& value,
                    ControlParameterCollection& collection,
                    const std::string& units = "") {
@@ -168,6 +205,13 @@ class ControlParameter {
     collection.addParameter(this, name);
   }
 
+  /*!
+   * Construct control parameter for a list of 3 doubles
+   * @param name : name of parameter
+   * @param value : reference to value
+   * @param collection : collection to add to
+   * @param units : name of units
+   */
   ControlParameter(const std::string& name, Vec3<double>& value,
                    ControlParameterCollection& collection,
                    const std::string& units = "") {
@@ -179,6 +223,12 @@ class ControlParameter {
     collection.addParameter(this, name);
   }
 
+  /*!
+   * Construct control parameter for a given type without
+   * adding it to a collection
+   * @param name : name of parameter
+   * @param kind : type of data to be stored
+   */
   ControlParameter(const std::string& name, ControlParameterValueKind kind) {
     _name = name;
     truncateName();
@@ -186,9 +236,13 @@ class ControlParameter {
     _value.vec3d = (double*)&_staticValue;
   }
 
+  /*!
+   * Make sure that the control parameter name is short enough to fit
+   * in the control parameter request message.
+   */
   void truncateName() {
     if (_name.length() > CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH) {
-      printf("[Error] name %s is too long, shortening to ", _name.c_str());
+      printf("[Error] control parameter name %s is too long, shortening to ", _name.c_str());
       _name.resize(CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH - 1);
       printf("%s\n", _name.c_str());
     }
@@ -208,7 +262,10 @@ class ControlParameter {
   }
 
 
-
+  /*!
+   * Set initial value of the control parameter.
+   * Checks to see that the types are correct
+   */
   void initializeFloat(float f) {
     if (_kind != ControlParameterValueKind::FLOAT) {
       throw std::runtime_error("Tried to initialize control parameter " +
@@ -218,6 +275,10 @@ class ControlParameter {
     *_value.f = f;
   }
 
+  /*!
+   * Set initial value of the control parameter.
+   * Checks to see that the types are correct
+   */
   void initializeInteger(s64 i) {
     if (_kind != ControlParameterValueKind::S64) {
       throw std::runtime_error("Tried to initialize control parameter " +
@@ -227,6 +288,10 @@ class ControlParameter {
     *_value.i = i;
   }
 
+  /*!
+   * Set initial value of the control parameter.
+   * Checks to see that the types are correct
+   */
   void initializeVec3f(const Vec3<float>& v) {
     if (_kind != ControlParameterValueKind::VEC3_FLOAT) {
       throw std::runtime_error("Tried to initialize control parameter " +
@@ -238,6 +303,10 @@ class ControlParameter {
     _value.vec3f[2] = v[2];
   }
 
+  /*!
+   * Set initial value of the control parameter.
+   * Checks to see that the types are correct
+   */
   void initializeVec3d(const Vec3<double>& v) {
     if (_kind != ControlParameterValueKind::VEC3_DOUBLE) {
       throw std::runtime_error("Tried to initialize control parameter " +
@@ -249,9 +318,15 @@ class ControlParameter {
     _value.vec3d[2] = v[2];
   }
 
+  /*!
+   * Set a control parameter by value.
+   * Performs type checking
+   * @param value : value to set
+   * @param kind : kind of the value
+   */
   void set(ControlParameterValue value, ControlParameterValueKind kind) {
     if (kind != _kind) {
-      throw std::runtime_error("type mismatch in set");
+      throw std::runtime_error("Control parameter type mismatch in set");
     }
     switch (kind) {
       case ControlParameterValueKind::FLOAT:
@@ -274,15 +349,21 @@ class ControlParameter {
         _value.vec3d[2] = value.vec3d[2];
         break;
       default:
-        throw std::runtime_error("invalid kind");
+        throw std::runtime_error("Control parameter invalid kind in set");
     }
     _set = true;
   }
 
+  /*!
+   * Get the value of a control parameter.  Does type checking - you must provide
+   * the correct type.
+   * @param kind : the kind of the control parameter
+   * @return the value of the control parameter
+   */
   ControlParameterValue get(ControlParameterValueKind kind) {
     ControlParameterValue value;
     if (kind != _kind) {
-      throw std::runtime_error("type mismatch in get");
+      throw std::runtime_error("Control parameter type mismatch in get");
     }
     switch (_kind) {
       case ControlParameterValueKind::FLOAT:
@@ -305,7 +386,7 @@ class ControlParameter {
         value.vec3d[2] = _value.vec3d[2];
         break;
       default:
-        throw std::runtime_error("invalid kind");
+        throw std::runtime_error("Control parameter invalid kind in get");
     }
     return value;
   }
@@ -345,6 +426,13 @@ class ControlParameter {
     return result;
   }
 
+  /*!
+   * Set the value of a control parameter from a string.
+   * Numbers are just numbers.
+   * Vec3's are like [1,2,3]
+   * @param value : the string representing the value
+   * @return if the set was successful
+   */
   bool setFromString(const std::string& value) {
     switch (_kind) {
       case ControlParameterValueKind::DOUBLE:
@@ -386,14 +474,16 @@ class ControlParameter {
 
 /*!
  * Parent class for groups of parameters
- * RobotParameters and SimulatorParameters inherit from this class
+ * RobotParameters and SimulatorParameters inherit from this class.
+ * This will track if all parameters are initialized so you are sure
+ * that the robot has received all parameters before starting
  */
 class ControlParameters {
  public:
   /*!
-   * Each control parameter group must have a unique name so the ini files don't
+   * Construct a control parameter group
+   * @param name : Each control parameter group must have a unique name so the ini files don't
    * mixed up
-   * @param name
    */
   ControlParameters(const std::string& name) : collection(name), _name(name) {}
 
@@ -403,30 +493,58 @@ class ControlParameters {
   bool isFullyInitialized() { return collection.checkIfAllSet(); }
 
   /*!
-   * Directly initialize a given control parameter
+   * Directly initialize a given control parameter by name.
+   * @param name : name of parameter to initialize
+   * @param d : double value to initialize with
    */
   void initializeDouble(const std::string& name, double d) {
     collection.lookup(name).initializeDouble(d);
   }
 
+  /*!
+   * Directly initialize a given control parameter by name.
+   * @param name : name of parameter to initialize
+   * @param f : float value to initialize with
+   */
   void initializeFloat(const std::string& name, float f) {
     collection.lookup(name).initializeFloat(f);
   }
 
+  /*!
+   * Directly initialize a given control parameter by name.
+   * @param name : name of parameter to initialize
+   * @param i : s64 value to initialize with
+   */
   void initializeInteger(const std::string& name, s64 i) {
     collection.lookup(name).initializeInteger(i);
   }
 
+  /*!
+   * Directly initialize a given control parameter by name.
+   * @param name : name of parameter to initialize
+   * @param v : list of 3 floats value to initialize with
+   */
   void initializeVec3f(const std::string& name, Vec3<float>& v) {
     collection.lookup(name).initializeVec3f(v);
   }
 
+  /*!
+   * Directly initialize a given control parameter by name.
+   * @param name : name of parameter to initialize
+   * @param v : list of 3 double value to initialize with
+   */
   void initializeVec3d(const std::string& name, Vec3<double>& v) {
     collection.lookup(name).initializeVec3d(v);
   }
 
+  /*!
+   * Lock the access mutex.  Control parameters are shared between UI, LCM, simulator, and robot threads
+   */
   void lockMutex() { _mutex.lock(); }
 
+  /*!
+   * Unlock the access mutex. Control parameters are shared between UI, LCM, simulator, and robot threads
+   */
   void unlockMutex() { _mutex.unlock(); }
 
   void writeToIniFile(const std::string& path);

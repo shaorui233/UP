@@ -1,7 +1,9 @@
 /*! @file RobotParameters.cpp
  *  @brief Declaration of various robot parameters
  *
- *  This class contains all the ControlParameters for the robot.
+ *  This class contains all the ControlParameters which are shared between all robot controllers
+ *  Currently there are some controlParameters that are specific to the MIT controllers here,
+ *  but these will be moved in the future
  */
 
 #ifndef PROJECT_ROBOTPARAMETERS_H
@@ -9,8 +11,15 @@
 
 #include "ControlParameters/ControlParameters.h"
 
+/*!
+ * ControlParameters shared between all robot controllers
+ */
 class RobotControlParameters : public ControlParameters {
  public:
+
+  /*!
+   * Construct RobotControlParameters
+   */
   RobotControlParameters()
       : ControlParameters("robot-parameters"),
         INIT_PARAMETER(myValue),

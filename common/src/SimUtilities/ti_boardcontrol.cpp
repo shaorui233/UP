@@ -1,16 +1,26 @@
+/*! @file ti_boardcontrol.cpp
+ *  @brief TI Board Code, used to simulate the TI board
+ *
+ *  This is mostly a copy of the exact code that runs on the TI Board
+ */
+
 #include "SimUtilities/ti_boardcontrol.h"
 
 #include <algorithm>
 #include <cmath>
 #include <iostream>
 
+/*!
+ * Initialize TI board
+ */
 void TI_BoardControl::init(float side_sign) {
-  std::cout << "[Cheetah Control] Hello! I am the TI board with side sign: "
-            << side_sign << "\n";
   this->_side_sign = side_sign;
   data = &data_structure;
 }
 
+/*!
+ * Set the leg link lengths (abad, hip, knee)
+ */
 void TI_BoardControl::set_link_lengths(float l1, float l2, float l3) {
   link_lengths_set = true;
   this->_l1 = l1;
@@ -18,6 +28,9 @@ void TI_BoardControl::set_link_lengths(float l1, float l2, float l3) {
   this->_l3 = l3;
 }
 
+/*!
+ * Reset data for this board
+ */
 void TI_BoardControl::reset_ti_board_data() {
   std::fill_n(data_structure.tau_des, 3, 0);
   data_structure.loop_count_ti = 0;
@@ -25,6 +38,9 @@ void TI_BoardControl::reset_ti_board_data() {
   data_structure.microtime_ti = 0;
 }
 
+/*!
+ * Reset command for this board
+ */
 void TI_BoardControl::reset_ti_board_command() {
   command.position_des[0] = 0;
   command.position_des[1] = 0;
@@ -36,6 +52,9 @@ void TI_BoardControl::reset_ti_board_command() {
   std::fill_n(data_structure.tau_des, 3, 0);
 }
 
+/*!
+ * Run TI board control
+ */
 void TI_BoardControl::run_ti_board_iteration() {
   if (!link_lengths_set) {
     std::cout << "[TI Board] Error.  Link lengths haven't been set.\n";
@@ -68,6 +87,22 @@ void TI_BoardControl::run_ti_board_iteration() {
   data->loop_count_ti += 1;
 }
 
+/*!
+ * Cartesian impedance control
+ * @param side_sign : which side of robot
+ * @param q  : joint position
+ * @param dq : joint velocity
+ * @param position_des : cartesian desired position
+ * @param velocity_des : cartesian desired velocity
+ * @param kp : cartesian stiffness
+ * @param kd : cartesian damping
+ * @param force_bias : cartesian force
+ * @param torque_bias : torque
+ * @param position : current position of foot
+ * @param velocity : current velocity of foot
+ * @param force : output force
+ * @param torque : output torque
+ */
 void TI_BoardControl::impedanceControl(
     const float side_sign, const float q[3], const float dq[3],
     const float position_des[3], const float velocity_des[3], const float kp[3],
@@ -94,19 +129,18 @@ void TI_BoardControl::impedanceControl(
               torque_bias[2];
 }
 
+/*!
+ * Kinematics and jacobian
+ * @param side_sign : side of leg
+ * @param q : joint positions
+ * @param dq : joint velocities
+ * @param p : position of foot
+ * @param v : velocity of foot
+ * @param J : jacobian output
+ */
 void TI_BoardControl::kinematics(const float side_sign, const float q[3],
                                  const float dq[3], float *p, float *v,
                                  float J[][3]) {
-  //    ti_flt l1 = 0.045;
-  //    ti_flt l2 = .342;
-  //    ti_flt l3 = .345;
-
-  //    if(get_cheetah() == 4)
-  //    {
-  //        l1 = .062;
-  //        l2 = .209;
-  //        l3 = .175;
-  //    }
 
   const float s1 = sin(q[0]), s2 = sin(q[1]), s3 = sin(q[2]);
   const float c1 = cos(q[0]), c2 = cos(q[1]), c3 = cos(q[2]);

@@ -1,5 +1,7 @@
 /*! @file SpineBoard.h
  *  @brief Spine Board Code, used to simulate the SpineBoard.
+ *
+ *  This is mostly a copy of the exact code that runs on the SpineBoard
  */
 
 #ifndef PROJECT_SPINEBOARD_H
@@ -7,6 +9,9 @@
 
 #include "cTypes.h"
 
+/*!
+ * Command to spine board
+ */
 struct SpiCommand {
   float q_des_abad[4];
   float q_des_hip[4];
@@ -31,6 +36,9 @@ struct SpiCommand {
   int32_t flags[4];
 };
 
+/*!
+ * Data from spine board
+ */
 struct SpiData {
   float q_abad[4];
   float q_hip[4];
@@ -42,6 +50,9 @@ struct SpiData {
   int32_t spi_driver_status;
 };
 
+/*!
+ * Spine board control logic
+ */
 class SpineBoard {
  public:
   SpineBoard() {}

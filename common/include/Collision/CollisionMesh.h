@@ -1,17 +1,19 @@
-/*! @file CollisionMesh.h
- *  @brief Collision logic for a mesh
+/*!
+ * @file CollisionMesh.h
+ * @brief Collision logic for a mesh/height map
  */
 
 #ifndef COLLISION_MESH_H
 #define COLLISION_MESH_H
 
 #include <vector>
+
 #include "Collision/Collision.h"
 #include "Utilities/utilities.h"
 #include "cppTypes.h"
 
 /*!
- * Class to represent box collision
+ * Class to represent mesh collision
  */
 template <typename T>
 class CollisionMesh : public Collision<T> {

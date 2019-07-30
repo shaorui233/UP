@@ -1,5 +1,5 @@
 /*! @file ImuSimulator.h
- *  @brief Simulated IMU
+ *  @brief Simulated IMU with noise
  */
 
 #ifndef PROJECT_IMUSIMULATOR_H
@@ -12,6 +12,9 @@
 
 #include <random>
 
+/*!
+ * Simulation of IMU
+ */
 template <typename T>
 class ImuSimulator {
  public:

@@ -1,5 +1,6 @@
-/*! @file ContactConstraint.h
- *  @brief Virtual class of Contact Constraint logic
+/*!
+ * @file ContactConstraint.h
+ * @brief Virtual class of Contact Constraint logic
  *
  * To make a child class, you need to implement virtual function,
  * UpdateExternalForces, UpdateQdot
@@ -9,6 +10,7 @@
 #define CONTACT_CONSTRAINT_H
 
 #include <iostream>
+
 #include "Collision/Collision.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "Utilities/Utilities_print.h"
@@ -16,9 +18,17 @@
 
 #define CC ContactConstraint<T>
 
+/*!
+ * Contact dynamics for a floating base model
+ */
 template <typename T>
 class ContactConstraint {
  public:
+
+  /*!
+   * Construct a contact model for the given floating base model
+   * @param model : FloatingBaseModel for the contact
+   */
   ContactConstraint(FloatingBaseModel<T>* model)
       : _nContact(0), _nCollision(0) {
     _model = model;
@@ -39,6 +49,7 @@ class ContactConstraint {
   }
 
   /*!
+   * Add external forces to the floating base model in response to collisions
    * Used for spring damper based contact constraint method
    * @param K : Spring constant
    * @param D : Damping constant
@@ -47,9 +58,9 @@ class ContactConstraint {
   virtual void UpdateExternalForces(T K, T D, T dt) = 0;
 
   /*!
+   * Adjust q_dot on the floating base model in response to collisions
    * Used for impulse based contact constraint method
    * @param state : full state of a floating system full state
-   * @return state : update velocity
    */
   virtual void UpdateQdot(FBModelState<T>& state) = 0;
 

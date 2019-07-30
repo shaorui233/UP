@@ -15,6 +15,9 @@
 #define MINI_CHEETAH_DEFAULT_PARAMETERS "/mini-cheetah-defaults.yaml"
 #define CHEETAH_3_DEFAULT_PARAMETERS "/cheetah-3-defaults.yaml"
 
+/*!
+ * Simulator specific control parameters
+ */
 class SimulatorControlParameters : public ControlParameters {
  public:
   SimulatorControlParameters()

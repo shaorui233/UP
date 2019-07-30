@@ -14,6 +14,9 @@
 
 #include "Controllers/StateEstimatorContainer.h"
 
+/*!
+ * "Cheater" estimator for orientation which always returns the correct value in simulation
+ */
 template <typename T>
 class CheaterOrientationEstimator : public GenericEstimator<T> {
  public:
@@ -21,6 +24,10 @@ class CheaterOrientationEstimator : public GenericEstimator<T> {
   virtual void setup() {}
 };
 
+/*!
+ * Estimator for the VectorNav IMU.  The VectorNav provides an orientation already and
+ * we just return that.
+ */
 template <typename T>
 class VectorNavOrientationEstimator : public GenericEstimator<T> {
  public:

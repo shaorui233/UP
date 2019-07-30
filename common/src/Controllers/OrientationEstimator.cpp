@@ -1,4 +1,4 @@
-/*! @file OrientationEstimator.h
+/*! @file OrientationEstimator.cpp
  *  @brief All Orientation Estimation Algorithms
  *
  *  This file will contain all orientation algorithms.
@@ -12,6 +12,10 @@
 
 #include "Controllers/OrientationEstimator.h"
 
+/*!
+ * Get quaternion, rotation matrix, angular velocity (body and world),
+ * rpy, acceleration (world, body) by copying from cheater state data
+ */
 template <typename T>
 void CheaterOrientationEstimator<T>::run() {
   this->_stateEstimatorData.result->orientation =
@@ -32,6 +36,10 @@ void CheaterOrientationEstimator<T>::run() {
       this->_stateEstimatorData.result->aBody;
 }
 
+/*!
+ * Get quaternion, rotation matrix, angular velocity (body and world),
+ * rpy, acceleration (world, body) from vector nav IMU
+ */
 template <typename T>
 void VectorNavOrientationEstimator<T>::run() {
   this->_stateEstimatorData.result->orientation[0] =

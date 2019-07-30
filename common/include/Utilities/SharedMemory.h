@@ -7,16 +7,18 @@
 #ifndef PROJECT_SHAREDMEMORY_H
 #define PROJECT_SHAREDMEMORY_H
 
-#include <fcntl.h> /* For O_* constants */
+#include "cTypes.h"
+
+#include <fcntl.h>
 #include <semaphore.h>
 #include <sys/mman.h>
-#include <sys/stat.h> /* For mode constants */
+#include <sys/stat.h>
 #include <unistd.h>
 #include <cassert>
 #include <cstring>
 #include <stdexcept>
 #include <string>
-#include "cTypes.h"
+
 
 #define DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME "development-simulator"
 

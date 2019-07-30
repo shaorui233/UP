@@ -18,14 +18,14 @@
 #ifndef LIBBIOMIMETICS_FLOATINGBASEMODEL_H
 #define LIBBIOMIMETICS_FLOATINGBASEMODEL_H
 
+#include <string>
+#include <vector>
+
 #include "Math/orientation_tools.h"
 #include "SpatialInertia.h"
 #include "spatial.h"
 
 #include <eigen3/Eigen/StdVector>
-
-#include <string>
-#include <vector>
 
 using std::vector;
 using namespace ori;
@@ -43,6 +43,9 @@ struct FBModelState {
   DVec<T> q;
   DVec<T> qd;
 
+  /*!
+   * Print the position of the body
+   */
   void print() const {
     printf("position: %.3f %.3f %.3f\n", bodyPosition[0], bodyPosition[1],
            bodyPosition[2]);
@@ -74,91 +77,43 @@ class FloatingBaseModel {
   FloatingBaseModel() : _gravity(0, 0, -9.81) {}
   ~FloatingBaseModel() {}
 
-  /*!
-   * Add floating base.  Must be the first body added, and there can only be one
-   */
   void addBase(const SpatialInertia<T>& inertia);
-
-  /*!
-   * Add floating base.  Must be the first body added, and there can only be one
-   */
   void addBase(T mass, const Vec3<T>& com, const Mat3<T>& I);
-
-  /*!
-   * Add a point for collisions
-   * @param bodyID   : body that the point belongs to (body 5 for floating base)
-   * @param location : location of point in body coordinates
-   * @param isFoot   : if the point is a foot or not.  Only feet have their
-   * Jacobian calculated on the robot
-   * @return collisionPointID of the new point
-   */
   int addGroundContactPoint(int bodyID, const Vec3<T>& location,
                             bool isFoot = false);
-
-  /*!
-   * Add bounding box collision points around a body.
-   * @param bodyId : Body to add
-   * @param dims   : Dimension of points
-   */
   void addGroundContactBoxPoints(int bodyId, const Vec3<T>& dims);
-
-  /*!
-   * Add a body to the tree
-   * @param inertia        : Inertia of body (body coords)
-   * @param rotorInertia   : Inertia of rotor (rotor coords)
-   * @param gearRatio      : Gear ratio.  >1 for a gear reduction
-   * @param parent         : Body ID of the link that the body is connected to
-   * @param jointType      : Type of joint
-   * @param jointAxis      : Axis of joint
-   * @param Xtree          : Location of joint
-   * @param Xrot           : Location of rotor
-   * @return               : bodyID
-   */
   int addBody(const SpatialInertia<T>& inertia,
               const SpatialInertia<T>& rotorInertia, T gearRatio, int parent,
               JointType jointType, CoordinateAxis jointAxis,
               const Mat6<T>& Xtree, const Mat6<T>& Xrot);
-
-  /*!
-   * Add a body to the tree
-   * @param inertia        : Inertia of body (body coords)
-   * @param rotorInertia   : Inertia of rotor (rotor coords)
-   * @param gearRatio      : Gear ratio.  >1 for a gear reduction
-   * @param parent         : Body ID of the link that the body is connected to
-   * @param jointType      : Type of joint
-   * @param jointAxis      : Axis of joint
-   * @param Xtree          : Location of joint
-   * @param Xrot           : Location of rotor
-   * @return               : bodyID
-   */
   int addBody(const MassProperties<T>& inertia,
               const MassProperties<T>& rotorInertia, T gearRatio, int parent,
               JointType jointType, CoordinateAxis jointAxis,
               const Mat6<T>& Xtree, const Mat6<T>& Xrot);
-
-  /*!
-   * Very simple to check to make sure the dimensions are correct
-   */
   void check();
-
-  /*!
-   * Total mass of all rotors
-   */
   T totalRotorMass();
-
-  /*!
-   * Total mass of all bodies which are not rotors
-   */
   T totalNonRotorMass();
 
+  /*!
+   * Get vector of parents, where parents[i] is the parent body of body i
+   * @return Vector of parents
+   */
   const std::vector<int>& getParentVector() { return _parents; }
 
+  /*!
+   * Get vector of body spatial inertias
+   * @return Vector of body spatial inertias
+   */
   const std::vector<SpatialInertia<T>,
                     Eigen::aligned_allocator<SpatialInertia<T>>>&
   getBodyInertiaVector() {
     return _Ibody;
   }
 
+  /*!
+   * Get vector of rotor spatial inertias
+   * @return Vector of rotor spatial inertias
+   */
   const std::vector<SpatialInertia<T>,
                     Eigen::aligned_allocator<SpatialInertia<T>>>&
   getRotorInertiaVector() {
@@ -170,6 +125,11 @@ class FloatingBaseModel {
    */
   void setGravity(Vec3<T>& g) { _gravity = g; }
 
+  /*!
+   * Set the flag to enable computing contact info for a given contact point
+   * @param gc_index : index of contact point
+   * @param flag : enable/disable contact calculation
+   */
   void setContactComputeFlag(size_t gc_index, bool flag) {
     _compute_contact_info[gc_index] = flag;
   }
@@ -188,6 +148,10 @@ class FloatingBaseModel {
 
   void resizeSystemMatricies();
 
+  /*!
+   * Update the state of the simulator, invalidating previous results
+   * @param state : the new state
+   */
   void setState(const FBModelState<T>& state) {
     _state = state;
 
@@ -196,6 +160,10 @@ class FloatingBaseModel {
 
     resetCalculationFlags();
   }
+
+  /*!
+   * Mark all previously calculated values as invalid
+   */
   void resetCalculationFlags() {
     _articulatedBodiesUpToDate = false;
     _kinematicsUpToDate = false;
@@ -204,6 +172,10 @@ class FloatingBaseModel {
     _accelerationsUpToDate = false;
   }
 
+  /*!
+   * Update the state derivative of the simulator, invalidating previous results.
+   * @param dState : the new state derivative
+   */
   void setDState(const FBModelStateDerivative<T>& dState) {
     _dState = dState;
     _accelerationsUpToDate = false;
@@ -258,13 +230,21 @@ class FloatingBaseModel {
 
   vector<bool> _compute_contact_info;
 
+  /*!
+   * Get the mass matrix for the system
+   */
   const DMat<T>& getMassMatrix() const { return _H; }
+
+  /*!
+   * Get the gravity term (generalized forces)
+   */
   const DVec<T>& getGravityForce() const { return _G; }
+
+  /*!
+   * Get the coriolis term (generalized forces)
+   */
   const DVec<T>& getCoriolisForce() const { return _Cqd; }
 
-  // void getPositionVelocity(
-  // const int & link_idx, const Vec3<T> & local_pos,
-  // Vec3<T> & link_pos, Vec3<T> & link_vel) const ;
 
   /// BEGIN ALGORITHM SUPPORT VARIABLES
   FBModelState<T> _state;
@@ -298,6 +278,9 @@ class FloatingBaseModel {
   void updateForcePropagators();
   void udpateQddEffects();
 
+  /*!
+   * Set all external forces to zero
+   */
   void resetExternalForces() {
     for (size_t i = 0; i < _nDof; i++) {
       _externalForces[i] = SVec<T>::Zero();

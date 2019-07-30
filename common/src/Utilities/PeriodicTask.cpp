@@ -4,19 +4,29 @@
  * Periodic tasks have a task manager, which measure how long they take to run.
  */
 
-#include "include/Utilities/PeriodicTask.h"
-#include <include/Utilities/Timer.h>
+#include "Utilities/PeriodicTask.h"
+#include "Utilities/Timer.h"
+#include "Utilities/Utilities_print.h"
+
 #include <sys/timerfd.h>
 #include <unistd.h>
 #include <cmath>
-#include "Utilities/Utilities_print.h"
 
+/*!
+ * Construct a new task within a TaskManager
+ * @param taskManager : Parent task manager
+ * @param period : how often to run
+ * @param name : name of task
+ */
 PeriodicTask::PeriodicTask(PeriodicTaskManager* taskManager, float period,
                            std::string name)
     : _period(period), _name(name) {
   taskManager->addTask(this);
 }
 
+/*!
+ * Begin running task
+ */
 void PeriodicTask::start() {
   if (_running) {
     printf("[PeriodicTask] Tried to start %s but it was already running!\n",
@@ -28,6 +38,9 @@ void PeriodicTask::start() {
   _thread = std::thread(&PeriodicTask::loopFunction, this);
 }
 
+/*!
+ * Stop running task
+ */
 void PeriodicTask::stop() {
   if (!_running) {
     printf("[PeriodicTask] Tried to stop %s but it wasn't running!\n",
@@ -41,15 +54,24 @@ void PeriodicTask::stop() {
   cleanup();
 }
 
+/*!
+ * If max period is more than 30% over desired period, it is slow
+ */
 bool PeriodicTask::isSlow() {
   return _maxPeriod > _period * 1.3f || _maxRuntime > _period;
 }
 
+/*!
+ * Reset max statistics
+ */
 void PeriodicTask::clearMax() {
   _maxPeriod = 0;
   _maxRuntime = 0;
 }
 
+/*!
+ * Print the status of this task in the table format
+ */
 void PeriodicTask::printStatus() {
   if (!_running) return;
   if (isSlow()) {
@@ -62,6 +84,9 @@ void PeriodicTask::printStatus() {
   }
 }
 
+/*!
+ * Call the task in a timed loop.  Uses a timerfd
+ */
 void PeriodicTask::loopFunction() {
   auto timerFd = timerfd_create(CLOCK_MONOTONIC, 0);
   int seconds = (int)_period;
@@ -95,10 +120,16 @@ void PeriodicTask::loopFunction() {
 
 PeriodicTaskManager::~PeriodicTaskManager() {}
 
+/*!
+ * Add a new task to a task manager
+ */
 void PeriodicTaskManager::addTask(PeriodicTask* task) {
   _tasks.push_back(task);
 }
 
+/*!
+ * Print the status of all tasks and rest max statistics
+ */
 void PeriodicTaskManager::printStatus() {
   printf("\n----------------------------TASKS----------------------------\n");
   printf("|%-20s|%-6s|%-6s|%-6s|%-6s|%-6s\n", "name", "rt", "rt-max", "T-des",
@@ -111,6 +142,9 @@ void PeriodicTaskManager::printStatus() {
   printf("-------------------------------------------------------------\n\n");
 }
 
+/*!
+ * Print only the slow tasks
+ */
 void PeriodicTaskManager::printStatusOfSlowTasks() {
   for (auto& task : _tasks) {
     if (task->isSlow()) {
@@ -120,6 +154,9 @@ void PeriodicTaskManager::printStatusOfSlowTasks() {
   }
 }
 
+/*!
+ * Stop all tasks
+ */
 void PeriodicTaskManager::stopAll() {
   for (auto& task : _tasks) {
     task->stop();

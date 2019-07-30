@@ -14,7 +14,7 @@
 #include <SimUtilities/IMUTypes.h>
 #include <gui_main_control_settings_t.hpp>
 #include "Controllers/ContactEstimator.h"
-#include "Controllers/DesiredStateCommand.h"
+#include "../../user/MIT_Controller/DesiredStateCommand.h"
 #include "Controllers/LegController.h"
 #include "Dynamics/Quadruped.h"
 #include "JPosInitializer.h"

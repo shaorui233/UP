@@ -8,8 +8,6 @@
  * frame").
  */
 
-#include <eigen3/Eigen/Dense>
-
 #include "Controllers/LegController.h"
 
 /*!
@@ -29,6 +27,9 @@ void LegControllerCommand<T>::zero() {
   kdJoint = Mat3<T>::Zero();
 }
 
+/*!
+ * Zero the leg data
+ */
 template <typename T>
 void LegControllerData<T>::zero() {
   q = Vec3<T>::Zero();
@@ -198,6 +199,9 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
   }
 }
 
+/*!
+ * Set LCM debug data from leg commands and data
+ */
 template<typename T>
 void LegController<T>::setLcm(leg_control_data_lcmt *lcmData, leg_control_command_lcmt *lcmCommand) {
     for(int leg = 0; leg < 4; leg++) {

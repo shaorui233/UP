@@ -83,7 +83,8 @@ class GenericEstimator {
 
 /*!
  * Main State Estimator Class
- * Contains all GenericEstimators
+ * Contains all GenericEstimators, and can run them
+ * Also updates visualizations
  */
 template <typename T>
 class StateEstimatorContainer {

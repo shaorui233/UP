@@ -1,3 +1,8 @@
+/*!
+ * @file Utilities_print.h
+ * @brief Common utilities for printing
+ */
+
 #ifndef PRINT_OUT_H
 #define PRINT_OUT_H
 
@@ -7,9 +12,9 @@
 #include <string>
 #include "cppTypes.h"
 
-/*
- * print out
- * */
+/*!
+ * Floating point value to string.
+ */
 template <typename T>
 std::string pretty_string(T vv) {
   static int const buflen(32);

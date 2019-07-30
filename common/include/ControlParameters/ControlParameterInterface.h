@@ -13,6 +13,9 @@
 #include <map>
 #include "ControlParameters.h"
 
+/*!
+ * Type of message to a control parameter collection
+ */
 enum class ControlParameterRequestKind {
   GET_ROBOT_PARAM_BY_NAME,
   SET_ROBOT_PARAM_BY_NAME,
@@ -23,6 +26,9 @@ enum class ControlParameterRequestKind {
 std::string controlParameterRequestKindToString(
     ControlParameterRequestKind request);
 
+/*!
+ * Data sent to a control parameter collection to request a get/set of a value
+ */
 struct ControlParameterRequest {
   char name[CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH] =
       "";  // name of the parameter to set/get
@@ -31,6 +37,10 @@ struct ControlParameterRequest {
   ControlParameterValueKind parameterKind;
   ControlParameterRequestKind requestKind;
 
+  /*!
+   * Convert to human-readable string
+   * @return : description of the request
+   */
   std::string toString() {
     std::string result = "Request(" + std::to_string(requestNumber) + ") " +
                          controlParameterRequestKindToString(requestKind) +
@@ -60,6 +70,9 @@ struct ControlParameterRequest {
   }
 };
 
+/*!
+ * Data sent from a control parameter collection in response to a request.
+ */
 struct ControlParameterResponse {
   char name[CONTROL_PARAMETER_MAXIMUM_NAME_LENGTH] = "";
   u64 requestNumber = UINT64_MAX;
@@ -68,12 +81,21 @@ struct ControlParameterResponse {
   ControlParameterValueKind parameterKind;
   ControlParameterRequestKind requestKind;
 
+  /*!
+   * Check if a response is a valid response to a given request
+   * @param request : the request
+   * @return is the response from the given request?
+   */
   bool isResponseTo(ControlParameterRequest& request) {
     return requestNumber == request.requestNumber &&
            requestKind == request.requestKind &&
            std::string(name) == std::string(request.name);
   }
 
+  /*!
+   * Convert to human-readable string
+   * @return : description of the response
+   */
   std::string toString() {
     std::string result = "Response(" + std::to_string(requestNumber) + ") " +
                          controlParameterRequestKindToString(requestKind) +

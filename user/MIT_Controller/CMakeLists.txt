@@ -11,7 +11,8 @@ include_directories("/usr/local/include/lcm/")   # lcm includes
 include_directories("/usr/local/include/eigen3")   # lcm includes
 include_directories(${CMAKE_BINARY_DIR})
 
-file(GLOB_RECURSE sources 
+file(GLOB_RECURSE sources
+"./*.cpp"
 "FSM_States/*.cpp" 
 "Controllers/BalanceController/*.cpp" 
 "Controllers/convexMPC/*.cpp")

@@ -1,3 +1,10 @@
+/*!
+ * @file CollisionPlane.cpp
+ * @brief Collision logic for an infinite plane
+ *
+ * Simplest collision, used for floor and global bounding box
+ */
+
 #include "Collision/CollisionPlane.h"
 
 /*!
