@@ -38,7 +38,8 @@ class RobotControlParameters : public ControlParameters {
         INIT_PARAMETER(foot_process_noise_position),
         INIT_PARAMETER(foot_sensor_noise_position),
         INIT_PARAMETER(foot_sensor_noise_velocity),
-        INIT_PARAMETER(foot_height_sensor_noise) {}
+        INIT_PARAMETER(foot_height_sensor_noise),
+        INIT_PARAMETER(use_rc){}
 
   DECLARE_PARAMETER(double, myValue)
   DECLARE_PARAMETER(double, control_mode)
@@ -59,6 +60,8 @@ class RobotControlParameters : public ControlParameters {
   DECLARE_PARAMETER(double, foot_sensor_noise_position)
   DECLARE_PARAMETER(double, foot_sensor_noise_velocity)
   DECLARE_PARAMETER(double, foot_height_sensor_noise)
+
+  DECLARE_PARAMETER(s64, use_rc);
 };
 
 #endif  // PROJECT_ROBOTPARAMETERS_H

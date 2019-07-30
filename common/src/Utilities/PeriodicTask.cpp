@@ -4,13 +4,14 @@
  * Periodic tasks have a task manager, which measure how long they take to run.
  */
 
+#include <sys/timerfd.h>
+#include <unistd.h>
+#include <cmath>
+
 #include "Utilities/PeriodicTask.h"
 #include "Utilities/Timer.h"
 #include "Utilities/Utilities_print.h"
 
-#include <sys/timerfd.h>
-#include <unistd.h>
-#include <cmath>
 
 /*!
  * Construct a new task within a TaskManager

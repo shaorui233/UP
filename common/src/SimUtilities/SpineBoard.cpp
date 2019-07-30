@@ -2,8 +2,9 @@
  *  @brief Spine Board Code, used to simulate the SpineBoard.
  */
 
-#include "SimUtilities/SpineBoard.h"
 #include <stdio.h>
+
+#include "SimUtilities/SpineBoard.h"
 
 /*!
  * Spine board setup (per board)

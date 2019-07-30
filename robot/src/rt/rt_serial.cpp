@@ -1,7 +1,8 @@
-/**
- * @file rt_imu.c
- * @brief Hardware interface for serial IMU
+/*!
+ * @file rt_serial.cpp
+ * @brief Serial port
  */
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -16,18 +17,13 @@
 #undef termios
 
 #include <termios.h>
-
-#include <errno.h>
 #include <math.h>
 #include <pthread.h>
-
 #include <stropts.h>
-
 #include <endian.h>
-
 #include <stdint.h>
 
-#include <rt/rt_serial.h>
+#include "rt/rt_serial.h"
 
 /**
  * @brief Configure serial port

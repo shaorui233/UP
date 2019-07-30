@@ -5,12 +5,12 @@
 #ifndef PROJECT_IMUSIMULATOR_H
 #define PROJECT_IMUSIMULATOR_H
 
+#include <random>
+
 #include "ControlParameters/SimulatorParameters.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "SimUtilities/IMUTypes.h"
 #include "cppTypes.h"
-
-#include <random>
 
 /*!
  * Simulation of IMU

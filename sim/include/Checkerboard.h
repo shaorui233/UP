@@ -7,10 +7,10 @@
 #ifndef PROJECT_CHECKERBOARD_H
 #define PROJECT_CHECKERBOARD_H
 
+#include <vector>
+
 #include "Colors.h"
 #include "cTypes.h"
-
-#include <vector>
 
 class Checkerboard {
  public:

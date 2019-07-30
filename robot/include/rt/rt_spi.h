@@ -1,3 +1,8 @@
+/*!
+ * @file rt_spi.h
+ * @brief SPI communication to spine board
+ */
+
 #ifndef _rt_spi
 #define _rt_spi
 
@@ -44,6 +49,9 @@ void spi_driver_run();
 spi_data_t* get_spi_data();
 spi_command_t* get_spi_command();
 
+/*!
+ * SPI command message
+ */
 typedef struct {
   float q_des_abad[2];
   float q_des_hip[2];
@@ -65,6 +73,9 @@ typedef struct {
 
 } spine_cmd_t;
 
+/*!
+ * SPI data message
+ */
 typedef struct {
   float q_abad[2];
   float q_hip[2];

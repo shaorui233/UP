@@ -1,13 +1,14 @@
-/*! @file SimulatorDriver.h
- *  @brief  The SimulatorDriver runs a RobotController and connects it to a
+/*! @file SimulationBridge.h
+ *  @brief  The SimulationBridge runs a RobotController and connects it to a
  * Simulator, using shared memory. It is the simulation version of the
- * HardwareDriver.
+ * HardwareBridge.
  */
 
 #ifndef PROJECT_SIMULATIONDRIVER_H
 #define PROJECT_SIMULATIONDRIVER_H
 
 #include <thread>
+
 #include "ControlParameters/RobotParameters.h"
 #include "RobotRunner.h"
 #include "SimUtilities/SimulatorMessage.h"

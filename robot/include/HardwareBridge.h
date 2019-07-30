@@ -12,14 +12,21 @@
 #define MAX_STACK_SIZE 16384  // 16KB  of stack
 #define TASK_PRIORITY 49      // linux priority, this is not the nice value
 
-#include <lcm-cpp.hpp>
 #include <string>
+#include <lcm-cpp.hpp>
+
 #include "RobotRunner.h"
 #include "Utilities/PeriodicTask.h"
 #include "control_parameter_request_lcmt.hpp"
 #include "control_parameter_respones_lcmt.hpp"
 #include "gamepad_lcmt.hpp"
 
+
+
+
+/*!
+ * Interface between robot and hardware
+ */
 class HardwareBridge {
  public:
   HardwareBridge(RobotController* robot_ctrl)
@@ -69,6 +76,9 @@ class HardwareBridge {
   int _port;
 };
 
+/*!
+ * Interface between robot and hardware specialized for Mini Cheetah
+ */
 class MiniCheetahHardwareBridge : public HardwareBridge {
  public:
   MiniCheetahHardwareBridge(RobotController* );

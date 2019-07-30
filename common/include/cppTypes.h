@@ -8,10 +8,9 @@
 #ifndef PROJECT_CPPTYPES_H
 #define PROJECT_CPPTYPES_H
 
-#include <eigen3/Eigen/Dense>
-
 #include <vector>
 #include "cTypes.h"
+#include <eigen3/Eigen/Dense>
 
 // Rotation Matrix
 template <typename T>

@@ -10,13 +10,14 @@
 #ifndef LIBBIOMIMETICS_QUADRUPED_H
 #define LIBBIOMIMETICS_QUADRUPED_H
 
+#include <vector>
 #include "Dynamics/ActuatorModel.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "Dynamics/SpatialInertia.h"
 
 #include <eigen3/Eigen/StdVector>
 
-#include <vector>
+
 
 /*!
  * Basic parameters for a cheetah-shaped robot

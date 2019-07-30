@@ -4,11 +4,11 @@
  *  This is mostly a copy of the exact code that runs on the TI Board
  */
 
-#include "SimUtilities/ti_boardcontrol.h"
-
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+
+#include "SimUtilities/ti_boardcontrol.h"
 
 /*!
  * Initialize TI board

@@ -8,13 +8,13 @@
 #ifndef PROJECT_ROBOTRUNNER_H
 #define PROJECT_ROBOTRUNNER_H
 
-#include <ControlParameters/ControlParameterInterface.h>
-#include <ControlParameters/RobotParameters.h>
-#include <Controllers/StateEstimatorContainer.h>
-#include <SimUtilities/IMUTypes.h>
-#include <gui_main_control_settings_t.hpp>
+#include "ControlParameters/ControlParameterInterface.h"
+#include "ControlParameters/RobotParameters.h"
+#include "Controllers/StateEstimatorContainer.h"
+#include "SimUtilities/IMUTypes.h"
+#include "gui_main_control_settings_t.hpp"
 #include "Controllers/ContactEstimator.h"
-#include "../../user/MIT_Controller/DesiredStateCommand.h"
+#include "Controllers/DesiredStateCommand.h"
 #include "Controllers/LegController.h"
 #include "Dynamics/Quadruped.h"
 #include "JPosInitializer.h"
@@ -24,7 +24,7 @@
 #include "Utilities/PeriodicTask.h"
 #include "cheetah_visualization_lcmt.hpp"
 #include "state_estimator_lcmt.hpp"
-#include <RobotController.h>
+#include "RobotController.h"
 #include <lcm-cpp.hpp>
 
 class RobotRunner : public PeriodicTask {

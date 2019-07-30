@@ -1,15 +1,21 @@
+/*!
+ * @file RobotRunner.cpp
+ * @brief Common framework for running robot controllers.
+ * This code is a common interface between control code and hardware/simulation
+ * for mini cheetah and cheetah 3
+ */
+
+#include <unistd.h>
+
 #include "RobotRunner.h"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/OrientationEstimator.h"
 #include "Dynamics/Cheetah3.h"
 #include "Dynamics/MiniCheetah.h"
-
-#include <Utilities/Utilities_print.h>
-#include <ParamHandler.hpp>
-#include <Utilities/Timer.h>
-#include <unistd.h>
-
-#include <Controllers/PositionVelocityEstimator.h>
+#include "Utilities/Utilities_print.h"
+#include "ParamHandler.hpp"
+#include "Utilities/Timer.h"
+#include "Controllers/PositionVelocityEstimator.h"
 #include "rt/rt_interface_lcm.h"
 
 RobotRunner::RobotRunner(RobotController* robot_ctrl, 
@@ -120,6 +126,9 @@ void RobotRunner::run() {
   finalizeStep();
 }
 
+/*!
+ * Before running user code, setup the leg control and estimators
+ */
 void RobotRunner::setupStep() {
   // Update the leg data
   if (robotType == RobotType::MINI_CHEETAH) {
@@ -155,6 +164,9 @@ void RobotRunner::setupStep() {
   // todo safety checks, sanity checks, etc...
 }
 
+/*!
+ * After the user code, send leg commands, update state estimate, and publish debug data
+ */
 void RobotRunner::finalizeStep() {
   if (robotType == RobotType::MINI_CHEETAH) {
     _legController->updateCommand(spiCommand);
@@ -171,6 +183,10 @@ void RobotRunner::finalizeStep() {
   _iterations++;
 }
 
+/*!
+ * Reset the state estimator in the given mode.
+ * @param cheaterMode
+ */
 void RobotRunner::initializeStateEstimator(bool cheaterMode) {
   _stateEstimator->removeAllEstimators();
   _stateEstimator->addEstimator<ContactEstimator<float>>();

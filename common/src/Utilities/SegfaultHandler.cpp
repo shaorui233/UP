@@ -6,8 +6,6 @@
  * robot code disappears.
  */
 
-#include "Utilities/SegfaultHandler.h"
-#include "Utilities/Utilities_print.h"
 
 #include <cstdio>
 #include <execinfo.h>
@@ -15,6 +13,10 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <cstring>
+
+#include "Utilities/SegfaultHandler.h"
+#include "Utilities/Utilities_print.h"
+
 
 
 static char* error_message_buffer;

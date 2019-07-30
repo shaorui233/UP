@@ -6,14 +6,13 @@
  * driver.
  */
 
-#include <HardwareBridge.h>
-#include "SimulationBridge.h"
-
-#include <main_helper.h>
 #include <cassert>
 #include <iostream>
 
-#include <RobotController.h>
+#include "HardwareBridge.h"
+#include "SimulationBridge.h"
+#include "main_helper.h"
+#include "RobotController.h"
 
 MasterConfig gMasterConfig;
 
@@ -27,6 +26,9 @@ void printUsage() {
       "robot\n");
 }
 
+/*!
+ * Setup and run the given robot controller
+ */
 int main_helper(int argc, char** argv, RobotController* ctrl) {
   if (argc != 3) {
     printUsage();

@@ -16,12 +16,12 @@
 #ifndef LIBBIOMIMETICS_ORIENTATION_TOOLS_H
 #define LIBBIOMIMETICS_ORIENTATION_TOOLS_H
 
-#include "Math/MathUtilities.h"
-#include "cppTypes.h"
-
 #include <cmath>
 #include <iostream>
 #include <type_traits>
+
+#include "Math/MathUtilities.h"
+#include "cppTypes.h"
 
 namespace ori {
 

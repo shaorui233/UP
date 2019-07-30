@@ -1,3 +1,8 @@
+/*!
+ * @file rt_sbus.h
+ * @brief Communication with RC controller receiver
+ */
+
 #ifndef _rt_sbus
 #define _rt_sbus
 

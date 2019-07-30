@@ -15,14 +15,14 @@
  * floating base don't do anything.
  */
 
-#include "Dynamics/FloatingBaseModel.h"
-#include "Math/orientation_tools.h"
-#include "Utilities/Utilities_print.h"
-
 #include <stdio.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include "Dynamics/FloatingBaseModel.h"
+#include "Math/orientation_tools.h"
+#include "Utilities/Utilities_print.h"
 
 using namespace ori;
 using namespace spatial;

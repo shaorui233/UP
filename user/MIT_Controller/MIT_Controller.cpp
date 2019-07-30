@@ -15,7 +15,7 @@ void MIT_Controller::initializeController() {
   _desiredStateCommand =
       new DesiredStateCommand<float>(_driverCommand,
           &main_control_settings,
-          &userParameters,
+          _controlParameters,
           _stateEstimate,
           _controlParameters->controller_dt);
 

@@ -1,16 +1,19 @@
-/*! @file SimulatorDriver.cpp
- *  @brief  The SimulatorDriver runs a RobotController and connects it to a
- * Simulator, using shared memory.
- *
+/*! @file SimulationBridge.cpp
+ *  @brief  The SimulationBridge runs a RobotController and connects it to a
+ * Simulator, using shared memory. It is the simulation version of the
+ * HardwareBridge.
  */
 
 #include "SimulationBridge.h"
-#include <gui_main_control_settings_t.hpp>
-#include <Utilities/SegfaultHandler.h>
+#include "gui_main_control_settings_t.hpp"
+#include "Utilities/SegfaultHandler.h"
 #include "Controllers/LegController.h"
 #include "rt/rt_interface_lcm.h"
 #include "rt/rt_sbus.h"
 
+/*!
+ * Connect to a simulation
+ */
 void SimulationBridge::run() {
   // init shared memory:
   _sharedMemory.attach(DEVELOPMENT_SIMULATOR_SHARED_MEMORY_NAME);
@@ -193,6 +196,9 @@ void SimulationBridge::handleControlParameters() {
   }
 }
 
+/*!
+ * Run the robot controller
+ */
 void SimulationBridge::runRobotControl() {
   if (_firstControllerRun) {
     printf("[Simulator Driver] First run of robot controller...\n");
@@ -249,6 +255,9 @@ void SimulationBridge::runRobotControl() {
   _robotRunner->run();
 }
 
+/*!
+ * Run the RC receive thread
+ */
 void SimulationBridge::run_sbus() {
   printf("[run_sbus] starting...\n");
   int port = init_sbus(true);  // Simulation

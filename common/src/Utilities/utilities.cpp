@@ -3,11 +3,13 @@
  * @brief Common utility functions
  */
 
-#include "Utilities/utilities.h"
 
 #include <ctime>
 #include <iomanip>
 #include <iostream>
+
+#include "Utilities/utilities.h"
+
 
 /*!
  * Write std::string to file with given name

@@ -18,7 +18,6 @@
 #include "cppTypes.h"
 
 #include "SimUtilities/GamepadCommand.h"
-#include "MIT_UserParameters.h"
 #include "gui_main_control_settings_t.hpp"
 
 /**
@@ -50,7 +49,7 @@ class DesiredStateCommand {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // Initialize with the GamepadCommand struct
   DesiredStateCommand(GamepadCommand* command, gui_main_control_settings_t* rc_command,
-                      MIT_UserParameters* _parameters,
+                      RobotControlParameters* _parameters,
       StateEstimate<T>* sEstimate, float _dt) {
     gamepadCommand = command;
     rcCommand = rc_command;
@@ -95,7 +94,7 @@ class DesiredStateCommand {
   GamepadCommand* gamepadCommand;
   gui_main_control_settings_t* rcCommand;
   StateEstimate<T>* stateEstimate;
-  MIT_UserParameters* parameters;
+  RobotControlParameters* parameters;
 
 
   // Dynamics matrix for discrete time approximation

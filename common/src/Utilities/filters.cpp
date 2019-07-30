@@ -1,8 +1,9 @@
-#include "Utilities/filters.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "Utilities/filters.h"
 
 #define BUDDA_Q_SCALE 6.f
 

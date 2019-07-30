@@ -1,12 +1,21 @@
+/*!
+ * @file RobotController.h
+ * @brief Parent class of user robot controllers.
+ * This is an interface between the control code and the common hardware code
+ */
+
 #ifndef ROBOT_CONTROLLER_H
 #define ROBOT_CONTROLLER_H
 
 #include "Controllers/LegController.h"
 #include "Dynamics/FloatingBaseModel.h"
-#include <Controllers/StateEstimatorContainer.h>
-#include <SimUtilities/VisualizationData.h>
+#include "Controllers/StateEstimatorContainer.h"
+#include "SimUtilities/VisualizationData.h"
 #include "SimUtilities/GamepadCommand.h"
 
+/*!
+ * Parent class of user robot controllers
+ */
 class RobotController{
   friend class RobotRunner;
 public:

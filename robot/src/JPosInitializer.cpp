@@ -1,6 +1,11 @@
+/*!
+ * @file JPosInitializer.cpp
+ * @brief Controller to initialize the position of the legs on power-on
+ */
+
 #include "JPosInitializer.h"
-#include <Utilities/Utilities_print.h>
-#include <ParamHandler/ParamHandler.hpp>
+#include "Utilities/Utilities_print.h"
+#include "ParamHandler/ParamHandler.hpp"
 #include <Configuration.h>
 
 template <typename T>

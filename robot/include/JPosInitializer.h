@@ -1,10 +1,18 @@
+/*!
+ * @file JPosInitializer.h
+ * @brief Controller to initialize the position of the legs on power-on
+ */
+
 #ifndef JPOS_INITIALIZER
 #define JPOS_INITIALIZER
 
-#include <Controllers/LegController.h>
-#include <Dynamics/Quadruped.h>
-#include <Utilities/BSplineBasic.h>
+#include "Controllers/LegController.h"
+#include "Dynamics/Quadruped.h"
+#include "Utilities/BSplineBasic.h"
 
+/*!
+ * Controller to initialize the position of the legs on power-on
+ */
 template <typename T>
 class JPosInitializer {
  public:
