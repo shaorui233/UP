@@ -9,11 +9,14 @@ use_wbc : 1
 #use_wbc : 0
 wbc_base_Fr_weight: 0.1
 
-Kp_body: [ 3, 3, 3 ]
-Kd_body: [50.0, 50.0, 50.0]
+Kp_body: [ 50.0, 50., 50. ]
+Kd_body: [ 3.0, 3.0, 3.0]
 
-Kp_ori: [ 3, 3, 3 ]
-Kd_ori: [50.0, 50.0, 50.0]
+Kp_ori: [ 50., 50., 50. ]
+Kd_ori: [ 3.0, 3.0, 3.0]
+
+Kp_foot: [ 200., 200., 200. ]
+Kd_foot: [ 5.0, 5.0, 5.0]
 
 Kp_joint: [4, 4, 4]
 Kd_joint: [0.8, 0.8, 0.8]

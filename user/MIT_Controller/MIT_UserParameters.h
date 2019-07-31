@@ -14,6 +14,8 @@ public:
         INIT_PARAMETER(Kd_body),
         INIT_PARAMETER(Kp_ori),
         INIT_PARAMETER(Kd_ori),
+        INIT_PARAMETER(Kp_foot),
+        INIT_PARAMETER(Kd_foot),
         INIT_PARAMETER(Kp_joint),
         INIT_PARAMETER(Kd_joint)
   {}
@@ -27,6 +29,9 @@ public:
 
   DECLARE_PARAMETER(Vec3<double>, Kp_ori);
   DECLARE_PARAMETER(Vec3<double>, Kd_ori);
+
+  DECLARE_PARAMETER(Vec3<double>, Kp_foot);
+  DECLARE_PARAMETER(Vec3<double>, Kd_foot);
 
   DECLARE_PARAMETER(Vec3<double>, Kp_joint);
   DECLARE_PARAMETER(Vec3<double>, Kd_joint);

@@ -63,12 +63,25 @@ void WBIC_Strict<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
   qddot_pre += JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
   Npre = Npre * (_eye - JtBar * JtPre);
 
-  // pretty_print(xddot, std::cout, "xddot");
-    // pretty_print(JtDotQdot, std::cout, "JtDotQdot");
-    // pretty_print(qddot_pre, std::cout, "qddot 2");
-    // pretty_print(Jt, std::cout, "Jt");
-    // pretty_print(JtPre, std::cout, "JtPre");
-    // pretty_print(JtBar, std::cout, "JtBar");
+  // Singular value check
+  DMat<T> M_check = WB::Sv_ * WB::A_ * Npre;
+  //DMat<T> M_check = WB::Sv_ * Npre;
+  Eigen::JacobiSVD<DMat<T> > svd(M_check, Eigen::ComputeThinU | Eigen::ComputeThinV);
+
+  for(int i(0); i<svd.singularValues().rows(); ++i){
+    if(svd.singularValues()[i] > 0.001) { 
+      printf("non singular!!\n"); 
+      pretty_print(svd.singularValues(), std::cout, "svd singular value");
+      pretty_print(Npre, std::cout, "Npre");
+      pretty_print(Jt, std::cout, "Jt");
+      pretty_print(_Jc, std::cout, "Jc");
+      pretty_print(WB::Sv_, std::cout, "Sv");
+      pretty_print(WB::A_, std::cout, "A");
+      pretty_print(M_check, std::cout, "M check");
+      exit(0);
+    }
+  }
+
 
   // Set equality constraints
   _SetEqualityConstraint(qddot_pre);
