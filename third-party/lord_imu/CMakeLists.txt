@@ -18,7 +18,6 @@ add_library(lord_imu SHARED
 
 
 
-add_executable(test
-        test/lord_test.cpp)
+add_executable(test_imu test/lord_test.cpp)
 
-target_link_libraries(test lord_imu)
+target_link_libraries(test_imu lord_imu)
