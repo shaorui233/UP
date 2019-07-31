@@ -12,7 +12,7 @@ WBIC_Strict<T>::WBIC_Strict(size_t num_qdot, const std::vector<ContactSpec<T>*>*
 
     _eye = DMat<T>::Identity(WB::num_qdot_, WB::num_qdot_);
     _eye_floating = DMat<T>::Identity(_dim_floating, _dim_floating);
-  }
+}
 
 template <typename T>
 void WBIC_Strict<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
@@ -51,7 +51,43 @@ void WBIC_Strict<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
   DMat<T> Jt, JtBar, JtPre;
   DVec<T> JtDotQdot, xddot;
 
-  for (size_t i(0); i < (*_task_list).size(); ++i) {
+  task = (*_task_list)[0];
+
+  task->getTaskJacobian(Jt);
+  task->getTaskJacobianDotQdot(JtDotQdot);
+  task->getCommand(xddot);
+
+  JtPre = Jt * Npre;
+  WB::_WeightedInverse(JtPre, WB::Ainv_, JtBar);
+
+  qddot_pre += JtBar * (xddot - JtDotQdot - Jt * qddot_pre);
+  Npre = Npre * (_eye - JtBar * JtPre);
+
+  // pretty_print(xddot, std::cout, "xddot");
+    // pretty_print(JtDotQdot, std::cout, "JtDotQdot");
+    // pretty_print(qddot_pre, std::cout, "qddot 2");
+    // pretty_print(Jt, std::cout, "Jt");
+    // pretty_print(JtPre, std::cout, "JtPre");
+    // pretty_print(JtBar, std::cout, "JtBar");
+
+  // Set equality constraints
+  _SetEqualityConstraint(qddot_pre);
+
+  // printf("G:\n");
+  // std::cout<<G<<std::endl;
+  // printf("g0:\n");
+  // std::cout<<g0<<std::endl;
+
+  // Optimization
+  // Timer timer;
+  T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
+  // std::cout<<"\n wbic old time: "<<timer.getMs()<<std::endl;
+  (void)f;
+
+  // pretty_print(qddot_pre, std::cout, "qddot_cmd");
+  for (size_t i(0); i < _dim_floating; ++i) qddot_pre[i] += z[i];
+
+  for (size_t i(1); i < (*_task_list).size(); ++i) {
     task = (*_task_list)[i];
 
     task->getTaskJacobian(Jt);
@@ -72,22 +108,6 @@ void WBIC_Strict<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
     // pretty_print(JtBar, std::cout, "JtBar");
   }
 
-  // Set equality constraints
-  _SetEqualityConstraint(qddot_pre);
-
-  // printf("G:\n");
-  // std::cout<<G<<std::endl;
-  // printf("g0:\n");
-  // std::cout<<g0<<std::endl;
-
-  // Optimization
-  // Timer timer;
-  T f = solve_quadprog(G, g0, CE, ce0, CI, ci0, z);
-  // std::cout<<"\n wbic old time: "<<timer.getMs()<<std::endl;
-  (void)f;
-
-  // pretty_print(qddot_pre, std::cout, "qddot_cmd");
-  for (size_t i(0); i < _dim_floating; ++i) qddot_pre[i] += z[i];
   _GetSolution(qddot_pre, cmd);
 
   _data->_opt_result = DVec<T>(_dim_opt);

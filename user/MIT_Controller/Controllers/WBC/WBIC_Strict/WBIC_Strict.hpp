@@ -23,6 +23,7 @@ class WBIC_Strict_ExtraData {
   ~WBIC_Strict_ExtraData() {}
 };
 
+// First task must be 6 dim Floating base task
 template <typename T>
 class WBIC_Strict : public WBC<T> {
  public:

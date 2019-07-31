@@ -1,15 +1,17 @@
 #include "LocomotionCtrl.hpp"
 #include <WBC_Ctrl/ContactSet/SingleContact.hpp>
-#include <WBC_Ctrl/TaskSet/BodyOriTask.hpp>
-#include <WBC_Ctrl/TaskSet/BodyPosTask.hpp>
+//#include <WBC_Ctrl/TaskSet/BodyOriTask.hpp>
+//#include <WBC_Ctrl/TaskSet/BodyPosTask.hpp>
+#include <WBC_Ctrl/TaskSet/BodyPostureTask.hpp>
 #include <WBC_Ctrl/TaskSet/LinkPosTask.hpp>
 
 template<typename T>
 LocomotionCtrl<T>::LocomotionCtrl(FloatingBaseModel<T> model):
   WBC_Ctrl<T>(model)
 {
-  _body_pos_task = new BodyPosTask<T>(&(WBCtrl::_model));
-  _body_ori_task = new BodyOriTask<T>(&(WBCtrl::_model));
+  //_body_pos_task = new BodyPosTask<T>(&(WBCtrl::_model));
+  //_body_ori_task = new BodyOriTask<T>(&(WBCtrl::_model));
+  _body_posture_task = new BodyPostureTask<T>(&(WBCtrl::_model));
 
 
   _foot_contact[0] = new SingleContact<T>(&(WBCtrl::_model), linkID::FR);
@@ -25,8 +27,9 @@ LocomotionCtrl<T>::LocomotionCtrl(FloatingBaseModel<T> model):
 
 template<typename T>
 LocomotionCtrl<T>::~LocomotionCtrl(){
-  delete _body_pos_task;
-  delete _body_ori_task;
+  //delete _body_pos_task;
+  //delete _body_ori_task;
+  delete _body_posture_task;
 
   for(size_t i (0); i<4; ++i){
     delete _foot_contact[i];
@@ -43,18 +46,37 @@ void LocomotionCtrl<T>::_ContactTaskUpdate(void* input, ControlFSMData<T> & data
   // Wash out the previous setup
   _CleanUp();
 
-  // Task & Contact Set
-  Vec3<T> zero_vec3; zero_vec3.setZero();
-
   _quat_des = ori::rpyToQuat(_input_data->pBody_RPY_des);
-  _body_ori_task->UpdateTask(&_quat_des, _input_data->vBody_Ori_des, zero_vec3);
-  _body_pos_task->UpdateTask(
-      &(_input_data->pBody_des), 
-      _input_data->vBody_des, 
-      _input_data->aBody_des);
 
-  WBCtrl::_task_list.push_back(_body_ori_task);
-  WBCtrl::_task_list.push_back(_body_pos_task);
+  //Vec3<T> zero_vec3; zero_vec3.setZero();
+  //_body_ori_task->UpdateTask(&_quat_des, _input_data->vBody_Ori_des, zero_vec3);
+  //_body_pos_task->UpdateTask(
+      //&(_input_data->pBody_des), 
+      //_input_data->vBody_des, 
+      //_input_data->aBody_des);
+
+  //WBCtrl::_task_list.push_back(_body_ori_task);
+  //WBCtrl::_task_list.push_back(_body_pos_task);
+
+  // Task & Contact Set
+  DVec<T> posture_des(7); //posture_des.setZero();
+  DVec<T> posture_vel_des(6); //posture_vel_des.setZero();
+  DVec<T> posture_acc_des(6); //posture_acc_des.setZero();
+
+  for(size_t i(0); i<3; ++i){
+    // Orientation
+    posture_des[i] = _quat_des[i];
+    posture_vel_des[i] = _input_data->vBody_Ori_des[i];
+    posture_acc_des[i] = 0.;
+    // Position
+    posture_des[i+4] = _input_data->pBody_des[i];
+    posture_vel_des[i+3] = _input_data->vBody_des[i];
+    posture_acc_des[i+3] = _input_data->aBody_des[i];
+  }
+  posture_des[3] = _quat_des[3];
+
+  _body_posture_task->UpdateTask(&posture_des, posture_vel_des, posture_acc_des);
+  WBCtrl::_task_list.push_back(_body_posture_task);
 
   for(size_t leg(0); leg<4; ++leg){
     if(_input_data->contact_state[leg] > 0.){ // Contact
@@ -77,11 +99,16 @@ void LocomotionCtrl<T>::_ParameterSetup(const MIT_UserParameters* param){
   WBCtrl::_wbic_data->_W_floating = DVec<T>::Constant(6, param->wbc_base_Fr_weight);
 
   for(size_t i(0); i<3; ++i){
-    ((BodyPosTask<T>*)_body_pos_task)->_Kp[i] = param->Kp_body[i];
-    ((BodyPosTask<T>*)_body_pos_task)->_Kd[i] = param->Kp_body[i];
+    //((BodyPosTask<T>*)_body_pos_task)->_Kp[i] = param->Kp_body[i];
+    //((BodyPosTask<T>*)_body_pos_task)->_Kd[i] = param->Kp_body[i];
 
-    ((BodyOriTask<T>*)_body_ori_task)->_Kp[i] = param->Kp_ori[i];
-    ((BodyOriTask<T>*)_body_ori_task)->_Kd[i] = param->Kp_ori[i];
+    //((BodyOriTask<T>*)_body_ori_task)->_Kp[i] = param->Kp_ori[i];
+    //((BodyOriTask<T>*)_body_ori_task)->_Kd[i] = param->Kp_ori[i];
+
+    ((BodyPostureTask<T>*)_body_posture_task)->_Kp[i] = param->Kp_ori[i];
+    ((BodyPostureTask<T>*)_body_posture_task)->_Kd[i] = param->Kp_ori[i];
+    ((BodyPostureTask<T>*)_body_posture_task)->_Kp[i + 3] = param->Kp_body[i];
+    ((BodyPostureTask<T>*)_body_posture_task)->_Kd[i + 3] = param->Kp_body[i];
 
     WBCtrl::_Kp_joint[i] = param->Kp_joint[i];
     WBCtrl::_Kd_joint[i] = param->Kd_joint[i];

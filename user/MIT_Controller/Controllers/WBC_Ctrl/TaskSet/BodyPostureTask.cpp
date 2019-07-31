@@ -12,9 +12,8 @@ BodyPostureTask<T>::BodyPostureTask(const FloatingBaseModel<T> * robot) :
   TK::Jt_.block(0, 0, 6, 6).setIdentity();
   TK::JtDotQdot_ = DVec<T>::Zero(TK::dim_task_);
 
-  // TEST
-  _Kp = DVec<T>::Constant(TK::dim_task_, 300.);
-  _Kd = DVec<T>::Constant(TK::dim_task_, 30.);
+  _Kp = DVec<T>::Constant(TK::dim_task_, 50.);
+  _Kd = DVec<T>::Constant(TK::dim_task_, 1.);
 
   //_Kp = DVec<T>::Constant(TK::dim_task_, 0.);
   //_Kd = DVec<T>::Constant(TK::dim_task_, 0.);
@@ -37,20 +36,28 @@ bool BodyPostureTask<T>::_UpdateCommand(const void* pos_des, const DVec<T>& vel_
   link_ori_inv[1] = -link_ori[1];
   link_ori_inv[2] = -link_ori[2];
   link_ori_inv[3] = -link_ori[3];
-  link_ori_inv /= link_ori.norm();
+  //link_ori_inv /= link_ori.norm();
 
-  Quat<T> ori_err = ori::quatProduct(link_ori_inv, ori_cmd);
+  Quat<T> ori_err = ori::quatProduct(ori_cmd, link_ori_inv);
   if (ori_err[0] < 0.) {
     ori_err *= (-1.);
   }
   Vec3<T> ori_err_so3;
   ori::quaternionToso3(ori_err, ori_err_so3);
 
+  // Velocity
+  SVec<T> curr_vel = _robot_sys->_state.bodyVelocity;
+  Mat3<T> Rot = ori::quaternionToRotationMatrix(link_ori);
+  curr_vel.tail(3) = Rot.transpose() * curr_vel.tail(3);
+
   // Rx, Ry, Rz
   for (int i(0); i < 3; ++i) {
     TK::pos_err_[i] = ori_err_so3[i];
     TK::vel_des_[i] = vel_des[i];
     TK::acc_des_[i] = acc_des[i];
+
+    TK::op_cmd_[i] = _Kp[i] * ori_err_so3[i] +
+      _Kd[i] * (TK::vel_des_[i] - curr_vel[i]) + TK::acc_des_[i];
   }
 
   // Position
@@ -61,17 +68,10 @@ bool BodyPostureTask<T>::_UpdateCommand(const void* pos_des, const DVec<T>& vel_
     TK::pos_err_[i] = (*pos_cmd)[i + 1] - link_pos[i - 3];
     TK::vel_des_[i] = vel_des[i];
     TK::acc_des_[i] = acc_des[i];
-  }
-  Quat<T> quat = _robot_sys->_state.bodyOrientation;
-  Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
 
-  SVec<T> curr_vel = _robot_sys->_state.bodyVelocity;
-  curr_vel.tail(3) = Rot.transpose() * curr_vel.tail(3);
-  // Op acceleration command
-  for (size_t i(0); i < TK::dim_task_; ++i) {
     TK::op_cmd_[i] = _Kp[i] * TK::pos_err_[i] +
-                     _Kd[i] * (TK::vel_des_[i] - curr_vel[i]) + TK::acc_des_[i];
-  }
+      _Kd[i] * (TK::vel_des_[i] - curr_vel[i]) + TK::acc_des_[i];
+   }
 
   // printf("[Body Posture Task]\n");
   // pretty_print(acc_des, std::cout, "acc_des");
@@ -87,8 +87,9 @@ template <typename T>
 bool BodyPostureTask<T>::_UpdateTaskJacobian() {
   Quat<T> quat = _robot_sys->_state.bodyOrientation;
   Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+
+  TK::Jt_.block(0, 0, 3, 3) = Rot.transpose();
   TK::Jt_.block(3, 3, 3, 3) = Rot.transpose();
-  // TK::Jt_.block(3,3, 3,3) = Rot;
   return true;
 }
 

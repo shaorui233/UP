@@ -1,6 +1,6 @@
 #include "WBC_Ctrl.hpp"
 #include <Utilities/Utilities_print.h>
-
+#include <Utilities/Timer.h>
 
 template<typename T>
 WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
@@ -16,9 +16,12 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
 
   _model = model;
   _kin_wbc = new KinWBC<T>(cheetah::dim_config);
-  _wbic = new WBIC<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
 
-  _wbic_data = new WBIC_ExtraData<T>();
+  //_wbic = new WBIC<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
+  //_wbic_data = new WBIC_ExtraData<T>();
+  _wbic = new WBIC_Strict<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
+  _wbic_data = new WBIC_Strict_ExtraData<T>();
+
   _wbic_data->_W_floating = DVec<T>::Constant(6, 0.1);
   _wbic_data->_W_rf = DVec<T>::Constant(12, 1.);
 
@@ -71,7 +74,11 @@ void WBC_Ctrl<T>::run(void* input, ControlFSMData<T> & data){
   _ContactTaskUpdate(input, data);
 
   // WBC Computation
+  //Timer timer;
   _ComputeWBC();
+  //if(_iter%100 == 0){
+    //printf("compute WBC: %f\n", timer.getMs());
+  //}
 
   // Update Leg Command
   _UpdateLegCMD(data._legController->commands);

@@ -5,7 +5,8 @@
 #include <Dynamics/FloatingBaseModel.h>
 #include <Dynamics/Quadruped.h>
 #include "cppTypes.h"
-#include <WBC/WBIC/WBIC.hpp>
+//#include <WBC/WBIC/WBIC.hpp>
+#include <WBC/WBIC_Strict/WBIC_Strict.hpp>
 #include <WBC/WBLC/KinWBC.hpp>
 
 #include <lcm-cpp.hpp>
@@ -31,8 +32,11 @@ class WBC_Ctrl{
     void _ComputeWBC();
 
     KinWBC<T>* _kin_wbc;
-    WBIC<T>* _wbic;
-    WBIC_ExtraData<T>* _wbic_data;
+    //WBIC<T>* _wbic;
+    //WBIC_ExtraData<T>* _wbic_data;
+    WBIC_Strict<T>* _wbic;
+    WBIC_Strict_ExtraData<T>* _wbic_data;
+
 
     FloatingBaseModel<T> _model;
     std::vector<ContactSpec<T> * > _contact_list;

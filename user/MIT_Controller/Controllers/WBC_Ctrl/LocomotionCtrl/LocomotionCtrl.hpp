@@ -36,8 +36,9 @@ class LocomotionCtrl: public WBC_Ctrl<T>{
 
     LocomotionCtrlData<T>* _input_data;
 
-    Task<T>* _body_pos_task;
-    Task<T>* _body_ori_task;
+    //Task<T>* _body_pos_task;
+    //Task<T>* _body_ori_task;
+    Task<T>* _body_posture_task;
 
     Task<T>* _foot_task[4];
     ContactSpec<T>* _foot_contact[4];
