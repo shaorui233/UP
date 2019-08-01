@@ -14,9 +14,9 @@
 template<typename T>
 struct QpProblemSettings {
   s64 maxIterations = 1000000;
-  T rho = 6;
-  T sigma = 1e-6;
-  T alpha = 1.7;
+  T rho = 2;
+  T sigma = 1e-5;
+  T alpha = 1.6;
 
   // numerical hacks
   T infty = 1e10;
@@ -30,7 +30,10 @@ struct QpProblemSettings {
   {
     printf("rho: %f\n"
            "sigma: %f\n"
-           "alpha: %f\n", rho, sigma, alpha);
+           "alpha: %f\n"
+           "terminate: %f\n"
+           "max_iter: %ld\n" , rho, sigma, alpha, terminate, maxIterations);
+
   }
 };
 

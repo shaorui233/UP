@@ -104,6 +104,15 @@ void update_problem_data(double* p, double* v, double* q, double* w, double* r, 
   has_solved = 1;
 }
 
+void update_solver_settings(int max_iter, double rho, double sigma, double solver_alpha, double terminate, double use_jcqp) {
+  update.max_iterations = max_iter;
+  update.rho = rho;
+  update.sigma = sigma;
+  update.solver_alpha = solver_alpha;
+  update.terminate = terminate;
+  update.use_jcqp = (use_jcqp > 0.5);
+}
+
 void update_problem_data_floats(float* p, float* v, float* q, float* w,
                                 float* r, float yaw, float* weights,
                                 float* state_trajectory, float alpha, int* gait)

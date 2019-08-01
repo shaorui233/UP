@@ -115,7 +115,7 @@ void Gait::setIterations(int iterationsPerMPC, int currentIteration)
 // Controller
 ////////////////////
 
-ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc) :
+ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc, MIT_UserParameters* parameters) :
   iterationsBetweenMPC(_iterations_between_mpc),
   horizonLength(10),
   dt(_dt),
@@ -131,6 +131,7 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc)
   walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
 {
+  _parameters = parameters;
   dtMPC = dt * iterationsBetweenMPC;
   printf("[Convex MPC] dt: %.3f iterations: %d, dtMPC: %.3f\n",
       dt, iterationsBetweenMPC, dtMPC);
@@ -641,9 +642,11 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
 
 
 
-    //Timer t1;
+    Timer t1;
     dtMPC = dt * iterationsBetweenMPC;
     setup_problem(dtMPC,horizonLength,0.4,120);
+    update_solver_settings(_parameters->jcqp_max_iter, _parameters->jcqp_rho,
+      _parameters->jcqp_sigma, _parameters->jcqp_alpha, _parameters->jcqp_terminate, _parameters->use_jcqp);
     //t1.stopPrint("Setup MPC");
 
     Timer t2;
@@ -662,6 +665,10 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       // Update for WBC
       Fr_des[leg] = f;      
     }
+
+    // printf("update time: %.3f\n", t1.getMs());
   }
+
+
 
 }

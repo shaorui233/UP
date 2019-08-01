@@ -20,8 +20,9 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(
     ControlFSMData<T>* _controlFSMData)
     : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION"),
         cMPCOld(_controlFSMData->controlParameters->controller_dt,
-                //30 / (1000. * _controlFSMData->controlParameters->controller_dt)){
-                20 / (1000. * _controlFSMData->controlParameters->controller_dt)){
+                30 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                _controlFSMData->userParameters){
+                //20 / (1000. * _controlFSMData->controlParameters->controller_dt)){
   // Set the safety checks
   this->turnOnAllSafetyChecks();
   // Turn off Foot pos command since it is set in WBC as operational task

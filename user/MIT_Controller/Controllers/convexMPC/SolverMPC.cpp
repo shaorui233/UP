@@ -9,9 +9,11 @@
 #include <qpOASES.hpp>
 #include <stdio.h>
 #include <sys/time.h>
+#include <Utilities/Timer.h>
+#include <JCQP/QpProblem.h>
 
 //#define K_PRINT_EVERYTHING
-#define BIG_NUMBER 4000.f
+#define BIG_NUMBER 5e10
 //big enough to act like infinity, small enough to avoid numerical weirdness.
 
 RobotState rs;
@@ -378,175 +380,176 @@ void solve_mpc(update_data_t* update, problem_setup* setup)
 
 
 
-  //printf("DESIRED STATE TRAJECTORY:\n");
-  //cout<<X_d<<endl;
-  // printf("INITIAL STATE:\n");
-  // cout<<x_0<<endl;
-  // these lines are important, it turns out...
+
   qH = 2*(B_qp.transpose()*S*B_qp + update->alpha*eye_12h);
   qg = 2*B_qp.transpose()*S*(A_qp*x_0 - X_d);
-  //printf("eigen done.\n");
-//    printf("qH\n");
-//    cout<<qH<<endl;
-//    printf("qg\n");
-//    cout<<qg<<endl;
 
-//    cout<<"sum h: "<<qH.sum()<<" prod h: "<<qH.prod()<<" trace h: "<<qH.trace()<<endl;
-//    cout<<"sum g: "<<qg.sum()<<" prod g: "<<qg.prod()<<endl;
+  QpProblem<double> jcqp(setup->horizon*12, setup->horizon*20);
+  if(update->use_jcqp) {
+    jcqp.A = fmat.cast<double>();
+    jcqp.P = qH.cast<double>();
+    jcqp.q = qg.cast<double>();
+    jcqp.u = U_b.cast<double>();
+    for(s16 i = 0; i < 20*setup->horizon; i++)
+      jcqp.l[i] = 0.;
 
-  matrix_to_real(H_qpoases,qH,setup->horizon*12, setup->horizon*12);
-  matrix_to_real(g_qpoases,qg,setup->horizon*12, 1);
-  matrix_to_real(A_qpoases,fmat,setup->horizon*20, setup->horizon*12);
-  matrix_to_real(ub_qpoases,U_b,setup->horizon*20, 1);
-
-  for(s16 i = 0; i < 20*setup->horizon; i++)
-    lb_qpoases[i] = 0.0f;
-
-  s16 num_constraints = 20*setup->horizon;
-  s16 num_variables = 12*setup->horizon;
-
-  //qpOASES::QProblem problem(num_variables, num_constraints);
-  // qpOASES::QProblem problem(num_variables, num_constraints);
-  // qpOASES::Options op;
-  // op.setToMPC();
-  // op.printLevel = qpOASES::PL_NONE;
-  // problem.setOptions(op);
-  qpOASES::int_t nWSR = 100;
-
-  //printf("got to qp.\n");
+    jcqp.settings.sigma = update->sigma;
+    jcqp.settings.alpha = update->solver_alpha;
+    jcqp.settings.terminate = update->terminate;
+    jcqp.settings.rho = update->rho;
+    jcqp.settings.maxIterations = update->max_iterations;
+    jcqp.runFromDense(update->max_iterations, false, false);
+  } else {
 
 
-  //   struct timeval st,et;
-  //   gettimeofday(&st,NULL);
-  //  // problem.init(H_qpoases, g_qpoases, A_qpoases, NULL, NULL, lb_qpoases, ub_qpoases, nWSR);
-  //   //problem.init(H_qpoases, g_qpoases, NULL, NULL, NULL, NULL, NULL, nWSR);
-  //   //problem.getPrimalSolution(q_soln);
-  //   gettimeofday(&et,NULL);
-  //   int dtt = ((et.tv_sec-st.tv_sec)*1000000)+(et.tv_usec-st.tv_usec);
-  //   printf("%d\n",dtt);
 
-  int new_vars = num_variables;
-  int new_cons = num_constraints;
+    matrix_to_real(H_qpoases,qH,setup->horizon*12, setup->horizon*12);
+    matrix_to_real(g_qpoases,qg,setup->horizon*12, 1);
+    matrix_to_real(A_qpoases,fmat,setup->horizon*20, setup->horizon*12);
+    matrix_to_real(ub_qpoases,U_b,setup->horizon*20, 1);
 
-  for(int i =0; i < num_constraints; i++)
-    con_elim[i] = 0;
+    for(s16 i = 0; i < 20*setup->horizon; i++)
+      lb_qpoases[i] = 0.0f;
 
-  for(int i = 0; i < num_variables; i++)
-    var_elim[i] = 0;
+    s16 num_constraints = 20*setup->horizon;
+    s16 num_variables = 12*setup->horizon;
 
 
-  for(int i = 0; i < num_constraints; i++)
-  {
-    if(! (near_zero(lb_qpoases[i]) && near_zero(ub_qpoases[i]))) continue;
-    double* c_row = &A_qpoases[i*num_variables];
-    for(int j = 0; j < num_variables; j++)
-    {
-      if(near_one(c_row[j]))
-      {
-        new_vars -= 3;
-        new_cons -= 5;
-        int cs = (j*5)/3 -3;
-        var_elim[j-2] = 1;
-        var_elim[j-1] = 1;
-        var_elim[j  ] = 1;
-        con_elim[cs] = 1;
-        con_elim[cs+1] = 1;
-        con_elim[cs+2] = 1;
-        con_elim[cs+3] = 1;
-        con_elim[cs+4] = 1;
+    qpOASES::int_t nWSR = 100;
 
-      }
-    }
-  }
-  //if(new_vars != num_variables)
-  if(1==1)
-  {
-    int var_ind[new_vars];
-    int con_ind[new_cons];
-    int vc = 0;
+
+    int new_vars = num_variables;
+    int new_cons = num_constraints;
+
+    for(int i =0; i < num_constraints; i++)
+      con_elim[i] = 0;
+
     for(int i = 0; i < num_variables; i++)
-    {
-      if(!var_elim[i])
-      {
-        if(!(vc<new_vars))
-        {
-          printf("BAD ERROR 1\n");
-        }
-        var_ind[vc] = i;
-        vc++;
-      }
-    }
-    vc = 0;
+      var_elim[i] = 0;
+
+
     for(int i = 0; i < num_constraints; i++)
     {
-      if(!con_elim[i])
+      if(! (near_zero(lb_qpoases[i]) && near_zero(ub_qpoases[i]))) continue;
+      double* c_row = &A_qpoases[i*num_variables];
+      for(int j = 0; j < num_variables; j++)
       {
-        if(!(vc<new_cons))
+        if(near_one(c_row[j]))
         {
-          printf("BAD ERROR 1\n");
+          new_vars -= 3;
+          new_cons -= 5;
+          int cs = (j*5)/3 -3;
+          var_elim[j-2] = 1;
+          var_elim[j-1] = 1;
+          var_elim[j  ] = 1;
+          con_elim[cs] = 1;
+          con_elim[cs+1] = 1;
+          con_elim[cs+2] = 1;
+          con_elim[cs+3] = 1;
+          con_elim[cs+4] = 1;
         }
-        con_ind[vc] = i;
-        vc++;
       }
     }
-    for(int i = 0; i < new_vars; i++)
+    //if(new_vars != num_variables)
+    if(1==1)
     {
-      int olda = var_ind[i];
-      g_red[i] = g_qpoases[olda];
-      for(int j = 0; j < new_vars; j++)
+      int var_ind[new_vars];
+      int con_ind[new_cons];
+      int vc = 0;
+      for(int i = 0; i < num_variables; i++)
       {
-        int oldb = var_ind[j];
-        H_red[i*new_vars + j] = H_qpoases[olda*num_variables + oldb];
+        if(!var_elim[i])
+        {
+          if(!(vc<new_vars))
+          {
+            printf("BAD ERROR 1\n");
+          }
+          var_ind[vc] = i;
+          vc++;
+        }
       }
-    }
+      vc = 0;
+      for(int i = 0; i < num_constraints; i++)
+      {
+        if(!con_elim[i])
+        {
+          if(!(vc<new_cons))
+          {
+            printf("BAD ERROR 1\n");
+          }
+          con_ind[vc] = i;
+          vc++;
+        }
+      }
+      for(int i = 0; i < new_vars; i++)
+      {
+        int olda = var_ind[i];
+        g_red[i] = g_qpoases[olda];
+        for(int j = 0; j < new_vars; j++)
+        {
+          int oldb = var_ind[j];
+          H_red[i*new_vars + j] = H_qpoases[olda*num_variables + oldb];
+        }
+      }
 
-    for (int con = 0; con < new_cons; con++)
-    {
-      for(int st = 0; st < new_vars; st++)
+      for (int con = 0; con < new_cons; con++)
       {
-        float cval = A_qpoases[(num_variables*con_ind[con]) + var_ind[st] ];
-        A_red[con*new_vars + st] = cval;
+        for(int st = 0; st < new_vars; st++)
+        {
+          float cval = A_qpoases[(num_variables*con_ind[con]) + var_ind[st] ];
+          A_red[con*new_vars + st] = cval;
+        }
       }
-    }
-    for(int i = 0; i < new_cons; i++)
-    {
-      int old = con_ind[i];
-      ub_red[i] = ub_qpoases[old];
-      lb_red[i] = lb_qpoases[old];
-    }
-    qpOASES::QProblem problem_red (new_vars, new_cons);
-    qpOASES::Options op;
-    op.setToMPC();
-    op.printLevel = qpOASES::PL_NONE;
-    problem_red.setOptions(op);
-    //int_t nWSR = 50000;
-    struct timeval t1, t2;
-    int elapsed_time;
-    gettimeofday(&t1,NULL);
-    int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
-    (void)rval;
-    int rval2 = problem_red.getPrimalSolution(q_red);
-    if(rval2 != qpOASES::SUCCESSFUL_RETURN)
-      printf("failed to solve!\n");
-    gettimeofday(&t2,NULL);
-    elapsed_time = (t2.tv_sec - t1.tv_sec)*1000000;
-    elapsed_time += (t2.tv_usec - t1.tv_usec);
-    //printf("%d\n",elapsed_time);
+      for(int i = 0; i < new_cons; i++)
+      {
+        int old = con_ind[i];
+        ub_red[i] = ub_qpoases[old];
+        lb_red[i] = lb_qpoases[old];
+      }
 
-    vc = 0;
-    for(int i = 0; i < num_variables; i++)
-    {
-      if(var_elim[i])
+      Timer solve_timer;
+      qpOASES::QProblem problem_red (new_vars, new_cons);
+      qpOASES::Options op;
+      op.setToMPC();
+      op.printLevel = qpOASES::PL_NONE;
+      problem_red.setOptions(op);
+      //int_t nWSR = 50000;
+
+
+      int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
+      (void)rval;
+      int rval2 = problem_red.getPrimalSolution(q_red);
+      if(rval2 != qpOASES::SUCCESSFUL_RETURN)
+        printf("failed to solve!\n");
+
+      // printf("solve time: %.3f ms, size %d, %d\n", solve_timer.getMs(), new_vars, new_cons);
+
+
+      vc = 0;
+      for(int i = 0; i < num_variables; i++)
       {
-        q_soln[i] = 0.0f;
-      }
-      else
-      {
-        q_soln[i] = q_red[vc];
-        vc++;
+        if(var_elim[i])
+        {
+          q_soln[i] = 0.0f;
+        }
+        else
+        {
+          q_soln[i] = q_red[vc];
+          vc++;
+        }
       }
     }
   }
+
+
+
+
+  if(update->use_jcqp) {
+    for(int i = 0; i < 12 * setup->horizon; i++) {
+      q_soln[i] = jcqp.getSolution()[i];
+    }
+  }
+
 
 
 #ifdef K_PRINT_EVERYTHING

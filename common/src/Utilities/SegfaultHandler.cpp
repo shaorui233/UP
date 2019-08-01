@@ -40,10 +40,18 @@ static void segfault_handler(int sig) {
   exit(1);
 }
 
+static void sigint_handler(int sig) {
+  if(sig == SIGINT && error_message_buffer) {
+    strcpy(error_message_buffer, "Robot program has been killed by SIGINT");
+  }
+  exit(0);
+}
+
 /*!
  * Install the segfault handler function
  */
 void install_segfault_handler(char* error_message) {
   signal(SIGSEGV, segfault_handler);
+  signal(SIGINT, sigint_handler);
   error_message_buffer = error_message;
 }

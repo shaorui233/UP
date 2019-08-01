@@ -1,22 +1,20 @@
-# Generated on Sat Feb  9 13:18:45 2019
+# Generated on Thu Aug  1 01:02:19 2019
 __collection-name__: user-parameters
 
-#testValue : 100
-#testValue2 : 102
-
-cmpc_gait : 9
-use_wbc : 1
-#use_wbc : 0
+Kd_body           : [3, 3, 3]
+Kd_foot           : [5, 5, 5]
+Kd_joint          : [0.8, 0.8, 0.8]
+Kd_ori            : [3, 3, 3]
+Kp_body           : [50, 50, 50]
+Kp_foot           : [200, 200, 200]
+Kp_joint          : [4, 4, 4]
+Kp_ori            : [50, 50, 50]
+cmpc_gait         : 9
+jcqp_alpha        : 1.5
+jcqp_max_iter     : 1
+jcqp_rho          : 1e-07
+jcqp_sigma        : 1e-08
+jcqp_terminate    : 1
+use_jcqp          : 0
+use_wbc           : 1
 wbc_base_Fr_weight: 0.1
-
-Kp_body: [ 50.0, 50., 50. ]
-Kd_body: [ 3.0, 3.0, 3.0]
-
-Kp_ori: [ 50., 50., 50. ]
-Kd_ori: [ 3.0, 3.0, 3.0]
-
-Kp_foot: [ 200., 200., 200. ]
-Kd_foot: [ 5.0, 5.0, 5.0]
-
-Kp_joint: [4, 4, 4]
-Kd_joint: [0.8, 0.8, 0.8]

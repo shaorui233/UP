@@ -46,7 +46,7 @@ private:
 
 class ConvexMPCLocomotion {
 public:
-  ConvexMPCLocomotion(float _dt, int _iterations_between_mpc);
+  ConvexMPCLocomotion(float _dt, int _iterations_between_mpc, MIT_UserParameters* parameters);
   void initialize();
 
   template<typename T>
@@ -92,6 +92,8 @@ private:
   Vec3<float> pFoot[4];
   CMPC_Result<float> result;
   float trajAll[12*36];
+
+  MIT_UserParameters* _parameters = nullptr;
 
 };
 
