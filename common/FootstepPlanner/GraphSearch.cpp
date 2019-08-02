@@ -40,3 +40,8 @@ void FootstepPlanner::buildInputTrajectory(float duration, float dt, InputTrajec
     theta += omega * dt;
   }
 }
+
+void FootstepPlanner::planFixedEvenGait(std::vector<ContactState> &gait, float gait_period) {
+  (void)gait;
+  (void)gait_period;
+}

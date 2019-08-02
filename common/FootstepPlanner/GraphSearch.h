@@ -34,7 +34,6 @@ struct InputTrajectoryState {
 
 struct FootplanFootState {
   Vec2<float> p;
-  float yaw;
   bool contact;
   float stateTime;
 };
@@ -78,6 +77,7 @@ public:
   FootstepPlanner(bool verbose);
   void reset();
   void buildInputTrajectory(float duration, float dt, InputTrajectoryState x0, float omega);
+  void planFixedEvenGait(std::vector<ContactState>& gait, float gait_period);
   std::vector<InputTrajectoryState>& getInitialTrajectory() {
     return _inputTrajectory;
   }

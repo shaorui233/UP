@@ -385,7 +385,7 @@ void solve_mpc(update_data_t* update, problem_setup* setup)
   qg = 2*B_qp.transpose()*S*(A_qp*x_0 - X_d);
 
   QpProblem<double> jcqp(setup->horizon*12, setup->horizon*20);
-  if(update->use_jcqp) {
+  if(update->use_jcqp == 1) {
     jcqp.A = fmat.cast<double>();
     jcqp.P = qH.cast<double>();
     jcqp.q = qg.cast<double>();
@@ -398,7 +398,7 @@ void solve_mpc(update_data_t* update, problem_setup* setup)
     jcqp.settings.terminate = update->terminate;
     jcqp.settings.rho = update->rho;
     jcqp.settings.maxIterations = update->max_iterations;
-    jcqp.runFromDense(update->max_iterations, false, false);
+    jcqp.runFromDense(update->max_iterations, true, false);
   } else {
 
 
@@ -507,44 +507,108 @@ void solve_mpc(update_data_t* update, problem_setup* setup)
         lb_red[i] = lb_qpoases[old];
       }
 
-      Timer solve_timer;
-      qpOASES::QProblem problem_red (new_vars, new_cons);
-      qpOASES::Options op;
-      op.setToMPC();
-      op.printLevel = qpOASES::PL_NONE;
-      problem_red.setOptions(op);
-      //int_t nWSR = 50000;
+      if(update->use_jcqp == 0) {
+        Timer solve_timer;
+        qpOASES::QProblem problem_red (new_vars, new_cons);
+        qpOASES::Options op;
+        op.setToMPC();
+        op.printLevel = qpOASES::PL_NONE;
+        problem_red.setOptions(op);
+        //int_t nWSR = 50000;
 
 
-      int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
-      (void)rval;
-      int rval2 = problem_red.getPrimalSolution(q_red);
-      if(rval2 != qpOASES::SUCCESSFUL_RETURN)
-        printf("failed to solve!\n");
+        int rval = problem_red.init(H_red, g_red, A_red, NULL, NULL, lb_red, ub_red, nWSR);
+        (void)rval;
+        int rval2 = problem_red.getPrimalSolution(q_red);
+        if(rval2 != qpOASES::SUCCESSFUL_RETURN)
+          printf("failed to solve!\n");
 
-      // printf("solve time: %.3f ms, size %d, %d\n", solve_timer.getMs(), new_vars, new_cons);
+        // printf("solve time: %.3f ms, size %d, %d\n", solve_timer.getMs(), new_vars, new_cons);
 
 
-      vc = 0;
-      for(int i = 0; i < num_variables; i++)
-      {
-        if(var_elim[i])
+        vc = 0;
+        for(int i = 0; i < num_variables; i++)
         {
-          q_soln[i] = 0.0f;
+          if(var_elim[i])
+          {
+            q_soln[i] = 0.0f;
+          }
+          else
+          {
+            q_soln[i] = q_red[vc];
+            vc++;
+          }
         }
-        else
+      } else { // use jcqp == 2
+        QpProblem<double> reducedProblem(new_vars, new_cons);
+
+        reducedProblem.A = DenseMatrix<double>(new_cons, new_vars);
+        int i = 0;
+        for(int r = 0; r < new_cons; r++) {
+          for(int c = 0; c < new_vars; c++) {
+            reducedProblem.A(r,c) = A_red[i++];
+          }
+        }
+
+        reducedProblem.P = DenseMatrix<double>(new_vars, new_vars);
+        i = 0;
+        for(int r = 0; r < new_vars; r++) {
+          for(int c = 0; c < new_vars; c++) {
+            reducedProblem.P(r,c) = H_red[i++];
+          }
+        }
+
+        reducedProblem.q = Vector<double>(new_vars);
+        for(int r = 0; r < new_vars; r++) {
+          reducedProblem.q[r] = g_red[r];
+        }
+
+        reducedProblem.u = Vector<double>(new_cons);
+        for(int r = 0; r < new_cons; r++) {
+          reducedProblem.u[r] = ub_red[r];
+        }
+
+        reducedProblem.l = Vector<double>(new_cons);
+        for(int r = 0; r < new_cons; r++) {
+          reducedProblem.l[r] = lb_red[r];
+        }
+
+//        jcqp.A = fmat.cast<double>();
+//        jcqp.P = qH.cast<double>();
+//        jcqp.q = qg.cast<double>();
+//        jcqp.u = U_b.cast<double>();
+//        for(s16 i = 0; i < 20*setup->horizon; i++)
+//          jcqp.l[i] = 0.;
+
+        reducedProblem.settings.sigma = update->sigma;
+        reducedProblem.settings.alpha = update->solver_alpha;
+        reducedProblem.settings.terminate = update->terminate;
+        reducedProblem.settings.rho = update->rho;
+        reducedProblem.settings.maxIterations = update->max_iterations;
+        reducedProblem.runFromDense(update->max_iterations, true, false);
+
+        vc = 0;
+        for(int kk = 0; kk < num_variables; kk++)
         {
-          q_soln[i] = q_red[vc];
-          vc++;
+          if(var_elim[kk])
+          {
+            q_soln[kk] = 0.0f;
+          }
+          else
+          {
+            q_soln[kk] = reducedProblem.getSolution()[vc];
+            vc++;
+          }
         }
       }
+
     }
   }
 
 
 
 
-  if(update->use_jcqp) {
+  if(update->use_jcqp == 1) {
     for(int i = 0; i < 12 * setup->horizon; i++) {
       q_soln[i] = jcqp.getSolution()[i];
     }

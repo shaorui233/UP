@@ -1,4 +1,4 @@
-# Generated on Thu Aug  1 01:02:19 2019
+# Generated on Fri Aug  2 15:32:54 2019
 __collection-name__: user-parameters
 
 Kd_body           : [3, 3, 3]
@@ -11,10 +11,10 @@ Kp_joint          : [4, 4, 4]
 Kp_ori            : [50, 50, 50]
 cmpc_gait         : 9
 jcqp_alpha        : 1.5
-jcqp_max_iter     : 1
+jcqp_max_iter     : 10000
 jcqp_rho          : 1e-07
 jcqp_sigma        : 1e-08
-jcqp_terminate    : 1
+jcqp_terminate    : 0.1
 use_jcqp          : 0
 use_wbc           : 1
 wbc_base_Fr_weight: 0.1
