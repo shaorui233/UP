@@ -49,6 +49,7 @@ T deg2rad(T deg) {
   return deg * T(M_PI) / T(180);
 }
 
+
 /*!
  * Compute rotation matrix for coordinate transformation. Note that
  * coordinateRotation(CoordinateAxis:X, .1) * v will rotate v by -.1 radians -
@@ -72,6 +73,17 @@ Mat3<T> coordinateRotation(CoordinateAxis axis, T theta) {
   }
 
   return R;
+}
+
+template<typename T>
+Mat3<typename T::Scalar> crossMatrix(const Eigen::MatrixBase<T>& v) {
+  static_assert(T::ColsAtCompileTime == 1 && T::RowsAtCompileTime == 3,
+    "must have 3x1 vector");
+  Mat3<typename T::Scalar> m;
+  m << 0, -v(2), v(1),
+       v(2), 0, -v(0),
+       -v(1), v(0), 0;
+  return m;
 }
 
 /*!

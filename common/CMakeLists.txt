@@ -34,6 +34,7 @@ include_directories("../lcm-types/cpp/")
 include_directories("../third-party/inih")       # inih includes
 include_directories("../third-party/osqp/include")       # osqp includes
 include_directories("../third-party/ParamHandler")
+include_directories("/usr/local/include/eigen3")   # lcm includes
 include_directories(${CMAKE_BINARY_DIR})
 file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp files
 file(GLOB_RECURSE test_sources "test/test_*.cpp")             # test cpp files

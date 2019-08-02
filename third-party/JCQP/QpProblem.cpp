@@ -279,7 +279,7 @@ void QpProblem<T>::computeConstraintInfos()
     if(l(i) < -settings.infty || u(i) > settings.infty){
       _constraintInfos[i].type = ConstraintType::INFINITE;
       _constraintInfos[i].rho = settings.rhoInfty;
-    } else if(u(i) - l(i) < settings.eqlTol) {
+    } else if(std::abs(u(i) - l(i)) < settings.eqlTol) {
       _constraintInfos[i].type = ConstraintType::EQUALITY;
       _constraintInfos[i].rho = settings.rho * settings.rhoEqualityScale;
     } else {
