@@ -48,6 +48,9 @@ target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_par
 target_link_libraries(test-common Goldfarb_Optimizer)
 target_link_libraries(test-common JCQP)
 
+# Our libraries
+add_subdirectory(FootstepPlanner)
+
 
 # Casadi include
 #include_directories(SYSTEM "../third-party/casadi/")

@@ -17,6 +17,7 @@ file(GLOB_RECURSE sources
 "Controllers/BalanceController/*.cpp" 
 "Controllers/convexMPC/*.cpp")
 
+
 add_subdirectory(Controllers/WBC)
 add_subdirectory(Controllers/WBC_Ctrl)
 
@@ -24,6 +25,4 @@ add_executable(mit_ctrl ${sources} MIT_Controller.cpp main.cpp)
 target_link_libraries(mit_ctrl robot biomimetics)
 target_link_libraries(mit_ctrl dynacore_param_handler qpOASES)
 target_link_libraries(mit_ctrl Goldfarb_Optimizer) 
-target_link_libraries(mit_ctrl WBC_Ctrl) 
-
-
+target_link_libraries(mit_ctrl WBC_Ctrl)
