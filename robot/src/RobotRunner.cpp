@@ -52,6 +52,15 @@ void RobotRunner::init() {
       &_stateEstimate, controlParameters);
   initializeStateEstimator(false);
 
+  memset(&main_control_settings, 0, sizeof(gui_main_control_settings_t));
+  // Initialize the DesiredStateCommand object
+  _desiredStateCommand =
+      new DesiredStateCommand<float>(driverCommand,
+          &main_control_settings,
+          controlParameters,
+          &_stateEstimate,
+          controlParameters->controller_dt);
+
   // Controller initializations
   _robot_ctrl->_model = &_model;
   _robot_ctrl->_quadruped = &_quadruped;
@@ -62,8 +71,10 @@ void RobotRunner::init() {
   _robot_ctrl->_robotType = robotType;
   _robot_ctrl->_driverCommand = driverCommand;
   _robot_ctrl->_controlParameters = controlParameters;
+  _robot_ctrl->_desiredStateCommand = _desiredStateCommand;
 
   _robot_ctrl->initializeController();
+  
 }
 
 /**
@@ -90,24 +101,32 @@ void RobotRunner::run() {
   } else {
     _legController->setEnabled(true);
 
-    // Controller
-    if (!_jpos_initializer->IsInitialized(_legController)) {
-      Mat3<float> kpMat;
-      Mat3<float> kdMat;
-      kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
-      kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
+    if( (main_control_settings.mode == 0) && controlParameters->use_rc ) {
+      if(count_ini%300 ==0)   printf("ESTOP!\n");
+        for (int leg = 0; leg < 4; leg++) {
+          _legController->commands[leg].zero();
+        }
+     }else {
+      // Controller
+      if (!_jpos_initializer->IsInitialized(_legController)) {
+        Mat3<float> kpMat;
+        Mat3<float> kdMat;
+        kpMat << 5, 0, 0, 0, 5, 0, 0, 0, 5;
+        kdMat << 0.1, 0, 0, 0, 0.1, 0, 0, 0, 0.1;
 
-      for (int leg = 0; leg < 4; leg++) {
-        _legController->commands[leg].kpJoint = kpMat;
-        _legController->commands[leg].kdJoint = kdMat;
+        for (int leg = 0; leg < 4; leg++) {
+          _legController->commands[leg].kpJoint = kpMat;
+          _legController->commands[leg].kdJoint = kdMat;
+        }
+      } else {
+        // Run Control 
+        _robot_ctrl->runController();
+
+        // Update Visualization
+        _robot_ctrl->updateVisualization();
       }
-    } else {
-      // Run Control 
-      _robot_ctrl->runController();
-
-      // Update Visualization
-      _robot_ctrl->updateVisualization();
     }
+
   }
 
 
@@ -160,6 +179,8 @@ void RobotRunner::setupStep() {
     // todo any configuration
     _cheaterModeEnabled = false;
   }
+
+  get_main_control_settings(&main_control_settings);
 
   // todo safety checks, sanity checks, etc...
 }

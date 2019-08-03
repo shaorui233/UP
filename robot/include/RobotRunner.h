@@ -70,6 +70,7 @@ class RobotRunner : public PeriodicTask {
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
+  gui_main_control_settings_t main_control_settings;
   lcm::LCM _lcm;
   leg_control_command_lcmt leg_control_command_lcm;
   state_estimator_lcmt state_estimator_lcm;

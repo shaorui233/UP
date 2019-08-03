@@ -10,6 +10,7 @@
 #include "Controllers/LegController.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "Controllers/StateEstimatorContainer.h"
+#include "Controllers/DesiredStateCommand.h"
 #include "SimUtilities/VisualizationData.h"
 #include "SimUtilities/GamepadCommand.h"
 
@@ -38,6 +39,7 @@ protected:
   StateEstimate<float>* _stateEstimate = nullptr;
   GamepadCommand* _driverCommand = nullptr;
   RobotControlParameters* _controlParameters = nullptr;
+  DesiredStateCommand<float>* _desiredStateCommand = nullptr;
 
   VisualizationData* _visualizationData = nullptr;
   RobotType _robotType;
