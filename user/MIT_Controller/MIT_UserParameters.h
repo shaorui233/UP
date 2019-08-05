@@ -8,6 +8,7 @@ public:
   MIT_UserParameters()
       : ControlParameters("user-parameters"),
         INIT_PARAMETER(cmpc_gait),
+        INIT_PARAMETER(cmpc_x_drag),
         INIT_PARAMETER(use_wbc),
         INIT_PARAMETER(wbc_base_Fr_weight),
         INIT_PARAMETER(Kp_body),
@@ -24,9 +25,11 @@ public:
         INIT_PARAMETER(jcqp_sigma),
         INIT_PARAMETER(jcqp_alpha),
         INIT_PARAMETER(jcqp_terminate)
+
   {}
 
   DECLARE_PARAMETER(double, cmpc_gait);
+  DECLARE_PARAMETER(double, cmpc_x_drag);
   DECLARE_PARAMETER(double, use_wbc);
   DECLARE_PARAMETER(double, wbc_base_Fr_weight);
 

@@ -34,6 +34,7 @@ struct update_data_t
   int max_iterations;
   double rho, sigma, solver_alpha, terminate;
   int use_jcqp;
+  float x_drag;
 };
 
 EXTERNC void setup_problem(double dt, int horizon, double mu, double f_max);
@@ -43,4 +44,6 @@ EXTERNC void update_solver_settings(int max_iter, double rho, double sigma, doub
 EXTERNC void update_problem_data_floats(float* p, float* v, float* q, float* w,
                                         float* r, float yaw, float* weights,
                                         float* state_trajectory, float alpha, int* gait);
+
+void update_x_drag(float x_drag);
 #endif

@@ -89,6 +89,7 @@ private:
   Vec3<float> world_position_desired;
   Vec3<float> rpy_int;
   Vec3<float> rpy_comp;
+  float x_comp_integral = 0;
   Vec3<float> pFoot[4];
   CMPC_Result<float> result;
   float trajAll[12*36];

@@ -137,6 +137,10 @@ void update_problem_data_floats(float* p, float* v, float* q, float* w,
 
 }
 
+void update_x_drag(float x_drag) {
+  update.x_drag = x_drag;
+}
+
 double get_solution(int index)
 {
   if(!has_solved) return 0.f;

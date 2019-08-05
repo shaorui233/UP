@@ -233,12 +233,14 @@ inline Matrix<fpt,3,3> cross_mat(Matrix<fpt,3,3> I_inv, Matrix<fpt,3,1> r)
   return I_inv * cm;
 }
 //continuous time state space matrices.
-void ct_ss_mats(Matrix<fpt,3,3> I_world, fpt m, Matrix<fpt,3,4> r_feet, Matrix<fpt,3,3> R_yaw, Matrix<fpt,13,13>& A, Matrix<fpt,13,12>& B)
+void ct_ss_mats(Matrix<fpt,3,3> I_world, fpt m, Matrix<fpt,3,4> r_feet, Matrix<fpt,3,3> R_yaw, Matrix<fpt,13,13>& A, Matrix<fpt,13,12>& B, float x_drag)
 {
   A.setZero();
   A(3,9) = 1.f;
+  A(9,9) = x_drag;
   A(4,10) = 1.f;
   A(5,11) = 1.f;
+
   A(11,12) = 1.f;
   A.block(0,6,3,3) = R_yaw.transpose();
 
@@ -318,7 +320,7 @@ void solve_mpc(update_data_t* update, problem_setup* setup)
   I_world = rs.R_yaw * rs.I_body * rs.R_yaw.transpose(); //original
   //I_world = rs.R_yaw.transpose() * rs.I_body * rs.R_yaw;
   //cout<<rs.R_yaw<<endl;
-  ct_ss_mats(I_world,rs.m,rs.r_feet,rs.R_yaw,A_ct,B_ct_r);
+  ct_ss_mats(I_world,rs.m,rs.r_feet,rs.R_yaw,A_ct,B_ct_r, update->x_drag);
 
 
 #ifdef K_PRINT_EVERYTHING

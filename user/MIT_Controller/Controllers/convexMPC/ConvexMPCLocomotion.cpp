@@ -553,6 +553,12 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     Vec3<float> v_des_world = omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
     //float trajInitial[12] = {0,0,0, 0,0,.25, 0,0,0,0,0,0};
 
+    Vec3<float> pxy_act(p[0], p[1], 0);
+    Vec3<float> pxy_des(world_position_desired[0], world_position_desired[1], 0);
+    Vec3<float> pxy_err = pxy_act - pxy_des;
+    Vec3<float> vxy(seResult.vWorld[0], seResult.vWorld[1], 0);
+    printf("Position error: %.3f, integral %.3f\n", pxy_err[0], x_comp_integral);
+
     if(current_gait == 4)
     {
       float trajInitial[12] = {(float)stateCommand->data.stateDes[3],
@@ -585,6 +591,8 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
 
       world_position_desired[0] = xStart;
       world_position_desired[1] = yStart;
+
+
 
       //printf("xys: \t%.3f\t%3.f\n", xStart, yStart);
       //std::cout << "pdes_world: " << world_position_desired.transpose() << "\n";
@@ -645,6 +653,11 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     Timer t1;
     dtMPC = dt * iterationsBetweenMPC;
     setup_problem(dtMPC,horizonLength,0.4,120);
+    update_x_drag(x_comp_integral);
+    if(vxy[0] > 0.1 || vxy[0] < -0.1) {
+      x_comp_integral += _parameters->cmpc_x_drag * pxy_err[0] * dtMPC / vxy[0];
+    }
+
     update_solver_settings(_parameters->jcqp_max_iter, _parameters->jcqp_rho,
       _parameters->jcqp_sigma, _parameters->jcqp_alpha, _parameters->jcqp_terminate, _parameters->use_jcqp);
     //t1.stopPrint("Setup MPC");
@@ -666,7 +679,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       Fr_des[leg] = f;      
     }
 
-    // printf("update time: %.3f\n", t1.getMs());
+    //printf("update time: %.3f\n", t1.getMs());
   }
 
 
