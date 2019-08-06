@@ -83,6 +83,14 @@ void ControlFSM<T>::runFSM() {
   // Check the robot state for safe operation
   operatingMode = safetyPreCheck();
 
+  if(data.controlParameters->use_rc){
+    if(data._desiredStateCommand->rcCommand->mode == 12){
+      data.controlParameters->control_mode = 1;
+    } else if(data._desiredStateCommand->rcCommand->mode == 11){
+      data.controlParameters->control_mode = 4;
+    }
+  }
+
   // Run the robot control code if operating mode is not unsafe
   if (operatingMode != FSM_OperatingMode::ESTOP) {
     // Run normal controls if no transition is detected

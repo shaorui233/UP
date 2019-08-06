@@ -37,13 +37,23 @@ void DesiredStateCommand<T>::convertToStateCommands() {
   Vec2<float> joystickLeft, joystickRight;
 
   if(parameters->use_rc) {
-    joystickLeft[0] = rcCommand->rpy_des[0];
-    joystickLeft[1] = rcCommand->rpy_des[1];
-    joystickRight[0] = rcCommand->rpy_des[2];
-    joystickRight[1] = rcCommand->p_des[2];
+    if(rcCommand->mode == 3){ // Stand
+      joystickLeft[0] = -rcCommand->p_des[1]; // Y
+      joystickLeft[1] = 0.;
+      joystickRight[0] = -rcCommand->rpy_des[2]; // Yaw
+      joystickRight[1] = rcCommand->rpy_des[1]; // Pitch
+    }else if(rcCommand->mode == 11){ // Walking
+      joystickLeft[0] = -rcCommand->v_des[1]; // Y
+      joystickLeft[1] = rcCommand->v_des[0]; // X
+      joystickRight[0] = -rcCommand->omega_des[2]; // Yaw
+      joystickRight[1] = rcCommand->omega_des[1]; // Pitch
+    }else{
+      joystickLeft.setZero();
+      joystickRight.setZero();
+    }
   } else {
-    joystickLeft = gamepadCommand->leftStickAnalog;
-    joystickRight = gamepadCommand->rightStickAnalog;
+    joystickLeft = 2.5*gamepadCommand->leftStickAnalog;
+    joystickRight = 2.5*gamepadCommand->rightStickAnalog;
   }
 
   joystickLeft[0] *= -1.f;
@@ -51,9 +61,13 @@ void DesiredStateCommand<T>::convertToStateCommands() {
 
   leftAnalogStick = leftAnalogStick * (T(1) - filter) + joystickLeft * filter;
   rightAnalogStick = rightAnalogStick * (T(1) - filter) + joystickRight * filter;
-  // Forward linear velocity
+
+  //leftAnalogStick = joystickLeft;
+  //rightAnalogStick = joystickRight;
+  
+   // Forward linear velocity
   data.stateDes(6) =
-      deadband(leftAnalogStick[1], minVelX, maxVelX);
+    deadband(leftAnalogStick[1], minVelX, maxVelX);
 
   // Lateral linear velocity
   data.stateDes(7) =

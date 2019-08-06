@@ -89,10 +89,10 @@ class DesiredStateCommand {
 
   // Holds the instantaneous desired state and future desired state trajectory
   DesiredStateData<T> data;
+  const gui_main_control_settings_t* rcCommand;
 
  private:
   GamepadCommand* gamepadCommand;
-  gui_main_control_settings_t* rcCommand;
   StateEstimate<T>* stateEstimate;
   RobotControlParameters* parameters;
 

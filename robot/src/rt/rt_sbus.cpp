@@ -70,10 +70,10 @@ void unpack_sbus_data(uint8_t sbus_data[], uint16_t *channels_) {
 
     pthread_mutex_lock(&sbus_data_m);
     for (int i = 0; i < 18; i++) {
-      // printf("%d ", channels_[i]);
+       //printf("%d ", channels_[i]);
       channel_data[i] = channels_[i];
     }
-    // printf("\n\n");
+    //printf("\n\n");
     pthread_mutex_unlock(&sbus_data_m);
 
   } else {
