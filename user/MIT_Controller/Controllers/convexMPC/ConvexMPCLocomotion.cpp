@@ -213,6 +213,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
   Vec3<float> v_robot = seResult.vWorld;
 
+  //pretty_print(v_des_world, std::cout, "v des world");
 
   //Integral-esque pitche and roll compensation
   if(fabs(v_robot[0]) > .2)   //avoid dividing by zero
@@ -300,7 +301,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Vec3<float> offset(0, side_sign[i] * .065, 0);
 
       Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
-      Vec3<float> pYawCorrected = coordinateRotation(CoordinateAxis::Z, -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
+      Vec3<float> pYawCorrected = 
+        coordinateRotation(CoordinateAxis::Z, 
+            -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
 
 
 
@@ -308,6 +311,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       des_vel[0] = stateCommand->data.stateDes(6);
       des_vel[1] = stateCommand->data.stateDes(7);
       des_vel[2] = stateCommand->data.stateDes(8);
+
       Vec3<float> Pf = seResult.position +
                        seResult.rBody.transpose() * (pYawCorrected
                        + des_vel * swingTimeRemaining[i]);
@@ -315,10 +319,18 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       //+ seResult.vWorld * swingTimeRemaining[i];
 
       float p_rel_max = 0.3f;
+
+      // Using the estimated velocity is correct
+      //Vec3<float> des_vel_world = seResult.rBody.transpose() * des_vel;
       float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
+      //float pfx_rel =   des_vel_world[0] * .5 * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[0]-v_des_world[0]) +
-                      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
+
+                      (0.5f*seResult.position[2]/9.81f) * 
+                      (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
+
       float pfy_rel = seResult.vWorld[1] * .5 * gait->_stance * dtMPC +
+      //float pfy_rel = des_vel_world[1] * .5 * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[1]-v_des_world[1]) +
                       (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[11]);
       pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);

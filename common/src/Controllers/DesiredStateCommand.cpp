@@ -52,8 +52,8 @@ void DesiredStateCommand<T>::convertToStateCommands() {
       joystickRight.setZero();
     }
   } else {
-    joystickLeft = 2.5*gamepadCommand->leftStickAnalog;
-    joystickRight = 2.5*gamepadCommand->rightStickAnalog;
+    joystickLeft = gamepadCommand->leftStickAnalog;
+    joystickRight = gamepadCommand->rightStickAnalog;
   }
 
   joystickLeft[0] *= -1.f;

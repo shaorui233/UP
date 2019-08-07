@@ -98,8 +98,9 @@ void sbus_packet_complete() {
 
   //printf("got sbus ch11: %d ch10 %d\n", ch11, ch10);
 
-  // velocity scales between 1.0 and 3.0
-  float v_scale = 2.0f * (((float)(ch7 - 172)) / 1811.0f) + 1.0f;
+  //velocity scales between 1.0 and 3.0 (when 2.0f is used)
+  // velocity scales between 1.0 and 1.5 (middle), 2.0 (right ends)
+  float v_scale = 1.0f * (((float)(ch7 - 172)) / 1811.0f) + 1.0f;
   // Ignore commands if switched
   if (ch11 != 1811) {
     if (ch10 == 172) { // oh shit switch (OFF)
@@ -141,11 +142,13 @@ void sbus_packet_complete() {
       //main_control_settings.p_des[2] =   ((float)ch3 - 1000) * .001f;
 
       //printf("ch1, 2, 3, 4, 5: %d, %d, %d, %d , %d\n", ch1, ch2, ch3, ch4, ch5);
-      main_control_settings.v_des[0] = v_scale * ((float)ch1-1000)*.002f;
-      main_control_settings.v_des[1] = -v_scale *((float)ch4-1000)*.0005f;
+      main_control_settings.v_des[0] = v_scale * ((float)ch1-1000)*.001f;
+      main_control_settings.v_des[1] = -v_scale *((float)ch4-1000)*.001f;
       main_control_settings.v_des[2] = 0;
       main_control_settings.p_des[2] = 0.25 + ((float)ch8 - 1000)*.0001f;;
-      //printf("v des: %f, %f \n", main_control_settings.v_des[0], main_control_settings.v_des[1]);
+      //printf("v scale : %f \n", v_scale);
+      //printf("v des: %f, %f \n", ((float)ch1-1000)*.001f, ((float)ch4-1000)*.001f);
+      //printf("v scaled des: %f, %f \n", main_control_settings.v_des[0], main_control_settings.v_des[1]);
 
       main_control_settings.omega_des[0] = 0;
       main_control_settings.omega_des[1] = 0;
