@@ -1,5 +1,6 @@
 #include "SparseCMPC/SparseCMPC.h"
 #include "Math/orientation_tools.h"
+#include <Utilities/Timer.h>
 #include "../../../third-party/JCQP/QpProblem.h"
 
 
@@ -28,7 +29,7 @@ SparseCMPC::SparseCMPC() {
 
 
 void SparseCMPC::run() {
-  printf("Sparse CMPC RUN!\n");
+  Timer timer;
   // check trajectory length
   if((_stateTrajectory.size() != _contactTrajectory.size()) || (_contactTrajectory.size() != _dtTrajectory.size())) {
     throw std::runtime_error("SparseCMPC trajectory length error!");
@@ -47,15 +48,14 @@ void SparseCMPC::run() {
   _runningContactCounts.clear();
   _bBlockCount = 0;
 
-  printf("reset\n");
 
   // build initial state and data
   buildX0();
-  printf("set X0\n");
   buildCT();
-  printf("set CT\n");
   buildDT();
-  printf("set DT\n");
+
+  printf("t1: %.3f\n", timer.getMs());
+  timer.start();
 
   // build optimization problem
   addX0Constraint();
@@ -65,9 +65,11 @@ void SparseCMPC::run() {
   addQuadraticStateCost();
   addLinearStateCost();
   addQuadraticControlCost();
+  printf("t2: %.3f\n", timer.getMs());
 
   // Solve!
-  runSolver();
+  //runSolver();
+  runSolverOSQP();
 }
 
 /*!
@@ -84,10 +86,10 @@ void SparseCMPC::buildX0() {
  * uses trajectory yaw for yaw integration, not trajectory omega.
  */
 void SparseCMPC::buildCT() {
-  for(u32 foot = 0; foot < 4; foot++) {
-    Vec3<double> pFoot = _pFeet.block(foot*3,0,3,1);
-    printf("FOOT %d: %6.3f, %6.3f %6.3f\n", foot, pFoot[0], pFoot[1], pFoot[2]);
-  }
+//  for(u32 foot = 0; foot < 4; foot++) {
+//    Vec3<double> pFoot = _pFeet.block(foot*3,0,3,1);
+//    printf("FOOT %d: %6.3f, %6.3f %6.3f\n", foot, pFoot[0], pFoot[1], pFoot[2]);
+//  }
   // one 12x12 A matrix per timestep
   _aMat.clear();
   _aMat.resize(_trajectoryLength);
@@ -205,8 +207,8 @@ void SparseCMPC::addX0Constraint() {
   // compute right hand side A[0]*X0 + g*dt.
   Vec12<double> rhs = _aMat[0] * _x0 + _g * _dtTrajectory[0];
 
-  printf("x0: \n");
-  std::cout << _x0.transpose() << "\n";
+//  printf("x0: \n");
+//  std::cout << _x0.transpose() << "\n";
 
   // add to problem.
   for(u32 i = 0; i < 12; i++) {
@@ -328,21 +330,21 @@ void SparseCMPC::addLinearStateCost() {
   _linearCost.resize(12 * _trajectoryLength + 3 * _bBlockCount);
   for(auto& v : _linearCost) v = 0;
   // -2 * w * x_des
-  printf("z des traj: ");
+  //printf("z des traj: ");
   for(u32 i = 0; i < _trajectoryLength; i++) {
     u32 idx = getStateIndex(i);
     for(u32 j = 0; j < 12; j++) {
-      _linearCost.at(idx + j) = -2. * _stateTrajectory[i][j] * _weights[j];
+      _linearCost.at(idx + j) = -1. * _stateTrajectory[i][j] * _weights[j];
     }
-    printf("%.3f ", _stateTrajectory[i][5]);
+   // printf("%.3f ", _stateTrajectory[i][5]);
   }
-  printf("\n");
+  //printf("\n");
 
 }
 
 void SparseCMPC::runSolver() {
   u32 varCount = 12 * _trajectoryLength + 3 * _bBlockCount;
-  printf("[SparseCMPC] Run %d, %d\n", varCount, _constraintCount);
+  //printf("[SparseCMPC] Run %d, %d\n", varCount, _constraintCount);
   assert(_constraintCount == _ub.size());
   assert(_constraintCount == _lb.size());
   assert(varCount == _linearCost.size());
@@ -364,37 +366,37 @@ void SparseCMPC::runSolver() {
 
   solver.settings.alpha = 1.5;
   solver.settings.rho = 1e-3;
-  solver.settings.terminate = 1e-9;
-  solver.settings.sigma = 1e-3;
+  solver.settings.terminate = 1e-6;
+  solver.settings.sigma = 1e-6;
 
 
-  solver.runFromTriples(-1, false);
+  solver.runFromTriples(-1, true);
   _result = solver.getSolution().cast<float>();
 }
 
-static const char* names[] = {"roll", "pitch", "yaw", "x", "y", "z", "roll-rate", "pitch-rate", "yaw-rate", "xv", "yv", "zv"};
+//static const char* names[] = {"roll", "pitch", "yaw", "x", "y", "z", "roll-rate", "pitch-rate", "yaw-rate", "xv", "yv", "zv"};
 
 Vec12<float> SparseCMPC::getResult() {
 
-  for(u32 i = 0; i < 12; i++) {
-    printf("%s: ", names[i]);
-    for(u32 j = 0; j < _trajectoryLength; j++) {
-      printf("%6.3f  ", _result[getStateIndex(j) + i]);
-    }
-    printf("\n");
-  }
-
-  printf("zf traj: ");
-  for(u32 i = 0; i < _bBlockCount; i++) {
-    printf("[%2d %3.3f]  ", _bBlockIds[i].timestep, _result[getControlIndex(i) + 2]);
-  }
-  printf("\n");
+//  for(u32 i = 0; i < 12; i++) {
+//    printf("%s: ", names[i]);
+//    for(u32 j = 0; j < _trajectoryLength; j++) {
+//      printf("%6.3f  ", _result[getStateIndex(j) + i]);
+//    }
+//    printf("\n");
+//  }
+//
+//  printf("zf traj: ");
+//  for(u32 i = 0; i < _bBlockCount; i++) {
+//    printf("[%2d %3.3f]  ", _bBlockIds[i].timestep, _result[getControlIndex(i) + 2]);
+//  }
+//  printf("\n");
   Vec12<float> result;
   result.setZero();
   for(u32 i = 0; i < _bBlockIds.size(); i++) {
     auto& id = _bBlockIds[i];
     if(id.timestep == 0) {
-      printf("result for foot %d %.3f %.3f %.3f\n", id.foot, _result[getControlIndex(i) + 0], _result[getControlIndex(i) + 1], _result[getControlIndex(i) + 2]);
+      //printf("result for foot %d %.3f %.3f %.3f\n", id.foot, _result[getControlIndex(i) + 0], _result[getControlIndex(i) + 1], _result[getControlIndex(i) + 2]);
       for(u32 j = 0; j < 3; j++) {
         result[id.foot*3 + j] = _result[getControlIndex(i) + j];
       }

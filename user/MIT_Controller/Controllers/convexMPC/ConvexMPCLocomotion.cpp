@@ -622,11 +622,15 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       }
     }
 
+    Timer solveTimer;
+
     if(_parameters->cmpc_use_sparse > 0.5) {
       solveSparseMPC(mpcTable, data);
     } else {
       solveDenseMPC(mpcTable, data);
     }
+
+    printf("TOTAL SOLVE TIME: %.3f\n", solveTimer.getMs());
 
   }
 
@@ -728,7 +732,7 @@ void ConvexMPCLocomotion::solveSparseMPC(int *mpcTable, ControlFSMData<float> &d
 
   for(u32 foot = 0; foot < 4; foot++) {
     Vec3<float> force(resultForce[foot*3], resultForce[foot*3 + 1], resultForce[foot*3 + 2]);
-    printf("[%d] %7.3f %7.3f %7.3f\n", foot, force[0], force[1], force[2]);
+    //printf("[%d] %7.3f %7.3f %7.3f\n", foot, force[0], force[1], force[2]);
     f_ff[foot] = -seResult.rBody * force;
     Fr_des[foot] = force;
   }
@@ -748,7 +752,7 @@ void ConvexMPCLocomotion::initSparseMPC() {
   }
 
   Vec12<double> weights;
-  weights << 0.25, 0.25, 2, 2, 2, 2, 0, 0, 0.3, 0.2, 0.2, 0.2;
+  weights << 0.25, 0.25, 10, 2, 2, 20, 0, 0, 0.3, 0.2, 0.2, 0.2;
   //weights << 0,0,0,1,1,10,0,0,0,0.2,0.2,0;
 
   _sparseCMPC.setRobotParameters(baseInertia, mass, maxForce);

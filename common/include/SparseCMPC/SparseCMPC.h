@@ -94,6 +94,7 @@ private:
   void addQuadraticControlCost();
 
   void runSolver();
+  void runSolverOSQP();
 
   // inputs
   Mat3<double> _Ibody;
