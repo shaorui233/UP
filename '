@@ -185,11 +185,14 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
   _wbc_data->aBody_des.setZero();
 
   _wbc_data->pBody_RPY_des = _ini_body_ori_rpy;
-  if(this->_data->controlParameters->use_rc){
-    _wbc_data->pBody_RPY_des[0] = this->_data->_desiredStateCommand->rcCommand->rpy_des[0];
-    _wbc_data->pBody_RPY_des[1] = this->_data->_desiredStateCommand->rcCommand->rpy_des[1];
-    _wbc_data->pBody_RPY_des[2] = this->_data->_desiredStateCommand->rcCommand->rpy_des[2];
-  }else{
+  if(this->_data->ControlParameters->use_rc){
+    _wbc_data->pBody_RPY_des[0] = 
+      this->_data->_desiredStateCommand->rcCommand->rpy_des[0];
+    _wbc_data->pBody_RPY_des[0] = 
+      this->_data->_desiredStateCommand->rcCommand->rpy_des[0];
+  _wbc_data->pBody_RPY_des[0] = 
+      this->_data->_desiredStateCommand->rcCommand->rpy_des[0];
+}else{
     _wbc_data->pBody_RPY_des[2] = 
       this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[1];
    }
