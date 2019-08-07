@@ -21,7 +21,8 @@ void SparseCMPC::c2d(u32 trajIdx, u32 bBlockStartIdx, u32 block_count) {
   _aMat[trajIdx] = expmm.block(0,0,12,12);
 
   for(u32 i = bBlockStartIdx; i < bBlockStartIdx + block_count; i++) {
-    BblockID id = _bBlockIds[i];
-    _bBlocks[i] = expmm.block(0,12 + 3 * id.foot, 12, 3);
+    //BblockID id = _bBlockIds[i];
+    //_bBlocks[i] = expmm.block(0,12 + 3 * id.foot, 12, 3);
+    _bBlocks[i] *= _dtTrajectory[trajIdx];
   }
 }

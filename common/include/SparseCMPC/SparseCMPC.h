@@ -1,7 +1,7 @@
 #ifndef CHEETAH_SOFTWARE_SPARSECMPC_H
 #define CHEETAH_SOFTWARE_SPARSECMPC_H
 
-#include "FootstepPlanner/GraphSearch.h"
+#include "GraphSearch.h"
 #include "cppTypes.h"
 #include "../../../third-party/JCQP/SparseMatrixMath.h"
 
@@ -35,16 +35,13 @@ public:
   }
 
   template<typename T>
-  void setX0(Vec3<T> p, Vec3<T> v, Vec4<T> q, Vec3<T> w, T yaw, ContactState& contact0) {
+  void setX0(Vec3<T> p, Vec3<T> v, Vec4<T> q, Vec3<T> w) {
     _p0 = p.template cast<double>();
     _v0 = v.template cast<double>();
     _q0 = q.template cast<double>();
     _w0 = w.template cast<double>();
-    _yaw = yaw;
-    _contact0 = contact0;
   }
 
-  template<typename T>
   void setContactTrajectory(ContactState* contacts, std::size_t length) {
     _contactTrajectory.resize(length);
     for(std::size_t i = 0; i < length; i++) {
@@ -52,7 +49,6 @@ public:
     }
   }
 
-  template<typename T>
   void setStateTrajectory(vectorAligned<Vec12<double>>& traj) {
     _stateTrajectory = traj;
   }
@@ -70,6 +66,12 @@ public:
     _pFeet = feet.template cast<double>();
   }
 
+//  Eigen::Matrix<float, Eigen::Dynamic, 1>& getResult() {
+//    return _result;
+//  }
+
+  Vec12<float> getResult();
+
 
 private:
   void buildX0();
@@ -84,16 +86,23 @@ private:
   void addConstraintTriple(double value, u32 row, u32 col);
 
   void addX0Constraint();
+  void addDynamicsConstraints();
+  void addForceConstraints();
+  void addFrictionConstraints();
+  void addQuadraticStateCost();
+  void addLinearStateCost();
+  void addQuadraticControlCost();
+
+  void runSolver();
 
   // inputs
   Mat3<double> _Ibody;
   Vec12<double> _weights;
-  double _mass, _maxForce, _mu, _alpha, _yaw;
+  double _mass, _maxForce, _mu, _alpha;
   Vec3<double> _p0, _v0, _w0, _rpy0;
   Vec4<double> _q0;
   Vec12<double> _x0;
   Vec12<double> _pFeet, _g;
-  ContactState _contact0;
 
   // input trajectories
   std::vector<ContactState> _contactTrajectory;
@@ -108,9 +117,9 @@ private:
   std::vector<u32> _runningContactCounts;
 
   std::vector<SparseTriple<double>> _constraintTriples, _costTriples;
-  std::vector<double> _lb, _ub;
+  std::vector<double> _lb, _ub, _linearCost;
 
-
+  Eigen::Matrix<float, Eigen::Dynamic, 1> _result;
 
 
   u32 _trajectoryLength;

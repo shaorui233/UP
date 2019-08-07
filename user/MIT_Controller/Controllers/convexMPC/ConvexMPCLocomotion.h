@@ -3,6 +3,7 @@
 
 #include <Controllers/FootSwingTrajectory.h>
 #include <FSM_States/ControlFSMData.h>
+#include <SparseCMPC/SparseCMPC.h>
 #include "cppTypes.h"
 
 using Eigen::Array4f;
@@ -71,6 +72,9 @@ private:
   //float _body_height = 0.29;
   float _body_height = 0.27;
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);
+  void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);
+  void solveSparseMPC(int *mpcTable, ControlFSMData<float> &data);
+  void initSparseMPC();
   int iterationsBetweenMPC;
   int horizonLength;
   float dt;
@@ -97,6 +101,10 @@ private:
   float trajAll[12*36];
 
   MIT_UserParameters* _parameters = nullptr;
+
+  vectorAligned<Vec12<double>> _sparseTrajectory;
+
+  SparseCMPC _sparseCMPC;
 
 };
 

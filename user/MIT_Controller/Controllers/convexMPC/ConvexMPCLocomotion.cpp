@@ -4,6 +4,7 @@
 
 #include "ConvexMPCLocomotion.h"
 #include "convexMPC_interface.h"
+#include "../../../../common/FootstepPlanner/GraphSearch.h"
 
 #define DRAW_DEBUG_SWINGS
 //#define DRAW_DEBUG_PATH
@@ -145,6 +146,8 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc,
 
   for(int i = 0; i < 4; i++)
     firstSwing[i] = true;
+
+  initSparseMPC();
 }
 
 template<>
@@ -532,34 +535,15 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
     auto seResult = data._stateEstimator->getResult();
     auto& stateCommand = data._desiredStateCommand;
     float* p = seResult.position.data();
-    float* v = seResult.vWorld.data();
-    float* w = seResult.omegaWorld.data();
-    float* q = seResult.orientation.data();
-    float r[12];
-    for(int i = 0; i < 12; i++)
-      r[i] = pFoot[i%4][i/4]  - seResult.position[i/4];
 
-    float Q[12] = {0.25, 0.25, 10, 2, 2, 20, 0, 0, 0.3, 0.2, 0.2, 0.2};
-    float yaw = seResult.rpy[2];
-    float* weights = Q;
-    float alpha = 4e-5; // make setting eventually
 
-    //printf("current posistion: %3.f %.3f %.3f\n", p[0], p[1], p[2]);
 
-    if(alpha > 1e-4)
-    {
 
-      std::cout << "Alpha was set too high (" << alpha << ") adjust to 1e-5\n";
-      alpha = 1e-5;
-    }
     Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
     Vec3<float> v_des_world = omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
     //float trajInitial[12] = {0,0,0, 0,0,.25, 0,0,0,0,0,0};
 
-    Vec3<float> pxy_act(p[0], p[1], 0);
-    Vec3<float> pxy_des(world_position_desired[0], world_position_desired[1], 0);
-    Vec3<float> pxy_err = pxy_act - pxy_des;
-    Vec3<float> vxy(seResult.vWorld[0], seResult.vWorld[1], 0);
+
     //printf("Position error: %.3f, integral %.3f\n", pxy_err[0], x_comp_integral);
 
     if(current_gait == 4)
@@ -583,9 +567,6 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       float xStart = world_position_desired[0];
       float yStart = world_position_desired[1];
 
-      //printf("orig \t%.3f\t%.3f\n", xStart, yStart);
-      //printf("ref: \t%.3f\t%.3f\n", p[0], p[1]);
-
       if(xStart - p[0] > max_pos_error) xStart = p[0] + max_pos_error;
       if(p[0] - xStart > max_pos_error) xStart = p[0] - max_pos_error;
 
@@ -595,11 +576,6 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       world_position_desired[0] = xStart;
       world_position_desired[1] = yStart;
 
-
-
-      //printf("xys: \t%.3f\t%3.f\n", xStart, yStart);
-      //std::cout << "pdes_world: " << world_position_desired.transpose() << "\n";
-      //printf("perr \t%.3f\t%.3f\n", p[0] - world_position_desired[0], p[1] - world_position_desired[1]);
 
       float trajInitial[12] = {(float)rpy_comp[0],  // 0
                                (float)rpy_comp[1],    // 1
@@ -646,45 +622,140 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       }
     }
 
-//        for(int i = 0; i < 12; i++)
-//            printf("%.4f, ", trajAll[i]);
-
-//        printf("\n\n");
-
-
-
-    Timer t1;
-    dtMPC = dt * iterationsBetweenMPC;
-    setup_problem(dtMPC,horizonLength,0.4,120);
-    update_x_drag(x_comp_integral);
-    if(vxy[0] > 0.1 || vxy[0] < -0.1) {
-      x_comp_integral += _parameters->cmpc_x_drag * pxy_err[0] * dtMPC / vxy[0];
+    if(_parameters->cmpc_use_sparse > 0.5) {
+      solveSparseMPC(mpcTable, data);
+    } else {
+      solveDenseMPC(mpcTable, data);
     }
 
-    update_solver_settings(_parameters->jcqp_max_iter, _parameters->jcqp_rho,
-      _parameters->jcqp_sigma, _parameters->jcqp_alpha, _parameters->jcqp_terminate, _parameters->use_jcqp);
-    //t1.stopPrint("Setup MPC");
-
-    Timer t2;
-    //cout << "dtMPC: " << dtMPC << "\n";
-    update_problem_data_floats(p,v,q,w,r,yaw,weights,trajAll,alpha,mpcTable);
-    //t2.stopPrint("Run MPC");
-    //printf("MPC Solve time %f ms\n", t2.getMs());
-
-    for(int leg = 0; leg < 4; leg++)
-    {
-      Vec3<float> f;
-      for(int axis = 0; axis < 3; axis++)
-        f[axis] = get_solution(leg*3 + axis);
-
-      f_ff[leg] = -seResult.rBody * f;
-      // Update for WBC
-      Fr_des[leg] = f;      
-    }
-
-    //printf("update time: %.3f\n", t1.getMs());
   }
 
-
-
 }
+
+void ConvexMPCLocomotion::solveDenseMPC(int *mpcTable, ControlFSMData<float> &data) {
+  auto seResult = data._stateEstimator->getResult();
+
+  float Q[12] = {0.25, 0.25, 10, 2, 2, 20, 0, 0, 0.3, 0.2, 0.2, 0.2};
+  float yaw = seResult.rpy[2];
+  float* weights = Q;
+  float alpha = 4e-5; // make setting eventually
+  float* p = seResult.position.data();
+  float* v = seResult.vWorld.data();
+  float* w = seResult.omegaWorld.data();
+  float* q = seResult.orientation.data();
+
+  float r[12];
+  for(int i = 0; i < 12; i++)
+    r[i] = pFoot[i%4][i/4]  - seResult.position[i/4];
+
+  //printf("current posistion: %3.f %.3f %.3f\n", p[0], p[1], p[2]);
+
+  if(alpha > 1e-4)
+  {
+
+    std::cout << "Alpha was set too high (" << alpha << ") adjust to 1e-5\n";
+    alpha = 1e-5;
+  }
+
+  Vec3<float> pxy_act(p[0], p[1], 0);
+  Vec3<float> pxy_des(world_position_desired[0], world_position_desired[1], 0);
+  Vec3<float> pxy_err = pxy_act - pxy_des;
+  Vec3<float> vxy(seResult.vWorld[0], seResult.vWorld[1], 0);
+
+  Timer t1;
+  dtMPC = dt * iterationsBetweenMPC;
+  setup_problem(dtMPC,horizonLength,0.4,120);
+  update_x_drag(x_comp_integral);
+  if(vxy[0] > 0.1 || vxy[0] < -0.1) {
+    x_comp_integral += _parameters->cmpc_x_drag * pxy_err[0] * dtMPC / vxy[0];
+  }
+
+  update_solver_settings(_parameters->jcqp_max_iter, _parameters->jcqp_rho,
+                         _parameters->jcqp_sigma, _parameters->jcqp_alpha, _parameters->jcqp_terminate, _parameters->use_jcqp);
+  //t1.stopPrint("Setup MPC");
+
+  Timer t2;
+  //cout << "dtMPC: " << dtMPC << "\n";
+  update_problem_data_floats(p,v,q,w,r,yaw,weights,trajAll,alpha,mpcTable);
+  //t2.stopPrint("Run MPC");
+  //printf("MPC Solve time %f ms\n", t2.getMs());
+
+  for(int leg = 0; leg < 4; leg++)
+  {
+    Vec3<float> f;
+    for(int axis = 0; axis < 3; axis++)
+      f[axis] = get_solution(leg*3 + axis);
+
+    //printf("[%d] %7.3f %7.3f %7.3f\n", leg, f[0], f[1], f[2]);
+
+    f_ff[leg] = -seResult.rBody * f;
+    // Update for WBC
+    Fr_des[leg] = f;
+  }
+}
+
+void ConvexMPCLocomotion::solveSparseMPC(int *mpcTable, ControlFSMData<float> &data) {
+  // X0, contact trajectory, state trajectory, feet, get result!
+  (void)mpcTable;
+  (void)data;
+  auto seResult = data._stateEstimator->getResult();
+
+  std::vector<ContactState> contactStates;
+  for(int i = 0; i < horizonLength; i++) {
+    contactStates.emplace_back(mpcTable[i*4 + 0], mpcTable[i*4 + 1], mpcTable[i*4 + 2], mpcTable[i*4 + 3]);
+  }
+
+  for(int i = 0; i < horizonLength; i++) {
+    for(u32 j = 0; j < 12; j++) {
+      _sparseTrajectory[i][j] = trajAll[i*12 + j];
+    }
+  }
+
+  Vec12<float> feet;
+  for(u32 foot = 0; foot < 4; foot++) {
+    for(u32 axis = 0; axis < 3; axis++) {
+      feet[foot*3 + axis] = pFoot[foot][axis] - seResult.position[axis];
+    }
+  }
+
+  _sparseCMPC.setX0(seResult.position, seResult.vWorld, seResult.orientation, seResult.omegaWorld);
+  _sparseCMPC.setContactTrajectory(contactStates.data(), contactStates.size());
+  _sparseCMPC.setStateTrajectory(_sparseTrajectory);
+  _sparseCMPC.setFeet(feet);
+  _sparseCMPC.run();
+
+  Vec12<float> resultForce = _sparseCMPC.getResult();
+
+  for(u32 foot = 0; foot < 4; foot++) {
+    Vec3<float> force(resultForce[foot*3], resultForce[foot*3 + 1], resultForce[foot*3 + 2]);
+    printf("[%d] %7.3f %7.3f %7.3f\n", foot, force[0], force[1], force[2]);
+    f_ff[foot] = -seResult.rBody * force;
+    Fr_des[foot] = force;
+  }
+}
+
+void ConvexMPCLocomotion::initSparseMPC() {
+  Mat3<double> baseInertia;
+  baseInertia << 0.07, 0, 0,
+                 0, 0.26, 0,
+                 0, 0, 0.242;
+  double mass = 9;
+  double maxForce = 120;
+
+  std::vector<double> dtTraj;
+  for(int i = 0; i < horizonLength; i++) {
+    dtTraj.push_back(dtMPC);
+  }
+
+  Vec12<double> weights;
+  weights << 0.25, 0.25, 2, 2, 2, 2, 0, 0, 0.3, 0.2, 0.2, 0.2;
+  //weights << 0,0,0,1,1,10,0,0,0,0.2,0.2,0;
+
+  _sparseCMPC.setRobotParameters(baseInertia, mass, maxForce);
+  _sparseCMPC.setFriction(0.4);
+  _sparseCMPC.setWeights(weights, 4e-5);
+  _sparseCMPC.setDtTrajectory(dtTraj);
+
+  _sparseTrajectory.resize(horizonLength);
+}
+

@@ -19,6 +19,8 @@ struct ContactState {
     rr = _rr;
     rl = _rl;
   }
+
+  ContactState() { }
 };
 
 struct DefaultGaits {
