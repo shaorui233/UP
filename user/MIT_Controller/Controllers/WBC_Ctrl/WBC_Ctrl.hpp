@@ -23,6 +23,9 @@ class WBC_Ctrl{
     virtual ~WBC_Ctrl();
 
     void run(void * input, ControlFSMData<T> & data);
+    void setFloatingBaseWeight(const T & weight){
+      _wbic_data->_W_floating = DVec<T>::Constant(6, weight);
+    }
 
   protected:
     virtual void _ContactTaskUpdate(void * input, ControlFSMData<T> & data) = 0;

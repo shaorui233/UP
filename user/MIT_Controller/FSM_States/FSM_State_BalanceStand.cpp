@@ -5,6 +5,7 @@
  */
 
 #include "FSM_State_BalanceStand.h"
+#include <Controllers/WBC_Ctrl/LocomotionCtrl/LocomotionCtrl.hpp>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -19,19 +20,21 @@ FSM_State_BalanceStand<T>::FSM_State_BalanceStand(
                    "BALANCE_STAND") {
   // Set the pre controls safety checks
   this->turnOnAllSafetyChecks();
+  // Turn off Foot pos command since it is set in WBC as operational task
+  this->checkPDesFoot = false;
+
 
   // Initialize GRF to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
+
+  _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
+  _wbc_data = new LocomotionCtrlData<T>();
+
+  _wbc_ctrl->setFloatingBaseWeight(1000.);
 }
 
 template <typename T>
 void FSM_State_BalanceStand<T>::onEnter() {
-  // Set the pre controls safety checks
-  this->turnOnAllSafetyChecks();
-
-  // Reset transition duration
-  this->transitionDuration = 0.0;
-
   // Default is to not transition
   this->nextStateName = this->stateName;
 
@@ -40,6 +43,10 @@ void FSM_State_BalanceStand<T>::onEnter() {
 
   // Always set the gait to be standing in this state
   this->_data->_gaitScheduler->gaitData._nextGait = GaitType::STAND;
+  
+  _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
+  _ini_body_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
+  _body_weight = this->_data->_quadruped->_bodyMass * 9.81;
 }
 
 /**
@@ -47,7 +54,6 @@ void FSM_State_BalanceStand<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_BalanceStand<T>::run() {
-  // Do nothing, all commands should begin as zeros
   BalanceStandStep();
 }
 
@@ -173,25 +179,28 @@ void FSM_State_BalanceStand<T>::onExit() {
  */
 template <typename T>
 void FSM_State_BalanceStand<T>::BalanceStandStep() {
-  // StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
-  // Run the balancing controllers to get GRF and next step locations
-  this->runControls();
+  _wbc_data->pBody_des = _ini_body_pos;
+  _wbc_data->vBody_des.setZero();
+  _wbc_data->aBody_des.setZero();
 
-  // All legs are force commanded to be on the ground
-  for (int leg = 0; leg < 4; leg++) {
-    this->cartesianImpedanceControl(
-        leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),
-        this->_data->controlParameters->stand_kp_cartesian,
-        this->_data->controlParameters->stand_kd_cartesian);
+  _wbc_data->pBody_RPY_des = _ini_body_ori_rpy;
+  _wbc_data->pBody_RPY_des[0] = this->_data->_desiredStateCommand->data.stateDes[3];
+  _wbc_data->pBody_RPY_des[1] = this->_data->_desiredStateCommand->data.stateDes[4];
+  _wbc_data->pBody_RPY_des[2] = this->_data->_desiredStateCommand->data.stateDes[5];
 
-    this->_data->_legController->commands[leg].forceFeedForward =
-        this->footFeedForwardForces.col(leg);
+  _wbc_data->vBody_Ori_des.setZero();
 
-    // Singularity barrier calculation (maybe an overall safety checks
-    // function?)
-    // TODO
+  for(size_t i(0); i<4; ++i){
+    _wbc_data->pFoot_des[i].setZero();
+    _wbc_data->vFoot_des[i].setZero();
+    _wbc_data->aFoot_des[i].setZero();
+    _wbc_data->Fr_des[i].setZero();
+    _wbc_data->Fr_des[i][2] = _body_weight/4.;
+    _wbc_data->contact_state[i] = true;
   }
+
+  _wbc_ctrl->run(_wbc_data, *this->_data);
 }
 
 // template class FSM_State_BalanceStand<double>;

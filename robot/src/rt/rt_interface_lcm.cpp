@@ -82,6 +82,11 @@ void sbus_packet_complete() {
   int ch2 = read_sbus_channel(1);
   int ch3 = read_sbus_channel(2);
   int ch4 = read_sbus_channel(3);
+
+  // TODO: figure out what happens in channel 1
+  int ch5 = read_sbus_channel(4);
+  ch1 = ch5;
+
   int ch7 = read_sbus_channel(6);
   int ch8 = read_sbus_channel(7);
   int ch9 = read_sbus_channel(8);
@@ -94,7 +99,7 @@ void sbus_packet_complete() {
   //printf("got sbus ch11: %d ch10 %d\n", ch11, ch10);
 
   // velocity scales between 1.0 and 3.0
-  float v_scale = 3.0f * (((float)(ch7 - 172)) / 1811.0f) + 1.0f;
+  float v_scale = 2.0f * (((float)(ch7 - 172)) / 1811.0f) + 1.0f;
   // Ignore commands if switched
   if (ch11 != 1811) {
     if (ch10 == 172) { // oh shit switch (OFF)
@@ -135,7 +140,7 @@ void sbus_packet_complete() {
       //main_control_settings.rpy_des[2] = ((float)ch2 - 1000) * .001f;
       //main_control_settings.p_des[2] =   ((float)ch3 - 1000) * .001f;
 
-      //printf("ch1, 2, 3, 4: %d, %d, %d, %d \n", ch1, ch2, ch3, ch4);
+      //printf("ch1, 2, 3, 4, 5: %d, %d, %d, %d , %d\n", ch1, ch2, ch3, ch4, ch5);
       main_control_settings.v_des[0] = v_scale * ((float)ch1-1000)*.002f;
       main_control_settings.v_des[1] = -v_scale *((float)ch4-1000)*.0005f;
       main_control_settings.v_des[2] = 0;

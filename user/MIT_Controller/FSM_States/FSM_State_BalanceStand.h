@@ -3,6 +3,9 @@
 
 #include "FSM_State.h"
 
+template<typename T> class WBC_Ctrl;
+template<typename T> class LocomotionCtrlData;
+
 /**
  *
  */
@@ -33,6 +36,13 @@ class FSM_State_BalanceStand : public FSM_State<T> {
 
   // Parses contact specific controls to the leg controller
   void BalanceStandStep();
+
+  WBC_Ctrl<T> * _wbc_ctrl;
+  LocomotionCtrlData<T> * _wbc_data;
+
+  Vec3<T> _ini_body_pos;
+  Vec3<T> _ini_body_ori_rpy;
+  T _body_weight;
 };
 
 #endif  // FSM_STATE_BALANCESTAND_H
