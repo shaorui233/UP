@@ -88,6 +88,8 @@ void ControlFSM<T>::runFSM() {
       data.controlParameters->control_mode = 1;
     } else if(data._desiredStateCommand->rcCommand->mode == 11){
       data.controlParameters->control_mode = 4;
+    } else if(data._desiredStateCommand->rcCommand->mode == 3){
+      data.controlParameters->control_mode = 3;
     }
   }
 
