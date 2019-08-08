@@ -105,8 +105,8 @@ void DesiredStateCommand<T>::convertToStateCommands() {
       deadband(rightAnalogStick[1], minPitch, maxPitch);
 
   // Yaw
-  //data.stateDes(5) = stateEstimate->rpy(2) + dt * data.stateDes(11);
-  data.stateDes(5) = data.pre_stateDes(5) + dt * data.stateDes(11);
+  data.stateDes(5) = stateEstimate->rpy(2) + dt * data.stateDes(11);
+  //data.stateDes(5) = data.pre_stateDes(5) + dt * data.stateDes(11);
 
   data.pre_stateDes = data.stateDes;
 }

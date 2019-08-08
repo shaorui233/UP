@@ -20,6 +20,8 @@ option(IPOPT_OPTION "ipopt option" OFF)
 if(IPOPT_OPTION)
   message("**** Ipopt option is on ****")
   add_definitions(-DIPOPT_OPTION)
+else(IPOPT_OPTION)
+  message("**** Ipopt option is off ****")
 endif(IPOPT_OPTION)
 
 if(MINI_CHEETAH_BUILD)

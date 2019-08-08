@@ -110,9 +110,14 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
       break;
 
     case K_PASSIVE:
-      // Requested change to BALANCE_STAND
       this->nextStateName = FSM_StateName::PASSIVE;
+      // Transition time is immediate
+      this->transitionDuration = 0.0;
 
+      break;
+
+    case K_RECOVERY_STAND:
+      this->nextStateName = FSM_StateName::RECOVERY_STAND;
       // Transition time is immediate
       this->transitionDuration = 0.0;
 
@@ -152,9 +157,11 @@ TransitionData<T> FSM_State_BalanceStand<T>::transition() {
 
     case FSM_StateName::PASSIVE:
       this->turnOffAllSafetyChecks();
-
       this->transitionData.done = true;
+      break;
 
+    case FSM_StateName::RECOVERY_STAND:
+      this->transitionData.done = true;
       break;
 
     default:
@@ -188,9 +195,9 @@ void FSM_State_BalanceStand<T>::BalanceStandStep() {
   if(this->_data->controlParameters->use_rc){
     _wbc_data->pBody_RPY_des[0] = this->_data->_desiredStateCommand->rcCommand->rpy_des[0];
     _wbc_data->pBody_RPY_des[1] = this->_data->_desiredStateCommand->rcCommand->rpy_des[1];
-    _wbc_data->pBody_RPY_des[2] = this->_data->_desiredStateCommand->rcCommand->rpy_des[2];
+    _wbc_data->pBody_RPY_des[2] += this->_data->_desiredStateCommand->rcCommand->rpy_des[2];
   }else{
-    _wbc_data->pBody_RPY_des[2] = 
+    _wbc_data->pBody_RPY_des[2] += 
       this->_data->_desiredStateCommand->gamepadCommand->rightStickAnalog[1];
    }
   _wbc_data->vBody_Ori_des.setZero();

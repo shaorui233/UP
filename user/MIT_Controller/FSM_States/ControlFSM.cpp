@@ -47,6 +47,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
   statesList.locomotion = new FSM_State_Locomotion<T>(&data);
   statesList.bounding = new FSM_State_Bounding<T>(&data);
+  statesList.recoveryStand = new FSM_State_RecoveryStand<T>(&data);
 
   safetyChecker = new SafetyChecker<T>(&data);
 
@@ -91,6 +92,11 @@ void ControlFSM<T>::runFSM() {
     } else if(data._desiredStateCommand->rcCommand->mode == 3){
       data.controlParameters->control_mode = 3;
     }
+  }
+
+  if(data.controlParameters->control_mode == K_RECOVERY_STAND){
+    // Ignore Safety Check
+    operatingMode = FSM_OperatingMode::NORMAL;
   }
 
   // Run the robot control code if operating mode is not unsafe
@@ -237,6 +243,8 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
     case FSM_StateName::BOUNDING:
       return statesList.bounding;
 
+    case FSM_StateName::RECOVERY_STAND:
+      return statesList.recoveryStand;
 
     default:
       return statesList.invalid;

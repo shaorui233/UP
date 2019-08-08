@@ -2,7 +2,8 @@
 __collection-name__: user-parameters
 
 Kd_body           : [3, 3, 3]
-Kd_foot           : [5, 5, 5]
+#Kd_foot           : [5, 5, 5]
+Kd_foot           : [1005, 1005, 1005]
 Kd_joint          : [0.8, 0.8, 0.8]
 Kd_ori            : [3, 3, 3]
 Kp_body           : [50, 50, 50]
