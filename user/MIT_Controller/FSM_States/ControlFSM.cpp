@@ -86,7 +86,7 @@ void ControlFSM<T>::runFSM() {
 
   if(data.controlParameters->use_rc){
     if(data._desiredStateCommand->rcCommand->mode == 12){
-      data.controlParameters->control_mode = 1;
+      data.controlParameters->control_mode = K_RECOVERY_STAND;
     } else if(data._desiredStateCommand->rcCommand->mode == 11){
       data.controlParameters->control_mode = 4;
     } else if(data._desiredStateCommand->rcCommand->mode == 3){

@@ -1,17 +1,26 @@
 # Generated on Mon Aug  5 18:20:08 2019
 __collection-name__: user-parameters
 
-Kd_body           : [3, 3, 3]
-#Kd_foot           : [5, 5, 5]
-Kd_foot           : [1005, 1005, 1005]
-Kd_joint          : [0.8, 0.8, 0.8]
-Kd_ori            : [3, 3, 3]
-Kp_body           : [50, 50, 50]
-Kp_foot           : [200, 200, 200]
+
+Kd_joint          : [0.5, 0.5, 0.5]
+#Kd_joint          : [0.8, 0.8, 0.8]
 Kp_joint          : [4, 4, 4]
-Kp_ori            : [50, 50, 50]
+#Kp_joint          : [3, 3, 3]
+
+Kp_body           : [30, 30, 30]
+#Kp_body           : [3, 3, 3]
+Kd_body           : [3, 3, 3]
+
+#Kp_foot           : [100, 100, 100]
+Kp_foot           : [70, 70, 70]
+Kd_foot           : [3, 3, 3]
+
+Kp_ori            : [30, 30, 30]
+#Kp_ori            : [3, 3, 3]
+Kd_ori            : [3, 3, 3]
+
 cmpc_gait         : 9
-cmpc_x_drag       : 8
+cmpc_x_drag       : 0
 cmpc_use_sparse   : 0
 jcqp_alpha        : 1.5
 jcqp_max_iter     : 10000

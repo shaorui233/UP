@@ -6,7 +6,8 @@ addpath('./functions')
 %load('./../matlab_log/data_exp_run4.mat')
 %load('./../matlab_log/data_exp_run5_freq.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
-load('./../matlab_log/sim_data.mat')
+%load('./../matlab_log/sim_data.mat')
+load('./../matlab_log/exp_data_1.mat')
 fig = fn_open_figures(8);
 
 %%

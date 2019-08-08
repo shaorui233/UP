@@ -57,7 +57,7 @@ static OsqpCSC compress(std::vector<SparseTriple<double>>& entries, u32 m, u32 n
 void SparseCMPC::runSolverOSQP() {
   Timer timer;
   u32 varCount = 12 * _trajectoryLength + 3 * _bBlockCount;
-  printf("[SparseCMPC] Run with OSQP %d, %d\n", varCount, _constraintCount);
+  //printf("[SparseCMPC] Run with OSQP %d, %d\n", varCount, _constraintCount);
   assert(_constraintCount == _ub.size());
   assert(_constraintCount == _lb.size());
   assert(varCount == _linearCost.size());
@@ -84,7 +84,7 @@ void SparseCMPC::runSolverOSQP() {
   data->l = _lb.data();
   data->u = _ub.data();
 
-  printf("t3: %.3f\n", timer.getMs());
+  //printf("t3: %.3f\n", timer.getMs());
   timer.start();
 
 //# define EPS_ABS (1E-3)
@@ -98,12 +98,12 @@ void SparseCMPC::runSolverOSQP() {
   //settings->alpha = 1.0; //todo try me
   workspace = osqp_setup(data, settings);
 
-  printf("t4: %.3f\n", timer.getMs());
+  //printf("t4: %.3f\n", timer.getMs());
   timer.start();
 
   osqp_solve(workspace);
 
-  printf("t5: %.3f\n", timer.getMs());
+  //printf("t5: %.3f\n", timer.getMs());
 
   _result = Eigen::Matrix<float, Eigen::Dynamic, 1>(varCount);
   for(u32 i = 0; i < varCount; i++) {

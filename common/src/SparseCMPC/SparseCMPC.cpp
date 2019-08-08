@@ -54,7 +54,7 @@ void SparseCMPC::run() {
   buildCT();
   buildDT();
 
-  printf("t1: %.3f\n", timer.getMs());
+  //printf("t1: %.3f\n", timer.getMs());
   timer.start();
 
   // build optimization problem
@@ -65,7 +65,7 @@ void SparseCMPC::run() {
   addQuadraticStateCost();
   addLinearStateCost();
   addQuadraticControlCost();
-  printf("t2: %.3f\n", timer.getMs());
+  //printf("t2: %.3f\n", timer.getMs());
 
   // Solve!
   //runSolver();

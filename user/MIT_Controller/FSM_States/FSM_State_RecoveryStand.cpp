@@ -67,15 +67,22 @@ void FSM_State_RecoveryStand<T>::onEnter() {
   _flag = FoldLegs;
   if( !_UpsideDown() ) { // Proper orientation
     if (  (0.2 < body_height) && (body_height < 0.3) ){
+      printf("[Recovery Balance] body height is %f; Stand Up \n", body_height);
       _flag = StandUp;
+    }else{
+      printf("[Recovery Balance] body height is %f; Folding legs \n", body_height);
     }
+  }else{
+      printf("[Recovery Balance] UpsideDown (%d) \n", _UpsideDown() );
   }
   _motion_start_iter = 0;
 }
 
 template <typename T>
 bool FSM_State_RecoveryStand<T>::_UpsideDown(){
-  if(this->_data->_stateEstimator->getResult().aBody[2] < 0){
+  //pretty_print(this->_data->_stateEstimator->getResult().rBody, std::cout, "Rot");
+  //if(this->_data->_stateEstimator->getResult().aBody[2] < 0){
+  if(this->_data->_stateEstimator->getResult().rBody(2,2) < 0){
     return true;
   }
   return false;
@@ -140,16 +147,39 @@ void FSM_State_RecoveryStand<T>::_RollOver(const int & curr_iter){
 
 template <typename T>
 void FSM_State_RecoveryStand<T>::_StandUp(const int & curr_iter){
-  for(size_t leg(0); leg<4; ++leg){
-    _SetJPosInterPts(curr_iter, standup_ramp_iter, 
-        leg, initial_jpos[leg], stand_jpos[leg]);
+  T body_height = this->_data->_stateEstimator->getResult().position[2];
+  bool something_wrong(false);
+
+  if( _UpsideDown() || (body_height < 0.1 ) ) { 
+    something_wrong = true;
+  }
+
+  if( (curr_iter > floor(standup_ramp_iter*0.7) ) && something_wrong){
+    // If body height is too low because of some reason 
+    // even after the stand up motion is almost over 
+    // (Can happen when E-Stop is engaged in the middle of Other state)
+    for(size_t i(0); i < 4; ++i) {
+      initial_jpos[i] = this->_data->_legController->datas[i].q;
+    }
+    _flag = FoldLegs;
+    _motion_start_iter = iter;
+
+    printf("[Recovery Balance - Warning] body height is still too low (%f) or UpsideDown (%d); Folding legs \n", 
+        body_height, _UpsideDown() );
+
+  }else{
+    for(size_t leg(0); leg<4; ++leg){
+      _SetJPosInterPts(curr_iter, standup_ramp_iter, 
+          leg, initial_jpos[leg], stand_jpos[leg]);
+    }
   }
   // feed forward mass of robot.
   //for(int i = 0; i < 4; i++)
-    //this->_data->_legController->commands[i].forceFeedForward = f_ff;
+  //this->_data->_legController->commands[i].forceFeedForward = f_ff;
   //Vec4<T> se_contactState(0.,0.,0.,0.);
   Vec4<T> se_contactState(0.5,0.5,0.5,0.5);
   this->_data->_stateEstimator->setContactPhase(se_contactState);
+
 }
 
 template <typename T>

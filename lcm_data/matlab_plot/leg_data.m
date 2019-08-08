@@ -4,13 +4,14 @@ clear all
 %%
 addpath('./functions')
 %load('./../matlab_log/data_exp_run5_freq.mat')
-load('./../matlab_log/data_exp_bounding.mat')
+load('./../matlab_log/exp_data_1.mat')
+%load('./../matlab_log/data_exp_bounding.mat')
 
 fig = fn_open_figures(5);
 
 %%
 st_idx = 4000;
-end_idx = length(wbc_lcm_data.lcm_timestamp);%-85000;
+end_idx = length(leg_control_data.lcm_timestamp);%-85000;
 %end_idx = st_idx + 1000; %length(wbc_lcm_data.lcm_timestamp);%-85000;
 %time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
 time = leg_control_data.lcm_timestamp;

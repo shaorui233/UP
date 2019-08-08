@@ -149,6 +149,10 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc,
 
   initSparseMPC();
 }
+void ConvexMPCLocomotion::initialize(){
+  for(int i = 0; i < 4; i++) firstSwing[i] = true;
+  firstRun = true;
+}
 
 template<>
 void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
@@ -208,7 +212,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   current_gait = gaitNumber;
 
   // integrate position setpoint
-  Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
+  Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], 0);
   Vec3<float> v_des_world = 
     omniMode ? v_des_robot : seResult.rBody.transpose() * v_des_robot;
   Vec3<float> v_robot = seResult.vWorld;
@@ -239,6 +243,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   }
 
   if(gait != &standing) {
+    //world_position_desired += dt * Vec3<float>(v_des_world[0], v_des_world[1], v_des_world[2]);
     world_position_desired += dt * Vec3<float>(v_des_world[0], v_des_world[1], 0);
   }
 
@@ -271,6 +276,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
   pBody_RPY_des[0] = 0.;
   pBody_RPY_des[1] = 0.; 
+  //pBody_RPY_des[2] = world_position_desired[2];
   pBody_RPY_des[2] = stateCommand->data.stateDes[5];
 
   vBody_Ori_des[0] = 0.;
@@ -286,8 +292,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   swingTimes[3] = dtMPC * gait->_swing;
   float side_sign[4] = {-1, 1, -1, 1};
   float interleave_y[4] = {-0.08, 0.08, 0.01, -0.01};
-  float interleave_gain = -0.2;
-  float v_abs = std::fabs(seResult.vBody[0]);
+  float interleave_gain = -0.13;
+  //float v_abs = std::fabs(seResult.vBody[0]);
+  float v_abs = std::fabs(v_des_robot[0]);
   for(int i = 0; i < 4; i++)
   {
 
@@ -323,14 +330,10 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       // Using the estimated velocity is correct
       //Vec3<float> des_vel_world = seResult.rBody.transpose() * des_vel;
       float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
-      //float pfx_rel =   des_vel_world[0] * .5 * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[0]-v_des_world[0]) +
-
-                      (0.5f*seResult.position[2]/9.81f) * 
-                      (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
+                      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
 
       float pfy_rel = seResult.vWorld[1] * .5 * gait->_stance * dtMPC +
-      //float pfy_rel = des_vel_world[1] * .5 * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[1]-v_des_world[1]) +
                       (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[11]);
       pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
@@ -578,6 +581,10 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       const float max_pos_error = .1;
       float xStart = world_position_desired[0];
       float yStart = world_position_desired[1];
+      
+      //const float max_yaw_error = .1;
+      //float yawStart = world_position_desired[2];
+      //float esYaw = (float)stateCommand->data.stateDes[5];
 
       if(xStart - p[0] > max_pos_error) xStart = p[0] + max_pos_error;
       if(p[0] - xStart > max_pos_error) xStart = p[0] - max_pos_error;
@@ -585,13 +592,18 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       if(yStart - p[1] > max_pos_error) yStart = p[1] + max_pos_error;
       if(p[1] - yStart > max_pos_error) yStart = p[1] - max_pos_error;
 
+      //if(yawStart - esYaw > max_yaw_error) yawStart = esYaw + max_yaw_error;
+      //if(esYaw - yawStart > max_yaw_error) yawStart = esYaw - max_yaw_error;
+
       world_position_desired[0] = xStart;
       world_position_desired[1] = yStart;
+      //world_position_desired[2] = yawStart;
 
 
       float trajInitial[12] = {(float)rpy_comp[0],  // 0
                                (float)rpy_comp[1],    // 1
                                (float)stateCommand->data.stateDes[5],    // 2
+                               //yawStart,    // 2
                                xStart,                                   // 3
                                yStart,                                   // 4
                                (float)_body_height,      // 5
@@ -642,7 +654,7 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
       solveDenseMPC(mpcTable, data);
     }
 
-    printf("TOTAL SOLVE TIME: %.3f\n", solveTimer.getMs());
+    //printf("TOTAL SOLVE TIME: %.3f\n", solveTimer.getMs());
 
   }
 
@@ -652,6 +664,7 @@ void ConvexMPCLocomotion::solveDenseMPC(int *mpcTable, ControlFSMData<float> &da
   auto seResult = data._stateEstimator->getResult();
 
   float Q[12] = {0.25, 0.25, 10, 2, 2, 20, 0, 0, 0.3, 0.2, 0.2, 0.2};
+  //float Q[12] = {0.25, 0.25, 10, 2, 2, 40, 0, 0, 0.3, 0.2, 0.2, 0.2};
   float yaw = seResult.rpy[2];
   float* weights = Q;
   float alpha = 4e-5; // make setting eventually

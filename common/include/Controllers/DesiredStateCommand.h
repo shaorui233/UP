@@ -79,10 +79,12 @@ class DesiredStateCommand {
   T minVelX = -3.0;
   //T maxVelX = 5.0;
   //T minVelX = -5.0;
-  T maxVelY = 1.5;
-  T minVelY = -1.5;
-  T maxTurnRate = 2.0;
-  T minTurnRate = -2.0;
+  //T maxVelY = 1.5;
+  //T minVelY = -1.5;
+  T maxVelY = 0.5;
+  T minVelY = -0.5;
+  T maxTurnRate = 0.5;
+  T minTurnRate = -0.5;
 
   Vec2<float> leftAnalogStick;
   Vec2<float> rightAnalogStick;

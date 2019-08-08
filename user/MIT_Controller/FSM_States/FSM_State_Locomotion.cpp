@@ -42,6 +42,7 @@ void FSM_State_Locomotion<T>::onEnter() {
 
   // Reset the transition data
   this->transitionData.zero();
+  cMPCOld.initialize();
 }
 
 /**
