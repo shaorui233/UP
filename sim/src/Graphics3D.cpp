@@ -8,7 +8,14 @@
 #include "Graphics3D.h"
 #include "Utilities/utilities.h"
 
+#ifdef linux
 #include <GL/glut.h>
+#endif
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#endif
+
 #include <unistd.h>
 #include <iostream>
 

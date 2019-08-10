@@ -106,6 +106,7 @@ void RobotRunner::run() {
         for (int leg = 0; leg < 4; leg++) {
           _legController->commands[leg].zero();
         }
+        _robot_ctrl->Estop();
      }else {
       // Controller
       if (!_jpos_initializer->IsInitialized(_legController)) {

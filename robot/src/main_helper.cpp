@@ -75,6 +75,7 @@ int main_helper(int argc, char** argv, RobotController* ctrl) {
       assert(false);
     }
   } else {
+#ifdef linux
     if (gMasterConfig._robot == RobotType::MINI_CHEETAH) {
       MiniCheetahHardwareBridge hw(ctrl);
       hw.run();
@@ -86,6 +87,7 @@ int main_helper(int argc, char** argv, RobotController* ctrl) {
       printf("[ERROR] unknown robot\n");
       assert(false);
     }
+#endif
   }
 
   return 0;

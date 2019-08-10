@@ -6,6 +6,8 @@
 #ifndef _rt_spi
 #define _rt_spi
 
+#ifdef linux
+
 #include <fcntl.h>      //Needed for SPI port
 #include <sys/ioctl.h>  //Needed for SPI port
 
@@ -88,4 +90,7 @@ typedef struct {
 
 } spine_data_t;
 
+#endif // END of #ifdef linux
+
 #endif
+

@@ -30,6 +30,7 @@ public:
   virtual void runController() = 0;
   virtual void updateVisualization() = 0;
   virtual ControlParameters* getUserControlParameters() = 0;
+  virtual void Estop() {}
 
 protected:
   Quadruped<float>* _quadruped = nullptr;

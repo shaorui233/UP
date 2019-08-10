@@ -2,6 +2,7 @@
  * @file rt_spi.h
  * @brief SPI communication to spine board
  */
+#ifdef linux
 
 #include <byteswap.h>
 #include <math.h>
@@ -357,3 +358,5 @@ spi_command_t *get_spi_command() {
  * Get the spi data
  */
 spi_data_t *get_spi_data() { return &spi_data_drv; }
+
+#endif

@@ -13,11 +13,13 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifdef linux
 #define termios asmtermios
 
 #include <asm/termios.h>
 
 #undef termios
+#endif
 
 #include <termios.h>
 
@@ -153,7 +155,9 @@ int init_sbus(int is_simulator) {
   if (fd1 < 0) {
     printf("Error opening %s: %s\n", port1.c_str(), strerror(errno));
   } else {
+#ifdef linux
     set_interface_attribs_custom_baud(fd1, 100000, 0, 0);
+#endif
   }
   return fd1;
 }

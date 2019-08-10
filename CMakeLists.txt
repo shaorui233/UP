@@ -40,15 +40,26 @@ else(MINI_CHEETAH_BUILD)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
           ${CMAKE_BINARY_DIR}/Configuration.h)
 
+if(LINUX)
   set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
 -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
  -Wshadow -Wsign-promo -Werror")
+elseif(APPLE)
+  set(CMAKE_CXX_FLAGS "-O3 -fno-pie -march=native -ggdb -Wall \
+-Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
+-Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
+-Wshadow -Wsign-promo ")
+include_directories("/usr/local/include/")   # lcm includes
+endif()
+
   set(CMAKE_C_FLAGS "-O3  -ggdb  -march=native -std=gnu99 -I.")
   message(WARNING "not set to mini cheetah build.  this won't work on the robot!")
 endif(MINI_CHEETAH_BUILD)
 
 set(CMAKE_CXX_STANDARD 14)
+
+find_package(lcm)
 
 add_subdirectory(robot)
 add_subdirectory(third-party)

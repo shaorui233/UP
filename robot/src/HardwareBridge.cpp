@@ -5,6 +5,7 @@
  * This class initializes the hardware of both robots and allows the robot
  * controller to access it
  */
+#ifdef linux 
 
 #include <sys/mman.h>
 #include <unistd.h>
@@ -346,3 +347,5 @@ void HardwareBridge::publishVisualizationLCM() {
 
   _visualizationLCM.publish("main_cheetah_visualization", &visualization_data);
 }
+
+#endif

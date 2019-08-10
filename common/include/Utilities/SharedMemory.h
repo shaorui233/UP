@@ -78,7 +78,11 @@ class SharedMemorySemaphore {
     ts.tv_sec += seconds;
     ts.tv_sec += ts.tv_nsec / 1000000000;
     ts.tv_nsec %= 1000000000;
+#ifdef linux
     return (sem_timedwait(&_sem, &ts) == 0);
+#else
+    return (sem_trywait(&_sem) == 0);
+#endif
   }
 
   /*!
@@ -132,9 +136,9 @@ class SharedMemoryObject {
     printf("[Shared Memory] open new %s, size %ld bytes\n", name.c_str(),
            _size);
 
-    _fd = shm_open(name.c_str(), O_RDWR | O_CREAT,
+    _fd = shm_open(name.c_str(), O_RDWR | O_CREAT, 
                    S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP | S_IROTH);
-    if (_fd == -1) {
+     if (_fd == -1) {
       printf("[ERROR] SharedMemoryObject shm_open failed: %s\n",
              strerror(errno));
       throw std::runtime_error("Failed to create shared memory!");
@@ -158,6 +162,7 @@ class SharedMemoryObject {
       if (!allowOverwrite)
         throw std::runtime_error(
             "Failed to create shared memory - it already exists.");
+
       printf("\tusing existing shared memory!\n");
       // return false;
     }

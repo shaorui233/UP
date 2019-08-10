@@ -19,6 +19,7 @@ public:
   virtual ControlParameters* getUserControlParameters() {
     return &userParameters;
   }
+  virtual void Estop(){ _controlFSM->initialize(); }
 
 
 protected:

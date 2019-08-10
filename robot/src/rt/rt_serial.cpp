@@ -3,6 +3,8 @@
  * @brief Serial port
  */
 
+#ifdef linux
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -69,3 +71,5 @@ int set_interface_attribs_custom_baud(int fd, int speed, int parity, int port) {
   ioctl(fd, TCSETS2, &tty);
   return 0;
 }
+
+#endif

@@ -3,6 +3,8 @@
  * @brief VectorNav IMU communication
  */
 
+#ifdef linux
+
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
@@ -233,3 +235,4 @@ int processErrorReceived(const std::string& errorMessage, VnError errorCode) {
   printf("%s\nVECTORNAV ERROR: %s\n", errorMessage.c_str(), errorCodeStr);
   return -1;
 }
+#endif

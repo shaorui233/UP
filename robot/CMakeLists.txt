@@ -16,6 +16,8 @@ include_directories("/usr/local/include/lcm/")   # lcm includes
 file(GLOB sources "src/*.cpp" "src/rt/*.c"  "src/rt/*.cpp")
 
 add_library(robot SHARED ${sources})
-target_link_libraries(robot biomimetics pthread lcm rt inih libvnc)
-target_link_libraries(robot dynacore_param_handler)
 
+target_link_libraries(robot biomimetics pthread lcm inih dynacore_param_handler)
+if(LINUX)
+target_link_libraries(robot libvnc rt)
+endif()
