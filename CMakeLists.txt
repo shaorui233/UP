@@ -40,7 +40,7 @@ else(MINI_CHEETAH_BUILD)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
           ${CMAKE_BINARY_DIR}/Configuration.h)
 
-if(LINUX)
+if(CMAKE_SYSTEM_NAME MATCHES Linux)
   set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
 -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \

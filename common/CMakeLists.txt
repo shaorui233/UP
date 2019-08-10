@@ -21,7 +21,7 @@ file(GLOB_RECURSE sources "src/*.cpp")                   # common library cpp fi
 add_library(biomimetics SHARED ${sources})       # produce a library used by sim/robot
 target_link_libraries(biomimetics inih dynacore_param_handler JCQP osqp)
 
-if(LINUX)
+if(CMAKE_SYSTEM_NAME MATCHES Linux)
 # Pull in Google Test
 include(CTest)
 if (CMAKE_VERSION VERSION_LESS 3.2)
@@ -61,7 +61,8 @@ target_link_libraries(test-common WBC_Ctrl)# liblapack blas m dl ipoptamplinterf
 endif(IPOPT_OPTION)
 
 add_test(NAME example_test COMMAND test-common)
-endif(LINUX)
+
+endif(CMAKE_SYSTEM_NAME MATCHES Linux)
 
 # Our libraries
 add_subdirectory(FootstepPlanner)

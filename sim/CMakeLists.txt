@@ -1,17 +1,17 @@
 cmake_minimum_required(VERSION 3.5)
 project(sim)
 
-#set(CMAKE_PREFIX_PATH ~/Qt/5.10.0/gcc_64)
-if(LINUX)
-    set(CMAKE_PREFIX_PATH ~/Qt/5.12.3/gcc_64)
-    set(Qt5Core_DIR ~/Qt/5.10.0/gcc_64/lib/cmake/Qt5Core)
-    set(Qt5Widgets_DIR ~/Qt/5.10.0/gcc_64/lib/cmake/Qt5Widgets)
-    set(Qt5Gamepad_DIR ~/Qt/5.10.0/gcc_64/lib/cmake/Qt5Gamepad)
+if(CMAKE_SYSTEM_NAME MATCHES Linux)
+  #set(CMAKE_PREFIX_PATH ~/Qt/5.10.0/gcc_64)
+  set(CMAKE_PREFIX_PATH ~/Qt/5.12.3/gcc_64)
+  set(Qt5Core_DIR ~/Qt/5.10.0/gcc_64/lib/cmake/Qt5Core)
+  set(Qt5Widgets_DIR ~/Qt/5.10.0/gcc_64/lib/cmake/Qt5Widgets)
+  set(Qt5Gamepad_DIR ~/Qt/5.10.0/gcc_64/lib/cmake/Qt5Gamepad)
 elseif(APPLE)
-    set(CMAKE_PREFIX_PATH ~/Qt/5.13.0/clang_64)
-    set(Qt5Core_DIR ~/Qt/5.13.0/clang_64/lib/cmake/Qt5Core)
-    set(Qt5Widgets_DIR ~/Qt/5.13.0/clang_64/lib/cmake/Qt5Widgets)
-    set(Qt5Gamepad_DIR ~/Qt/5.13.0/clang_64/lib/cmake/Qt5Gamepad)
+  set(CMAKE_PREFIX_PATH ~/Qt/5.13.0/clang_64)
+  set(Qt5Core_DIR ~/Qt/5.13.0/clang_64/lib/cmake/Qt5Core)
+  set(Qt5Widgets_DIR ~/Qt/5.13.0/clang_64/lib/cmake/Qt5Widgets)
+  set(Qt5Gamepad_DIR ~/Qt/5.13.0/clang_64/lib/cmake/Qt5Gamepad)
 endif()
 
 SET(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -52,7 +52,7 @@ find_package(OpenGL REQUIRED)
 include_directories(${OPENGL_INCLUDE_DIR})
 
 add_executable(sim ${sources} ${tst_hdr_moc})
-target_link_libraries(sim biomimetics pthread lcm inih dynacore_param_handler 
+target_link_libraries(sim biomimetics pthread rt lcm inih dynacore_param_handler 
     Qt5::Widgets Qt5::Core Qt5::Gui Qt5::Gamepad ${QT_LIBRARIES} ${OPENGL_LIBRARIES})
 
 if (CMAKE_SYSTEM_NAME MATCHES Linux)
