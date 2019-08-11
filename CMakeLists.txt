@@ -46,10 +46,10 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux)
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
  -Wshadow -Wsign-promo -Werror")
 elseif(APPLE)
-  set(CMAKE_CXX_FLAGS "-O3 -fno-pie -march=native -ggdb -Wall \
+    set(CMAKE_CXX_FLAGS "-O3 -march=native -ggdb -Wall \
 -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
--Wshadow -Wsign-promo ")
+-Wshadow -Wsign-promo")
 include_directories("/usr/local/include/")   # lcm includes
 endif()
 

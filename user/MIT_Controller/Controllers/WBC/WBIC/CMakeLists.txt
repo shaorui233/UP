@@ -1,7 +1,7 @@
-FILE(GLOB_RECURSE headers WB*.hpp)
-FILE(GLOB_RECURSE sources WB*.cpp)
+FILE(GLOB_RECURSE headers *.hpp)
+FILE(GLOB_RECURSE sources *.cpp)
 
 
 add_library(WBIC SHARED ${sources} ${headers})
 target_link_libraries(WBIC Goldfarb_Optimizer)
-target_link_libraries(WBIC JCQP)
+#target_link_libraries(WBIC JCQP)

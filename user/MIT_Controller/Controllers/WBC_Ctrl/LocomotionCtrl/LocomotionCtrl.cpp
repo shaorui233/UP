@@ -165,7 +165,6 @@ void LocomotionCtrl<T>::_LCM_PublishData() {
 
       WBCtrl::_wbc_data_lcm.jpos_cmd[3*leg + i] = WBCtrl::_des_jpos[3*leg + i];
       WBCtrl::_wbc_data_lcm.jvel_cmd[3*leg + i] = WBCtrl::_des_jvel[3*leg + i];
-      WBCtrl::_wbc_data_lcm.jacc_cmd[3*leg + i] = WBCtrl::_des_jacc[3*leg + i];
 
       WBCtrl::_wbc_data_lcm.jpos[3*leg + i] = WBCtrl::_state.q[3*leg + i];
       WBCtrl::_wbc_data_lcm.jvel[3*leg + i] = WBCtrl::_state.qd[3*leg + i];

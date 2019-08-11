@@ -8,7 +8,6 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
   _tau_ff(cheetah::num_act_joint),
   _des_jpos(cheetah::num_act_joint),
   _des_jvel(cheetah::num_act_joint),
-  _des_jacc(cheetah::num_act_joint),
   _wbcLCM(getLcmUrl(255))
 {
   _iter = 0;
@@ -19,8 +18,6 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
 
   _wbic = new WBIC<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
   _wbic_data = new WBIC_ExtraData<T>();
-  //_wbic = new WBIC_Strict<T>(cheetah::dim_config, &(_contact_list), &(_task_list));
-  //_wbic_data = new WBIC_Strict_ExtraData<T>();
 
   _wbic_data->_W_floating = DVec<T>::Constant(6, 0.1);
   _wbic_data->_W_rf = DVec<T>::Constant(12, 1.);
@@ -56,7 +53,7 @@ WBC_Ctrl<T>::~WBC_Ctrl(){
 template <typename T>
 void WBC_Ctrl<T>::_ComputeWBC() {
   _kin_wbc->FindConfiguration(_full_config, _task_list, _contact_list,
-                              _des_jpos, _des_jvel, _des_jacc);
+                              _des_jpos, _des_jvel);
 
   // WBIC
   _wbic->UpdateSetting(_A, _Ainv, _coriolis, _grav);

@@ -4,7 +4,7 @@ FILE(GLOB_RECURSE sources *.cpp)
 
 add_library (WBC_Ctrl SHARED ${headers} ${sources} )
 target_link_libraries (WBC_Ctrl biomimetics lcm)
-target_link_libraries (WBC_Ctrl WBIC WBLC dynacore_param_handler)
+target_link_libraries (WBC_Ctrl WBIC dynacore_param_handler)
 
 if(IPOPT_OPTION)
 link_directories("../../../../third-party/CoinIpopt/build/lib")

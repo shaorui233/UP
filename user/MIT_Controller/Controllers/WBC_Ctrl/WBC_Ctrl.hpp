@@ -6,8 +6,7 @@
 #include <Dynamics/Quadruped.h>
 #include "cppTypes.h"
 #include <WBC/WBIC/WBIC.hpp>
-//#include <WBC/WBIC_Strict/WBIC_Strict.hpp>
-#include <WBC/WBLC/KinWBC.hpp>
+#include <WBC/WBIC/KinWBC.hpp>
 
 #include <lcm-cpp.hpp>
 #include "wbc_test_data_t.hpp"
@@ -37,9 +36,6 @@ class WBC_Ctrl{
     KinWBC<T>* _kin_wbc;
     WBIC<T>* _wbic;
     WBIC_ExtraData<T>* _wbic_data;
-    //WBIC_Strict<T>* _wbic;
-    //WBIC_Strict_ExtraData<T>* _wbic_data;
-
 
     FloatingBaseModel<T> _model;
     std::vector<ContactSpec<T> * > _contact_list;
@@ -56,7 +52,7 @@ class WBC_Ctrl{
     DVec<T> _tau_ff;
     DVec<T> _des_jpos;
     DVec<T> _des_jvel;
-    DVec<T> _des_jacc;
+
     std::vector<T> _Kp_joint, _Kd_joint;
 
     unsigned long long _iter;
