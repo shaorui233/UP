@@ -6,16 +6,16 @@ addpath('./functions')
 %load('./../matlab_log/data_exp_run4.mat')
 %load('./../matlab_log/data_exp_run5_freq.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
-%load('./../matlab_log/sim_data.mat')
-load('./../matlab_log/exp_data_1.mat')
+load('./../matlab_log/sim_data.mat')
+%load('./../matlab_log/exp_3.mat')
 fig = fn_open_figures(8);
 
 %%
 st_idx = 4000;
 end_idx = length(wbc_lcm_data.lcm_timestamp);%-85000;
 %end_idx = st_idx + 1000; %length(wbc_lcm_data.lcm_timestamp);%-85000;
-time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
-%time = wbc_lcm_data.lcm_timestamp;
+%time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
+time = wbc_lcm_data.lcm_timestamp;
 
 figure(fig(1))
 for i =1:12

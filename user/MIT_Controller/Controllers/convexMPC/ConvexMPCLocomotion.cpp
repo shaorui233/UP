@@ -265,26 +265,6 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     firstRun = false;
   }
   
-  // Update For WBC
-  pBody_des[0] = world_position_desired[0];
-  pBody_des[1] = world_position_desired[1];
-  pBody_des[2] = _body_height;
-
-  vBody_des[0] = v_des_world[0];
-  vBody_des[1] = v_des_world[1];
-  vBody_des[2] = 0.;
-
-  pBody_RPY_des[0] = 0.;
-  pBody_RPY_des[1] = 0.; 
-  //pBody_RPY_des[2] = world_position_desired[2];
-  pBody_RPY_des[2] = stateCommand->data.stateDes[5];
-
-  vBody_Ori_des[0] = 0.;
-  vBody_Ori_des[1] = 0.;
-  vBody_Ori_des[2] = stateCommand->data.stateDes[11];
-
-  contact_state = gait->getContactState();
-
   // foot placement
   swingTimes[0] = dtMPC * gait->_swing;
   swingTimes[1] = dtMPC * gait->_swing;
@@ -533,6 +513,29 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
   // se->set_contact_state(se_contactState); todo removed
   data._stateEstimator->setContactPhase(se_contactState);
+  
+  // Update For WBC
+  pBody_des[0] = world_position_desired[0];
+  pBody_des[1] = world_position_desired[1];
+  pBody_des[2] = _body_height;
+
+  vBody_des[0] = v_des_world[0];
+  vBody_des[1] = v_des_world[1];
+  vBody_des[2] = 0.;
+
+  pBody_RPY_des[0] = 0.;
+  pBody_RPY_des[1] = 0.; 
+  //pBody_RPY_des[2] = world_position_desired[2];
+  pBody_RPY_des[2] = stateCommand->data.stateDes[5];
+
+  vBody_Ori_des[0] = 0.;
+  vBody_Ori_des[1] = 0.;
+  vBody_Ori_des[2] = stateCommand->data.stateDes[11];
+
+  //contact_state = gait->getContactState();
+  contact_state = gait->getContactState();
+  // END of WBC Update
+
 
 }
 

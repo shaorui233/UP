@@ -4,10 +4,10 @@ clear all
 %%
 addpath('./functions')
 %load('./../matlab_log/data_exp_run5_freq.mat')
-load('./../matlab_log/exp_data_1.mat')
+load('./../matlab_log/exp_hallway.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
 
-fig = fn_open_figures(5);
+fig = fn_open_figures(6);
 
 %%
 st_idx = 4000;
@@ -73,3 +73,15 @@ grid on
 axis tight
 end
 xlabel('Foot vel')
+
+
+% 
+figure(fig(6))
+for i =1:12
+    subplot(4,3,i)
+plot(time(st_idx:end_idx), leg_control_command.kp_joint(st_idx:end_idx,i))
+grid on
+axis tight
+end
+xlabel('Foot vel')
+

@@ -77,6 +77,7 @@ class ControlFSM {
   // Contains all of the control related data
   ControlFSMData<T> data;
 
+  int _prev_control_mode = K_PASSIVE;
   // FSM state information
   FSM_StatesList<T> statesList;  // holds all of the FSM States
   FSM_State<T>* currentState;    // current FSM state

@@ -87,6 +87,8 @@ void ControlFSM<T>::runFSM() {
   if(data.controlParameters->use_rc){
     if(data._desiredStateCommand->rcCommand->mode == 12){
       data.controlParameters->control_mode = K_RECOVERY_STAND;
+      // Ignore Safety Check
+      operatingMode = FSM_OperatingMode::NORMAL;
     } else if(data._desiredStateCommand->rcCommand->mode == 11){
       data.controlParameters->control_mode = 4;
     } else if(data._desiredStateCommand->rcCommand->mode == 3){
@@ -94,10 +96,7 @@ void ControlFSM<T>::runFSM() {
     }
   }
 
-  if(data.controlParameters->control_mode == K_RECOVERY_STAND){
-    // Ignore Safety Check
-    operatingMode = FSM_OperatingMode::NORMAL;
-  }
+  _prev_control_mode = data.controlParameters->control_mode;
 
   // Run the robot control code if operating mode is not unsafe
   if (operatingMode != FSM_OperatingMode::ESTOP) {
@@ -115,7 +114,7 @@ void ControlFSM<T>::runFSM() {
         nextState = getNextState(nextStateName);
 
         // Print transition initialized info
-        printInfo(1);
+        //printInfo(1);
 
       } else {
         // Run the iteration for the current state normally
@@ -136,7 +135,7 @@ void ControlFSM<T>::runFSM() {
         currentState->onExit();
 
         // Print finalizing transition info
-        printInfo(2);
+        //printInfo(2);
 
         // Complete the transition
         currentState = nextState;
@@ -159,7 +158,7 @@ void ControlFSM<T>::runFSM() {
   }
 
   // Print the current state of the FSM
-  printInfo(0);
+  //printInfo(0);
 }
 
 /**
