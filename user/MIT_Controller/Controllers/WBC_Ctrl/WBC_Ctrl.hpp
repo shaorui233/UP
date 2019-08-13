@@ -30,7 +30,7 @@ class WBC_Ctrl{
     virtual void _ContactTaskUpdate(void * input, ControlFSMData<T> & data) = 0;
     virtual void _LCM_PublishData(){}
     void _UpdateModel(const StateEstimate<T> & state_est, const LegControllerData<T> * leg_data);
-    void _UpdateLegCMD(LegControllerCommand<T> * cmd);
+    void _UpdateLegCMD(ControlFSMData<T> & data);
     void _ComputeWBC();
 
     KinWBC<T>* _kin_wbc;
@@ -54,6 +54,7 @@ class WBC_Ctrl{
     DVec<T> _des_jvel;
 
     std::vector<T> _Kp_joint, _Kd_joint;
+    std::vector<T> _Kp_joint_swing, _Kd_joint_swing;
 
     unsigned long long _iter;
 

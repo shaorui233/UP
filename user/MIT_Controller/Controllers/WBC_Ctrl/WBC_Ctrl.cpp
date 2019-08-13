@@ -25,6 +25,9 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
   _Kp_joint.resize(cheetah::num_leg_joint, 5.);
   _Kd_joint.resize(cheetah::num_leg_joint, 1.5);
 
+  _Kp_joint_swing.resize(cheetah::num_leg_joint, 10.);
+  _Kd_joint_swing.resize(cheetah::num_leg_joint, 1.5);
+
   _state.q = DVec<T>::Zero(cheetah::num_act_joint);
   _state.qd = DVec<T>::Zero(cheetah::num_act_joint);
 }
@@ -78,7 +81,7 @@ void WBC_Ctrl<T>::run(void* input, ControlFSMData<T> & data){
   //}
 
   // Update Leg Command
-  _UpdateLegCMD(data._legController->commands);
+  _UpdateLegCMD(data);
 
   // LCM publish
   _LCM_PublishData();
@@ -87,7 +90,10 @@ void WBC_Ctrl<T>::run(void* input, ControlFSMData<T> & data){
 
 
 template<typename T>
-void WBC_Ctrl<T>::_UpdateLegCMD(LegControllerCommand<T> * cmd){
+void WBC_Ctrl<T>::_UpdateLegCMD(ControlFSMData<T> & data){
+  LegControllerCommand<T> * cmd = data._legController->commands;
+  Vec4<T> contact = data._stateEstimator->getResult().contactEstimate;
+
   for (size_t leg(0); leg < cheetah::num_leg; ++leg) {
     cmd[leg].zero();
     for (size_t jidx(0); jidx < cheetah::num_leg_joint; ++jidx) {
@@ -95,8 +101,14 @@ void WBC_Ctrl<T>::_UpdateLegCMD(LegControllerCommand<T> * cmd){
       cmd[leg].qDes[jidx] = _des_jpos[cheetah::num_leg_joint * leg + jidx];
       cmd[leg].qdDes[jidx] = _des_jvel[cheetah::num_leg_joint * leg + jidx];
 
-      cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
-      cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
+      if(contact[leg] > 0.){ // Contact
+        cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+        cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
+      }else{
+        cmd[leg].kpJoint(jidx, jidx) = _Kp_joint_swing[jidx];
+        cmd[leg].kdJoint(jidx, jidx) = _Kd_joint_swing[jidx];
+      }
+
     }
   }
 }

@@ -19,6 +19,8 @@ public:
         INIT_PARAMETER(Kd_foot),
         INIT_PARAMETER(Kp_joint),
         INIT_PARAMETER(Kd_joint),
+        INIT_PARAMETER(Kp_joint_swing),
+        INIT_PARAMETER(Kd_joint_swing),
         INIT_PARAMETER(use_jcqp),
         INIT_PARAMETER(jcqp_max_iter),
         INIT_PARAMETER(jcqp_rho),
@@ -44,6 +46,9 @@ public:
 
   DECLARE_PARAMETER(Vec3<double>, Kp_joint);
   DECLARE_PARAMETER(Vec3<double>, Kd_joint);
+
+  DECLARE_PARAMETER(Vec3<double>, Kp_joint_swing);
+  DECLARE_PARAMETER(Vec3<double>, Kd_joint_swing);
 
   DECLARE_PARAMETER(double, use_jcqp);
   DECLARE_PARAMETER(double, jcqp_max_iter);
