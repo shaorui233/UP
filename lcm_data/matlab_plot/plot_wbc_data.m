@@ -4,11 +4,11 @@ clear all
 %%
 addpath('./functions')
 %load('./../matlab_log/data_exp_run4.mat')
-%load('./../matlab_log/data_exp_run5_freq.mat')
+% load('./../matlab_log/data_exp_run5_freq.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
-%load('./../matlab_log/sim_data.mat')
+load('./../matlab_log/sim_data.mat')
 %load('./../matlab_log/exp_hallway.mat')
-load('./../matlab_log/exp_treadmill3.mat')
+%load('./../matlab_log/exp_treadmill3.mat')
 
 %load('./../matlab_log/exp_3.mat')
 fig = fn_open_figures(8);
@@ -17,8 +17,8 @@ fig = fn_open_figures(8);
 st_idx = 4000;
 end_idx = length(wbc_lcm_data.lcm_timestamp);%-85000;
 %end_idx = st_idx + 1000; %length(wbc_lcm_data.lcm_timestamp);%-85000;
-%time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
-time = wbc_lcm_data.lcm_timestamp;
+time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
+% time = wbc_lcm_data.lcm_timestamp;
 
 figure(fig(1))
 for i =1:12
@@ -93,20 +93,43 @@ for i = 1:4
     axis tight
 end
 
-% Body Ang vel
+j=0;
 figure(fig(7))
-for i = 1:3
-    subplot(3,1,i)
+for i = 1:12
+    subplot(4,3,i)
     hold on
-        plot(hw_vectornav.w(:,i))
-    axis tight
+plot(time(st_idx:end_idx), wbc_lcm_data.foot_vel(st_idx:end_idx,i))
+plot(time(st_idx:end_idx), wbc_lcm_data.foot_vel_cmd(st_idx:end_idx,i))
+if mod(i,3) == 1
+j = j+1;
 end
-xlabel('body ang vel')
+plot(time(st_idx:end_idx), wbc_lcm_data.contact_est(st_idx:end_idx, j))
+
+end
 
 figure(fig(8))
-
-for i = 1:3
-    subplot(3,1,i)
-    plot(state_estimator.rpy(:,i))
+len_vel = length(wbc_lcm_data.foot_vel_cmd(:,1));
+acc_numeric = zeros(len_vel-1, 12);
+for i = 1:len_vel-1
+for k = 1:12
+    dt = time(i+1) - time(i);
+    acc_numeric(i,k) = (wbc_lcm_data.foot_vel_cmd(i+1,k) - wbc_lcm_data.foot_vel_cmd(i,k))/dt;
 end
-xlabel('RPY')
+end
+
+
+j=0;
+for i = 1:12
+    subplot(4,3,i)
+    hold on
+plot(time(st_idx:end_idx), wbc_lcm_data.foot_acc_cmd(st_idx:end_idx,i))
+plot(time(st_idx:end_idx), wbc_lcm_data.foot_vel_cmd(st_idx:end_idx,i))
+plot(time(st_idx:end_idx), wbc_lcm_data.foot_acc_numeric(st_idx:end_idx, i))
+
+if mod(i,3) == 1
+j = j+1;
+end
+plot(time(st_idx:end_idx), wbc_lcm_data.contact_est(st_idx:end_idx, j))
+
+end
+xlabel('Foot Acc')

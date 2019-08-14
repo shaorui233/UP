@@ -30,6 +30,7 @@ class LocomotionCtrl: public WBC_Ctrl<T>{
   protected:
     virtual void _ContactTaskUpdate(
         void * input, ControlFSMData<T> & data);
+    virtual void _ContactTaskUpdateTEST(void * input, ControlFSMData<T> & data);
     void _ParameterSetup(const MIT_UserParameters* param);
     void _CleanUp();
     virtual void _LCM_PublishData();
@@ -38,10 +39,11 @@ class LocomotionCtrl: public WBC_Ctrl<T>{
 
     Task<T>* _body_pos_task;
     Task<T>* _body_ori_task;
-    //Task<T>* _body_posture_task;
 
     Task<T>* _foot_task[4];
     ContactSpec<T>* _foot_contact[4];
+
+    Vec3<T> pre_foot_vel[4];
 
     Vec3<T> _Fr_result[4];
     Quat<T> _quat_des;

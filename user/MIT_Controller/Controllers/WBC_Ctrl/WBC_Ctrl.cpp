@@ -20,6 +20,8 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
   _wbic_data = new WBIC_ExtraData<T>();
 
   _wbic_data->_W_floating = DVec<T>::Constant(6, 0.1);
+  //_wbic_data->_W_floating = DVec<T>::Constant(6, 50.);
+  //_wbic_data->_W_floating[5] = 0.1;
   _wbic_data->_W_rf = DVec<T>::Constant(12, 1.);
 
   _Kp_joint.resize(cheetah::num_leg_joint, 5.);
@@ -55,6 +57,7 @@ WBC_Ctrl<T>::~WBC_Ctrl(){
 
 template <typename T>
 void WBC_Ctrl<T>::_ComputeWBC() {
+  // TEST
   _kin_wbc->FindConfiguration(_full_config, _task_list, _contact_list,
                               _des_jpos, _des_jvel);
 
@@ -74,11 +77,18 @@ void WBC_Ctrl<T>::run(void* input, ControlFSMData<T> & data){
   _ContactTaskUpdate(input, data);
 
   // WBC Computation
-  //Timer timer;
   _ComputeWBC();
-  //if(_iter%100 == 0){
-    //printf("compute WBC: %f\n", timer.getMs());
+  
+  // TEST
+  //T dt(0.002);
+  //for(size_t i(0); i<12; ++i){
+    //_des_jpos[i] = _state.q[i] + _state.qd[i] * dt + 0.5 * _wbic_data->_qddot[i+6] * dt * dt;
+    //_des_jvel[i] = _state.qd[i] + _wbic_data->_qddot[i+6]*dt;
   //}
+
+  //_ContactTaskUpdateTEST(input, data);
+  //_ComputeWBC();
+  // END of TEST
 
   // Update Leg Command
   _UpdateLegCMD(data);
@@ -92,7 +102,7 @@ void WBC_Ctrl<T>::run(void* input, ControlFSMData<T> & data){
 template<typename T>
 void WBC_Ctrl<T>::_UpdateLegCMD(ControlFSMData<T> & data){
   LegControllerCommand<T> * cmd = data._legController->commands;
-  Vec4<T> contact = data._stateEstimator->getResult().contactEstimate;
+  //Vec4<T> contact = data._stateEstimator->getResult().contactEstimate;
 
   for (size_t leg(0); leg < cheetah::num_leg; ++leg) {
     cmd[leg].zero();
@@ -101,13 +111,16 @@ void WBC_Ctrl<T>::_UpdateLegCMD(ControlFSMData<T> & data){
       cmd[leg].qDes[jidx] = _des_jpos[cheetah::num_leg_joint * leg + jidx];
       cmd[leg].qdDes[jidx] = _des_jvel[cheetah::num_leg_joint * leg + jidx];
 
-      if(contact[leg] > 0.){ // Contact
         cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
         cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
-      }else{
-        cmd[leg].kpJoint(jidx, jidx) = _Kp_joint_swing[jidx];
-        cmd[leg].kdJoint(jidx, jidx) = _Kd_joint_swing[jidx];
-      }
+        // TEST
+       //if(contact[leg] > 0.){ // Contact
+        //cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
+        //cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
+      //}else{
+        //cmd[leg].kpJoint(jidx, jidx) = _Kp_joint_swing[jidx];
+        //cmd[leg].kdJoint(jidx, jidx) = _Kd_joint_swing[jidx];
+      //}
 
     }
   }

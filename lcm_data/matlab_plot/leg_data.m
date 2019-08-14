@@ -3,8 +3,9 @@ clc
 clear all
 %%
 addpath('./functions')
-%load('./../matlab_log/data_exp_run5_freq.mat')
-load('./../matlab_log/exp_treadmill3.mat')
+% load('./../matlab_log/data_exp_run5_freq.mat')
+load('./../matlab_log/exp_hallway.mat')
+% load('./../matlab_log/exp_treadmill1.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
 
 fig = fn_open_figures(6);

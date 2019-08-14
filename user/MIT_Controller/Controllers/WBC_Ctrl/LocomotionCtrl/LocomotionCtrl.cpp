@@ -11,7 +11,6 @@ LocomotionCtrl<T>::LocomotionCtrl(FloatingBaseModel<T> model):
 {
   _body_pos_task = new BodyPosTask<T>(&(WBCtrl::_model));
   _body_ori_task = new BodyOriTask<T>(&(WBCtrl::_model));
-  //_body_posture_task = new BodyPostureTask<T>(&(WBCtrl::_model));
 
 
   _foot_contact[0] = new SingleContact<T>(&(WBCtrl::_model), linkID::FR);
@@ -29,7 +28,6 @@ template<typename T>
 LocomotionCtrl<T>::~LocomotionCtrl(){
   delete _body_pos_task;
   delete _body_ori_task;
-  //delete _body_posture_task;
 
   for(size_t i (0); i<4; ++i){
     delete _foot_contact[i];
@@ -58,27 +56,6 @@ void LocomotionCtrl<T>::_ContactTaskUpdate(void* input, ControlFSMData<T> & data
   WBCtrl::_task_list.push_back(_body_ori_task);
   WBCtrl::_task_list.push_back(_body_pos_task);
 
-  /*
-  // Task & Contact Set
-  DVec<T> posture_des(7); //posture_des.setZero();
-  DVec<T> posture_vel_des(6); //posture_vel_des.setZero();
-  DVec<T> posture_acc_des(6); //posture_acc_des.setZero();
-
-  for(size_t i(0); i<3; ++i){
-    // Orientation
-    posture_des[i] = _quat_des[i];
-    posture_vel_des[i] = _input_data->vBody_Ori_des[i];
-    posture_acc_des[i] = 0.;
-    // Position
-    posture_des[i+4] = _input_data->pBody_des[i];
-    posture_vel_des[i+3] = _input_data->vBody_des[i];
-    posture_acc_des[i+3] = _input_data->aBody_des[i];
-  }
-  posture_des[3] = _quat_des[3];
-
-  _body_posture_task->UpdateTask(&posture_des, posture_vel_des, posture_acc_des);
-  WBCtrl::_task_list.push_back(_body_posture_task);
-*/
   for(size_t leg(0); leg<4; ++leg){
     if(_input_data->contact_state[leg] > 0.){ // Contact
       _foot_contact[leg]->setRFDesired((DVec<T>)(_input_data->Fr_des[leg]));
@@ -90,11 +67,60 @@ void LocomotionCtrl<T>::_ContactTaskUpdate(void* input, ControlFSMData<T> & data
           &(_input_data->pFoot_des[leg]), 
           _input_data->vFoot_des[leg], 
           _input_data->aFoot_des[leg]);
+          //zero_vec3);
       WBCtrl::_task_list.push_back(_foot_task[leg]);
     }
   }
 }
 
+template<typename T>
+void LocomotionCtrl<T>::_ContactTaskUpdateTEST(void* input, ControlFSMData<T> & data){
+  (void)data;
+  _input_data = static_cast<LocomotionCtrlData<T>* >(input);
+
+  for(size_t i(0); i<3; ++i){
+    ((BodyPosTask<T>*)_body_pos_task)->_Kp[i] = 10.;
+    ((BodyPosTask<T>*)_body_pos_task)->_Kd[i] = 3.;
+
+    ((BodyOriTask<T>*)_body_ori_task)->_Kp[i] = 10.;
+    ((BodyOriTask<T>*)_body_ori_task)->_Kd[i] = 3.;
+
+    for(size_t j(0); j<4; ++j){
+      ((LinkPosTask<T>*)_foot_task[j])->_Kp[i] = 70;
+      ((LinkPosTask<T>*)_foot_task[j])->_Kd[i] = 3.;
+    }  
+  }
+  // Wash out the previous setup
+  _CleanUp();
+
+  _quat_des = ori::rpyToQuat(_input_data->pBody_RPY_des);
+
+  Vec3<T> zero_vec3; zero_vec3.setZero();
+  _body_ori_task->UpdateTask(&_quat_des, _input_data->vBody_Ori_des, zero_vec3);
+  _body_pos_task->UpdateTask(
+      &(_input_data->pBody_des), 
+      _input_data->vBody_des, 
+      _input_data->aBody_des);
+
+  WBCtrl::_task_list.push_back(_body_ori_task);
+  WBCtrl::_task_list.push_back(_body_pos_task);
+
+  for(size_t leg(0); leg<4; ++leg){
+    if(_input_data->contact_state[leg] > 0.){ // Contact
+      _foot_contact[leg]->setRFDesired((DVec<T>)(_input_data->Fr_des[leg]));
+      _foot_contact[leg]->UpdateContactSpec();
+      WBCtrl::_contact_list.push_back(_foot_contact[leg]);
+
+    }else{ // No Contact (swing)
+      _foot_task[leg]->UpdateTask(
+          &(_input_data->pFoot_des[leg]), 
+          _input_data->vFoot_des[leg], 
+          _input_data->aFoot_des[leg]);
+          //zero_vec3);
+      WBCtrl::_task_list.push_back(_foot_task[leg]);
+    }
+  }
+}
 template<typename T>
 void LocomotionCtrl<T>::_ParameterSetup(const MIT_UserParameters* param){
 
@@ -104,11 +130,6 @@ void LocomotionCtrl<T>::_ParameterSetup(const MIT_UserParameters* param){
 
     ((BodyOriTask<T>*)_body_ori_task)->_Kp[i] = param->Kp_ori[i];
     ((BodyOriTask<T>*)_body_ori_task)->_Kd[i] = param->Kd_ori[i];
-
-    //((BodyPostureTask<T>*)_body_posture_task)->_Kp[i] = param->Kp_ori[i];
-    //((BodyPostureTask<T>*)_body_posture_task)->_Kd[i] = param->Kp_ori[i];
-    //((BodyPostureTask<T>*)_body_posture_task)->_Kp[i + 3] = param->Kp_body[i];
-    //((BodyPostureTask<T>*)_body_posture_task)->_Kd[i + 3] = param->Kp_body[i];
 
     for(size_t j(0); j<4; ++j){
       ((LinkPosTask<T>*)_foot_task[j])->_Kp[i] = param->Kp_foot[i];
@@ -142,6 +163,12 @@ void LocomotionCtrl<T>::_LCM_PublishData() {
       }
       ++iter;
     }
+
+    if(_input_data->contact_state[leg] > 0.){ // Contact
+      WBCtrl::_wbc_data_lcm.contact_est[leg] = 1;
+    }else{
+      WBCtrl::_wbc_data_lcm.contact_est[leg] = 0;
+    }
   }
 
   for(size_t i(0); i<3; ++i){
@@ -166,11 +193,17 @@ void LocomotionCtrl<T>::_LCM_PublishData() {
       WBCtrl::_wbc_data_lcm.foot_vel_cmd[3*leg + i] = _input_data->vFoot_des[leg][i];
       WBCtrl::_wbc_data_lcm.foot_acc_cmd[3*leg + i] = _input_data->aFoot_des[leg][i];
 
+      // TEST
+      //WBCtrl::_wbc_data_lcm.foot_acc_numeric[3*leg + i] = 
+        //(_input_data->vFoot_des[leg][i] - pre_foot_vel[leg][i])/0.002;
+      //pre_foot_vel[leg][i] = _input_data->vFoot_des[leg][i];
+
       WBCtrl::_wbc_data_lcm.jpos_cmd[3*leg + i] = WBCtrl::_des_jpos[3*leg + i];
       WBCtrl::_wbc_data_lcm.jvel_cmd[3*leg + i] = WBCtrl::_des_jvel[3*leg + i];
 
       WBCtrl::_wbc_data_lcm.jpos[3*leg + i] = WBCtrl::_state.q[3*leg + i];
       WBCtrl::_wbc_data_lcm.jvel[3*leg + i] = WBCtrl::_state.qd[3*leg + i];
+
     }
 
     WBCtrl::_wbc_data_lcm.body_pos_cmd[i] = _input_data->pBody_des[i];
