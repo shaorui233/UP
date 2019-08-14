@@ -124,6 +124,18 @@ void WBC_Ctrl<T>::_UpdateLegCMD(ControlFSMData<T> & data){
 
     }
   }
+
+
+  // Knee joint non flip barrier
+  for(size_t leg(0); leg<4; ++leg){
+    if(cmd[leg].qDes[2] < 0.3){
+      cmd[leg].qDes[2] = 0.3;
+    }
+    if(data._legController->datas[leg].q[2] < 0.3){
+      T knee_pos = data._legController->datas[leg].q[2]; 
+      cmd[leg].tauFeedForward[2] = 1./(knee_pos * knee_pos + 0.02);
+    }
+  }
 }
 
 template<typename T>
