@@ -92,10 +92,13 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   void _Additional_Drawing(int pass);
   void _DrawContactForce();
   void _DrawContactPoint();
+
   void _drawArrow(ArrowVisualization &arrow);
   void _drawBlock(BlockVisualization &box);
   void _drawSphere(SphereVisualization &sphere);
   void _drawCone(ConeVisualization &cone);
+  void _drawMesh(MeshVisualization &mesh);
+  
   void _rotateZtoDirection(const Vec3<float> &direction);
   void _setColor(const Vec4<float> &color) {
     glColor4f(color(0), color(1), color(2), color(3));

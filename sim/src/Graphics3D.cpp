@@ -530,6 +530,58 @@ void Graphics3D::paintGL() {
   ++_frame;
 }
 
+void Graphics3D::_drawMesh(MeshVisualization &mesh) {
+
+  glPushMatrix();
+  glTranslatef(mesh.left_corner[0], mesh.left_corner[1], mesh.left_corner[2]);
+
+  double height_min = mesh.height_max;
+  double height_max = mesh.height_min;
+  double height_gap = height_max - height_min;
+  double scaled_height(0.);
+
+  float color_r(0.f);
+  float color_g(0.f);
+  float color_b(0.f);
+
+  double grid_size(mesh.grid_size);
+  double height;
+  for (int i(0); i < mesh.rows; ++i) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int j(0); j < mesh.cols; ++j) {
+      height = mesh.height_map(i, j);
+      scaled_height = (height - height_min) / height_gap;
+      getHeightColor(scaled_height, color_r, color_g, color_b);
+      glColor4f(color_r, color_g, color_b, 1.0f);
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  for (int j(0); j < mesh.cols; ++j) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int i(0); i < mesh.rows; ++i) {
+      height = mesh.height_map(i, j);
+      scaled_height = (height - height_min) / height_gap;
+      getHeightColor(scaled_height, color_r, color_g, color_b);
+      glColor4f(color_r, color_g, color_b, 1.0f);
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  glPopMatrix();
+  glPopAttrib();
+}
+
 void Graphics3D::_MeshObstacleDrawing() {
   glLoadMatrixf(_cameraMatrix.data());
   glPushAttrib(GL_LIGHTING_BIT);
@@ -718,6 +770,10 @@ void Graphics3D::_Additional_Drawing(int pass) {
     _drawSphere(_drawList._visualizationData->spheres[i]);
   }
   glDisable(GL_BLEND);
+
+  for (size_t i(0); i< _drawList._visualizationData->num_meshes; ++i){
+    _drawMesh(_drawList._visualizationData->meshes[i]);
+  }
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
     PathVisualization path = _drawList._visualizationData->paths[i];

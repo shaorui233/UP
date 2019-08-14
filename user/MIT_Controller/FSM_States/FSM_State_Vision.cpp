@@ -1,11 +1,11 @@
-/*============================ Locomotion =============================*/
+/*============================ Vision =============================*/
 /**
  * FSM State for robot locomotion. Manages the contact specific logic
  * and handles calling the interfaces to the controllers. This state
  * should be independent of controller, gait, and desired trajectory.
  */
 
-#include "FSM_State_Locomotion.h"
+#include "FSM_State_Vision.h"
 #include <Utilities/Timer.h>
 #include <Controllers/WBC_Ctrl/LocomotionCtrl/LocomotionCtrl.hpp>
 
@@ -16,7 +16,7 @@
  * @param _controlFSMData holds all of the relevant control data
  */
 template <typename T>
-FSM_State_Locomotion<T>::FSM_State_Locomotion(
+FSM_State_Vision<T>::FSM_State_Vision(
     ControlFSMData<T>* _controlFSMData)
     : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION"),
         cMPCOld(_controlFSMData->controlParameters->controller_dt,
@@ -36,7 +36,7 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(
 }
 
 template <typename T>
-void FSM_State_Locomotion<T>::onEnter() {
+void FSM_State_Vision<T>::onEnter() {
   // Default is to not transition
   this->nextStateName = this->stateName;
 
@@ -49,7 +49,25 @@ void FSM_State_Locomotion<T>::onEnter() {
  * Calls the functions to be executed on each control loop iteration.
  */
 template <typename T>
-void FSM_State_Locomotion<T>::run() {
+void FSM_State_Vision<T>::run() {
+  auto* mesh = this->_data->visualizationData->addMesh();
+  if(mesh){
+
+    mesh->left_corner.setZero();
+    mesh->rows = 5;
+    mesh->cols = 5;
+    mesh->grid_size = 0.1;
+    mesh->height_max = 0.5;
+    mesh->height_min = 0.;
+
+    for(int i(0); i<mesh->rows; ++i){
+      for(int j(0); j<mesh->cols; ++j){
+    mesh->height_map(i,j) = 0.1;
+      }
+    }
+
+    mesh->height_map(2,2) = 0.7;
+  }
   // Call the locomotion control logic for this iteration
   LocomotionControlStep();
 }
@@ -61,13 +79,18 @@ void FSM_State_Locomotion<T>::run() {
  * @return the enumerated FSM state name to transition into
  */
 template <typename T>
-FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
+FSM_StateName FSM_State_Vision<T>::checkTransition() {
   // Get the next state
   iter++;
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
+    case K_VISION:
+      break;
+
     case K_LOCOMOTION:
+      this->nextStateName = FSM_StateName::LOCOMOTION;
+      this->transitionDuration = 0.0;
       break;
 
     case K_BALANCE_STAND:
@@ -100,7 +123,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
 
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
-                << K_LOCOMOTION << " to "
+                << K_VISION << " to "
                 << this->_data->controlParameters->control_mode << std::endl;
   }
 
@@ -115,7 +138,7 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-TransitionData<T> FSM_State_Locomotion<T>::transition() {
+TransitionData<T> FSM_State_Vision<T>::transition() {
   // Switch FSM control mode
   switch (this->nextStateName) {
     case FSM_StateName::BALANCE_STAND:
@@ -159,7 +182,7 @@ TransitionData<T> FSM_State_Locomotion<T>::transition() {
  * Cleans up the state information on exiting the state.
  */
 template <typename T>
-void FSM_State_Locomotion<T>::onExit() {
+void FSM_State_Vision<T>::onExit() {
   // Nothing to clean up when exiting
   iter = 0;
 }
@@ -170,12 +193,10 @@ void FSM_State_Locomotion<T>::onExit() {
  * each stance or swing leg.
  */
 template <typename T>
-void FSM_State_Locomotion<T>::LocomotionControlStep() {
+void FSM_State_Vision<T>::LocomotionControlStep() {
   // StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
   // Contact state logic
-  // estimateContact();
-
   cMPCOld.run<T>(*this->_data);
 
   if(this->_data->userParameters->use_wbc > 0.9){
@@ -193,24 +214,9 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
       _wbc_data->Fr_des[i] = cMPCOld.Fr_des[i]; 
     }
     _wbc_data->contact_state = cMPCOld.contact_state;
-
     _wbc_ctrl->run(_wbc_data, *this->_data);
 
   }
 }
 
-/**
- * Stance leg logic for impedance control. Prevent leg slipping and
- * bouncing, as well as tracking the foot velocity during high speeds.
- */
-template <typename T>
-void FSM_State_Locomotion<T>::StanceLegImpedanceControl(int leg) {
-  // Impedance control for the stance leg
-  this->cartesianImpedanceControl(
-      leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),
-      this->_data->controlParameters->stand_kp_cartesian,
-      this->_data->controlParameters->stand_kd_cartesian);
-}
-
-// template class FSM_State_Locomotion<double>;
-template class FSM_State_Locomotion<float>;
+template class FSM_State_Vision<float>;

@@ -19,6 +19,7 @@
 #include "../FSM_States/FSM_State_StandUp.h"
 #include "../FSM_States/FSM_State_RecoveryStand.h"
 #include "../FSM_States/FSM_State_Bounding.h"
+#include "../FSM_States/FSM_State_Vision.h"
 
 /**
  * Enumerate all of the operating modes
@@ -40,6 +41,7 @@ struct FSM_StatesList {
   FSM_State_Locomotion<T>* locomotion;
   FSM_State_RecoveryStand<T>* recoveryStand;
   FSM_State_Bounding<T>* bounding;
+  FSM_State_Vision<T>* vision;
 };
 
 /**
@@ -77,7 +79,6 @@ class ControlFSM {
   // Contains all of the control related data
   ControlFSMData<T> data;
 
-  int _prev_control_mode = K_PASSIVE;
   // FSM state information
   FSM_StatesList<T> statesList;  // holds all of the FSM States
   FSM_State<T>* currentState;    // current FSM state

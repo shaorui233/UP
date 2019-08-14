@@ -78,15 +78,6 @@ FSM_StateName FSM_State_StandUp<T>::checkTransition() {
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
     case K_STAND_UP:
-      // Normal operation for state based transitions
-
-      // After 0.5s, the robot should be standing and can go to balance
-//      if (iter / 1000.0 > 0.5) {
-//        this->nextStateName = FSM_StateName::BALANCE_STAND;
-//
-//        // Notify the control parameters of the mode switch
-//        this->_data->controlParameters->control_mode = K_BALANCE_STAND;
-//      }
       break;
     case K_BALANCE_STAND:
       this->nextStateName = FSM_StateName::BALANCE_STAND;
@@ -98,6 +89,10 @@ FSM_StateName FSM_State_StandUp<T>::checkTransition() {
 
     case K_BOUNDING:
       this->nextStateName = FSM_StateName::BOUNDING;
+      break;
+
+    case K_VISION:
+      this->nextStateName = FSM_StateName::VISION;
       break;
 
 
@@ -138,6 +133,10 @@ TransitionData<T> FSM_State_StandUp<T>::transition() {
       break;
 
     case FSM_StateName::BOUNDING:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::VISION:
       this->transitionData.done = true;
       break;
 

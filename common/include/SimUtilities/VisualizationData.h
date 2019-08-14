@@ -11,6 +11,9 @@
 #define VISUALIZATION_MAX_ITEMS 100
 #define VISUALIZATION_MAX_CHEETAHS 0
 
+#define VISUALIZATION_MAX_MESHES 5
+#define VISUALIZATION_MAX_MESH_GRID 150
+
 #include "cppTypes.h"
 
 /*!
@@ -77,22 +80,39 @@ struct ConeVisualization {
 };
 
 /*!
+ * Mesh Visualization
+ */
+struct MeshVisualization {
+  Vec3<float> left_corner;
+  Eigen::Matrix<float, VISUALIZATION_MAX_MESH_GRID, VISUALIZATION_MAX_MESH_GRID> height_map;
+
+  int rows, cols;
+
+  float grid_size;
+  float height_max;
+  float height_min;
+};
+
+
+/*!
  * Collection of all debugging data
  */
 struct VisualizationData {
   size_t num_paths = 0, num_arrows = 0, num_cones = 0, num_spheres = 0,
-         num_blocks = 0;
+         num_blocks = 0, num_meshes = 0;
   SphereVisualization spheres[VISUALIZATION_MAX_ITEMS];
   BlockVisualization blocks[VISUALIZATION_MAX_ITEMS];
   ArrowVisualization arrows[VISUALIZATION_MAX_ITEMS];
   ConeVisualization cones[VISUALIZATION_MAX_ITEMS];
   PathVisualization paths[VISUALIZATION_MAX_PATHS];
+  MeshVisualization meshes[VISUALIZATION_MAX_MESHES];
 
   /*!
    * Remove all debug data
    */
   void clear() {
     num_paths = 0, num_arrows = 0, num_cones = 0, num_spheres = 0, num_blocks = 0;
+    num_meshes = 0;
   }
 
   /*!
@@ -148,6 +168,17 @@ struct VisualizationData {
       auto* path = &paths[num_paths++];
       path->clear();
       return path;
+    }
+    return nullptr;
+  }
+
+  /*!
+   * Add a new Mesh
+   * @return A mesh, or nullptr if there isn't enough room
+   */
+   MeshVisualization* addMesh() { 
+    if(num_paths < VISUALIZATION_MAX_MESHES) {
+      return &meshes[num_meshes++];
     }
     return nullptr;
   }
