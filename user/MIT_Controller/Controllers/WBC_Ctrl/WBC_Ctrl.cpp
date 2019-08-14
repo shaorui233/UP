@@ -27,8 +27,8 @@ WBC_Ctrl<T>::WBC_Ctrl(FloatingBaseModel<T> model):
   _Kp_joint.resize(cheetah::num_leg_joint, 5.);
   _Kd_joint.resize(cheetah::num_leg_joint, 1.5);
 
-  _Kp_joint_swing.resize(cheetah::num_leg_joint, 10.);
-  _Kd_joint_swing.resize(cheetah::num_leg_joint, 1.5);
+  //_Kp_joint_swing.resize(cheetah::num_leg_joint, 10.);
+  //_Kd_joint_swing.resize(cheetah::num_leg_joint, 1.5);
 
   _state.q = DVec<T>::Zero(cheetah::num_act_joint);
   _state.qd = DVec<T>::Zero(cheetah::num_act_joint);
@@ -113,7 +113,7 @@ void WBC_Ctrl<T>::_UpdateLegCMD(ControlFSMData<T> & data){
 
         cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
         cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];
-        // TEST
+       
        //if(contact[leg] > 0.){ // Contact
         //cmd[leg].kpJoint(jidx, jidx) = _Kp_joint[jidx];
         //cmd[leg].kdJoint(jidx, jidx) = _Kd_joint[jidx];

@@ -139,8 +139,8 @@ void LocomotionCtrl<T>::_ParameterSetup(const MIT_UserParameters* param){
     WBCtrl::_Kp_joint[i] = param->Kp_joint[i];
     WBCtrl::_Kd_joint[i] = param->Kd_joint[i];
 
-    WBCtrl::_Kp_joint_swing[i] = param->Kp_joint_swing[i];
-    WBCtrl::_Kd_joint_swing[i] = param->Kd_joint_swing[i];
+    //WBCtrl::_Kp_joint_swing[i] = param->Kp_joint_swing[i];
+    //WBCtrl::_Kd_joint_swing[i] = param->Kd_joint_swing[i];
    }
 }
 

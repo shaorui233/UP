@@ -3,8 +3,9 @@ clc
 clear all
 %%
 addpath('./functions')
-% load('./../matlab_log/data_exp_run5_freq.mat')
-load('./../matlab_log/exp_hallway.mat')
+load('./../matlab_log/data_exp_run5_freq.mat')
+% load('./../matlab_log/hallway2.mat')
+% load('./../matlab_log/exp_hallway.mat')
 % load('./../matlab_log/exp_treadmill1.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
 
@@ -70,6 +71,8 @@ for i =1:12
     subplot(4,3,i)
 hold on
 plot(time(st_idx:end_idx), leg_control_data.v(st_idx:end_idx,i))
+plot(time(st_idx:end_idx), leg_control_data.v(st_idx:end_idx,3))
+
 grid on
 axis tight
 end

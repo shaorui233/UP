@@ -2,11 +2,8 @@
 __collection-name__: user-parameters
 
 
-Kd_joint          : [0.8, 0.3, 0.3]
+Kd_joint          : [1.0, 0.3, 0.3]
 Kp_joint          : [3, 3, 3]
-
-Kd_joint_swing    : [0.8, 0.3, 0.3]
-Kp_joint_swing    : [3, 3, 3]
 
 Kp_body           : [30, 30, 30]
 Kd_body           : [3, 3, 3]
@@ -20,9 +17,6 @@ Kd_ori            : [3, 3, 3]
 
 #Kd_joint          : [1.5, 1.5, 1.5]
 #Kp_joint          : [15, 15, 15]
-
-#Kd_joint_swing    : [0, 0, 0]
-#Kp_joint_swing    : [0, 0, 0]
 
 #Kp_body           : [150, 150, 150]
 #Kd_body           : [10, 10, 10]

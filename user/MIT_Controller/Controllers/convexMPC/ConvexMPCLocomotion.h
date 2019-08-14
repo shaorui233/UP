@@ -70,7 +70,8 @@ public:
 
 private:
   //float _body_height = 0.32;
-  float _body_height = 0.28;
+  float _body_height = 0.29;
+  //float _body_height = 0.28;
   //float _body_height = 0.30;
   //float _body_height = 0.27;
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);

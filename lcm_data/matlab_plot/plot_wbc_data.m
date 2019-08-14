@@ -4,11 +4,12 @@ clear all
 %%
 addpath('./functions')
 %load('./../matlab_log/data_exp_run4.mat')
-% load('./../matlab_log/data_exp_run5_freq.mat')
+load('./../matlab_log/data_exp_run5_freq.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
-load('./../matlab_log/sim_data.mat')
-%load('./../matlab_log/exp_hallway.mat')
-%load('./../matlab_log/exp_treadmill3.mat')
+% load('./../matlab_log/hallway2.mat')
+% load('./../matlab_log/sim_data.mat')
+% load('./../matlab_log/exp_hallway.mat')
+%load('./../matlab_log/exp_treadmill1.mat')
 
 %load('./../matlab_log/exp_3.mat')
 fig = fn_open_figures(8);
@@ -17,15 +18,22 @@ fig = fn_open_figures(8);
 st_idx = 4000;
 end_idx = length(wbc_lcm_data.lcm_timestamp);%-85000;
 %end_idx = st_idx + 1000; %length(wbc_lcm_data.lcm_timestamp);%-85000;
-time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
-% time = wbc_lcm_data.lcm_timestamp;
+% time = linspace(0, 1, length(wbc_lcm_data.lcm_timestamp));
+time = wbc_lcm_data.lcm_timestamp;
 
+j=0;
 figure(fig(1))
 for i =1:12
     subplot(4,3,i)
 hold on
 plot(time(st_idx:end_idx), wbc_lcm_data.Fr(st_idx:end_idx,i))
 plot(time(st_idx:end_idx), wbc_lcm_data.Fr_des(st_idx:end_idx,i))
+if mod(i,3) == 1
+j = j+1;
+end
+%plot(time(st_idx:end_idx), wbc_lcm_data.contact_est(st_idx:end_idx, j))
+
+hold off
 grid on
 axis tight
 end
@@ -33,6 +41,7 @@ xlabel('Fr')
 
 % foot
 figure(fig(2))
+k=0
 for i =1:12
     subplot(4,3,i)
 hold on
@@ -44,6 +53,11 @@ else
    plot(time(st_idx:end_idx), wbc_lcm_data.foot_pos(st_idx:end_idx,i) - wbc_lcm_data.body_pos(st_idx:end_idx,j))
 plot(time(st_idx:end_idx), wbc_lcm_data.foot_pos_cmd(st_idx:end_idx,i) - wbc_lcm_data.body_pos(st_idx:end_idx,j)) 
 end
+
+if mod(i,3) == 1
+k = k+1;
+end
+% plot(time(st_idx:end_idx), wbc_lcm_data.contact_est(st_idx:end_idx, k))
 
 grid on
 axis tight
@@ -124,7 +138,7 @@ for i = 1:12
     hold on
 plot(time(st_idx:end_idx), wbc_lcm_data.foot_acc_cmd(st_idx:end_idx,i))
 plot(time(st_idx:end_idx), wbc_lcm_data.foot_vel_cmd(st_idx:end_idx,i))
-plot(time(st_idx:end_idx), wbc_lcm_data.foot_acc_numeric(st_idx:end_idx, i))
+%plot(time(st_idx:end_idx), wbc_lcm_data.foot_acc_numeric(st_idx:end_idx, i))
 
 if mod(i,3) == 1
 j = j+1;
