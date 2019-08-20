@@ -57,7 +57,7 @@ void FSM_State_Vision<T>::run() {
     mesh->rows = 5;
     mesh->cols = 5;
     mesh->grid_size = 0.1;
-    mesh->height_max = 0.5;
+    mesh->height_max = 0.7;
     mesh->height_min = 0.;
 
     for(int i(0); i<mesh->rows; ++i){
@@ -66,7 +66,7 @@ void FSM_State_Vision<T>::run() {
       }
     }
 
-    mesh->height_map(2,2) = 0.7;
+    mesh->height_map(2,2) = 0.7 * sin(iter* 0.001);
   }
   // Call the locomotion control logic for this iteration
   LocomotionControlStep();
