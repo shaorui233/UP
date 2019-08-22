@@ -47,7 +47,10 @@ SimControlPanel::SimControlPanel(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::SimControlPanel),
       _userParameters("user-parameters"),
-      _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE) {
+      _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE),
+      _pointsLCM(getLcmUrl(255)),
+      _heightmapLCM(getLcmUrl(255))
+{
 
   ui->setupUi(this); // QT setup
   updateUiEnable();  // enable/disable buttons as needed.
@@ -83,7 +86,52 @@ SimControlPanel::SimControlPanel(QWidget* parent)
     printf("\tsim parameters are all good\n");
   }
   loadSimulationParameters(_parameters);
+
+  _pointsLCM.subscribe("cf_pointcloud", &SimControlPanel::handlePointsLCM, this);
+  _pointsLCMThread = std::thread(&SimControlPanel::pointsLCMThread, this); 
+
+  _heightmapLCM.subscribe("local_heightmap", &SimControlPanel::handleHeightmapLCM, this);
+  _heightmapLCMThread = std::thread(&SimControlPanel::heightmapLCMThread, this);
+
 }
+
+void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const rs_pointcloud_t*msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_simulation){
+    for(size_t i(0); i<_simulation->_window->_num_points; ++i){
+      for(size_t j(0); j<3; ++j){
+        _simulation->_window->_points[i][j] = msg->pointlist[i][j];
+      }
+    }
+    _simulation->_window->_pos[0] = msg->position[0];
+    _simulation->_window->_pos[1] = msg->position[1];
+    _simulation->_window->_pos[2] = msg->position[2];
+
+    _simulation->_window->_pointcloud_data_update = true;
+  }
+}
+
+
+void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const heightmap_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_simulation){
+    for(size_t i(0); i<_simulation->_window->x_size; ++i){
+      for(size_t j(0); j<_simulation->_window->y_size; ++j){
+        _simulation->_window->_map(i,j) = msg->map[i][j];
+      }
+    }
+    _simulation->_window->_heightmap_data_update = true;
+  }
+}
+
 
 SimControlPanel::~SimControlPanel() {
   delete _simulation;

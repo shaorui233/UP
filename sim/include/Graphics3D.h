@@ -30,14 +30,9 @@
 #include <mutex>
 #include "GameController.h"
 
-#include <thread>
-#include <lcm-cpp.hpp>
-#include "heightmap_t.hpp"
-#include "rs_pointcloud_t.hpp"
-
-
 class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   Q_OBJECT
+ friend class SimControlPanel;
  public:
   explicit Graphics3D(QWidget *parent = 0);
   virtual ~Graphics3D();
@@ -175,22 +170,6 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
                      float &r, float &g, float &b);
 
   bool _pause = false;
-
-  void handleVisionLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-                       const heightmap_t* msg);
-  void visionLCMThread();
-
-  void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-                       const rs_pointcloud_t* msg);
-  void pointsLCMThread();
-
-  lcm::LCM _visionLCM;
-  std::thread _visionLCMThread;
-
-  lcm::LCM _pointsLCM;
-  std::thread _pointsLCMThread;
-
-  bool _b_vision_update = false;
 
   DMat<float> _map;
   Vec3<float> _pos;

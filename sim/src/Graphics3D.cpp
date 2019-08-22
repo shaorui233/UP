@@ -87,9 +87,7 @@ Graphics3D::Graphics3D(QWidget *parent)
       _colorArrayProgram(0),
       _frame(0),
       _v0(0, 0, 0),
-      _freeCamFilter(1, 60, _v0),
-      _visionLCM(getLcmUrl(255)),
-      _pointsLCM(getLcmUrl(255))
+      _freeCamFilter(1, 60, _v0)
 {
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
 
@@ -117,12 +115,6 @@ Graphics3D::Graphics3D(QWidget *parent)
   _r[7] = 0.9769;
   _g[7] = 0.9839;
   _b[7] = 0.0805;
-
-  _visionLCM.subscribe("local_heightmap", &Graphics3D::handleVisionLCM, this);
-  _visionLCMThread = std::thread(&Graphics3D::visionLCMThread, this);
-
-  _pointsLCM.subscribe("cf_pointcloud", &Graphics3D::handlePointsLCM, this);
-  _pointsLCMThread = std::thread(&Graphics3D::pointsLCMThread, this);
 
   _map = DMat<float>::Zero(x_size, y_size);
 }
@@ -992,51 +984,3 @@ void Graphics3D::_drawArrow(const Vec3<float> &position,
   gluDisk(quad, lineWidth, headWidth, detail, detail);
   glPopMatrix();
 }
-
-
-void Graphics3D::handleVisionLCM(const lcm::ReceiveBuffer *rbuf,
-                                      const std::string &chan,
-                                      const heightmap_t *msg) {
-  (void)rbuf;
-  (void)chan;
-
-  for(size_t i(0); i<x_size; ++i){
-    for(size_t j(0); j<y_size; ++j){
-         _map(i,j) = msg->map[i][j];
-    }
-  }
-  _heightmap_data_update = true;
-}
-
-void Graphics3D::visionLCMThread() {
-  while (true) {
-    _visionLCM.handle();
-  }
-}
-
-
-void Graphics3D::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
-                                      const std::string &chan,
-                                      const rs_pointcloud_t*msg) {
-  (void)rbuf;
-  (void)chan;
-
-  for(size_t i(0); i<_num_points; ++i){
-      for(size_t j(0); j<3; ++j){
-         _points[i][j] = msg->pointlist[i][j];
-      }
-  }
-  _pos[0] = msg->position[0];
-  _pos[1] = msg->position[1];
-  _pos[2] = msg->position[2];
-
-  _pointcloud_data_update = true;
-}
-
-void Graphics3D::pointsLCMThread() {
-  while (true) {
-    _pointsLCM.handle();
-  }
-}
-
-

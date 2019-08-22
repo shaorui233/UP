@@ -16,6 +16,10 @@
 #define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
 #define DEFAULT_USER_FILE "/default-user.yaml"
 
+#include <lcm-cpp.hpp>
+#include "rs_pointcloud_t.hpp"
+#include "heightmap_t.hpp"
+
 namespace Ui {
 class SimControlPanel;
 }
@@ -109,6 +113,19 @@ public slots:
   bool _ignoreTableCallbacks = false;
   bool _loadedUserSettings = false;
   std::string _terrainFileName;
+
+  // Vision data Drawing
+  void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const heightmap_t* msg);
+  void heightmapLCMThread() { while (true) { _heightmapLCM.handle(); } }
+
+  void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const rs_pointcloud_t* msg);
+  void pointsLCMThread() { while (true) { _pointsLCM.handle(); } }
+
+  lcm::LCM _pointsLCM;
+  std::thread _pointsLCMThread;
+
+  lcm::LCM _heightmapLCM;
+  std::thread _heightmapLCMThread;
 };
 
 #endif  // SIMCONTROLPANEL_H

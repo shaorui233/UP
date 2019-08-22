@@ -37,6 +37,7 @@
  * method
  */
 class Simulation {
+friend class SimControlPanel;
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   explicit Simulation(RobotType robot, Graphics3D* window,
@@ -118,7 +119,7 @@ class Simulation {
 
  private:
   void handleControlError();
-
+  Graphics3D* _window = nullptr;
 
   std::mutex _robotMutex;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
@@ -128,7 +129,6 @@ class Simulation {
   RobotControlParameters _robotParams;
 
   size_t _simRobotID, _controllerRobotID;
-  Graphics3D* _window = nullptr;
   Quadruped<double> _quadruped;
   FBModelState<double> _robotControllerState;
   FloatingBaseModel<double> _model;

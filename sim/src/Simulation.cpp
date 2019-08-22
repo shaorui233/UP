@@ -205,7 +205,6 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
            _robotParams.generateUnitializedList().c_str());
     throw std::runtime_error("not all parameters initialized from ini file");
   }
-
   // init IMU simulator
   printf("[Simulation] Setup IMU simulator...\n");
   _imuSimulator = new ImuSimulator<double>(_simParams);
@@ -836,3 +835,5 @@ void Simulation::updateGraphics() {
   _window->_drawList.updateAdditionalInfo(*_simulator);
   _window->update();
 }
+
+
