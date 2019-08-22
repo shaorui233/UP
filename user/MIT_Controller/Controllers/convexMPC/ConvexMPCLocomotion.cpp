@@ -6,7 +6,7 @@
 #include "convexMPC_interface.h"
 #include "../../../../common/FootstepPlanner/GraphSearch.h"
 
-#define DRAW_DEBUG_SWINGS
+//#define DRAW_DEBUG_SWINGS
 //#define DRAW_DEBUG_PATH
 
 

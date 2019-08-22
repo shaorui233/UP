@@ -21,6 +21,9 @@
 #include "../FSM_States/FSM_State_Bounding.h"
 #include "../FSM_States/FSM_State_Vision.h"
 
+//#include <lcm/lcm-cpp.hpp>
+//#include "state_estimator_lcmt.hpp"
+
 /**
  * Enumerate all of the operating modes
  */
@@ -99,6 +102,9 @@ class ControlFSM {
 
   // Track the number of iterations since last info print
   int printIter = 0;  // make larger than printNum to not print
+
+  //lcm::LCM state_estimator_lcm;
+  //state_estimator_lcmt _state_estimator;
 };
 
 #endif  // CONTROLFSM_H

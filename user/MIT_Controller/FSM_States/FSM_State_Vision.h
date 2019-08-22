@@ -3,6 +3,10 @@
 
 #include <Controllers/convexMPC/ConvexMPCLocomotion.h>
 #include "FSM_State.h"
+#include <thread>
+#include <lcm-cpp.hpp>
+#include "heightmap_t.hpp"
+#include "rs_pointcloud_t.hpp"
 
 template<typename T> class WBC_Ctrl;
 template<typename T> class LocomotionCtrlData;
@@ -39,6 +43,32 @@ class FSM_State_Vision : public FSM_State<T> {
 
   // Parses contact specific controls to the leg controller
   void LocomotionControlStep();
+
+  //void _AddMeshDrawing();
+  //void _AddPointsDrawing();
+
+  //void handleVisionLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
+                       //const heightmap_t* msg);
+  //void visionLCMThread();
+
+  //void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
+                       //const rs_pointcloud_t* msg);
+  //void pointsLCMThread();
+
+  //lcm::LCM _visionLCM;
+  //std::thread _visionLCMThread;
+
+  //lcm::LCM _pointsLCM;
+  //std::thread _pointsLCMThread;
+
+  //bool _b_vision_update = false;
+
+  //DMat<T> _map;
+  //Vec3<T> _points[5001];
+  //size_t x_size = 100;
+  //size_t y_size = 100;
+  //size_t num_points = 5001;
+  //bool _b_writing = false;
 };
 
 #endif  // FSM_STATE_LOCOMOTION_H

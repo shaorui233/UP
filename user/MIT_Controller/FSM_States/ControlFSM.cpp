@@ -27,7 +27,8 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
                           DesiredStateCommand<T>* _desiredStateCommand,
                           RobotControlParameters* controlParameters,
                           VisualizationData* visualizationData,
-                          MIT_UserParameters* userParameters) {
+                          MIT_UserParameters* userParameters)
+{
   // Add the pointers to the ControlFSMData struct
   data._quadruped = _quadruped;
   data._stateEstimator = _stateEstimator;
@@ -82,6 +83,14 @@ void ControlFSM<T>::initialize() {
  */
 template <typename T>
 void ControlFSM<T>::runFSM() {
+  // Publish state estimator data to other computer
+  //for(size_t i(0); i<3; ++i){
+    //_state_estimator.p[i] = data._stateEstimator->getResult().position[i];
+    //_state_estimator.quat[i] = data._stateEstimator->getResult().orientation[i];
+  //}
+    //_state_estimator.quat[3] = data._stateEstimator->getResult().orientation[3];
+  //state_estimator_lcm.publish("state_estimator_ctrl_pc", &_state_estimator);
+
   // Check the robot state for safe operation
   operatingMode = safetyPreCheck();
 

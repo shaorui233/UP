@@ -87,7 +87,10 @@ Graphics3D::Graphics3D(QWidget *parent)
       _colorArrayProgram(0),
       _frame(0),
       _v0(0, 0, 0),
-      _freeCamFilter(1, 60, _v0) {
+      _freeCamFilter(1, 60, _v0),
+      _visionLCM(getLcmUrl(255)),
+      _pointsLCM(getLcmUrl(255))
+{
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
 
   _r[0] = 0.2422;
@@ -114,6 +117,14 @@ Graphics3D::Graphics3D(QWidget *parent)
   _r[7] = 0.9769;
   _g[7] = 0.9839;
   _b[7] = 0.0805;
+
+  _visionLCM.subscribe("local_heightmap", &Graphics3D::handleVisionLCM, this);
+  _visionLCMThread = std::thread(&Graphics3D::visionLCMThread, this);
+
+  _pointsLCM.subscribe("cf_pointcloud", &Graphics3D::handlePointsLCM, this);
+  _pointsLCMThread = std::thread(&Graphics3D::pointsLCMThread, this);
+
+  _map = DMat<float>::Zero(x_size, y_size);
 }
 
 Graphics3D::~Graphics3D() {}
@@ -769,11 +780,46 @@ void Graphics3D::_Additional_Drawing(int pass) {
   for (size_t i = 0; i < _drawList._visualizationData->num_spheres; i++) {
     _drawSphere(_drawList._visualizationData->spheres[i]);
   }
+
+  // Pointcloud Drawing
+  if(_pointcloud_data_update){
+    int num_skip = 5;
+    for(size_t i(0); i<_num_points/num_skip; ++i){
+      SphereVisualization sphere;
+      sphere.position = _points[i*num_skip];
+      sphere.color = {1.0, 0.2, 0.2, 1.0};
+      sphere.radius = 0.007;
+      _drawSphere(sphere);
+    }
+  }
+
+
   glDisable(GL_BLEND);
 
   for (size_t i(0); i< _drawList._visualizationData->num_meshes; ++i){
     _drawMesh(_drawList._visualizationData->meshes[i]);
   }
+  // Heightmap Drawing
+  if(_heightmap_data_update){
+    MeshVisualization mesh;
+
+    mesh.left_corner.setZero();
+    mesh.left_corner[0] = -0.75 + _pos[0];
+    mesh.left_corner[1] = -0.75 + _pos[1];
+    mesh.rows = x_size;
+    mesh.cols = y_size;
+    mesh.grid_size = 0.015;
+    mesh.height_max = 0.7;
+    mesh.height_min = 0.;
+
+    for(int i(0); i<mesh.rows; ++i){
+      for(int j(0); j<mesh.cols; ++j){
+        mesh.height_map(i,j) = _map(i,j);
+      }
+    }
+    _drawMesh(mesh);
+  }
+
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
     PathVisualization path = _drawList._visualizationData->paths[i];
@@ -946,3 +992,51 @@ void Graphics3D::_drawArrow(const Vec3<float> &position,
   gluDisk(quad, lineWidth, headWidth, detail, detail);
   glPopMatrix();
 }
+
+
+void Graphics3D::handleVisionLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const heightmap_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+         _map(i,j) = msg->map[i][j];
+    }
+  }
+  _heightmap_data_update = true;
+}
+
+void Graphics3D::visionLCMThread() {
+  while (true) {
+    _visionLCM.handle();
+  }
+}
+
+
+void Graphics3D::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const rs_pointcloud_t*msg) {
+  (void)rbuf;
+  (void)chan;
+
+  for(size_t i(0); i<_num_points; ++i){
+      for(size_t j(0); j<3; ++j){
+         _points[i][j] = msg->pointlist[i][j];
+      }
+  }
+  _pos[0] = msg->position[0];
+  _pos[1] = msg->position[1];
+  _pos[2] = msg->position[2];
+
+  _pointcloud_data_update = true;
+}
+
+void Graphics3D::pointsLCMThread() {
+  while (true) {
+    _pointsLCM.handle();
+  }
+}
+
+

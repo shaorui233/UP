@@ -1,0 +1,4 @@
+struct heightmap_t
+{
+  double map[100][100];  
+}
