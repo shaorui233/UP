@@ -27,7 +27,8 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
                           DesiredStateCommand<T>* _desiredStateCommand,
                           RobotControlParameters* controlParameters,
                           VisualizationData* visualizationData,
-                          MIT_UserParameters* userParameters)
+                          MIT_UserParameters* userParameters,
+                          FloatingBaseModel<T>* _model)
 {
   // Add the pointers to the ControlFSMData struct
   data._quadruped = _quadruped;
@@ -38,6 +39,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   data.controlParameters = controlParameters;
   data.visualizationData = visualizationData;
   data.userParameters = userParameters;
+  data._model = _model;
 
   // Initialize and add all of the FSM States to the state list
   statesList.invalid = nullptr;

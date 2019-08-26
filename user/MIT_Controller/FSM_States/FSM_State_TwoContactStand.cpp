@@ -6,6 +6,7 @@
 
 #include "FSM_State_TwoContactStand.h"
 #include <Utilities/Utilities_print.h>
+#include <iomanip>
 
 
 /**
@@ -39,9 +40,300 @@ void FSM_State_TwoContactStand<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_TwoContactStand<T>::run() {
+  // Count iterations
+  iter++;
 
+  // Set LQR Weights using Robot Control Parameters
+  for (int i = 0; i < 3; i++) {
+    // x_weights[i] = this->_data->userParameters->Kp_body[i];
+    // xdot_weights[i] = this->_data->userParameters->Kd_body[i];
+    // R_weights[i] = this->_data->userParameters->Kp_ori[i];
+    // omega_weights[i] = this->_data->userParameters->Kd_ori[i];
+    // x_weights[i] = this->_data->controlParameters->kpCOM[i];
+    // xdot_weights[i] = this->_data->controlParameters->kdCOM[i];
+    // R_weights[i] = this->_data->controlParameters->kpBase[i];
+    // omega_weights[i] = this->_data->controlParameters->kdBase[i];
+    x_weights[i] = 300;
+    xdot_weights[i] = 50;
+    R_weights[i] = 20000;
+    omega_weights[i] = 150;
+  }
+  x_weights[2] = 100000;
+  control_weight = .1;
+  balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
+  refGRF.set_alpha_control(0.01);
+
+  // Get orientation from state estimator
+  for (int i = 0; i < 4; i++) {
+    se_xfb[i] = (double)this->_data->_stateEstimator->getResult().orientation(i);
+    quat_act[i] = (double)this->_data->_stateEstimator->getResult().orientation(i);
+  }
+
+  // Get current state from state estimator
+  for (int i = 0; i < 3; i++) {
+    p_act[i] = (double)this->_data->_stateEstimator->getResult().position(i);
+    v_act[i] = (double)this->_data->_stateEstimator->getResult().vBody(i);
+    se_xfb[4 + i] = (double)this->_data->_stateEstimator->getResult().position(i);
+    se_xfb[7 + i] = (double)this->_data->_stateEstimator->getResult().omegaBody(i);
+    se_xfb[10 + i] = (double)this->_data->_stateEstimator->getResult().vBody(i);
+  }
+
+  // Convert quaternions to RPY
+  quatToEuler(quat_act, rpy_act);
+
+  // Get the position of the COM on world frame
+  get_model_dynamics();
+
+  // Use the COM pos instead of the body pos for balance control
+  for (int i = 0; i < 3; i++) {
+    p_body[i] = p_act[i];
+    se_xfb[i+4] = p_COM[i]; 
+    p_act[i] = p_COM[i];
+  }
+
+  // Get the foot locations relative to COM
+  get_foot_locations();
+
+  // Get desired state from gamepad controls
+  get_desired_state_preset();
+
+  // Set World Parameters
+  balanceControllerVBL.set_friction(0.4);
+  balanceControllerVBL.set_mass(mass_in);
+  refGRF.set_mass(mass_in);
+  if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
+    balanceControllerVBL.set_inertia(0.35, 2.10, 2.10);
+  else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH) {
+    balanceControllerVBL.set_inertia(0.025, 0.15, 0.18);
+  }
+
+  // Set minimum and maximum forces  
+  if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
+    minForce = 10;
+  else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
+    minForce = 5;
+  maxForce = mass_in*9.81*1.6;
+  for (int leg = 0; leg < 4; leg++) {
+    minForces[leg] = contactStateScheduled[leg] * minForce;
+    maxForces[leg] = contactStateScheduled[leg] * maxForce;
+  }
+
+  // Compute Reference Control Inputs
+  if (p_des_prev[0] != p_des[0] || p_des_prev[1] != p_des[1]) {
+    refGRF.SetContactData(contactStateScheduled, minForces, maxForces);
+    refGRF.updateProblemData(pFeet_des, p_des);
+    refGRF.solveQP_nonThreaded(f_des_z);
+    for (int leg = 0; leg < 4; leg++)
+      f_des_world[3*leg+2] = f_des_z[leg];
+    balanceControllerVBL.set_Desired_GRF(f_des_world);
+  }
+
+  // Visualize COM pos and desired pos - leave off for now
+  //COM_visualization(); 
+
+  // Solve Balance control QP
+  balanceControllerVBL.set_desiredTrajectoryData(rpy, p_des, omegaDes, v_des);
+  balanceControllerVBL.SetContactData(contactStateScheduled, minForces, maxForces);
+  balanceControllerVBL.updateProblemData(se_xfb, pFeet, pFeet_des, p_des, p_act, v_des, v_act, O_err, 0.0);
+  balanceControllerVBL.solveQP_nonThreaded(fOpt);
+
+  // Remove impedance control for all joints
+  impedance_kp << 0.0, 0.0, 0.0;
+  impedance_kd << 0.0, 0.0, 0.0;
+
+  // Feed forward forces for legs in contact with the ground & PD control for legs not in contact
+  qd_lift_leg << 0.0, 0.0, 0.0;
+  for (int leg = 0; leg < 4; leg++) {
+    if (contactStateScheduled[leg]){
+      this->footFeedForwardForces.col(leg) << (T)fOpt[leg * 3], (T)fOpt[leg * 3 + 1], (T)fOpt[leg * 3 + 2];
+      this->jointFeedForwardTorques.col(leg) << (T)G_ff[6+3*leg], (T)G_ff[6+3*leg+1], G_ff[6+3*leg+2];
+      conPhase[leg] = 0.5;
+    }
+
+    else if (leg < 2) {
+      q_lift_leg << 0, -1.52, 2.93;
+      this->jointPDControl(leg, q_lift_leg, qd_lift_leg);
+      conPhase[leg] = 0.0;
+    }
+
+    else {
+      q_lift_leg << 0, -1.52, 2.93;
+      this->jointPDControl(leg, q_lift_leg, qd_lift_leg);
+      conPhase[leg] = 0.0;
+    }
+  
+  }
+
+  // Set the contact phase for the state estimator
+  this->_data->_stateEstimator->setContactPhase(conPhase);
+
+  // Update previous desired posiion
+  for (int i = 0; i < 2; i++)
+    p_des_prev[i] = p_des[i];
+
+
+
+  // Send commands to leg controller - combine with line 136-157
+  for (int leg = 0; leg < 4; leg++) {
+    // Impedance Control
+    this->cartesianImpedanceControl(
+        leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),impedance_kp,impedance_kd);
+
+    // Force and Joint Torque control
+    this->_data->_legController->commands[leg].forceFeedForward = this->footFeedForwardForces.col(leg);
+    this->_data->_legController->commands[leg].tauFeedForward = this->jointFeedForwardTorques.col(leg);
+  }
+
+  std::cout << std::fixed << std::setprecision(3);
+  if (iter % 500 == 0){
+    std::cout << "\n\nActual  Orientation: " << 180.0/3.1415*rpy_act[0] << ", " << 180.0/3.1415*rpy_act[1] << ", " << 180.0/3.1415*rpy_act[2] << std::endl;
+    std::cout << "Desired  Orientation: " << 180.0/3.1415*rpy[0] << ", " << 180.0/3.1415*rpy[1] << ", " << 180.0/3.1415*rpy[2] << std::endl;
+    std::cout << "Actual COM Position: " << p_act[0] << ", " << p_act[1] << ", " << p_act[2] << std::endl;
+    std::cout << "Desired COM Position: " << p_des[0] << ", " << p_des[1] << ", " << p_des[2] << std::endl;
+    std::cout << "Ground Reaction Forces:\n";
+    balanceControllerVBL.print_GRFs(fOpt);
+    std::cout << "Leg 1, Tau_ff: " << G_ff[6+3] << ", " << G_ff[6+3+1] << ", " << G_ff[6+3+2] << std::endl;
+    std::cout << "LQR weights - position: " << x_weights[0] << ", " << x_weights[1] << ", " << x_weights[2] << std::endl;
+    // std::cout << "Legacy:\n";
+    // balanceController.print_GRFs(fOpt2);
+    //balanceQP.printError();
+    //balanceQP.printAccel();
+  }
 
 }
+
+/**
+ * Uses quadruped model to find CoM position relative to body position
+ * and compute generalize gravity vector
+ */
+template <typename T>
+void FSM_State_TwoContactStand<T>::get_model_dynamics() {
+  // Update state for the quadruped model using SE
+  for (int i = 0; i < 3; i++){
+    state.bodyOrientation[i] = this->_data->_stateEstimator->getResult().orientation(i);
+    state.bodyPosition[i] = this->_data->_stateEstimator->getResult().position(i);
+    state.bodyVelocity[i] = this->_data->_stateEstimator->getResult().omegaBody(i);
+    state.bodyVelocity[i+3] = this->_data->_stateEstimator->getResult().vBody(i);
+  }
+  state.bodyOrientation[3] = this->_data->_stateEstimator->getResult().orientation(3);
+  state.q.setZero(12);
+  state.qd.setZero(12);
+
+  for (int i = 0; i < 4; ++i) {
+   state.q(3*i+0) = this->_data->_legController->datas[i].q[0];
+   state.q(3*i+1) = this->_data->_legController->datas[i].q[1];
+   state.q(3*i+2) = this->_data->_legController->datas[i].q[2];
+   state.qd(3*i+0)= this->_data->_legController->datas[i].qd[0];
+   state.qd(3*i+1)= this->_data->_legController->datas[i].qd[1];
+   state.qd(3*i+2)= this->_data->_legController->datas[i].qd[2];
+  }
+  this->_data->_model->setState(state);
+  H = this->_data->_model->massMatrix();
+  G_ff = this->_data->_model->generalizedGravityForce();
+
+  // CoM relative to body frame
+  mass_in = H(3,3);
+  c_body[0] = H(2,4)/mass_in;
+  c_body[1] = H(0,5)/mass_in;
+  c_body[2] = H(1,3)/mass_in;
+
+  // CoM relative to world frame
+  c_world = this->_data->_stateEstimator->getResult().rBody.transpose() * c_body;
+
+  // Position of CoM in world frame
+  for (int i = 0; i < 3; i++)
+    p_COM[i] = p_act[i]+c_world[i]; // assumes C is expressed in world frame
+
+}
+
+
+template <typename T>
+void FSM_State_TwoContactStand<T>::get_desired_state_preset() {
+  // Roll, Pitch, Yaw step response, two legs
+  p_des[0] = 0.5*pFeet_world[1*3]+0.5*pFeet_world[2*3];
+  p_des[1] = 0.5*pFeet_world[1*3+1]+0.5*pFeet_world[2*3+1];
+  if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
+    p_des[2] = 0.4;
+  else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
+    p_des[2] = 0.225;
+  for (int i = 0; i < 3; i++) {
+    rpy[i] = 0.0;
+    omegaDes[i] = 0.0;
+    v_des[i] = 0.0;
+  }
+
+  if (iter > 2000) {
+    // Feet out of contact
+    contactStateScheduled[0] = 0;
+    contactStateScheduled[3] = 0;
+
+    // Orientation
+    // target = 35;
+    // rpy[0] = target*convert;
+
+    // target = 0;
+    // rpy[1] = target*convert;
+
+    // target = -25;
+    // rpy[2] = target*convert;
+
+    // CoM Position
+    // p_des[0] = 0.7*pFeet_world[1*3]+0.3*pFeet_world[2*3];
+    // p_des[1] = 0.4*pFeet_world[1*3+1]+0.6*pFeet_world[2*3+1];
+  }
+
+}
+
+template <typename T>
+void FSM_State_TwoContactStand<T>::get_foot_locations() {
+
+  for (int leg = 0; leg < 4; leg++) {
+    
+    // Compute vector from hip to foot (body coords)
+    computeLegJacobianAndPosition(**&this->_data->_quadruped, this->_data->_legController->datas[leg].q,
+                                  &this->_data->_legController->datas[leg].J, &pFeetVec, leg);
+    
+    // Compute vector from body frame to foot (world cooords)
+    pFeetVecBody = this->_data->_stateEstimator->getResult().rBody.transpose() * (this->_data->_quadruped->getHipLocation(leg) + pFeetVec);
+
+    // Compute vector from COM to foot (world coords)
+    pFeet[leg * 3] = (double)pFeetVecBody[0]-c_world[0];
+    pFeet[leg * 3 + 1] = (double)pFeetVecBody[1]-c_world[1];
+    pFeet[leg * 3 + 2] = (double)pFeetVecBody[2]-c_world[2];
+
+    // Compute vector from desired COM to foot (world coords)
+    pFeet_des[leg * 3] = (double)pFeetVecBody[0]-c_world[0]+p_act[0]-p_des[0];
+    pFeet_des[leg * 3 + 1] = (double)pFeetVecBody[1]-c_world[1]+p_act[1]-p_des[1];
+    pFeet_des[leg * 3 + 2] = (double)pFeetVecBody[2]-c_world[2]+p_act[2]-p_des[2];
+
+    // Locations of the feet in world coordinates
+    pFeet_world[leg * 3] = (double)p_act[0]+pFeet[leg * 3];
+    pFeet_world[leg * 3 + 1] = (double)p_act[1]+pFeet[leg * 3 + 1];
+    pFeet_world[leg * 3 + 2] = (double)p_act[2]+pFeet[leg * 3 + 2];
+  }
+
+}
+
+template <typename T>
+void FSM_State_TwoContactStand<T>::quatToEuler(double* quat_in, double* rpy_in) {
+  // roll (x-axis rotation)
+  double sinr_cosp = +2.0 * (quat_in[0] * quat_in[1] + quat_in[2] * quat_in[3]);
+  double cosr_cosp = +1.0 - 2.0 * (quat_in[1] * quat_in[1] + quat_in[2] * quat_in[2]);
+  rpy_in[0] = atan2(sinr_cosp, cosr_cosp);
+
+  // pitch (y-axis rotation)
+  double sinp = +2.0 * (quat_in[0] * quat_in[2] - quat_in[3] * quat_in[1]);
+  if (fabs(sinp) >= 1)
+    rpy_in[1] = copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+  else
+    rpy_in[1] = asin(sinp);
+
+  // yaw (z-axis rotation)
+  double siny_cosp = +2.0 * (quat_in[0] * quat_in[3] + quat_in[1] * quat_in[2]);
+  double cosy_cosp = +1.0 - 2.0 * (quat_in[2] * quat_in[2] + quat_in[3] * quat_in[3]);  
+  rpy_in[2] = atan2(siny_cosp, cosy_cosp);
+}
+
 
 /**
  * Manages which states can be transitioned into either by the user
@@ -132,6 +424,8 @@ template <typename T>
 void FSM_State_TwoContactStand<T>::onExit() {
   // Nothing to clean up when exiting
 }
+
+
 
 // template class FSM_State_TwoContactStand<double>;
 template class FSM_State_TwoContactStand<float>;

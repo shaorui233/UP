@@ -18,7 +18,7 @@ void MIT_Controller::initializeController() {
   _controlFSM = new ControlFSM<float>(_quadruped, _stateEstimator,
                                       _legController, _gaitScheduler,
                                       _desiredStateCommand, _controlParameters, 
-                                      _visualizationData, &userParameters);
+                                      _visualizationData, &userParameters, _model);
 }
 
 /**

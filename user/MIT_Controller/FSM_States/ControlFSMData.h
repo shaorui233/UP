@@ -23,6 +23,7 @@ struct ControlFSMData {
   RobotControlParameters* controlParameters;
   MIT_UserParameters* userParameters;
   VisualizationData* visualizationData;
+  FloatingBaseModel<T>* _model;
 };
 
 template struct ControlFSMData<double>;
