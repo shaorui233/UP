@@ -1,5 +1,6 @@
 #include "JumpNLP.hpp"
 #include <iostream>
+
 #ifdef IPOPT_OPTION
 
 #include <cassert>

@@ -37,6 +37,7 @@ class FSM_State_RecoveryStand : public FSM_State<T> {
   static constexpr int FoldLegs = 1;
   static constexpr int RollOver = 2;
 
+  unsigned long long _state_iter;
   int _flag = FoldLegs;
 
   // JPos
@@ -62,8 +63,10 @@ class FSM_State_RecoveryStand : public FSM_State<T> {
   const int rollover_ramp_iter = 150;
   const int rollover_settle_iter = 150;
 
-  const int fold_ramp_iter = 500;
-  const int fold_settle_iter = 500;
+  //const int fold_ramp_iter = 500;
+  //const int fold_settle_iter = 500;
+  const int fold_ramp_iter = 400;
+  const int fold_settle_iter = 700;
 
   const int standup_ramp_iter = 250;
   const int standup_settle_iter = 250;
@@ -79,4 +82,4 @@ class FSM_State_RecoveryStand : public FSM_State<T> {
 
 };
 
-#endif  // FSM_STATE_STANDUP_H
+#endif  // FSM_STATE_RECOVERY_STANDUP_H

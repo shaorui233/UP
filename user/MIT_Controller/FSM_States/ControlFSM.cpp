@@ -50,6 +50,8 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.bounding = new FSM_State_Bounding<T>(&data);
   statesList.recoveryStand = new FSM_State_RecoveryStand<T>(&data);
   statesList.vision = new FSM_State_Vision<T>(&data);
+  statesList.backflip = new FSM_State_BackFlip<T>(&data);
+  statesList.twocontactStand = new FSM_State_TwoContactStand<T>(&data);
 
   safetyChecker = new SafetyChecker<T>(&data);
 
@@ -98,9 +100,9 @@ void ControlFSM<T>::runFSM() {
     if(data._desiredStateCommand->rcCommand->mode == 12){
       data.controlParameters->control_mode = K_RECOVERY_STAND;
     } else if(data._desiredStateCommand->rcCommand->mode == 11){
-      data.controlParameters->control_mode = 4;
+      data.controlParameters->control_mode = K_LOCOMOTION;
     } else if(data._desiredStateCommand->rcCommand->mode == 3){
-      data.controlParameters->control_mode = 3;
+      data.controlParameters->control_mode = K_BALANCE_STAND;
     }
   }
 
@@ -258,6 +260,12 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 
     case FSM_StateName::VISION:
       return statesList.vision;
+
+    case FSM_StateName::BACKFLIP:
+      return statesList.backflip;
+
+    case FSM_StateName::TWO_CONTACT_STAND:
+      return statesList.twocontactStand;
 
     default:
       return statesList.invalid;

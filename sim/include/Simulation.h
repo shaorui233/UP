@@ -37,8 +37,8 @@
  * method
  */
 class Simulation {
-friend class SimControlPanel;
- public:
+  friend class SimControlPanel;
+  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   explicit Simulation(RobotType robot, Graphics3D* window,
                       SimulatorControlParameters& params, ControlParameters& userParams,

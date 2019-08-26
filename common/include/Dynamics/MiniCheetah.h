@@ -32,8 +32,8 @@ Quadruped<T> buildMiniCheetah() {
   cheetah._hipLinkLength = 0.209;
   //cheetah._kneeLinkLength = 0.175;
   //cheetah._maxLegLength = 0.384;
-  cheetah._kneeLinkLength = 0.185;
-  cheetah._maxLegLength = 0.394;
+  cheetah._kneeLinkLength = 0.20;
+  cheetah._maxLegLength = 0.409;
 
 
   cheetah._motorTauMax = 3.f;

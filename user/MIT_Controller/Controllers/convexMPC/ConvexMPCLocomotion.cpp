@@ -284,7 +284,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       swingTimeRemaining[i] -= dt;
     }
     //if(firstSwing[i]) {
-      footSwingTrajectories[i].setHeight(.05);
+      //footSwingTrajectories[i].setHeight(.05);
+      footSwingTrajectories[i].setHeight(.06);
       Vec3<float> offset(0, side_sign[i] * .065, 0);
 
       Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
@@ -320,8 +321,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
       Pf[0] +=  pfx_rel;
       Pf[1] +=  pfy_rel + interleave_y[i] * v_abs * interleave_gain;
-      //Pf[2] = -0.005;
-      Pf[2] = 0.0;
+      Pf[2] = -0.01;
+      //Pf[2] = 0.0;
       footSwingTrajectories[i].setFinalPosition(Pf);
     //}
 

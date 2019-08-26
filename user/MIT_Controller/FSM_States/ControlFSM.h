@@ -20,6 +20,8 @@
 #include "../FSM_States/FSM_State_RecoveryStand.h"
 #include "../FSM_States/FSM_State_Bounding.h"
 #include "../FSM_States/FSM_State_Vision.h"
+#include "../FSM_States/FSM_State_BackFlip.h"
+#include "../FSM_States/FSM_State_TwoContactStand.h"
 
 //#include <lcm/lcm-cpp.hpp>
 //#include "state_estimator_lcmt.hpp"
@@ -45,6 +47,8 @@ struct FSM_StatesList {
   FSM_State_RecoveryStand<T>* recoveryStand;
   FSM_State_Bounding<T>* bounding;
   FSM_State_Vision<T>* vision;
+  FSM_State_BackFlip<T>* backflip;
+  FSM_State_TwoContactStand<T>* twocontactStand;
 };
 
 /**
