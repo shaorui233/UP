@@ -16,7 +16,6 @@
 
 
 #include "BalanceControllerVBL.hpp"
-#include<iostream>
 #include<iomanip>
 // #include "Sim_Utils.h"
 using namespace std;
@@ -114,10 +113,9 @@ BalanceControllerVBL::BalanceControllerVBL() :  QProblemObj_qpOASES(vblNUM_VARIA
    A_control.resize(6,3*vblNUM_CONTACT_POINTS);
    b_control.resize(6,1);
    b_control_Opt.resize(6,1);
-   u_Opt.resize(12,1); // replace with xOpt, use for LCM
-   u_star.resize(12,1);
+   f_unc.resize(12,1);
    C_control.resize(vblNUM_CONSTRAINTS_QP, 3*vblNUM_CONTACT_POINTS);
-   C_times_f_control.resize(vblNUM_CONSTRAINTS_QP, 1);
+   C_times_f_opt.resize(vblNUM_CONSTRAINTS_QP, 1);
    C_control.setZero();
 
    /* Robot Control variables used in LQR for QP Optimization */
@@ -164,7 +162,9 @@ BalanceControllerVBL::BalanceControllerVBL() :  QProblemObj_qpOASES(vblNUM_VARIA
 
 void BalanceControllerVBL::updateProblemData(   double* xfb_in,
                            double* p_feet_in,
-                           double* p_feet_desired_in)                           
+                           double* p_feet_desired_in,
+                           double* rpy_des_in,
+                           double* rpy_act_in)                           
 {   
 
    // Unpack inputs
@@ -200,7 +200,7 @@ void BalanceControllerVBL::updateProblemData(   double* xfb_in,
    calc_A_qpOASES();
    calc_g_qpOASES();
 
-   update_log_variables();  
+   update_log_variables(rpy_des_in, rpy_act_in);  
 
    cpu_time = cpu_time_fixed;
    nWSR_qpOASES = nWSR_fixed;  
@@ -221,21 +221,6 @@ void BalanceControllerVBL::SetContactData( double* contact_state_in,
    calc_lbA_ubA_qpOASES();
 }
 
-void BalanceControllerVBL::set_desired_swing_pos(double* pFeet_des_in)
-{
-   for(int i = 0; i < 12; i++)
-   {
-      qp_controller_data.pfeet_des[i] = pFeet_des_in[i];
-   }
-}
-
-void BalanceControllerVBL::set_actual_swing_pos(double* pFeet_act_in)
-{
-   for(int i = 0; i < 12; i++)
-   {
-      qp_controller_data.pfeet_act[i] = pFeet_act_in[i];
-   }   
-}
 
 void BalanceControllerVBL::solveQP(double* xOpt)
 { 
@@ -250,7 +235,7 @@ void BalanceControllerVBL::solveQP(double* xOpt)
    }
  
    calc_constraint_check();
-   qp_controller_data_publish = qp_controller_data;
+   two_contact_stand_data_publish = two_contact_stand_data;
 }
 
 
@@ -276,9 +261,9 @@ void BalanceControllerVBL::solveQP_nonThreaded(double* xOpt)
   QProblemObj_qpOASES.getBounds( guessedBounds );
   QProblemObj_qpOASES.getConstraints( guessedConstraints );
 
-  qp_controller_data.exit_flag              = qp_exit_flag;
-  qp_controller_data.nWSR                   = nWSR_qpOASES;
-  qp_controller_data.cpu_time_microseconds  = cpu_time*1.0e6;
+  two_contact_stand_data.exit_flag              = qp_exit_flag;
+  two_contact_stand_data.nWSR                   = nWSR_qpOASES;
+  two_contact_stand_data.cpu_time_microseconds  = cpu_time*1.0e6;
   copy_real_t_to_Eigen(xOpt_eigen, xOpt_qpOASES, 12);
 
   // Combine reference control (f_des) and linear control (xOpt_eigen) inputs
@@ -286,15 +271,6 @@ void BalanceControllerVBL::solveQP_nonThreaded(double* xOpt)
 
   // Centroid dynamics in world frame using solution to opitmization
   b_control_Opt = A_control*(xOpt_combined);
-  
-  // Control policy according to optimization
-  u_Opt = xOpt_eigen;
-  
-  for(int i = 0; i < 6; i++)
-  {
-   qp_controller_data.b_control_Opt[i] = b_control_Opt(i); // remove
-   // qp_controller_data.u_Opt[i] = u_Opt;
-  }
 
   // Transform forces into body coordinates
   for(int i = 0; i < vblNUM_CONTACT_POINTS; i++)
@@ -308,7 +284,7 @@ void BalanceControllerVBL::solveQP_nonThreaded(double* xOpt)
   QProblemObj_qpOASES.reset();
 
   calc_constraint_check();
-  qp_controller_data_publish = qp_controller_data;
+  two_contact_stand_data_publish = two_contact_stand_data;
 }
 
 void BalanceControllerVBL::verifyModel(double* vbd_command)
@@ -337,28 +313,28 @@ void BalanceControllerVBL::calc_linear_error()
 
 void BalanceControllerVBL::calc_constraint_check()
 {
-   C_times_f_control = C_control*xOpt_eigen;
+   C_times_f_opt = C_control*xOpt_eigen;
 
    for(int i = 0; i < vblNUM_VARIABLES_QP; i++)
    {
-      qp_controller_data.xOpt[i] = xOpt_eigen(i);
+      two_contact_stand_data.f_opt[i] = xOpt_eigen(i);
+      two_contact_stand_data.f_control[i] = xOpt_combined(i);
+      two_contact_stand_data.f_unc[i] = f_unc[i];
+   }
+
+   for(int i = 0; i < 4; i++)
+   {
+      two_contact_stand_data.f_ref[i] = f_ref_world[3*i+2];
    }
 
    for(int i = 0; i < vblNUM_CONSTRAINTS_QP; i++)
    {
-      qp_controller_data.lbA[i] = lbA_qpOASES[i];
-      qp_controller_data.ubA[i] = ubA_qpOASES[i];
-      qp_controller_data.C_times_f[i] = C_times_f_control(i);
+      two_contact_stand_data.lbA[i] = lbA_qpOASES[i];
+      two_contact_stand_data.ubA[i] = ubA_qpOASES[i];
+      two_contact_stand_data.C_times_f[i] = C_times_f_opt(i);
    }
 
-   /* This will have to change since we are not using b_control anymore. Replace private member
-   variable b_control with u_star. Same goes for b_control_Opt*/
-   for(int i = 0; i < 6; i++)
-   {
-      qp_controller_data.b_control[i] = b_control(i); // remove
-      //qp_controller_data.u_star[i] = u_star(i); // calculated in update_P_LQR
 
-   }
 }
 
 
@@ -470,7 +446,8 @@ void BalanceControllerVBL::update_P_LQR()
   P_LQR = P_complex.real();
 
   // Optimal control policy
-  u_star = -Q2_LQR.inverse()*B_LQR.transpose()*P_LQR*s_LQR;
+  f_unc = -Q2_LQR.inverse()*B_LQR.transpose()*P_LQR*s_LQR;
+  cost_to_go = s_LQR.transpose()*P_LQR*s_LQR;
 }
 
 void BalanceControllerVBL::calc_H_qpOASES()
@@ -549,21 +526,28 @@ void BalanceControllerVBL::calc_lbA_ubA_qpOASES()
 
 void BalanceControllerVBL::publish_data_lcm()
 {  
-   lcm->publish("CONTROLLER_qp_controller_data", &qp_controller_data_publish);
+   lcm->publish("CONTROLLER_two_contact_stand_data", &two_contact_stand_data_publish);
 }
 
-void BalanceControllerVBL::update_log_variables()
+void BalanceControllerVBL::update_log_variables(double* rpy_des_in, double* rpy_act_in)
 {
    for(int i = 0; i < 3; i++)
    {
-      qp_controller_data.p_des[i] = x_COM_world_desired(i);
-      qp_controller_data.p_act[i] = x_COM_world(i);
-      qp_controller_data.v_des[i] = xdot_COM_world_desired(i);
-      qp_controller_data.v_act[i] = xdot_COM_world(i);
-      qp_controller_data.O_err[i] = orientation_error(i);
-      qp_controller_data.omegab_des[i] = omega_b_world_desired(i);
-      qp_controller_data.omegab_act[i] = omega_b_world(i);
+      two_contact_stand_data.p_des[i] = x_COM_world_desired(i);
+      two_contact_stand_data.p_act[i] = x_COM_world(i);
+      two_contact_stand_data.rpy[i] = rpy_des_in[i];
+      two_contact_stand_data.rpy_act[i] = rpy_act_in[i];
    }
+
+   for(int i = 0; i < 12; i++)
+   {
+      two_contact_stand_data.s[i] = s_LQR(i);
+   }
+
+   two_contact_stand_data.cost_to_go = cost_to_go;
+
+
+
 }
 /* ------------ Set Parameter Values -------------- */
 
@@ -646,102 +630,6 @@ void BalanceControllerVBL::get_linear_error(double* lin_err_in)
     lin_err_in[i+9] = error_omega_lin(i);
   }
 
-}
-
-void BalanceControllerVBL::get_cost_to_go()
-{
-  cost_to_go = s_LQR.transpose()*P_LQR*s_LQR;
-}
-
-void BalanceControllerVBL::print_accel()
-{
-  std::cout << "Accel from GRF: " << b_control_Opt(0) << ", " << b_control_Opt(1) << ", " << b_control_Opt(2) << ", " << b_control_Opt(3) << ", " << b_control_Opt(4) << ", " << b_control_Opt(5);
-}
-
-void BalanceControllerVBL::print_QPData()
-{
-   std::cout << "\n\n";
-   std::cout << "\n\nH = \n"; print_real_t(H_qpOASES, vblNUM_VARIABLES_QP, vblNUM_VARIABLES_QP);
-   std::cout << "\n\nA = \n"; print_real_t(A_qpOASES, vblNUM_CONSTRAINTS_QP, vblNUM_VARIABLES_QP);
-   std::cout << "\n\ng = \n"; print_real_t(g_qpOASES, vblNUM_VARIABLES_QP, 1);
-   std::cout << "\n\nlb = \n"; print_real_t(lb_qpOASES, vblNUM_VARIABLES_QP, 1);
-   std::cout << "\n\nub = \n"; print_real_t(ub_qpOASES, vblNUM_VARIABLES_QP, 1);
-   std::cout << "\n\nlbA = \n"; print_real_t(lbA_qpOASES, vblNUM_CONSTRAINTS_QP, 1);
-   std::cout << "\n\nubA = \n"; print_real_t(ubA_qpOASES, vblNUM_CONSTRAINTS_QP, 1);
-}
-
-void BalanceControllerVBL::print_LQR_Data()
-{
-  // Print A_LQR, B_LQR, Q1, Q2, P
-   std::cout << "\n\nAlqr = \n" << A_LQR;
-   std::cout << "\n\nBlqr = \n" << B_LQR;
-   std::cout << "\n\nQ1 = \n" << Q1_LQR;
-   std::cout << "\n\nQ2 = \n" << Q2_LQR;
-   std::cout << "\n\nP = \n" << P_LQR << std::endl;
-}
-
-void BalanceControllerVBL::print_optimal_control()
-{
-  std::cout << std::fixed << std::setprecision(3);
-  std::cout << std::fixed << std::right;
-  std::cout << std::fixed;
-  std::cout << "Optimal Control Policy (FL,FR,BL,BR)\n";
-  std::cout << std::setw(9) << u_Opt(0) << "  ";
-  std::cout << std::setw(9) << u_Opt(3) << "  ";
-  std::cout << std::setw(9) << u_Opt(6) << "  "; 
-  std::cout << std::setw(9) << u_Opt(9) << "\n";
-  std::cout << std::setw(9) << u_Opt(1) << "  ";
-  std::cout << std::setw(9) << u_Opt(4) << "  ";
-  std::cout << std::setw(9) << u_Opt(7) << "  "; 
-  std::cout << std::setw(9) << u_Opt(10) << "\n"; 
-  std::cout << std::setw(9) << u_Opt(2) << "  ";
-  std::cout << std::setw(9) << u_Opt(5) << "  ";
-  std::cout << std::setw(9) << u_Opt(8) << "  "; 
-  std::cout << std::setw(9) << u_Opt(11) << "\n";
-}
-
-void BalanceControllerVBL::print_GRFs(const double* fOpt)
-{
-  std::cout << std::fixed << std::setprecision(3);
-  std::cout << std::fixed << std::right;
-  std::cout << std::fixed;
-
-  std::cout << std::setw(9) << fOpt[0] << "  ";
-  std::cout << std::setw(9) << fOpt[3] << "  ";
-  std::cout << std::setw(9) << fOpt[6] << "  "; 
-  std::cout << std::setw(9) << fOpt[9] << "\n";
-  std::cout << std::setw(9) << fOpt[1] << "  ";
-  std::cout << std::setw(9) << fOpt[4] << "  ";
-  std::cout << std::setw(9) << fOpt[7] << "  "; 
-  std::cout << std::setw(9) << fOpt[10] << "\n"; 
-  std::cout << std::setw(9) << fOpt[2] << "  ";
-  std::cout << std::setw(9) << fOpt[5] << "  ";
-  std::cout << std::setw(9) << fOpt[8] << "  "; 
-  std::cout << std::setw(9) << fOpt[11] << "\n";   
-}
-
-void BalanceControllerVBL::print_linear_error()
-{
-  std::cout << "\nLinearized Error:" << std::endl;
-  std::cout << error_x_lin << std::endl;
-  std::cout << error_dx_lin << std::endl;
-  std::cout << error_R_lin << std::endl;
-  std::cout << error_omega_lin << std::endl;
-}
-
-
-void BalanceControllerVBL::print_real_t(real_t* matrix, int nRows, int nCols)
-{
-   int count = 0;
-   for(int i = 0; i < nRows; i++)
-   {
-      for(int j = 0; j < nCols; j++)
-      {
-         std::cout << matrix[count] << "\t";
-         count++;
-      }
-      std::cout << "\n";
-   }
 }
 
 

@@ -23,7 +23,7 @@
 #include <qpOASES.hpp>
 #include <lcm/lcm-cpp.hpp>
 #include "sim_command_t.hpp"
-#include "qp_controller_data_t.hpp"
+#include "two_contact_stand_data_t.hpp"
 
 
 static const int vblNUM_VARIABLES_QP = 12;
@@ -48,7 +48,9 @@ class BalanceControllerVBL
       // use new kinematics measurements to update QP
       void updateProblemData(   double* xfb_in,
                            double* p_feet_in,
-                           double* p_feet_desired_in);
+                           double* p_feet_desired_in,
+                           double* rpy_des_in,
+                           double* rpy_act_in);
 
       void SetContactData(double* contact_state_in,
                           double* min_forces_in,
@@ -69,40 +71,21 @@ class BalanceControllerVBL
       void set_friction(double mu_in); 
       void set_mass(double mass_in);
       void set_inertia(double Ixx, double Iyy, double Izz);
-      void set_desired_swing_pos(double* pFeet_des_in);
-      void set_actual_swing_pos(double* pFeet_act_in);
 
 
       // Get info to write to data file
       void get_linear_error(double* lin_error_in);
       void get_cost_to_go();
 
-      // Print info for debugging
-      void print_QPData();
-      void print_LQR_Data(); // new
-      void print_optimal_control(); // new
-      void print_GRFs(const double* fOpt); // new
-      void print_linear_error(); // new
-      void print_accel(); // new
-
       // Misc
       void verifyModel(double* vbd_command);
       void set_base_support_flag(double sflag);
       void publish_data_lcm();
-
-      // Public variables for printing
-      double lin_err[12];
-      double cost_to_go;
-      Eigen::VectorXd C_times_f_control;
-      real_t  lbA_qpOASES[vblNUM_CONSTRAINTS_QP];
-      real_t  ubA_qpOASES[vblNUM_CONSTRAINTS_QP];
-      Eigen::VectorXd xOpt_combined;
-      Eigen::VectorXd b_control_Opt;
-      Eigen::VectorXd u_star;
+      
 
    private:
       lcm::LCM * lcm;
-      qp_controller_data_t qp_controller_data, qp_controller_data_publish;
+      two_contact_stand_data_t two_contact_stand_data, two_contact_stand_data_publish;
       sim_command_t command;
 
        /* Fixed-Size qpOASES data */           
@@ -131,6 +114,8 @@ class BalanceControllerVBL
       real_t    g_qpOASES[vblNUM_VARIABLES_QP];
       real_t   lb_qpOASES[vblNUM_VARIABLES_QP];
       real_t   ub_qpOASES[vblNUM_VARIABLES_QP];
+      real_t  lbA_qpOASES[vblNUM_CONSTRAINTS_QP];
+      real_t  ubA_qpOASES[vblNUM_CONSTRAINTS_QP];
       real_t xOpt_qpOASES[vblNUM_VARIABLES_QP];
       real_t yOpt_qpOASES[vblNUM_VARIABLES_QP+vblNUM_CONSTRAINTS_QP];
 
@@ -149,7 +134,10 @@ class BalanceControllerVBL
       Eigen::MatrixXd A_control;        
       Eigen::MatrixXd C_control;      
       Eigen::VectorXd b_control;
-      Eigen::VectorXd u_Opt;
+      Eigen::VectorXd C_times_f_opt;
+      Eigen::VectorXd xOpt_combined;
+      Eigen::VectorXd b_control_Opt;
+
 
 
       /* NEW - Robot control variables used in LQR for QP optimization*/
@@ -161,9 +149,8 @@ class BalanceControllerVBL
       Eigen::MatrixXd Q2_LQR;
       Eigen::VectorXd s_LQR;
       Eigen::MatrixXd H_LQR;
-
-      /* Removed centroidal control PD gains */
-      double use_hard_constraint_pitch;
+      Eigen::VectorXd f_unc;
+      double cost_to_go;
 
       /* Model and World parameters and force limits */
       double mass ;
@@ -220,20 +207,20 @@ class BalanceControllerVBL
       /* Interface Functions */     
       bool getQPFinished();    
      
-      void update_A_control(); // original?
-      void calc_linear_error(); // new
-      void update_A_LQR(); // new
-      void update_B_LQR(); // new
-      void update_P_LQR(); // new
+      void update_A_control(); 
+      void calc_linear_error();
+      void update_A_LQR();
+      void update_B_LQR();
+      void update_P_LQR();
 
-      void calc_H_qpOASES(); // modified
+      void calc_H_qpOASES();
       void calc_A_qpOASES();
-      void calc_g_qpOASES(); // modified    
+      void calc_g_qpOASES();   
       void calc_lb_ub_qpOASES();
-      void calc_lbA_ubA_qpOASES(); // modified
+      void calc_lbA_ubA_qpOASES();
 
 
-      void update_log_variables();
+      void update_log_variables(double* rpy_des_in, double* rpy_act_in);
       void calc_constraint_check();
 
       /* Utility Functions */
@@ -242,8 +229,6 @@ class BalanceControllerVBL
       void copy_Array_to_Eigen(Eigen::VectorXd &target, double* source, int len, int startIndex);
       void copy_Array_to_Eigen(Eigen::MatrixXd &target, double* source, int len, int startIndex);
       void copy_real_t_to_Eigen(Eigen::VectorXd &target, real_t* source, int len);
-      
-      void print_real_t(real_t* matrix, int nRows, int nCols);
 
       void matrixExpOmegaCross(const Eigen::VectorXd & omega, Eigen::MatrixXd & R);
       void matrixLogRot(const Eigen::MatrixXd & R, Eigen::VectorXd & omega);

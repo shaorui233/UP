@@ -6,7 +6,6 @@
 
 #include "FSM_State_TwoContactStand.h"
 #include <Utilities/Utilities_print.h>
-#include <iomanip>
 
 
 /**
@@ -133,8 +132,9 @@ void FSM_State_TwoContactStand<T>::run() {
   // Solve Balance control QP
   balanceControllerVBL.set_desiredTrajectoryData(rpy, p_des, omegaDes, v_des);
   balanceControllerVBL.SetContactData(contactStateScheduled, minForces, maxForces);
-  balanceControllerVBL.updateProblemData(se_xfb, pFeet, pFeet_des);
+  balanceControllerVBL.updateProblemData(se_xfb, pFeet, pFeet_des, rpy, rpy_act);
   balanceControllerVBL.solveQP_nonThreaded(fOpt);
+  balanceControllerVBL.publish_data_lcm();
 
   // Remove impedance control for all joints
   impedance_kp << 0.0, 0.0, 0.0;
@@ -181,21 +181,6 @@ void FSM_State_TwoContactStand<T>::run() {
     // Force and Joint Torque control
     this->_data->_legController->commands[leg].forceFeedForward = this->footFeedForwardForces.col(leg);
     this->_data->_legController->commands[leg].tauFeedForward = this->jointFeedForwardTorques.col(leg);
-  }
-
-  std::cout << std::fixed << std::setprecision(3);
-  if (iter % 500 == 0){
-    std::cout << "\n\nActual  Orientation: " << 180.0/3.1415*rpy_act[0] << ", " << 180.0/3.1415*rpy_act[1] << ", " << 180.0/3.1415*rpy_act[2] << std::endl;
-    std::cout << "Desired  Orientation: " << 180.0/3.1415*rpy[0] << ", " << 180.0/3.1415*rpy[1] << ", " << 180.0/3.1415*rpy[2] << std::endl;
-    std::cout << "Actual COM Position: " << p_act[0] << ", " << p_act[1] << ", " << p_act[2] << std::endl;
-    std::cout << "Desired COM Position: " << p_des[0] << ", " << p_des[1] << ", " << p_des[2] << std::endl;
-    std::cout << "Ground Reaction Forces:\n";
-    balanceControllerVBL.print_GRFs(fOpt);
-    std::cout << "Feet Base Width/Length: " << pFeet_world[1*3]-pFeet_world[2*3] << ", " << pFeet_world[1*3+1]-pFeet_world[2*3+1] << std::endl;
-    // std::cout << "Legacy:\n";
-    // balanceController.print_GRFs(fOpt2);
-    //balanceQP.printError();
-    //balanceQP.printAccel();
   }
 
 }
