@@ -359,15 +359,15 @@ int FloatingBaseModel<T>::addGroundContactPoint(int bodyID,
 template <typename T>
 void FloatingBaseModel<T>::addGroundContactBoxPoints(int bodyId,
                                                      const Vec3<T> &dims) {
-  // addGroundContactPoint(bodyId, Vec3<T>( dims(0),  dims(1),  dims(2))/2);
-  // addGroundContactPoint(bodyId, Vec3<T>(-dims(0),  dims(1),  dims(2))/2);
-  // addGroundContactPoint(bodyId, Vec3<T>( dims(0), -dims(1),  dims(2))/2);
-  // addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1),  dims(2))/2);
+   addGroundContactPoint(bodyId, Vec3<T>( dims(0),  dims(1),  dims(2))/2);
+   addGroundContactPoint(bodyId, Vec3<T>(-dims(0),  dims(1),  dims(2))/2);
+   addGroundContactPoint(bodyId, Vec3<T>( dims(0), -dims(1),  dims(2))/2);
+   addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1),  dims(2))/2);
 
-  addGroundContactPoint(bodyId, Vec3<T>(dims(0), dims(1), 0.) / 2);
-  addGroundContactPoint(bodyId, Vec3<T>(-dims(0), dims(1), 0.) / 2);
-  addGroundContactPoint(bodyId, Vec3<T>(dims(0), -dims(1), 0.) / 2);
-  addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1), 0.) / 2);
+  //addGroundContactPoint(bodyId, Vec3<T>(dims(0), dims(1), 0.) / 2);
+  //addGroundContactPoint(bodyId, Vec3<T>(-dims(0), dims(1), 0.) / 2);
+  //addGroundContactPoint(bodyId, Vec3<T>(dims(0), -dims(1), 0.) / 2);
+  //addGroundContactPoint(bodyId, Vec3<T>(-dims(0), -dims(1), 0.) / 2);
 
   addGroundContactPoint(bodyId, Vec3<T>(dims(0), dims(1), -dims(2)) / 2);
   addGroundContactPoint(bodyId, Vec3<T>(-dims(0), dims(1), -dims(2)) / 2);
