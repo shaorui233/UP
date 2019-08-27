@@ -42,16 +42,13 @@ void FSM_State_TwoContactStand<T>::run() {
   // Count iterations
   iter++;
 
-  // Set LQR Weights using Robot Control Parameters
+  // Set LQR Weights
   for (int i = 0; i < 3; i++) {
+    // Manually setting weights now to avoid altering other controllers
     // x_weights[i] = this->_data->userParameters->Kp_body[i];
     // xdot_weights[i] = this->_data->userParameters->Kd_body[i];
     // R_weights[i] = this->_data->userParameters->Kp_ori[i];
     // omega_weights[i] = this->_data->userParameters->Kd_ori[i];
-    // x_weights[i] = this->_data->controlParameters->kpCOM[i];
-    // xdot_weights[i] = this->_data->controlParameters->kdCOM[i];
-    // R_weights[i] = this->_data->controlParameters->kpBase[i];
-    // omega_weights[i] = this->_data->controlParameters->kdBase[i];
     x_weights[i] = 300;
     xdot_weights[i] = 50;
     R_weights[i] = 20000;
@@ -76,10 +73,10 @@ void FSM_State_TwoContactStand<T>::run() {
     se_xfb[10 + i] = (double)this->_data->_stateEstimator->getResult().vBody(i);
   }
 
-  // Convert quaternions to RPY
+  // Convert quaternions to RPY - for data logging
   quatToEuler(quat_act, rpy_act);
 
-  // Get the position of the COM on world frame
+  // Get the position of the COM in world frame & generalized gravity vector
   get_model_dynamics();
 
   // Use the COM pos instead of the body pos for balance control
@@ -93,9 +90,9 @@ void FSM_State_TwoContactStand<T>::run() {
   get_foot_locations();
 
   // Get desired state from gamepad controls
-  get_desired_state_preset();
+  get_desired_state();
 
-  // Set World Parameters
+  // Set Control Parameters
   balanceControllerVBL.set_friction(0.8);
   balanceControllerVBL.set_mass(mass_in);
   refGRF.set_mass(mass_in);
@@ -116,7 +113,7 @@ void FSM_State_TwoContactStand<T>::run() {
     maxForces[leg] = contactStateScheduled[leg] * maxForce;
   }
 
-  // Compute Reference Control Inputs
+  // Compute Reference Control Inputs - only if desired xy pos has changed
   if (p_des_prev[0] != p_des[0] || p_des_prev[1] != p_des[1]) {
     refGRF.SetContactData(contactStateScheduled, minForces, maxForces);
     refGRF.updateProblemData(pFeet_des, p_des);
@@ -125,9 +122,6 @@ void FSM_State_TwoContactStand<T>::run() {
       f_ref_world[3*leg+2] = f_ref_z[leg];
     balanceControllerVBL.set_reference_GRF(f_ref_world);
   }
-
-  // Visualize COM pos and desired pos - leave off for now
-  //COM_visualization(); 
 
   // Solve Balance control QP
   balanceControllerVBL.set_desiredTrajectoryData(rpy, p_des, omegaDes, v_des);
@@ -170,13 +164,10 @@ void FSM_State_TwoContactStand<T>::run() {
   for (int i = 0; i < 2; i++)
     p_des_prev[i] = p_des[i];
 
-
-
-  // Send commands to leg controller - combine with line 136-157
+  // Send commands to leg controller
   for (int leg = 0; leg < 4; leg++) {
     // Impedance Control
-    this->cartesianImpedanceControl(
-        leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),impedance_kp,impedance_kd);
+    this->cartesianImpedanceControl(leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),impedance_kp,impedance_kd);
 
     // Force and Joint Torque control
     this->_data->_legController->commands[leg].forceFeedForward = this->footFeedForwardForces.col(leg);
@@ -229,10 +220,12 @@ void FSM_State_TwoContactStand<T>::get_model_dynamics() {
 
 }
 
-
+/**
+ * Gets the desired state of the robot from gamepad controls
+ */
 template <typename T>
-void FSM_State_TwoContactStand<T>::get_desired_state_preset() {
-  // Roll, Pitch, Yaw step response, two legs
+void FSM_State_TwoContactStand<T>::get_desired_state() {
+  // Prep state
   p_des[0] = 0.5*pFeet_world[1*3]+0.5*pFeet_world[2*3];
   p_des[1] = 0.5*pFeet_world[1*3+1]+0.5*pFeet_world[2*3+1];
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
@@ -245,30 +238,20 @@ void FSM_State_TwoContactStand<T>::get_desired_state_preset() {
     v_des[i] = 0.0;
   }
 
+  // Lift legs after settling into prep state
   if (iter > 2000) {
-    // Feet out of contact
     contactStateScheduled[0] = 0;
     contactStateScheduled[3] = 0;
 
-    // Orientation
-    target = this->_data->userParameters->Kp_ori[0];;
-    rpy[0] = target*convert;
-
-    target = this->_data->userParameters->Kp_ori[1];;
-    rpy[1] = target*convert;
-
-    target = this->_data->userParameters->Kp_ori[2];;
-    rpy[2] = target*convert;
-
-    // CoM Position
-    pweight = this->_data->userParameters->Kp_body[0];
-    p_des[0] = pweight*pFeet_world[1*3]+(1-pweight)*pFeet_world[2*3];
-    p_des[1] = pweight*pFeet_world[1*3+1]+(1-pweight)*pFeet_world[2*3+1];
-    p_des[2] = this->_data->userParameters->Kp_body[2];
+    // To do - add gamepad/remote control to adjust desired state
   }
 
 }
 
+/**
+ * Use data from leg controller and state estimator to compute positions
+ * of the feet relative to the CoM
+ */
 template <typename T>
 void FSM_State_TwoContactStand<T>::get_foot_locations() {
 
@@ -278,7 +261,7 @@ void FSM_State_TwoContactStand<T>::get_foot_locations() {
     computeLegJacobianAndPosition(**&this->_data->_quadruped, this->_data->_legController->datas[leg].q,
                                   &this->_data->_legController->datas[leg].J, &pFeetVec, leg);
     
-    // Compute vector from body frame to foot (world cooords)
+    // Compute vector from origin of body frame to foot (world coords)
     pFeetVecBody = this->_data->_stateEstimator->getResult().rBody.transpose() * (this->_data->_quadruped->getHipLocation(leg) + pFeetVec);
 
     // Compute vector from COM to foot (world coords)
@@ -299,6 +282,9 @@ void FSM_State_TwoContactStand<T>::get_foot_locations() {
 
 }
 
+/**
+ * Convert quaternions to euler angles
+ */
 template <typename T>
 void FSM_State_TwoContactStand<T>::quatToEuler(double* quat_in, double* rpy_in) {
   // roll (x-axis rotation)
@@ -359,7 +345,7 @@ FSM_StateName FSM_State_TwoContactStand<T>::checkTransition() {
 
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
-                << K_BACKFLIP << " to "
+                << K_TWO_CONTACT_STAND << " to "
                 << this->_data->controlParameters->control_mode << std::endl;
   }
 

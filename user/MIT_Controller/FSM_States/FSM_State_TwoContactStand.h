@@ -32,7 +32,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
 
  private:
   //
-  void get_desired_state_preset();
+  void get_desired_state();
   void get_model_dynamics();
   void get_foot_locations();
   void quatToEuler(double* quat_in, double* rpy_in);
