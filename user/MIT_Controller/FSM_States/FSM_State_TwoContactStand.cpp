@@ -243,7 +243,9 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[0] = 0;
     contactStateScheduled[3] = 0;
 
-    // To do - add gamepad/remote control to adjust desired state
+    // To do - increase ability to change state via gamepad
+    rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
+    rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
   }
 
 }
