@@ -93,7 +93,7 @@ void FSM_State_TwoContactStand<T>::run() {
   get_desired_state();
 
   // Set Control Parameters
-  balanceControllerVBL.set_friction(0.8);
+  balanceControllerVBL.set_friction(0.45);
   balanceControllerVBL.set_mass(mass_in);
   refGRF.set_mass(mass_in);
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
