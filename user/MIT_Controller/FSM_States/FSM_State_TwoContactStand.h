@@ -64,6 +64,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
 
   // Desired state of the body
   double pFeet_des[12], p_des[3], v_des[3], rpy[3], omegaDes[3], baseState[5] = {0.0, 0.0, 0.0, 0.0, 0.0}, pweight;
+  double target, convert = 3.14159/180;
 
   // Joint positions for legs not in contact
   Vec3<T> q_lift_leg, qd_lift_leg;
@@ -75,7 +76,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   Vec4<T> conPhase;
 
   // Control Input
-  double f_des_z[4], f_des_world[12], fOpt[12], fOpt2[12];
+  double f_ref_z[4], f_ref_world[12], fOpt[12], fOpt2[12];
 
   // Leg Impedance Control
   Vec3<double> impedance_kp;

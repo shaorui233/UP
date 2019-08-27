@@ -45,22 +45,14 @@ class BalanceControllerVBL
       BalanceControllerVBL();
       ~BalanceControllerVBL(){};
 
-      void testFunction();
-
       // use new kinematics measurements to update QP
       void updateProblemData(   double* xfb_in,
                            double* p_feet_in,
-                           double* p_feet_desired_in,
-                           double* p_des,
-                           double* p_act, 
-                           double* v_des, 
-                           double* v_act,
-                           double* O_err,
-                           double  yaw_act_in); // modified
+                           double* p_feet_desired_in);
 
       void SetContactData(double* contact_state_in,
                           double* min_forces_in,
-                          double* max_forces_in); // modified*
+                          double* max_forces_in);
 
       // calculate the QP, return solution
       void solveQP(double* xOpt);
@@ -68,8 +60,7 @@ class BalanceControllerVBL
 
       // update desired COM and orientation setpoints
       void set_desiredTrajectoryData(double* rpy_des_in, double* p_des_in, double* omegab_des_in, double* v_des_in);
-      void set_QP_options(double use_hard_constraint_pitch_in);
-      void set_Desired_GRF(double* f_des_in); // new
+      void set_reference_GRF(double* f_ref_in);
         
       // configure gains, QP weights, force limits, world parameters
       void set_RobotLimits();
@@ -80,7 +71,6 @@ class BalanceControllerVBL
       void set_inertia(double Ixx, double Iyy, double Izz);
       void set_desired_swing_pos(double* pFeet_des_in);
       void set_actual_swing_pos(double* pFeet_act_in);
-      void set_f_Sim(double f_foot_in[4][3]);
 
 
       // Get info to write to data file
@@ -108,7 +98,6 @@ class BalanceControllerVBL
       real_t  ubA_qpOASES[vblNUM_CONSTRAINTS_QP];
       Eigen::VectorXd xOpt_combined;
       Eigen::VectorXd b_control_Opt;
-      Eigen::VectorXd b_control_Sim;
       Eigen::VectorXd u_star;
 
    private:
@@ -161,14 +150,13 @@ class BalanceControllerVBL
       Eigen::MatrixXd C_control;      
       Eigen::VectorXd b_control;
       Eigen::VectorXd u_Opt;
-      Eigen::VectorXd f_Sim;
 
 
       /* NEW - Robot control variables used in LQR for QP optimization*/
       Eigen::MatrixXd A_LQR;            
       Eigen::MatrixXd B_LQR;
       Eigen::MatrixXd P_LQR;
-      Eigen::VectorXd f_des_world;
+      Eigen::VectorXd f_ref_world;
       Eigen::MatrixXd Q1_LQR;
       Eigen::MatrixXd Q2_LQR;
       Eigen::VectorXd s_LQR;
@@ -193,7 +181,6 @@ class BalanceControllerVBL
 
       /* Foot Contact Information, 1 is on the ground,  */
       Eigen::VectorXd contact_state;
-      double yaw_act;
 
       /* Actual Kinematics*/      
       Eigen::VectorXd x_COM_world;
@@ -203,8 +190,6 @@ class BalanceControllerVBL
       Eigen::VectorXd quat_b_world;
       Eigen::MatrixXd R_b_world;
       Eigen::MatrixXd p_feet; 
-
-      Eigen::MatrixXd R_yaw_act;
 
       /* Desired Kinematics */
       Eigen::VectorXd x_COM_world_desired;
@@ -248,11 +233,7 @@ class BalanceControllerVBL
       void calc_lbA_ubA_qpOASES(); // modified
 
 
-      void update_log_variables(double *p_des, 
-                              double* p_act,
-                              double* v_des,
-                              double* v_act,
-                              double* O_err);
+      void update_log_variables();
       void calc_constraint_check();
 
       /* Utility Functions */

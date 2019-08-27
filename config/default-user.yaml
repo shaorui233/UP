@@ -4,13 +4,13 @@ __collection-name__: user-parameters
 Kd_joint          : [1.0, 0.3, 0.3]
 Kp_joint          : [3, 3, 3]
 
-Kp_body           : [30, 30, 30]
+Kp_body           : [0.5, 0.5, 0.2]
 Kd_body           : [3, 3, 3]
 
 Kp_foot           : [70, 70, 70]
 Kd_foot           : [3, 3, 3]
 
-Kp_ori            : [30, 30, 30]
+Kp_ori            : [0, 0, 0]
 Kd_ori            : [3, 3, 3]
 
 

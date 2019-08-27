@@ -72,7 +72,6 @@ void FSM_State_TwoContactStand<T>::run() {
   // Get current state from state estimator
   for (int i = 0; i < 3; i++) {
     p_act[i] = (double)this->_data->_stateEstimator->getResult().position(i);
-    v_act[i] = (double)this->_data->_stateEstimator->getResult().vBody(i);
     se_xfb[4 + i] = (double)this->_data->_stateEstimator->getResult().position(i);
     se_xfb[7 + i] = (double)this->_data->_stateEstimator->getResult().omegaBody(i);
     se_xfb[10 + i] = (double)this->_data->_stateEstimator->getResult().vBody(i);
@@ -98,7 +97,7 @@ void FSM_State_TwoContactStand<T>::run() {
   get_desired_state_preset();
 
   // Set World Parameters
-  balanceControllerVBL.set_friction(0.4);
+  balanceControllerVBL.set_friction(0.8);
   balanceControllerVBL.set_mass(mass_in);
   refGRF.set_mass(mass_in);
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
@@ -122,10 +121,10 @@ void FSM_State_TwoContactStand<T>::run() {
   if (p_des_prev[0] != p_des[0] || p_des_prev[1] != p_des[1]) {
     refGRF.SetContactData(contactStateScheduled, minForces, maxForces);
     refGRF.updateProblemData(pFeet_des, p_des);
-    refGRF.solveQP_nonThreaded(f_des_z);
+    refGRF.solveQP_nonThreaded(f_ref_z);
     for (int leg = 0; leg < 4; leg++)
-      f_des_world[3*leg+2] = f_des_z[leg];
-    balanceControllerVBL.set_Desired_GRF(f_des_world);
+      f_ref_world[3*leg+2] = f_ref_z[leg];
+    balanceControllerVBL.set_reference_GRF(f_ref_world);
   }
 
   // Visualize COM pos and desired pos - leave off for now
@@ -134,7 +133,7 @@ void FSM_State_TwoContactStand<T>::run() {
   // Solve Balance control QP
   balanceControllerVBL.set_desiredTrajectoryData(rpy, p_des, omegaDes, v_des);
   balanceControllerVBL.SetContactData(contactStateScheduled, minForces, maxForces);
-  balanceControllerVBL.updateProblemData(se_xfb, pFeet, pFeet_des, p_des, p_act, v_des, v_act, O_err, 0.0);
+  balanceControllerVBL.updateProblemData(se_xfb, pFeet, pFeet_des);
   balanceControllerVBL.solveQP_nonThreaded(fOpt);
 
   // Remove impedance control for all joints
@@ -192,8 +191,7 @@ void FSM_State_TwoContactStand<T>::run() {
     std::cout << "Desired COM Position: " << p_des[0] << ", " << p_des[1] << ", " << p_des[2] << std::endl;
     std::cout << "Ground Reaction Forces:\n";
     balanceControllerVBL.print_GRFs(fOpt);
-    std::cout << "Leg 1, Tau_ff: " << G_ff[6+3] << ", " << G_ff[6+3+1] << ", " << G_ff[6+3+2] << std::endl;
-    std::cout << "LQR weights - position: " << x_weights[0] << ", " << x_weights[1] << ", " << x_weights[2] << std::endl;
+    std::cout << "Feet Base Width/Length: " << pFeet_world[1*3]-pFeet_world[2*3] << ", " << pFeet_world[1*3+1]-pFeet_world[2*3+1] << std::endl;
     // std::cout << "Legacy:\n";
     // balanceController.print_GRFs(fOpt2);
     //balanceQP.printError();
@@ -268,18 +266,20 @@ void FSM_State_TwoContactStand<T>::get_desired_state_preset() {
     contactStateScheduled[3] = 0;
 
     // Orientation
-    // target = 35;
-    // rpy[0] = target*convert;
+    target = this->_data->userParameters->Kp_ori[0];;
+    rpy[0] = target*convert;
 
-    // target = 0;
-    // rpy[1] = target*convert;
+    target = this->_data->userParameters->Kp_ori[1];;
+    rpy[1] = target*convert;
 
-    // target = -25;
-    // rpy[2] = target*convert;
+    target = this->_data->userParameters->Kp_ori[2];;
+    rpy[2] = target*convert;
 
     // CoM Position
-    // p_des[0] = 0.7*pFeet_world[1*3]+0.3*pFeet_world[2*3];
-    // p_des[1] = 0.4*pFeet_world[1*3+1]+0.6*pFeet_world[2*3+1];
+    pweight = this->_data->userParameters->Kp_body[0];
+    p_des[0] = pweight*pFeet_world[1*3]+(1-pweight)*pFeet_world[2*3];
+    p_des[1] = pweight*pFeet_world[1*3+1]+(1-pweight)*pFeet_world[2*3+1];
+    p_des[2] = this->_data->userParameters->Kp_body[2];
   }
 
 }

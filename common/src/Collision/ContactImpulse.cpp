@@ -135,7 +135,7 @@ void ContactImpulse<T>::_UpdateVelocity(DVec<T>& qdot) {
     _UpdateQdotOneDirection(1, Jc_list, lambda_list_y, AinvB_list_y,
                             des_vel_list_tan, min_list_tan, max_list_tan, qdot);
 
-    if (_iter_sum < 5) {
+    if (_iter_sum < 1) {
       // printf("converged: %lu \n", _iter_sum);
       break;
     }

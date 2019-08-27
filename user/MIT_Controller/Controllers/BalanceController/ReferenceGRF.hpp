@@ -57,8 +57,6 @@ class ReferenceGRF
       void set_mass(double mass_in);
       void set_alpha_control(double alpha_control_in);
 
-      // Print info for debugging
-      void print_QPData();
 
    private:
       /* Fixed-Size qpOASES data */           
@@ -139,7 +137,6 @@ class ReferenceGRF
       void copy_Array_to_Eigen(Eigen::VectorXd &target, double* source, int len, int startIndex);
       void copy_Array_to_Eigen(Eigen::MatrixXd &target, double* source, int len, int startIndex);
       void copy_real_t_to_Eigen(Eigen::VectorXd &target, real_t* source, int len);
-      void print_real_t(real_t* matrix, int nRows, int nCols);
       void crossMatrix(Eigen::MatrixXd &R, const Eigen::VectorXd &omega);
 };
 

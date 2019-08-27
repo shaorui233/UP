@@ -263,34 +263,6 @@ bool ReferenceGRF::getQPFinished()
    return QPFinished;
 }
 
-void ReferenceGRF::print_QPData()
-{
-   std::cout << "\n\n";
-   std::cout << "\n\nH = "; print_real_t(H_qpOASES, NUM_VARIABLES_QP_DES, NUM_VARIABLES_QP_DES);
-   std::cout << "\n\nA = "; print_real_t(A_qpOASES, NUM_CONSTRAINTS_QP_DES, NUM_VARIABLES_QP_DES);
-   std::cout << "\n\ng = "; print_real_t(g_qpOASES, NUM_VARIABLES_QP_DES, 1);
-   std::cout << "\n\nlb = "; print_real_t(lb_qpOASES, NUM_VARIABLES_QP_DES, 1);
-   std::cout << "\n\nub = "; print_real_t(ub_qpOASES, NUM_VARIABLES_QP_DES, 1);
-   std::cout << "\n\nlbA = "; print_real_t(lbA_qpOASES, NUM_CONSTRAINTS_QP_DES, 1);
-   std::cout << "\n\nubA = "; print_real_t(ubA_qpOASES, NUM_CONSTRAINTS_QP_DES, 1);
-}
-
-
-void ReferenceGRF::print_real_t(real_t* matrix, int nRows, int nCols)
-{
-   int count = 0;
-   for(int i = 0; i < nRows; i++)
-   {
-      for(int j = 0; j < nCols; j++)
-      {
-         std::cout << matrix[count] << "\t";
-         count++;
-      }
-      std::cout << "\n";
-   }
-}
-
-
 void ReferenceGRF::copy_Eigen_to_real_t(real_t* target, Eigen::MatrixXd &source, int nRows, int nCols )
 {
    int count = 0;
