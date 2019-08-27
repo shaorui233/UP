@@ -27,6 +27,7 @@ algorithms/machine_learning/python_bridge/pycheetah.py
 algorithms/machine_learning/bridge_lcm_types/cpp/*
 documentation/doxygen/html
 documentation/doxygen/latex
-user/MIT_Controller/Controllers/WBC_Ctrl/BoundingCtrl/Jumping/Jump2D
+user/MIT_Controller/Controllers/WBC_Ctrl/BoundingCtrl/Jumping/Jump2D/*.m
+user/MIT_Controller/Controllers/WBC_Ctrl/BoundingCtrl/Jumping/Jump2D/codegen
 .DS_Store
 tags

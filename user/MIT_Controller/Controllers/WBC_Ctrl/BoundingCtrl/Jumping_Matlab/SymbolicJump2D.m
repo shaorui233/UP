@@ -483,6 +483,7 @@ end
 
 %% Generate Functions
 if true%GENERATE_FUNCTIONS
+    mkdir('Jump2D')
     functions_timer = tic;
     fprintf('Generating MATLAB functions...\n')
     
