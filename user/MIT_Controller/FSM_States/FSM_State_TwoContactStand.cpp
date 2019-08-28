@@ -6,6 +6,8 @@
 
 #include "FSM_State_TwoContactStand.h"
 #include <Utilities/Utilities_print.h>
+#include <iostream>
+#include <iomanip>
 
 
 /**
@@ -61,9 +63,14 @@ void FSM_State_TwoContactStand<T>::run() {
 
   // Get orientation from state estimator
   for (int i = 0; i < 4; i++) {
-    se_xfb[i] = (double)this->_data->_stateEstimator->getResult().orientation(i);
     quat_act[i] = (double)this->_data->_stateEstimator->getResult().orientation(i);
   }
+
+  // std::cout << std::fixed << std::setprecision(3);
+  // if (iter % 2000 == 0){
+  //   std::cout << "\n\nInitial yaw: " << ini_yaw << std::endl;
+  //   std::cout << "State Estimator: " << quat_act[0] << ", " << quat_act[1] << ", " << quat_act[2] << ", " << quat_act[3] << ", " << std::endl;
+  // }
 
   // Get current state from state estimator
   for (int i = 0; i < 3; i++) {
@@ -73,9 +80,23 @@ void FSM_State_TwoContactStand<T>::run() {
     se_xfb[10 + i] = (double)this->_data->_stateEstimator->getResult().vBody(i);
   }
 
-  // Convert quaternions to RPY - for data logging
+  // Convert quaternions to RPY 
   quatToEuler(quat_act, rpy_act);
 
+  // Account for initial yaw
+  if (iter < 10)
+    ini_yaw = rpy_act[2];
+  rpy_act[2] -= ini_yaw;
+
+  // Convert back to quaternions w/ initial yaw accounted for
+  eulerToQuat(rpy_act, quat_act);
+  for (int i = 0; i < 4; i++) {
+    se_xfb[i] = quat_act[i];
+  }
+  // if (iter % 2000 == 0)
+  //   std::cout << "Modified       : " << quat_act[0] << ", " << quat_act[1] << ", " << quat_act[2] << ", " << quat_act[3] << ", " << std::endl;
+
+  
   // Get the position of the COM in world frame & generalized gravity vector
   get_model_dynamics();
 
@@ -184,12 +205,14 @@ template <typename T>
 void FSM_State_TwoContactStand<T>::get_model_dynamics() {
   // Update state for the quadruped model using SE
   for (int i = 0; i < 3; i++){
-    state.bodyOrientation[i] = this->_data->_stateEstimator->getResult().orientation(i);
+    //state.bodyOrientation[i] = this->_data->_stateEstimator->getResult().orientation(i);
+    state.bodyOrientation[i] = quat_act[i];
     state.bodyPosition[i] = this->_data->_stateEstimator->getResult().position(i);
     state.bodyVelocity[i] = this->_data->_stateEstimator->getResult().omegaBody(i);
     state.bodyVelocity[i+3] = this->_data->_stateEstimator->getResult().vBody(i);
   }
-  state.bodyOrientation[3] = this->_data->_stateEstimator->getResult().orientation(3);
+  //state.bodyOrientation[3] = this->_data->_stateEstimator->getResult().orientation(3);
+  state.bodyOrientation[3] = quat_act[3];
   state.q.setZero(12);
   state.qd.setZero(12);
 
@@ -212,7 +235,8 @@ void FSM_State_TwoContactStand<T>::get_model_dynamics() {
   c_body[2] = H(1,3)/mass_in;
 
   // CoM relative to world frame
-  c_world = this->_data->_stateEstimator->getResult().rBody.transpose() * c_body;
+  rpyToR(rBody_yaw, rpy_act);
+  c_world = rBody_yaw * c_body;
 
   // Position of CoM in world frame
   for (int i = 0; i < 3; i++)
@@ -264,7 +288,7 @@ void FSM_State_TwoContactStand<T>::get_foot_locations() {
                                   &this->_data->_legController->datas[leg].J, &pFeetVec, leg);
     
     // Compute vector from origin of body frame to foot (world coords)
-    pFeetVecBody = this->_data->_stateEstimator->getResult().rBody.transpose() * (this->_data->_quadruped->getHipLocation(leg) + pFeetVec);
+    pFeetVecBody = rBody_yaw * (this->_data->_quadruped->getHipLocation(leg) + pFeetVec);
 
     // Compute vector from COM to foot (world coords)
     pFeet[leg * 3] = (double)pFeetVecBody[0]-c_world[0];
@@ -281,6 +305,51 @@ void FSM_State_TwoContactStand<T>::get_foot_locations() {
     pFeet_world[leg * 3 + 1] = (double)p_act[1]+pFeet[leg * 3 + 1];
     pFeet_world[leg * 3 + 2] = (double)p_act[2]+pFeet[leg * 3 + 2];
   }
+
+}
+
+/**
+ * Convert euler angles to rotation matrix
+ */
+template <typename T>
+void FSM_State_TwoContactStand<T>::rpyToR(Mat3<float> &R, double* rpy_in) {
+
+   Mat3<float> Rz, Ry, Rx;
+
+   Rz.setIdentity();
+   Ry.setIdentity();
+   Rx.setIdentity();
+
+   Rz(0,0) = cos(rpy_in[2]);
+   Rz(0,1) = -sin(rpy_in[2]);
+   Rz(1,0) = sin(rpy_in[2]);
+   Rz(1,1) = cos(rpy_in[2]);
+
+   Ry(0,0) = cos(rpy_in[1]);
+   Ry(0,2) = sin(rpy_in[1]);
+   Ry(2,0) = -sin(rpy_in[1]);
+   Ry(2,2) = cos(rpy_in[1]);
+
+   Rx(1,1) = cos(rpy_in[0]);
+   Rx(1,2) = -sin(rpy_in[0]);
+   Rx(2,1) = sin(rpy_in[0]);
+   Rx(2,2) = cos(rpy_in[0]);
+
+   R = Rz*Ry*Rx;
+
+ }
+
+
+/**
+ * Convert euler angles to quaternions
+ */
+template <typename T>
+void FSM_State_TwoContactStand<T>::eulerToQuat(double* rpy_in, double* quat_in) {
+
+  quat_in[0] = cos(rpy_in[2]*0.5)*cos(rpy_in[1]*0.5)*cos(rpy_in[0]*0.5) + sin(rpy_in[2]*0.5)*sin(rpy_in[1]*0.5)*sin(rpy_in[0]*0.5);
+  quat_in[1] = cos(rpy_in[2]*0.5)*cos(rpy_in[1]*0.5)*sin(rpy_in[0]*0.5) - sin(rpy_in[2]*0.5)*sin(rpy_in[1]*0.5)*cos(rpy_in[0]*0.5);
+  quat_in[2] = sin(rpy_in[2]*0.5)*cos(rpy_in[1]*0.5)*sin(rpy_in[0]*0.5) + cos(rpy_in[2]*0.5)*sin(rpy_in[1]*0.5)*cos(rpy_in[0]*0.5);
+  quat_in[3] = sin(rpy_in[2]*0.5)*cos(rpy_in[1]*0.5)*cos(rpy_in[0]*0.5) - cos(rpy_in[2]*0.5)*sin(rpy_in[1]*0.5)*sin(rpy_in[0]*0.5);
 
 }
 

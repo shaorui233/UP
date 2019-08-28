@@ -35,6 +35,8 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   void get_desired_state();
   void get_model_dynamics();
   void get_foot_locations();
+  void rpyToR(Mat3<float> &R, double* rpy_in);
+  void eulerToQuat(double* rpy_in, double* quat_in);
   void quatToEuler(double* quat_in, double* rpy_in);
 
   // Keep track of the control iterations
@@ -84,6 +86,10 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
 
   // Check to see if desired position has changed
   double p_des_prev[2] = {99.0,99.0};
+
+  // Account for non-zero initial yaw
+  double ini_yaw;
+  Mat3<float> rBody_yaw; // rBody adjusted for initial yaw
 
 
 
