@@ -7,7 +7,6 @@
 #include "FSM_State_TwoContactStand.h"
 #include <Utilities/Utilities_print.h>
 #include <iostream>
-#include <iomanip>
 
 
 /**
@@ -66,11 +65,9 @@ void FSM_State_TwoContactStand<T>::run() {
     quat_act[i] = (double)this->_data->_stateEstimator->getResult().orientation(i);
   }
 
-  // std::cout << std::fixed << std::setprecision(3);
-  // if (iter % 2000 == 0){
-  //   std::cout << "\n\nInitial yaw: " << ini_yaw << std::endl;
-  //   std::cout << "State Estimator: " << quat_act[0] << ", " << quat_act[1] << ", " << quat_act[2] << ", " << quat_act[3] << ", " << std::endl;
-  // }
+  if (iter % 200 == 0){
+    std::cout << "Initial yaw: " << iter << std::endl;
+  }
 
   // Get current state from state estimator
   for (int i = 0; i < 3; i++) {
@@ -93,9 +90,6 @@ void FSM_State_TwoContactStand<T>::run() {
   for (int i = 0; i < 4; i++) {
     se_xfb[i] = quat_act[i];
   }
-  // if (iter % 2000 == 0)
-  //   std::cout << "Modified       : " << quat_act[0] << ", " << quat_act[1] << ", " << quat_act[2] << ", " << quat_act[3] << ", " << std::endl;
-
   
   // Get the position of the COM in world frame & generalized gravity vector
   get_model_dynamics();
@@ -261,6 +255,8 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     omegaDes[i] = 0.0;
     v_des[i] = 0.0;
   }
+  for (int i = 0; i < 4; i++)
+    contactStateScheduled[i] = 1;
 
   // Lift legs after settling into prep state
   if (iter > 2000) {
