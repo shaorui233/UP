@@ -8,115 +8,74 @@
 using namespace Ipopt;
 
 template<typename T>
-JumpNLP<T>::JumpNLP(){
-  // TEST
-  ini_pos[0] = 0.;
-  ini_pos[1] = 0.25;
-  ini_pos[2] = 0.05;
+JumpNLP<T>::JumpNLP(){}
 
-  ini_vel[0] = 1.0;
-  ini_vel[1] = -0.5;
-  ini_vel[0] = 1.0;
-
-  // state * num_step
-  n_step = 2*stance_tick + (swing_tick - stance_tick)/2;
-
-  // state * (num_step + 1 - final) + 
-  // front reaction force (x, z) + 
-  // hind reaction force (x, z) +
-  // hind foot location
-  n_opt = n_state*(n_step + 1) + 2*stance_tick + 2*stance_tick + 2;
-
-  // initial + 
-  // dynamics + 
-  // front foot friction cone (-mu*fr_z < fr_x < mu*fr_z) + 
-  // hind foot friction cone (-mu*fr_z < fr_x < mu*fr_z) + 
-  // leg length
-  n_constr = n_state + n_state*n_step + 2*stance_tick + 2*stance_tick + 2*stance_tick + n_step;
-  _print_problem_setup();
-}
-
-template<typename T>
-void JumpNLP<T>::_print_problem_setup(){
-  printf("num step: %d, dt: %f\n", n_step, dt);
-  printf("num opt/ constraints: %d, %d\n", n_opt, n_constr);
-}
 
 template <typename T>
 bool JumpNLP<T>::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
-//bool JumpNLP::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
     Index& nnz_h_lag, IndexStyleEnum& index_style){
-  // The problem described in MyNLP.hpp has 2 variables, x1, & x2,
-  //n = 2;
-  n = n_opt;
+    // Number of total decision variables for the problem
+  n = NUM_DECISION_VARS * NUM_PREDICTIONS;
 
-  // one equality constraint,
-  m = n_constr;
+    // Number of total constraints for the problem
+  m = NUM_CONSTRAINTS;
+  
+    // Number of nonzeros in the constraint Jacobian
+    nnz_jac_g = NNZ_J_G * (NUM_PREDICTIONS - 1) + NNZ_J_G_F; // Last step only dependent on current so dynamics goes away
 
-  // 2 nonzeros in the jacobian (one for x1, and one for x2),
-  nnz_jac_g = 2;
+    // Number of nonzeros in the Hessian matrix (number calculated from MATLAB)
+    nnz_h_lag = NNZ_H * (NUM_PREDICTIONS - 1) + NNZ_H_F; // Currently only for cost hessian, need constraints
+    // Will definitely change possibly... It didnt change! Maybe...
 
-  // and 2 nonzeros in the hessian of the lagrangian
-  // (one in the hessian of the objective for x2,
-  //  and one in the hessian of the constraints for x1)
-  nnz_h_lag = 2;
-
-  // We use the standard fortran index style for row/col entries
-  //index_style = FORTRAN_STYLE;
   // Index style is 0-based
   index_style = C_STYLE;
 
   return true;
 }
 
+/**
+ * Create bounds for the decision variables and the constraints.
+ * Note that the first timestep states are constrained to the robot's
+ * state at the beginning of the optimization.
+ */
+template <typename T>
+void JumpNLP<T>::Bounds(double* X_ub, double* X_lb, double* constraints_ub, double* constraints_lb) {
+
+    // Create the bounds for the prediction horizon
+    for (int k = 0; k < NUM_PREDICTIONS; k++) {
+        i_xd = k * NUM_STATES; // eventually get an input trajectory
+        i_X = k * NUM_DECISION_VARS;
+        i_c = k * NUM_CONSTRAINTS;
+        i_f = k * NUM_FEET;
+
+        // First step bounds have to be current state
+        if (k == 0) {
+            Jump2DBounds(
+                current_state, current_state, inputs_max, inputs_min, contact_state_pred + i_f,
+                X_lb, X_ub, constraints_ub, constraints_lb);
+
+        } else {
+            Jump2DBounds(
+                states_max, states_min, inputs_max, inputs_min, contact_state_pred + i_f,
+                X_lb + i_X, X_ub + i_X, constraints_ub + i_c, constraints_lb + i_c);
+        }
+    }
+}
+
 /** Method to return the bounds for my problem */
 template <typename T>
 bool JumpNLP<T>::get_bounds_info(Index n, Number* x_l, Number* x_u,
-//bool JumpNLP::get_bounds_info(Index n, Number* x_l, Number* x_u,
     Index m, Number* g_l, Number* g_u){
-  // here, the n and m we gave IPOPT in get_nlp_info are passed back to us.
-  // If desired, we could assert to make sure they are what we think they are.
   assert(n == n_opt);
   assert(m == n_constr);
 
-  // State
-  for(int i(0); i < (n_step+1); ++i){
-  // X
-  x_l[0 + n_state*i] = ini_pos[0] - 3.;
-  x_u[0 + n_state*i] = ini_pos[0] + 3.;
-  // Z 
-  x_l[1 + n_state*i] = _min_height;
-  x_u[1 + n_state*i] = 20.;
-  // theta
-  x_l[2 + n_state*i] = -1.5;
-  x_u[2 + n_state*i] = 1.5;
-
-  // X dot
-  x_l[3 + n_state*i] = -10.;
-  x_u[3 + n_state*i] = 10.;
-
-  // Z dot
-  x_l[4 + n_state*i] = -10.0;
-  x_u[4 + n_state*i] = 10.0;
-
-  // Theta dot
-  x_l[5 + n_state*i] = -10.0;
-  x_u[5 + n_state*i] = 10.0;
-  }
-
-  // Reaction Force
-  
-  // we have one equality constraint, so we set the bounds on this constraint
-  // to be equal (and zero).
-  g_l[0] = g_u[0] = 0.0;
-
+  Bounds(x_u, x_l, g_u, g_l);
   return true;
 }
 
 /** Method to return the starting point for the algorithm */
 template <typename T>
 bool JumpNLP<T>::get_starting_point(Index n, bool init_x, Number* x,
-//bool JumpNLP::get_starting_point(Index n, bool init_x, Number* x,
     bool init_z, Number* z_L, Number* z_U,
     Index m, bool init_lambda,
     Number* lambda){
@@ -133,12 +92,114 @@ bool JumpNLP<T>::get_starting_point(Index n, bool init_x, Number* x,
   assert(init_z == false);
   assert(init_lambda == false);
 
-  // we initialize x in bounds, in the upper right quadrant
-
-  for(int i(0); i<n_opt; ++i) x[i] = 0.;
+  InitializeMPC(x);
 
   return true;
 }
+
+/**
+ * Sets the seeded state trajectory, x_seed, and the seeded input reference
+ * policy, u_seed, by calculating the reference policy, (r_ref, f_ref), for
+ * all of the feet throughout the prediction horizon trajectory.
+ *
+ * TODO:
+ *  - Add turning feed forward
+ */
+template <typename T>
+void JumpNLP<T>::InitializeMPC(double* X_0) {
+
+    // Set up a temporary vector to hold the current output
+    double x_0[NUM_DECISION_VARS] = {0};
+    
+    // Pull original foot locations from LCM
+    double p_foot[3 * NUM_FEET] = {0};
+
+
+    // Copy the current state into the temporary variable
+    for (int i = 0; i < NUM_STATES; i++) {
+        x_0[i] = current_state[i];
+    }
+
+    // Copy the current foot positions into the temporary foothold variable
+    for (int i = 0; i < 3 * NUM_FEET; i++) {
+        p_foot[i] = p_foot_0[i];
+    }
+
+    //cout << contact_state_pred[0] << " " << " " << touchdown_pred[0] << " "  << T_stance[0] << " " << x_d[6] << endl;
+    // Create the initial guess and policy seeding
+    for (int k = 0; k < NUM_PREDICTIONS; k++) {
+
+        // Start indices
+        i_x = k * NUM_DECISION_VARS;
+        i_x1 = (k + 1) * NUM_DECISION_VARS;
+        i_u = i_x + NUM_STATES;
+        i_xd = k * NUM_STATES; // eventually get an input trajectory
+        i_uref = k * NUM_INPUTS;
+        i_f = k * NUM_FEET;
+
+        /*for (int i = 0; i < NUM_FEET; i++) {
+
+            cout << gravity << " " << T_stance[0] <<" " << touchdown_pred[i_f+i]<<" " <<p_foot_0[i*3+0] << " " << p_foot_0[i*3+1] << " " << p_foot_0[i*3+2] << endl;;
+        }*/
+        // Set the current decision variables for the states
+        for (int i = 0; i < NUM_STATES; i++) {
+            X_0[i_x + i] = x_0[i];
+        }
+
+        // Mark the location at the beginning of touchdown
+        for (int foot = 0; foot < NUM_FEET; foot++) {
+            if (touchdown_pred[i_f + foot] == 1 || k == 0) {
+                for (int i = 0; i < 2; i++) {
+                    x_touchdown[foot * 2 + i] = x_0[i]; // CHECK THIS... Prob in testing
+                }
+            }
+        }
+
+        // Iterative initialization function
+        //Jump2DInitialize();
+        /*for (int i = 0; i < NUM_FEET; i++) {
+            cout << p_foot[i*3+0] << " " << p_foot_0[i*3+1] << " " << p_foot_0[i*3+2];
+            cout << endl;
+        }*/
+        /*
+                for (int i = 0; i < NUM_FEET; i++) {
+
+                    cout << gravity << " " << T_stance[0] <<" " << touchdown_pred[i_f+i]<<" " <<p_foot_0[i*3+0] << " " << p_foot_0[i*3+1] << " " << p_foot_0[i*3+2] << endl;;
+                }
+                cout<< endl;*/
+
+        // Set the current decision variables for the inputs
+        for (int i = 0; i < NUM_INPUTS; i++) {
+            X_0[i_u + i] = x_0[NUM_STATES + i];
+        }
+    }
+    /*
+    cout << "initializing" << endl;
+    for (int ind = 0; ind < NUM_INPUTS; ind++){
+        for (int ind2 = 0; ind2 < NUM_PREDICTIONS; ind2++){
+            cout << std::right << std::setw(13) << u_ref[ind + ind2*NUM_INPUTS];
+        }
+        cout << "" << endl;
+    }
+    cout << "\nX0" << endl;
+    for (int ind = 0; ind < NUM_DECISION_VARS; ind++){
+        for (int ind2 = 0; ind2 < NUM_PREDICTIONS; ind2++){
+            cout << std::right << std::setw(13) << X_0[ind + ind2*NUM_DECISION_VARS];
+        }
+        cout << "" << endl;
+    }
+    */
+    /*
+    cout << "\nTD" << endl;
+    for (int ind = 0; ind < NUM_FEET; ind++){
+        for (int ind2 = 0; ind2 < NUM_PREDICTIONS; ind2++){
+            cout << std::right << std::setw(13) << touchdown_pred[ind + ind2*NUM_FEET];
+        }
+        cout << "" << endl;
+    }
+    cout << "\n" << endl;*/
+}
+
 
 /** Method to return the objective value */
 template <typename T>
@@ -146,44 +207,157 @@ bool JumpNLP<T>::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 //bool JumpNLP::eval_f(Index n, const Number* x, bool new_x, Number& obj_value){
   (void)n;
   (void)new_x;
-  // return the value of the objective function
-  Number v_fin = x[n_step * n_state + 3];
-  obj_value = (v_fin - v_des) * (v_fin - v_des);
+
+  obj_value = PredictedCost(x);
+
   return true;
 }
+
+/**
+ * Predicted cost over the given gait-generalized prediction horizon.
+ * Calls the MPCCost function that is generated first symbolically in
+ * MATLAB to produce an optimized MATLAB function, then a function is
+ * created using MATLAB's codegen. This method is essentially a wrapper
+ * that takes the problem data and uses this iterative cost function with
+ * the known gait logic.
+ *
+ *
+ *  J(X) = x_error'*Q*x_error + u_error'*R*u_error
+ *
+ *      x_error = x_d - x
+ *      u_error = u_ref - u
+ */
+template<typename T>
+double JumpNLP<T>::PredictedCost(const double * X) {
+
+    // Initialize the predicted cost
+    double cost = 0;
+
+    // Incremental cost over the predicted gait horizon
+    for (int k = 0; k < NUM_PREDICTIONS; k++) {
+
+        // Start indices
+        i_x = k * NUM_DECISION_VARS;
+        i_u = i_x + NUM_STATES;
+        i_xd = k * NUM_STATES; // eventually get an input trajectory
+        i_uref = k * NUM_INPUTS;
+        i_f = k * NUM_FEET;
+        i_Q = k * NUM_STATES;
+        i_R = k * NUM_INPUTS;
+
+
+        //cout << x_d[2] << endl;
+
+        // Calculate the incremental cost
+        cost = cost + Jump2DCost(X + i_x, X + i_u, x_d + i_xd, u_ref + i_uref, Q + i_Q, R + i_R);
+    }
+    /*
+    for (int ind = 0; ind < NUM_DECISION_VARS; ind++){
+        for (int ind2 = 0; ind2 < NUM_PREDICTIONS; ind2++){
+            cout << std::right << std::setw(13) << X[ind + ind2*NUM_DECISION_VARS];
+        }
+        cout << "" << endl;
+    }*/
+
+    //std::usleep(10000000);
+
+    // Return the cost over the prediction horizon
+    return cost;
+}
+
 
 /** Method to return the gradient of the objective */
 template <typename T>
 bool JumpNLP<T>::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f){
-//bool JumpNLP::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f){
   (void)n;
   (void)new_x;
-  // return the gradient of the objective function grad_{x} f(x)
-
-  // grad_{x1} f(x): x1 is not in the objective
-  grad_f[0] = 0.0;
-
-  // grad_{x2} f(x):
-  Number x2 = x[1];
-  grad_f[1] = -2.0*(x2 - 2.0);
-
+  PredictedCostGradient(x, grad_f);
   return true;
 }
+
+/**
+ * Predicted cost gradient over the given gait-generalized prediction horizon.
+ */
+template<typename T>
+void JumpNLP<T>::PredictedCostGradient(const double * X, double * gradient) {
+
+    // Incremental gradient over the predicted gait horizon
+    for (int k = 0; k < NUM_PREDICTIONS; k++) {
+        // Start indices
+        i_x = k * NUM_DECISION_VARS;
+        i_u = i_x + NUM_STATES;
+        i_xd = k * NUM_STATES;
+        i_uref = k * NUM_INPUTS;
+        i_g = k * NUM_DECISION_VARS;
+        i_f = k * NUM_FEET;
+        i_Q = k * NUM_STATES;
+        i_R = k * NUM_INPUTS;
+
+        // Calculate the iterative gradient of the cost w.r.t. the decision variables
+        Jump2DCostGradient(X + i_x, X + i_u, x_d + i_xd, u_ref + i_uref,
+                        Q + i_Q, R + i_R,
+                        gradient + i_g);
+
+    }
+}
+
 
 template <typename T>
 bool JumpNLP<T>::eval_g(Index n, const Number* x, bool new_x, Index m, Number* g){
-//bool JumpNLP::eval_g(Index n, const Number* x, bool new_x, Index m, Number* g){
   (void)n;
   (void)new_x;
   (void)m;
-  // return the value of the constraints: g(x)
-  Number x1 = x[0];
-  Number x2 = x[1];
 
-  g[0] = -(x1*x1 + x2 - 1.0);
+    Constraints(x, g);
 
-  return true;
+    return true;
 }
+
+/**
+ * Predicted constrints over the given gait-generalized prediction horizon.
+ */
+template<typename T>
+void JumpNLP<T>::Constraints(const double * X, double * constraints) {
+    //cout << "NEW ITER" << endl;
+    // Run the iterative constraints
+    for (int k = 0; k < NUM_PREDICTIONS; k++) {
+
+        // Start indices
+        i_x = k * NUM_DECISION_VARS;
+        i_u = i_x + NUM_STATES;
+        i_f = k * NUM_FEET;
+        i_c = k * NUM_CONSTRAINTS;
+        i_f1 = (k + 1) * NUM_FEET;
+        if (k == (NUM_PREDICTIONS - 1)) {
+            // Evaluate the constraints at the final timestep
+            Jump2DConstraintsFinal(X + i_x, X + i_u,
+                                contact_state_pred + i_f, z_g, mu,
+                                constraints + i_c);
+
+        } else {
+            i_x1 = (k + 1) * NUM_DECISION_VARS;
+            i_u1 = i_x1 + NUM_STATES;
+
+            // Evaluate the constraints at the timestep
+            Jump2DConstraints(X + i_x, X + i_u, X + i_x1, X + i_u1, dt_pred[k],
+                           contact_state_pred + i_f, contact_state_pred + i_f1,
+                           mass, I_yy, gravity, z_g, mu,
+                           constraints + i_c);
+        }
+        /*cout << X[i_x+2];
+        for (int i = 0; i < NUM_FEET; i++) {
+            cout << " ground: " << z_g[i] << " r's: " << X[i_u+2 + i*6] << " " ;
+        }
+        cout << endl;*/
+        /*
+        for (int i = 0; i < NUM_CONSTRAINTS; i++) {
+            cout << constraints[i] << " " ;
+        }
+        cout << "\n\n" << endl;
+        */
+    }
+}
+
 
 /** Method to return:
  *   1) The structure of the jacobian (if "values" is NULL)
@@ -191,7 +365,6 @@ bool JumpNLP<T>::eval_g(Index n, const Number* x, bool new_x, Index m, Number* g
  */
 template <typename T>
 bool JumpNLP<T>::eval_jac_g(Index n, const Number* x, bool new_x,
-//bool JumpNLP::eval_jac_g(Index n, const Number* x, bool new_x,
     Index m, Index nele_jac, Index* iRow, Index *jCol,
     Number* values){
   (void)n;
@@ -200,27 +373,28 @@ bool JumpNLP<T>::eval_jac_g(Index n, const Number* x, bool new_x,
   (void)m;
   (void)nele_jac;
 
-  if (values == NULL) {
-    // return the structure of the jacobian of the constraints
+    if (values == NULL) {
+        //cout << "[PRMPC] Constraint Jacobian Setup Start" << endl;
 
-    // element at 1,1: grad_{x1} g_{1}(x)
-    iRow[0] = 1;
-    jCol[0] = 1;
+        for (int i = 0; i < NUM_PREDICTIONS; i++) {
+            i_jc = i * NNZ_J_G;
+            if (i < (NUM_PREDICTIONS - 1)) {
+                Jump2DConstraintJacobianSP(i, NUM_DECISION_VARS, NUM_CONSTRAINTS, iRow + i_jc, jCol + i_jc);
+            } else {
+                Jump2DConstraintJacobianFinalSP(i, NUM_DECISION_VARS, NUM_CONSTRAINTS, iRow + i_jc, jCol + i_jc);
+            }
+        }
+        //cout << "[PRMPC] Constraint Jacobian Setup End" << endl;
 
-    // element at 1,2: grad_{x2} g_{1}(x)
-    iRow[1] = 1;
-    jCol[1] = 2;
-  }
-  else {
-    // return the values of the jacobian of the constraints
-    Number x1 = x[0];
+    } else {
+        //cout << "[PRMPC] Constraint Jacobian Calculation Start" << endl;
 
-    // element at 1,1: grad_{x1} g_{1}(x)
-    values[0] = -2.0 * x1;
+        // Calculate the constraint jacobian
+        ConstraintJacobian(x, values);
+        //cout << "[PRMPC] Constraint Jacobian Calculation End" << endl;
 
-    // element at 1,2: grad_{x1} g_{1}(x)
-    values[1] = -1.0;
-  }
+    }
+ 
 
   return true;
 }
@@ -231,7 +405,6 @@ bool JumpNLP<T>::eval_jac_g(Index n, const Number* x, bool new_x,
  */
 template <typename T>
 bool JumpNLP<T>::eval_h(Index n, const Number* x, bool new_x,
-//bool JumpNLP::eval_h(Index n, const Number* x, bool new_x,
     Number obj_factor, Index m, const Number* lambda,
     bool new_lambda, Index nele_hess, Index* iRow,
     Index* jCol, Number* values){
@@ -242,33 +415,59 @@ bool JumpNLP<T>::eval_h(Index n, const Number* x, bool new_x,
   (void)new_lambda;
   (void)nele_hess;
 
-  if (values == NULL) {
-    // return the structure. This is a symmetric matrix, fill the lower left
-    // triangle only.
+    if (values == NULL) {
+        //cout << "[PRMPC] Hessian Setup Start" << endl;
 
-    // element at 1,1: grad^2_{x1,x1} L(x,lambda)
-    iRow[0] = 1;
-    jCol[0] = 1;
+        for (int i = 0; i < NUM_PREDICTIONS; i++) {
+            i_h = i * NNZ_H;
 
-    // element at 2,2: grad^2_{x2,x2} L(x,lambda)
-    iRow[1] = 2;
-    jCol[1] = 2;
+            if (i < (NUM_PREDICTIONS - 1)) {
+                Jump2DLagrangianHessianSP(i, NUM_DECISION_VARS, iRow + i_h, jCol + i_h);
+            } else {
+                Jump2DLagrangianHessianFinalSP(i, NUM_DECISION_VARS, iRow + i_h, jCol + i_h);
+            }
+        }
+        //cout << "[PRMPC] Hessian Setup End" << endl;
 
-    // Note: off-diagonal elements are zero for this problem
-  }
-  else {
-    // return the values
+    } else {
+        //cout << "[PRMPC] Hessian Calculation Start" << endl;
 
-    // element at 1,1: grad^2_{x1,x1} L(x,lambda)
-    values[0] = -2.0 * lambda[0];
+        // Calculate the Hessian
+        LagrangianHessian(x, values, obj_factor, lambda);
+        //cout << "[PRMPC] Hessian Calculation End" << endl;
 
-    // element at 2,2: grad^2_{x2,x2} L(x,lambda)
-    values[1] = -2.0 * obj_factor;
-
-    // Note: off-diagonal elements are zero for this problem
-  }
-
+    }
+ 
   return true;
+}
+
+/**
+ * Predicted lagrangian hessian over the given gait-generalized prediction horizon.
+ */
+template<typename T>
+void JumpNLP<T>::LagrangianHessian(const double * X, double * hessian, Number obj_factor, const Number * lambda) {
+
+    // Incremental cost over the predicted gait horizon
+    for (int k = 0; k < NUM_PREDICTIONS; k++) {
+
+        // Start indices
+        i_x = k * NUM_DECISION_VARS;
+        i_u = i_x + NUM_STATES;
+        i_xd = k * NUM_STATES;
+        i_c = k * NUM_CONSTRAINTS;
+        i_h = k * NNZ_H;
+        i_f = k * NUM_FEET;
+        i_Q = k * NUM_STATES;
+        i_R = k * NUM_INPUTS;
+
+        if (k == (NUM_PREDICTIONS - 1)) {
+            // Calculate the iterative Hessian of the Lagrangian at the lfinal time
+            Jump2DLagrangianHessianFinal(Q + i_Q, R + i_R, obj_factor, hessian + i_h);
+        } else {
+            // Calculate the iterative Hessian of the Lagrangian over the prediction horizon
+            Jump2DLagrangianHessian(Q + i_Q, R + i_R, obj_factor, hessian + i_h);
+        }
+    }
 }
 
 //@}

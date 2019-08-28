@@ -3,7 +3,6 @@
 
 #include <WBC_States/BackFlip/BackFlipTest.hpp>
 #include <WBC_States/BodyCtrl/BodyCtrlTest.hpp>
-#include <WBC_States/Bounding/BoundingTest.hpp>
 #include <WBC_States/JPosCtrl/JPosCtrlTest.hpp>
 #include <WBC_States/WBICTrot/WBICTrotTest.hpp>
 
@@ -40,8 +39,6 @@ void WBC_Controller::initializeController() {
     _wbc_state = new BodyCtrlTest<float>(_model, _robotType, _controlParameters->controller_dt);
   } else if (test_name == "wbic_trot") {
     _wbc_state = new WBICTrotTest<float>(_model, _robotType, _controlParameters->controller_dt);
-  } else if (test_name == "bounding") {
-    _wbc_state = new BoundingTest<float>(_model, _robotType, _controlParameters->controller_dt);
   } else if (test_name == "back_flip") {
     _wbc_state = new BackFlipTest<float>(_model, _robotType, _controlParameters->controller_dt);
   }
