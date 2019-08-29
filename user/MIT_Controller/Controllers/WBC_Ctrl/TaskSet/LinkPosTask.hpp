@@ -14,7 +14,7 @@ class LinkPosTask : public Task<T> {
               bool virtual_depend = true);
   virtual ~LinkPosTask();
 
-  DVec<T> _Kp, _Kd;
+  DVec<T> _Kp, _Kd, _Kp_kin;
 
  protected:
   // Update op_cmd_

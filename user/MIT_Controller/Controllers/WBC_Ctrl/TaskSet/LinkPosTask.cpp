@@ -17,6 +17,7 @@ LinkPosTask<T>::LinkPosTask(const FloatingBaseModel<T>* robot, int link_idx,
 
   _Kp = DVec<T>::Constant(TK::dim_task_, 100.);
   _Kd = DVec<T>::Constant(TK::dim_task_, 5.);
+  _Kp_kin = DVec<T>::Constant(TK::dim_task_, 1.);
 }
 
 template <typename T>
@@ -32,7 +33,7 @@ bool LinkPosTask<T>::_UpdateCommand(const void* pos_des, const DVec<T>& vel_des,
 
   // X, Y, Z
   for (int i(0); i < 3; ++i) {
-    TK::pos_err_[i] = (*pos_cmd)[i] - link_pos[i];
+    TK::pos_err_[i] = _Kp_kin[i]* ( (*pos_cmd)[i] - link_pos[i] );
     TK::vel_des_[i] = vel_des[i];
     TK::acc_des_[i] = acc_des[i];
   }

@@ -101,17 +101,17 @@ void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
   (void)rbuf;
   (void)chan;
 
-  if(_simulation){
-    for(size_t i(0); i<_simulation->_window->_num_points; ++i){
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->_num_points; ++i){
       for(size_t j(0); j<3; ++j){
-        _simulation->_window->_points[i][j] = msg->pointlist[i][j];
+        _graphicsWindow->_points[i][j] = msg->pointlist[i][j];
       }
     }
-    _simulation->_window->_pos[0] = msg->position[0];
-    _simulation->_window->_pos[1] = msg->position[1];
-    _simulation->_window->_pos[2] = msg->position[2];
+    _graphicsWindow->_pos[0] = msg->position[0];
+    _graphicsWindow->_pos[1] = msg->position[1];
+    _graphicsWindow->_pos[2] = msg->position[2];
 
-    _simulation->_window->_pointcloud_data_update = true;
+    _graphicsWindow->_pointcloud_data_update = true;
   }
 }
 
@@ -122,13 +122,13 @@ void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
   (void)rbuf;
   (void)chan;
 
-  if(_simulation){
-    for(size_t i(0); i<_simulation->_window->x_size; ++i){
-      for(size_t j(0); j<_simulation->_window->y_size; ++j){
-        _simulation->_window->_map(i,j) = msg->map[i][j];
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->x_size; ++i){
+      for(size_t j(0); j<_graphicsWindow->y_size; ++j){
+        _graphicsWindow->_map(i,j) = msg->map[i][j];
       }
     }
-    _simulation->_window->_heightmap_data_update = true;
+    _graphicsWindow->_heightmap_data_update = true;
   }
 }
 

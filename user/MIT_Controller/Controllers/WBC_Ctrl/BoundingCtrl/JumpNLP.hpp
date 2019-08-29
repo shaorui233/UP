@@ -159,7 +159,6 @@ class JumpNLP: public TNLP{
     int i_R = 0;
 
 
-
     void InitializeMPC(double* X_0);
     void Bounds(double* X_ub, double* X_lb, double* constraints_ub, double* constraints_lb);
     double PredictedCost(const double* X);

@@ -13,43 +13,44 @@ NUM_FEET = 2;
 N = 1;
 
 % Decision Variables (for current timestep)
-syms x z phi dx dz dphi Fxf Fzf Fxb Fzb real
+syms x z phi dx dz dphi Fxf Fzf Fxb Fzb rxf rxb real
 states = [x;z;phi;dx;dz;dphi];
-inputs = [Fxf;Fzf;Fxb;Fzb];
+inputs = [Fxf;Fzf;rxf;Fxb;Fzb;rxb];
 
 % Decision Variables (for previous timestep)
-syms x0 z0 phi0 dx0 dz0 dphi0 Fxf0 Fzf0 Fxb0 Fzb0 real
+syms x0 z0 phi0 dx0 dz0 dphi0 Fxf0 Fzf0 Fxb0 Fzb0 rxf0 rxb0 real
 states0 = [x0;z0;phi0;dx0;dz0;dphi0];
-inputs0 = [Fxf0;Fzf0;Fxb0;Fzb0];
+inputs0 = [Fxf0;Fzf0;rxf0;Fxb0;Fzb0;rxb0];
 
 % Decision Variables (for next timestep)
-syms x1 z1 phi1 dx1 dz1 dphi1 Fxf1 Fzf1 Fxb1 Fzb1 real
+syms x1 z1 phi1 dx1 dz1 dphi1 Fxf1 Fzf1 Fxb1 Fzb1 rxf1 rxb1 real
 states1 = [x1;z1;phi1;dx1;dz1;dphi1];
-inputs1 = [Fxf1;Fzf1;Fxb1;Fzb1];
+inputs1 = [Fxf1;Fzf1;rxf1;Fxb1;Fzb1;rxb1];
 
 % Desired states and inputs
-syms x_d z_d phi_d dx_d dz_d dphi_d Fxf_d Fzf_d Fxb_d Fzb_d real
+syms x_d z_d phi_d dx_d dz_d dphi_d Fxf_d Fzf_d Fxb_d Fzb_d rxf_d rxb_d real
 states_ref = [x_d;z_d;phi_d;dx_d;dz_d;dphi_d];
-inputs_ref = [Fxf_d;Fzf_d;Fxb_d;Fzb_d];
+inputs_ref = [Fxf_d;Fzf_d;rxf_d;Fxb_d;Fzb_d;rxb_d];
 
 % Decision Variable minimums
-syms x_min z_min phi_min dx_min dz_min dphi_min Fxf_min Fzf_min Fxb_min Fzb_min real
+syms x_min z_min phi_min dx_min dz_min dphi_min Fxf_min Fzf_min Fxb_min Fzb_min rxf_min rxb_min real
 states_min = [x_min;z_min;phi_min;dx_min;dz_min;dphi_min];
-inputs_min = [Fxf_min;Fzf_min;Fxb_min;Fzb_min];
+inputs_min = [Fxf_min;Fzf_min;rxf_min;Fxb_min;Fzb_min;rxb_min];
 
 % Decision Variable maximums
-syms x_max z_max phi_max dx_max dz_max dphi_max Fxf_max Fzf_max Fxb_max Fzb_max real
+syms x_max z_max phi_max dx_max dz_max dphi_max Fxf_max Fzf_max Fxb_max Fzb_max rxf_max rxb_max real
 states_max = [x_max;z_max;phi_max;dx_max;dz_max;dphi_max];
-inputs_max = [Fxf_max;Fzf_max;Fxb_max;Fzb_max];
+inputs_max = [Fxf_max;Fzf_max;rxf_max;Fxb_max;Fzb_max;rxb_max];
 
 % Footstep variables
 syms pxf pzf pxb pzb rxf rzf rxb rzb real
 r_foot = [rxf;rzf;rxb;rzb];
-p_foot = [pxf;pzf;pxb;pzb];
+%p_foot = [pxf;pzf;pxb;pzb];
 
 % Contact Variables
-syms sf sb real
+syms sf sb sf0 sb0 real
 c_states = [sf;sb];
+c_states0 = [sf0;sb0];
 
 % Sparsity pattern parameters
 syms iter NUM_X NUM_C real
@@ -58,10 +59,10 @@ syms iter NUM_X NUM_C real
 NUM_STATES = size(states,1);
 NUM_INPUTS = size(inputs,1);
 NUM_DECISION_VARS = NUM_STATES + NUM_INPUTS;
-NUM_CONSTRAINTS = NUM_STATES + 2*NUM_FEET;
+NUM_CONSTRAINTS = NUM_STATES + 2*NUM_FEET + NUM_FEET;
 
-% Gravity and timestep
-syms g dt real
+% Time and environment parameters
+syms dt g mu_g real
 
 % Physical robot Parameters
 syms m Iyy leg_length_max real
@@ -79,6 +80,9 @@ System.w = [0;g;0];
 % Cost Function Weights
 Q =  diag(sym('q%d', [NUM_STATES, 1], 'real'));  % states
 R =  diag(sym('r%d', [NUM_INPUTS, 1], 'real'));  % inputs
+
+% Lagrange multipliers on the hessian
+lambda = sym('lambda%d', [NUM_CONSTRAINTS,1], 'real');
 
 fprintf('DONE general symbolic variable setup: %f s\n\n',toc(params_timer));
 
@@ -117,7 +121,7 @@ if true%INITIALIZATION
         end
         %%% INITIAL STATES %%%
         % Convert GRF to momentum rate of change
-        h_dot = NonlinearInput(inputs(:,k), r_foot(:,k), c_states(:,k));
+        h_dot = NonlinearInput_r(states(:,k), inputs(:,k), c_states(:,k));
         
         % Compute simplified discrete dynamics
         y = simplify(DiscreteDynamics(states0(:,k), h_dot, System));
@@ -157,7 +161,7 @@ if true%COST
     for k = 1:N
         
         % Convert GRF to momentum rate of change
-        hDot = NonlinearInput(inputs(:,k), r_foot(:,k), c_states(:,k));
+        hDot = NonlinearInput_r(states(:,k), inputs(:,k), c_states(:,k));
         
         % Compute simplified discrete dynamics
         y = DiscreteDynamics(states(:,k), hDot, System);
@@ -204,12 +208,6 @@ if true%CONSTRAINTS
     constraint_timer = tic;
     fprintf('Calculating Constraints...\n')
     
-    % Parameters
-    syms mu_g real
-    
-    % Lagrange multipliers on the hessian
-    lambda = sym('lambda%d', [NUM_CONSTRAINTS,1], 'real');
-    
     % Initialize iteration constraint vector
     constraints = sym(zeros(NUM_CONSTRAINTS, N));
     
@@ -218,7 +216,7 @@ if true%CONSTRAINTS
         i_c = NUM_CONSTRAINTS*(k - 1);
         
         % Convert GRF to momentum rate of change
-        hDot = NonlinearInput(inputs(:,k), r_foot(:,k), c_states(:,k));
+        hDot = NonlinearInput_r(states(:,k), inputs(:,k), c_states(:,k));
         
         % Compute simplified discrete dynamics
         y = DiscreteDynamics(states0(:,k), hDot, System);
@@ -237,15 +235,34 @@ if true%CONSTRAINTS
             n = NUM_INPUTS/NUM_FEET*(foot - 1);
             
             % Foot ground reaction forces
-            f_foot = inputs(1 + n:2 + n);
+            f_foot = inputs(1+n:2+n, k);
+            
+            % Footstep vector previous
+            rx_foot0 = inputs0(3+n, k);
+            
+            % Foot position in the world previous
+            px_foot0 = (x0 + rx_foot0);
+            
+            % Footstep vector
+            rx_foot = inputs(3+n, k);
+            
+            % Foot position in the world
+            px_foot = (x + rx_foot);
             
             %% Input constraints
-            % Friction pyramids {4*NUM_FEET}
+            % Friction pyramids {2*NUM_FEET}
             i_friction = i_c + 2*(foot - 1);
             constraints(i_friction + 1:i_friction + 2,k) = ...
                 c_states(foot)*[...
                 f_foot(2) - mu_g*f_foot(2);...
                 -f_foot(2) - mu_g*f_foot(2)];
+            i_c = i_c + 2*NUM_FEET;
+            
+            % No slip {NUM_FEET}
+            i_slip = i_c + (foot - 1);
+            constraints(i_slip + 1,k) = ...
+                c_states0(foot)*c_states(foot)*(px_foot0 - px_foot);
+            i_c = i_c + NUM_FEET;
             
         end
     end
@@ -493,7 +510,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Generating MATLAB functions...\n')
     
     % Initialization
-    mkdir('Jump2D')
+    
     % Generate decision variable and constraint bounds
     fprintf('Bounds function Gen...\n')
     matlabFunction(decision_vars_lb, decision_vars_ub, constraints_ub, constraints_lb,...
@@ -504,7 +521,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Initial Conditions function Gen...\n')
     matlabFunction(decision_vars0, inputs_ref0,...
         'file','Jump2D/Jump2DInitialize',...
-        'vars',{states0, inputs, c_states, dt, r_foot, m, Iyy, g});
+        'vars',{states, states0, inputs, c_states, dt, r_foot, m, Iyy, g});
     
     % Cost function
     
@@ -528,21 +545,21 @@ if true%GENERATE_FUNCTIONS
     fprintf('Constraints function Gen...\n');
     matlabFunction(constraints,...
         'file','Jump2D/Jump2DConstraints',...
-        'vars',{states, inputs, states0, c_states, dt,...
+        'vars',{states, inputs, states0, inputs0, c_states, c_states0, dt,...
         r_foot, m, Iyy, g, mu_g});
     
     % Generate final constraints function
     fprintf('Final Constraints function Gen...\n');
     matlabFunction(constraints_final,...
         'file','Jump2D/Jump2DConstraintsFinal',...
-        'vars',{states, inputs, states0, c_states, dt,...
+        'vars',{states, inputs, states0, inputs0, c_states, c_states0, dt,...
         r_foot, m, Iyy, g, mu_g});
     
     % Generate initial constraints function
     fprintf('Initial Constraints function Gen...\n');
     matlabFunction(constraints_initial,...
         'file','Jump2D/Jump2DConstraintsInitial',...
-        'vars',{states, inputs, states0, c_states, dt,...
+        'vars',{states, inputs, states0, inputs0, c_states, c_states0, dt,...
         r_foot, m, Iyy, g, mu_g});
     
     % Constraint Jacobian
@@ -551,7 +568,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Constraint Jacobian function Gen...\n');
     matlabFunction(constraint_jacobian_nz,...
         'file','Jump2D/Jump2DConstraintJacobian',...
-        'vars',{c_states, dt, r_foot, m, Iyy, mu_g});
+        'vars',{states, inputs, c_states, c_states0, dt, r_foot, m, Iyy, mu_g});
     
     % Generate constraint jacobian sparsity function
     fprintf('Constraint Jacobian Sparsity function Gen...\n')
@@ -563,7 +580,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Final Constraint Jacobian function Gen...\n');
     matlabFunction(constraint_jacobian_final_nz,...
         'file','Jump2D/Jump2DConstraintJacobianFinal',...
-        'vars',{c_states, dt, r_foot, m, Iyy, mu_g});
+        'vars',{states, inputs, c_states, c_states0, dt, r_foot, m, Iyy, mu_g});
     
     % Generate final constraint jacobian sparsity function
     fprintf('Final Constraint Jacobian Sparsity function Gen...\n')
@@ -575,7 +592,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Final Constraint Jacobian function Gen...\n');
     matlabFunction(constraint_jacobian_initial_nz,...
         'file','Jump2D/Jump2DConstraintJacobianInitial',...
-        'vars',{c_states, dt, r_foot, m, Iyy, mu_g});
+        'vars',{states, inputs, c_states, c_states0, dt, r_foot, m, Iyy, mu_g});
     
     % Generate initial constraint jacobian sparsity function
     fprintf('Initial Constraint Jacobian Sparsity function Gen...\n')
@@ -589,7 +606,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Lagrangian Hessian function Gen...\n')
     matlabFunction(lagrangian_hessian_nz,...
         'file','Jump2D/Jump2DLagrangianHessian',...
-        'vars',{Q, R, obj_factor});
+        'vars',{c_states, dt, Q, R, obj_factor, lambda, Iyy});
     
     % Generate hessian sparsity function
     fprintf('Lagrangian Hessian Sparsity function Gen...\n')
@@ -601,7 +618,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Final Lagrangian Hessian function Gen...\n')
     matlabFunction(lagrangian_hessian_final_nz,...
         'file','Jump2D/Jump2DLagrangianHessianFinal',...
-        'vars',{Q, R, obj_factor});
+        'vars',{c_states, dt, Q, R, obj_factor, lambda, Iyy});
     
     % Generate final hessian sparsity function
     fprintf('Final Lagrangian Hessian Sparsity function Gen...\n')
@@ -613,7 +630,7 @@ if true%GENERATE_FUNCTIONS
     fprintf('Initial Lagrangian Hessian function Gen...\n')
     matlabFunction(lagrangian_hessian_initial_nz,...
         'file','Jump2D/Jump2DLagrangianHessianInitial',...
-        'vars',{Q, R, obj_factor});
+        'vars',{c_states, dt, Q, R, obj_factor, lambda, Iyy});
     
     % Generate initial hessian sparsity function
     fprintf('Initial Lagrangian Hessian Sparsity function Gen...\n')

@@ -30,7 +30,6 @@ TEST(Ipopt, example){
   status = app->Initialize();
   if (status != Solve_Succeeded) {
     printf("\n\n*** Error during initialization!\n");
-    return (int) status;
   }
 
   // Ask Ipopt to solve the problem
