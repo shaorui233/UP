@@ -69,10 +69,6 @@ s: simulation, r: robot
 - Eigen - http://eigen.tuxfamily.org
 - `mesa-common-dev`
 - `freeglut3-dev`
-- `coinor-libipopt-dev`
 - `libblas-dev liblapack-dev`
 
-To use casadi, 
-
-- `sudo apt-get install gfortran liblapack-dev`
-- `sudo apt-get install coinor-libipopt-dev`
+To use Ipopt, use CMake Ipopt option. Ex) cmake -DIPOPT_OPTION=ON ..
