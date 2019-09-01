@@ -18,12 +18,20 @@ file(GLOB_RECURSE sources
 "Controllers/BalanceController/*.cpp" 
 "Controllers/convexMPC/*.cpp")
 
+if(IPOPT_OPTION)
+link_directories("../../third-party/CoinIpopt/build/lib")
+include_directories(SYSTEM "../../third-party/CoinIpopt/build/include/coin")
+find_library(ipopt NAMES libipopt.so PATHS "../../third-party/CoinIpopt/build/lib")
+endif(IPOPT_OPTION)
+
 
 add_subdirectory(Controllers/WBC)
 add_subdirectory(Controllers/WBC_Ctrl)
+add_subdirectory(Controllers/VisionMPC)
 
 add_executable(mit_ctrl ${sources} MIT_Controller.cpp main.cpp)
 target_link_libraries(mit_ctrl robot biomimetics)
 target_link_libraries(mit_ctrl dynacore_param_handler qpOASES)
 target_link_libraries(mit_ctrl Goldfarb_Optimizer osqp)
 target_link_libraries(mit_ctrl WBC_Ctrl)
+target_link_libraries(mit_ctrl VisionMPC)

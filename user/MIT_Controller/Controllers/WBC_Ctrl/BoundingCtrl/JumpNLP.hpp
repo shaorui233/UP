@@ -4,6 +4,7 @@
 #ifdef IPOPT_OPTION
 
 #include <IpTNLP.hpp>
+//#include "../../../../../third-party/CoinIpopt/build/include/coin/IpTNLP.hpp"
 #include "cppTypes.h"
 
 static const int NUM_FEET = 2;
@@ -45,14 +46,24 @@ class JumpNLP: public TNLP{
     JumpNLP();
     virtual ~JumpNLP(){}
 
+    T _half_body = 0.19;
+    T _leg_max = 0.3;
+
+    /* ---------------------Environment Parameters---------------------- */
+    double _mu = 0.65;                                // coefficient of friction
+    double _gravity = -9.81;                       // magnitude of gravity z
+    T _mass = 9.;
+    T _I_yy = 0.271426;
+
+ 
+    T _min_height = 0.18;
+
+    void _print_problem_setup();
+
+
     // (x, z, theta, xdot, zdot, theta_dot)
 
     /* ------------------------Robot Parameters------------------------- */
-    // Robot model parameters
-    double mass_new = 42;
-    double mass = 42;              // overall mass of the system
-    double I_yy = 2.1;
-
     double Q[NUM_STATES * NUM_PREDICTIONS] = {0};
     double R[NUM_INPUTS * NUM_PREDICTIONS] = {0};
 
@@ -82,6 +93,7 @@ class JumpNLP: public TNLP{
 
     /* -------------------------Gait Parameters------------------------- */
     // Vector of timesteps to take at each prediction
+    double X_final[NUM_PREDICTIONS * NUM_DECISION_VARS] = {0};
     double dt_pred[NUM_PREDICTIONS];
 
     // An extra row for the last prediction being unconstrained
@@ -127,15 +139,11 @@ class JumpNLP: public TNLP{
     // Collect the initial mins and maxs in vectors
     double states_min[NUM_STATES] = {x_min, z_min, pitch_min, dx_min, dz_min, omega_y_min};
     double states_max[NUM_STATES] = {x_max, z_max, pitch_max, dx_max, dz_max, omega_y_max};
-
-    /* ---------------------Environment Parameters---------------------- */
-    double gravity = -9.81;                       // magnitude of gravity z
-    double mu = 0.75;                                // coefficient of friction
-    double z_g[NUM_FEET] = {0, 0};            // ground height at foot locations
+   double z_g[NUM_FEET] = {0, 0};            // ground height at foot locations
 
     // Collect the initial mins and maxs in vectors
         double f_z_min = 0,             f_z_max = 200;
-    double f_x_min = -mu * f_z_max, f_x_max = mu * f_z_max;
+    double f_x_min = -_mu * f_z_max, f_x_max = _mu * f_z_max;
 
     double inputs_min[NUM_INPUTS] = {f_x_min, f_z_min, f_x_min, f_z_min};
     double inputs_max[NUM_INPUTS] = {f_x_max, f_z_max, f_x_max, f_z_max};
@@ -173,49 +181,28 @@ class JumpNLP: public TNLP{
     // Set Robot states
     void SetCurrentState(double* current_state_in);
     void SetFootLocations(double* p_foot_0_in);
-    void SetDesiredTrajectory(double* x_d_in);
 
 
     // Set configuration variables
     //void SetNumPredictions(double NUM_PREDICTIONS_in);
     void SetStateWeights(double* Q_in);
     void SetInputRegularization(double* R_in);
-    void SetHeuristicGains(double* K_ref_in);
-    void SetRobotParameters(double mass_in, double* Inertia_in);
+    void SetRobotParameters(double mass_in, double Inertia_in);
     void SetGaitParameters(double * enabled_in, double * phi_0_in, double T_p_in, double T_swing_in);
-    void SetEnvironmentParameters(double* gravity_in, double mu_in, double* z_g_in);
-    void SetTimeStart(double time_start_in);
+    void SetEnvironmentParameters(double gravity_in, double mu_in, double* z_g_in);
     void SetModifiedRegularization();
 
     // Get the final solution
     double GetSolution(int index);
-    double GetStepLocation(int index);
-    double GetSolutionTime(int index);
-    double GetSolveTime();
-    int CheckNewSolution();
     int GetSolved();
-    void PublishDataLCM();
-    void SetMutex(pthread_mutex_t solve_set_mutex);
-
 
     double current_state[NUM_STATES] = {0};
     double x_d[NUM_PREDICTIONS * NUM_STATES] = {0};
     double u_ref[NUM_INPUTS * NUM_PREDICTIONS] = {0};
 
-  protected:
-    T _half_body = 0.19;
-    T _leg_max = 0.3;
-    T _mu = 0.5;
-    T _grav = 9.81;
-    T _body_mass = 9.;
-    T _Iy = 0.271426;
-
-    T _min_height = 0.18;
-
-    void _print_problem_setup();
-
 
   public:
+    int SOLVED = 0;
     /* --------------------------IPOPT Methods-------------------------- */
 
     /**@name Overloaded from TNLP */
