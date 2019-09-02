@@ -1,6 +1,8 @@
 #ifndef JUMP_MPC_WRAPPER_H 
 #define JUMP_MPC_WRAPPER_H 
 
+#ifdef IPOPT_OPTION
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -34,5 +36,7 @@ int JumpMPC_GetSolved();
 #ifdef __cplusplus
 }
 #endif
+
+#endif // IPOPT_OPTION
 
 #endif

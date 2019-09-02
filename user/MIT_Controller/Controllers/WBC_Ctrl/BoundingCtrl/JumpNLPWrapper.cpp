@@ -1,5 +1,8 @@
 #include "JumpNLPWrapper.h"
+
+#ifdef IPOPT_OPTION
 #include "JumpNLP.hpp"
+
 #include "IpIpoptApplication.hpp"
 #include "IpSolveStatistics.hpp"
 #include <cstdlib>
@@ -177,3 +180,5 @@ int JumpMPC_GetSolved() {
 #ifdef __cplusplus
 }
 #endif
+
+#endif // IPOPT_OPTION
