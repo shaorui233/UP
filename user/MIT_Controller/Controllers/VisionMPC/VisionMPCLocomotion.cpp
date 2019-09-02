@@ -183,7 +183,8 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
   Vec3<float> v_robot = seResult.vWorld;
 
   //pretty_print(v_des_world, std::cout, "v des world");
-
+  //printf("state des: %f, %f\n", stateCommand->data.stateDes[6], stateCommand->data.stateDes[7]);
+  
   //Integral-esque pitche and roll compensation
   if(fabs(v_robot[0]) > .2) {  //avoid dividing by zero 
     rpy_int[1] += dt*(stateCommand->data.stateDes[4] - seResult.rpy[1])/v_robot[0];

@@ -43,6 +43,7 @@ void FSM_State_Vision<T>::onEnter() {
   // Reset the transition data
   this->transitionData.zero();
   vision_MPC.initialize();
+  printf("[FSM VISION] On Enter\n");
 }
 
 /**
@@ -94,11 +95,6 @@ FSM_StateName FSM_State_Vision<T>::checkTransition() {
 
       break;
 
-    case K_STAND_UP:
-      this->nextStateName = FSM_StateName::STAND_UP;
-      this->transitionDuration = 0.;
-      break;
-
     case K_RECOVERY_STAND:
       this->nextStateName = FSM_StateName::RECOVERY_STAND;
       this->transitionDuration = 0.;
@@ -141,10 +137,6 @@ TransitionData<T> FSM_State_Vision<T>::transition() {
 
       this->transitionData.done = true;
 
-      break;
-
-    case FSM_StateName::STAND_UP:
-      this->transitionData.done = true;
       break;
 
     case FSM_StateName::RECOVERY_STAND:

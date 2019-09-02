@@ -6,6 +6,7 @@
  */
 
 #include "ControlFSM.h"
+#include <rt/rt_interface_lcm.h>
 
 /**
  * Constructor for the Control FSM. Passes in all of the necessary
@@ -97,12 +98,14 @@ void ControlFSM<T>::runFSM() {
   operatingMode = safetyPreCheck();
 
   if(data.controlParameters->use_rc){
-    if(data._desiredStateCommand->rcCommand->mode == 12){
+    if(data._desiredStateCommand->rcCommand->mode == RC_mode::RECOVERY_STAND){
       data.controlParameters->control_mode = K_RECOVERY_STAND;
-    } else if(data._desiredStateCommand->rcCommand->mode == 11){
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::LOCOMOTION){
       data.controlParameters->control_mode = K_LOCOMOTION;
-    } else if(data._desiredStateCommand->rcCommand->mode == 3){
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::QP_STAND){
       data.controlParameters->control_mode = K_BALANCE_STAND;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
+      data.controlParameters->control_mode = K_VISION;
     }
   }
 

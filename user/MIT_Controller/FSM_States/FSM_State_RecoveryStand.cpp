@@ -251,6 +251,10 @@ FSM_StateName FSM_State_RecoveryStand<T>::checkTransition() {
       this->nextStateName = FSM_StateName::TWO_CONTACT_STAND;
       break;
 
+    case K_VISION: 
+      this->nextStateName = FSM_StateName::VISION;
+      break;
+
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
                 << K_RECOVERY_STAND << " to "
@@ -288,6 +292,10 @@ TransitionData<T> FSM_State_RecoveryStand<T>::transition() {
       break;
 
     case FSM_StateName::TWO_CONTACT_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::VISION:
       this->transitionData.done = true;
       break;
 
