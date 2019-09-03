@@ -10,6 +10,17 @@ constexpr u32 IMU_PACKET_TIMEOUT_MS = 1000;
 //constexpr u32 MIP_SDK_GX4_25_IMU_DIRECT_MODE = 0x02;
 constexpr u32 MIP_SDK_STANDARD_MODE = 0x01;
 
+bool LordImu::tryInit(u32 port, u32 baud_rate) {
+  try {
+    init(port, baud_rate);
+  } catch(std::exception& e) {
+    printf("[LordIMU] failed to initialize: %s\n", e.what());
+    return false;
+  }
+
+  return true;
+}
+
 void LordImu::init(u32 port, u32 baud_rate) {
   printf("[Lord IMU] Open port %d, baud rate %d\n", port, baud_rate);
 
@@ -322,6 +333,22 @@ void LordImu::enable() {
 void LordImu::run() {
   mip_interface_update(&device_interface);
   usleep(100);
+}
+
+void LordImu::updateLCM(microstrain_lcmt *message) {
+  for(u32 i = 0; i < 4; i++) {
+    message->quat[i] = quat[i];
+  }
+
+  Vec3<float> rpy = ori::quatToRPY(quat);
+  for(u32 i = 0; i < 3; i++) {
+    message->rpy[i] = rpy[i];
+    message->acc[i] = acc[i];
+    message->omega[i] = gyro[i];
+  }
+
+  message->good_packets = good_packets;
+  message->bad_packets = invalid_packets + unknown_packets + timeout_packets;
 }
 
 void LordImu::print_packet_stats() {

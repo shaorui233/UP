@@ -16,13 +16,14 @@
 
 #include <string>
 #include <lcm-cpp.hpp>
+#include <lord_imu/LordImu.h>
 
 #include "RobotRunner.h"
 #include "Utilities/PeriodicTask.h"
 #include "control_parameter_request_lcmt.hpp"
 #include "control_parameter_respones_lcmt.hpp"
 #include "gamepad_lcmt.hpp"
-
+#include "microstrain_lcmt.hpp"
 
 
 
@@ -87,12 +88,19 @@ class MiniCheetahHardwareBridge : public HardwareBridge {
   void runSpi();
   void initHardware();
   void run();
+  void runMicrostrain();
+  void logMicrostrain();
   void abort(const std::string& reason);
   void abort(const char* reason);
 
  private:
   VectorNavData _vectorNavData;
   lcm::LCM _spiLcm;
+  lcm::LCM _microstrainLcm;
+  std::thread _microstrainThread;
+  LordImu _microstrainImu;
+  microstrain_lcmt _microstrainData;
+  bool _microstrainInit = false;
 };
 #endif // END of #ifdef linux
 #endif  // PROJECT_HARDWAREBRIDGE_H
