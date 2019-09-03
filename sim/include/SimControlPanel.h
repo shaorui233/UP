@@ -19,6 +19,7 @@
 #include <lcm-cpp.hpp>
 #include "rs_pointcloud_t.hpp"
 #include "heightmap_t.hpp"
+#include "traversability_map_t.hpp"
 
 namespace Ui {
 class SimControlPanel;
@@ -121,11 +122,15 @@ public slots:
   void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const rs_pointcloud_t* msg);
   void pointsLCMThread() { while (true) { _pointsLCM.handle(); } }
 
-  lcm::LCM _pointsLCM;
-  std::thread _pointsLCMThread;
+  void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const traversability_map_t* msg);
+  void indexmapLCMThread() { while (true) { _indexmapLCM.handle(); } }
 
   lcm::LCM _heightmapLCM;
+  lcm::LCM _pointsLCM;
+  lcm::LCM _indexmapLCM;
+  std::thread _pointsLCMThread;
   std::thread _heightmapLCMThread;
+  std::thread _indexmapLCMThread;
 };
 
 #endif  // SIMCONTROLPANEL_H

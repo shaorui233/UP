@@ -99,6 +99,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   void _drawSphere(SphereVisualization &sphere);
   void _drawCone(ConeVisualization &cone);
   void _drawMesh(MeshVisualization &mesh);
+  void _drawHeightMap();
   
   void _rotateZtoDirection(const Vec3<float> &direction);
   void _setColor(const Vec4<float> &color) {
@@ -172,6 +173,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   bool _pause = false;
 
   DMat<float> _map;
+  DMat<int> _idx_map;
   Vec3<float> _pos;
   Vec3<float> _points[5001];
 
@@ -181,6 +183,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   size_t _num_points = 5001;
   bool _pointcloud_data_update = false;
   bool _heightmap_data_update = false;
+  bool _indexmap_data_update = false;
 };
 
 #endif  // PROJECT_GRAPHICS3D_H

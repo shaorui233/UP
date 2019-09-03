@@ -117,6 +117,7 @@ Graphics3D::Graphics3D(QWidget *parent)
   _b[7] = 0.0805;
 
   _map = DMat<float>::Zero(x_size, y_size);
+  _idx_map = DMat<int>::Zero(x_size, y_size);
 }
 
 Graphics3D::~Graphics3D() {}
@@ -575,6 +576,62 @@ void Graphics3D::_drawMesh(MeshVisualization &mesh) {
       scaled_height = (height - height_min) / height_gap;
       getHeightColor(scaled_height, color_r, color_g, color_b);
       glColor4f(color_r, color_g, color_b, 1.0f);
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  glPopMatrix();
+  glPopAttrib();
+}
+
+
+void Graphics3D::_drawHeightMap() {
+
+  glPushMatrix();
+  glTranslatef(-0.75 + _pos[0], -0.75 + _pos[1], 0);
+
+  double grid_size(0.015);
+  double height;
+  for (int i(0); i < _map.rows(); ++i) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int j(0); j < _map.cols(); ++j) {
+      height = _map(i, j);
+      if(_idx_map(i,j) == 0){
+        glColor4f(0.f, 1.f, 0.f, 1.0f);
+      }else if(_idx_map(i,j) == 1){
+        glColor4f(1.f, 0.f, 0.f, 1.0f);
+      }else if(_idx_map(i,j) == 2){
+        glColor4f(0.f, 0.f, 1.f, 1.0f);
+      }else{
+        glColor4f(1.f, 1.f, 1.f, 1.0f);
+      }
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  for (int j(0); j < _map.cols(); ++j) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int i(0); i < _map.rows(); ++i) {
+      height = _map(i, j);
+      if(_idx_map(i,j) == 0){
+        glColor4f(0.f, 1.f, 0.f, 1.0f);
+      }else if(_idx_map(i,j) == 1){
+        glColor4f(1.f, 0.f, 0.f, 1.0f);
+      }else if(_idx_map(i,j) == 2){
+        glColor4f(0.f, 0.f, 1.f, 1.0f);
+      }else{
+        glColor4f(1.f, 1.f, 1.f, 1.0f);
+      }
       glVertex3d(i * grid_size, j * grid_size, height);
     }
     glPopAttrib();

@@ -48,8 +48,9 @@ SimControlPanel::SimControlPanel(QWidget* parent)
       ui(new Ui::SimControlPanel),
       _userParameters("user-parameters"),
       _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE),
+      _heightmapLCM(getLcmUrl(255)),
       _pointsLCM(getLcmUrl(255)),
-      _heightmapLCM(getLcmUrl(255))
+      _indexmapLCM(getLcmUrl(255))
 {
 
   ui->setupUi(this); // QT setup
@@ -93,6 +94,9 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _heightmapLCM.subscribe("local_heightmap", &SimControlPanel::handleHeightmapLCM, this);
   _heightmapLCMThread = std::thread(&SimControlPanel::heightmapLCMThread, this);
 
+  _indexmapLCM.subscribe("traversability", &SimControlPanel::handleIndexmapLCM, this);
+  _indexmapLCMThread = std::thread(&SimControlPanel::indexmapLCMThread, this);
+
 }
 
 void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
@@ -115,6 +119,22 @@ void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
   }
 }
 
+void SimControlPanel::handleIndexmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const traversability_map_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->x_size; ++i){
+      for(size_t j(0); j<_graphicsWindow->y_size; ++j){
+        _graphicsWindow->_idx_map(i,j) = msg->map[i][j];
+      }
+    }
+    _graphicsWindow->_indexmap_data_update = true;
+  }
+}
+
 
 void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
                                       const std::string &chan,
@@ -125,7 +145,7 @@ void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
   if(_graphicsWindow){
     for(size_t i(0); i<_graphicsWindow->x_size; ++i){
       for(size_t j(0); j<_graphicsWindow->y_size; ++j){
-        _graphicsWindow->_map(i,j) = msg->map[i][j];
+        _graphicsWindow->_idx_map(i,j) = msg->map[i][j];
       }
     }
     _graphicsWindow->_heightmap_data_update = true;

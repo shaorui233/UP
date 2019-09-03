@@ -121,13 +121,14 @@ ConvexMPCLocomotion::ConvexMPCLocomotion(float _dt, int _iterations_between_mpc,
   horizonLength(10),
   dt(_dt),
   trotting(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(5,5,5,5),"Trotting"),
-  //bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(5,5,5,5),"Bounding"),
-  bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(3,3,3,3),"Bounding"),
+  bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(4,4,4,4),"Bounding"),
+  //bounding(horizonLength, Vec4<int>(5,5,0,0),Vec4<int>(3,3,3,3),"Bounding"),
   pronking(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(4,4,4,4),"Pronking"),
   //galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(6,6,6,6),"Galloping"),
   galloping(horizonLength, Vec4<int>(0,2,7,9),Vec4<int>(3,3,3,3),"Galloping"),
   standing(horizonLength, Vec4<int>(0,0,0,0),Vec4<int>(10,10,10,10),"Standing"),
-  trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
+  //trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(3,3,3,3),"Trot Running"),
+  trotRunning(horizonLength, Vec4<int>(0,5,5,0),Vec4<int>(4,4,4,4),"Trot Running"),
   walking(horizonLength, Vec4<int>(0,3,5,8), Vec4<int>(5,5,5,5), "Walking"),
   walking2(horizonLength, Vec4<int>(0,5,5,0), Vec4<int>(7,7,7,7), "Walking2"),
   pacing(horizonLength, Vec4<int>(5,0,5,0),Vec4<int>(5,5,5,5),"Pacing")
@@ -187,8 +188,6 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     world_position_desired[0] = stand_traj[0];
     world_position_desired[1] = stand_traj[1];
   }
-
-
 
   // pick gait
   Gait* gait = &trotting;
@@ -320,8 +319,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
       Pf[0] +=  pfx_rel;
       Pf[1] +=  pfy_rel + interleave_y[i] * v_abs * interleave_gain;
-      Pf[2] = -0.01;
-      //Pf[2] = 0.0;
+      //Pf[2] = -0.01;
+      //Pf[2] = -0.003;
+      Pf[2] = 0.0;
       footSwingTrajectories[i].setFinalPosition(Pf);
     //}
 
