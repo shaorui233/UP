@@ -9,6 +9,8 @@
 #include "mip_sdk.h"
 #include "mip_gx4_25.h"
 
+#include "../../lcm-types/cpp/microstrain_lcmt.hpp"
+
 struct LordImuDeviceInfo {
   std::string modelName;
   std::string modelNumber;
@@ -63,6 +65,7 @@ struct LordImuDiagnosticStatus {
 class LordImu {
 public:
   void init(u32 port, u32 baud_rate);
+  bool tryInit(u32 port, u32 baud_rate);
   void mode_setup();
   void get_device_info();
   void self_test();
@@ -72,6 +75,7 @@ public:
   void print_packet_stats();
   void zero_gyro();
   void run();
+  void updateLCM(microstrain_lcmt* message);
 
   u32 invalid_packets = 0;
   u32 timeout_packets = 0;
@@ -80,7 +84,6 @@ public:
 
   Vec3<float> gyro;
   Vec3<float> acc;
-  Vec3<float> angularRate;
   Vec4<float> quat;
 private:
   mip_interface device_interface;
