@@ -46,8 +46,8 @@ endif()
 
 # Test
 file(GLOB_RECURSE test_sources "test/test_*.cpp")             # test cpp files
-add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread)
+add_executable(test-common ${test_sources})
+target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread biomimetics)
 target_link_libraries(test-common Goldfarb_Optimizer)
 target_link_libraries(test-common JCQP)
 
