@@ -41,8 +41,12 @@ class FSM_State_Vision : public FSM_State<T> {
   WBC_Ctrl<T> * _wbc_ctrl;
   LocomotionCtrlData<T> * _wbc_data;
 
-  // Parses contact specific controls to the leg controller
-  void LocomotionControlStep();
+  Vec3<T> _ini_body_pos;
+  Vec3<T> _ini_body_ori_rpy;
+  Vec3<T> zero_vec3;
+
+  void _LocomotionControlStep(const Vec3<T> & vel_cmd);
+  void _UpdateVelCommand(Vec3<T> & vel_cmd);
 };
 
 #endif  // FSM_STATE_LOCOMOTION_H

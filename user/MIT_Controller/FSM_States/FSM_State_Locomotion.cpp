@@ -43,6 +43,7 @@ void FSM_State_Locomotion<T>::onEnter() {
   // Reset the transition data
   this->transitionData.zero();
   cMPCOld.initialize();
+  printf("[FSM LOCOMOTION] On Enter\n");
 }
 
 /**
@@ -98,6 +99,11 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
       this->transitionDuration = 0.;
       break;
 
+    case K_VISION:
+      this->nextStateName = FSM_StateName::VISION;
+      this->transitionDuration = 0.;
+      break;
+
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
                 << K_LOCOMOTION << " to "
@@ -142,6 +148,10 @@ TransitionData<T> FSM_State_Locomotion<T>::transition() {
       break;
 
     case FSM_StateName::RECOVERY_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::VISION:
       this->transitionData.done = true;
       break;
 

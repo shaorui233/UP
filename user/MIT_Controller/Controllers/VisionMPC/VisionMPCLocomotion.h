@@ -43,7 +43,7 @@ public:
   void initialize();
 
   template<typename T>
-  void run(ControlFSMData<T>& data);
+  void run(ControlFSMData<T>& data, const Vec3<T> & vel_cmd);
 
   Vec3<float> pBody_des;
   Vec3<float> vBody_des;
@@ -61,6 +61,10 @@ public:
   Vec4<float> contact_state;
 
 private:
+  Vec3<float> v_des_world;
+  Vec3<float> rpy_des;
+  Vec3<float> v_rpy_des;
+
   float _body_height = 0.29;
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data);
   void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);

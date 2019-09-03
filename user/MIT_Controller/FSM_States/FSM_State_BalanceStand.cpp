@@ -16,8 +16,7 @@
 template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(
     ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND,
-                   "BALANCE_STAND") {
+    : FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND,"BALANCE_STAND") {
   // Set the pre controls safety checks
   this->turnOnAllSafetyChecks();
   // Turn off Foot pos command since it is set in WBC as operational task

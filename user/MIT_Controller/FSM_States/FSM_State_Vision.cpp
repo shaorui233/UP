@@ -18,7 +18,7 @@
 template <typename T>
 FSM_State_Vision<T>::FSM_State_Vision(
     ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION"),
+    : FSM_State<T>(_controlFSMData, FSM_StateName::VISION, "VISION"),
         vision_MPC(_controlFSMData->controlParameters->controller_dt,
                 25 / (1000. * _controlFSMData->controlParameters->controller_dt),
                 _controlFSMData->userParameters)
@@ -33,6 +33,7 @@ FSM_State_Vision<T>::FSM_State_Vision(
   this->footstepLocations = Mat34<T>::Zero();
   _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
   _wbc_data = new LocomotionCtrlData<T>();
+  zero_vec3.setZero();
 }
 
 template <typename T>
@@ -43,6 +44,9 @@ void FSM_State_Vision<T>::onEnter() {
   // Reset the transition data
   this->transitionData.zero();
   vision_MPC.initialize();
+
+  _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
+  _ini_body_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
   printf("[FSM VISION] On Enter\n");
 }
 
@@ -52,10 +56,35 @@ void FSM_State_Vision<T>::onEnter() {
 template <typename T>
 void FSM_State_Vision<T>::run() {
   // Call the locomotion control logic for this iteration
-  LocomotionControlStep();
+  Vec3<T> des_vel; // x,y, yaw
+  _UpdateVelCommand(des_vel);
+  _LocomotionControlStep(des_vel);
 }
 
+template <typename T>
+void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
+  des_vel.setZero();
 
+  Vec3<T> target_pos, curr_pos, curr_ori_rpy;
+  target_pos[0] = _ini_body_pos[0];
+  target_pos[1] = _ini_body_pos[1];
+  target_pos[2] = _ini_body_ori_rpy[2];
+
+  T moving_time = 1.0;
+  T curr_time = (T)iter * 0.002;
+  if(curr_time > moving_time){
+    curr_time = moving_time;
+  }
+  target_pos[0] += 1.0 * curr_time/moving_time;
+
+  curr_pos = (this->_data->_stateEstimator->getResult()).position;
+  curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
+ 
+  des_vel[0] = 1.0 * (target_pos[0] - curr_pos[0]);
+  des_vel[1] = 1.0 * (target_pos[1] - curr_pos[1]);
+
+}
+ 
 /**
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
@@ -121,7 +150,7 @@ TransitionData<T> FSM_State_Vision<T>::transition() {
   // Switch FSM control mode
   switch (this->nextStateName) {
     case FSM_StateName::BALANCE_STAND:
-      LocomotionControlStep();
+      _LocomotionControlStep(zero_vec3);
 
       iter++;
       if (iter >= this->transitionDuration * 1000) {
@@ -134,12 +163,15 @@ TransitionData<T> FSM_State_Vision<T>::transition() {
 
     case FSM_StateName::PASSIVE:
       this->turnOffAllSafetyChecks();
-
       this->transitionData.done = true;
 
       break;
 
     case FSM_StateName::RECOVERY_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::LOCOMOTION:
       this->transitionData.done = true;
       break;
 
@@ -168,11 +200,11 @@ void FSM_State_Vision<T>::onExit() {
  * each stance or swing leg.
  */
 template <typename T>
-void FSM_State_Vision<T>::LocomotionControlStep() {
+void FSM_State_Vision<T>::_LocomotionControlStep(const Vec3<T> & des_vel) {
   // StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
   // Contact state logic
-  vision_MPC.run<T>(*this->_data);
+  vision_MPC.run<T>(*this->_data, des_vel);
 
   if(this->_data->userParameters->use_wbc > 0.9){
     _wbc_data->pBody_des = vision_MPC.pBody_des;

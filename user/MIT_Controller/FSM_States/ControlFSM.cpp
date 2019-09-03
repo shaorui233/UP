@@ -107,6 +107,7 @@ void ControlFSM<T>::runFSM() {
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
       data.controlParameters->control_mode = K_VISION;
     }
+    //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
   }
 
   if(data.controlParameters->control_mode == K_RECOVERY_STAND){

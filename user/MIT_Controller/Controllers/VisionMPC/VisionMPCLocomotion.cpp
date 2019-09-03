@@ -141,10 +141,12 @@ VisionMPCLocomotion::VisionMPCLocomotion(float _dt, int _iterations_between_mpc,
 void VisionMPCLocomotion::initialize(){
   for(int i = 0; i < 4; i++) firstSwing[i] = true;
   firstRun = true;
+  rpy_des.setZero();
+  v_rpy_des.setZero();
 }
 
 template<>
-void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
+void VisionMPCLocomotion::run(ControlFSMData<float>& data, const Vec3<float> & vel_cmd) {
 
   if(data.controlParameters->use_rc ){
     data.userParameters->cmpc_gait = data._desiredStateCommand->rcCommand->variable[0];
@@ -152,12 +154,10 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
   
   gaitNumber = data.userParameters->cmpc_gait;
   auto& seResult = data._stateEstimator->getResult();
-  auto& stateCommand = data._desiredStateCommand;
 
   // Check if transition to standing
   if(((gaitNumber == 4) && current_gait != 4) || firstRun)
   {
-    printf("Transition to standing\n");
     stand_traj[0] = seResult.position[0];
     stand_traj[1] = seResult.position[1];
     stand_traj[2] = 0.21;
@@ -178,19 +178,21 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
   current_gait = gaitNumber;
 
   // integrate position setpoint
-  Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7], 0);
-  Vec3<float> v_des_world = seResult.rBody.transpose() * v_des_robot;
+  v_des_world[0] = vel_cmd[0];
+  v_des_world[1] = vel_cmd[1];
+  v_des_world[2] = 0.;
+  rpy_des[2] = seResult.rpy[2];
+  v_rpy_des[2] = vel_cmd[2];
   Vec3<float> v_robot = seResult.vWorld;
 
   //pretty_print(v_des_world, std::cout, "v des world");
-  //printf("state des: %f, %f\n", stateCommand->data.stateDes[6], stateCommand->data.stateDes[7]);
   
   //Integral-esque pitche and roll compensation
   if(fabs(v_robot[0]) > .2) {  //avoid dividing by zero 
-    rpy_int[1] += dt*(stateCommand->data.stateDes[4] - seResult.rpy[1])/v_robot[0];
+    rpy_int[1] += dt*(rpy_des[1] - seResult.rpy[1])/v_robot[0];
   }
   if(fabs(v_robot[1]) > 0.1) {
-    rpy_int[0] += dt*(stateCommand->data.stateDes[3] - seResult.rpy[0])/v_robot[1];
+    rpy_int[0] += dt*(rpy_des[0] - seResult.rpy[0])/v_robot[1];
   }
 
   rpy_int[0] = fminf(fmaxf(rpy_int[0], -.25), .25);
@@ -218,7 +220,6 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
 
     for(int i = 0; i < 4; i++)
     {
-
       footSwingTrajectories[i].setHeight(0.05);
       footSwingTrajectories[i].setInitialPosition(pFoot[i]);
       footSwingTrajectories[i].setFinalPosition(pFoot[i]);
@@ -232,10 +233,9 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
   swingTimes[1] = dtMPC * gait->_swing;
   swingTimes[2] = dtMPC * gait->_swing;
   swingTimes[3] = dtMPC * gait->_swing;
+
   float side_sign[4] = {-1, 1, -1, 1};
-  float interleave_y[4] = {-0.08, 0.08, 0.01, -0.01};
-  float interleave_gain = -0.13;
-  float v_abs = std::fabs(v_des_robot[0]);
+
   for(int i = 0; i < 4; i++) {
 
     if(firstSwing[i]) {
@@ -251,34 +251,26 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
     Vec3<float> pRobotFrame = (data._quadruped->getHipLocation(i) + offset);
     Vec3<float> pYawCorrected = 
       coordinateRotation(CoordinateAxis::Z, 
-          -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
+          -v_rpy_des[2] * gait->_stance * dtMPC / 2) * pRobotFrame;
 
-    Vec3<float> des_vel;
-    des_vel[0] = stateCommand->data.stateDes(6);
-    des_vel[1] = stateCommand->data.stateDes(7);
-    des_vel[2] = stateCommand->data.stateDes(8);
-
+    Vec3<float> des_vel = seResult.rBody * v_des_world;
     Vec3<float> Pf = seResult.position +
-      seResult.rBody.transpose() * (pYawCorrected
-          + des_vel * swingTimeRemaining[i]);
-
-    //+ seResult.vWorld * swingTimeRemaining[i];
+      seResult.rBody.transpose() * (pYawCorrected + des_vel * swingTimeRemaining[i]);
 
     float p_rel_max = 0.3f;
 
     // Using the estimated velocity is correct
-    //Vec3<float> des_vel_world = seResult.rBody.transpose() * des_vel;
     float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
       .03f*(seResult.vWorld[0]-v_des_world[0]) +
-      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
+      (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*v_rpy_des[2]);
 
     float pfy_rel = seResult.vWorld[1] * .5 * gait->_stance * dtMPC +
       .03f*(seResult.vWorld[1]-v_des_world[1]) +
-      (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*stateCommand->data.stateDes[11]);
+      (0.5f*seResult.position[2]/9.81f) * (-seResult.vWorld[0]*v_rpy_des[2]);
     pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
     pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
     Pf[0] +=  pfx_rel;
-    Pf[1] +=  pfy_rel + interleave_y[i] * v_abs * interleave_gain;
+    Pf[1] +=  pfy_rel;
     Pf[2] = -0.01;
     footSwingTrajectories[i].setFinalPosition(Pf);
   }
@@ -431,23 +423,15 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data) {
 
   pBody_RPY_des[0] = 0.;
   pBody_RPY_des[1] = 0.; 
-  //pBody_RPY_des[2] = world_position_desired[2];
-  pBody_RPY_des[2] = stateCommand->data.stateDes[5];
+  pBody_RPY_des[2] = rpy_des[2];
 
   vBody_Ori_des[0] = 0.;
   vBody_Ori_des[1] = 0.;
-  vBody_Ori_des[2] = stateCommand->data.stateDes[11];
+  vBody_Ori_des[2] = v_rpy_des[2];
 
   //contact_state = gait->getContactState();
   contact_state = gait->getContactState();
   // END of WBC Update
-}
-
-template<>
-void VisionMPCLocomotion::run(ControlFSMData<double>& data) {
-  (void)data;
-  printf("call to old CMPC with double!\n");
-
 }
 
 void VisionMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float> &data) {
@@ -455,18 +439,11 @@ void VisionMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
   if((iterationCounter % iterationsBetweenMPC) == 0)
   {
     auto seResult = data._stateEstimator->getResult();
-    auto& stateCommand = data._desiredStateCommand;
     float* p = seResult.position.data();
 
-
-
-
-    Vec3<float> v_des_robot(stateCommand->data.stateDes[6], stateCommand->data.stateDes[7],0);
-    Vec3<float> v_des_world = seResult.rBody.transpose() * v_des_robot;
-
     if(current_gait == 4)    {
-      float trajInitial[12] = {(float)stateCommand->data.stateDes[3],
-                               (float)stateCommand->data.stateDes[4],
+      float trajInitial[12] = {(float)rpy_des[0], // Roll
+                               (float)rpy_des[1], // Pitch
                                (float)stand_traj[5],
                                (float)stand_traj[0],
                                (float)stand_traj[1],
@@ -492,13 +469,13 @@ void VisionMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
 
       float trajInitial[12] = {(float)rpy_comp[0],  // 0
                                (float)rpy_comp[1],    // 1
-                               (float)stateCommand->data.stateDes[5],    // 2
+                               (float)rpy_des[2],    // 2
                                xStart,                                   // 3
                                yStart,                                   // 4
                                (float)_body_height,      // 5
                                0,                                        // 6
                                0,                                        // 7
-                               (float)stateCommand->data.stateDes[11],  // 8
+                               (float)v_rpy_des[2],  // 8
                                v_des_world[0],                           // 9
                                v_des_world[1],                           // 10
                                0};                                       // 11
@@ -514,7 +491,7 @@ void VisionMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
         } else {
           trajAll[12*i + 3] = trajAll[12 * (i - 1) + 3] + dtMPC * v_des_world[0];
           trajAll[12*i + 4] = trajAll[12 * (i - 1) + 4] + dtMPC * v_des_world[1];
-          trajAll[12*i + 2] = trajAll[12 * (i - 1) + 2] + dtMPC * stateCommand->data.stateDes[11];
+          trajAll[12*i + 2] = trajAll[12 * (i - 1) + 2] + dtMPC * v_rpy_des[2];
         }
       }
     }

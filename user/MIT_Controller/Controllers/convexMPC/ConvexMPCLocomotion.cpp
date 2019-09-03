@@ -178,7 +178,6 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   // Check if transition to standing
   if(((gaitNumber == 4) && current_gait != 4) || firstRun)
   {
-    printf("Transition to standing\n");
     stand_traj[0] = seResult.position[0];
     stand_traj[1] = seResult.position[1];
     stand_traj[2] = 0.21;
