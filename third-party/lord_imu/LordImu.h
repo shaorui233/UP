@@ -2,6 +2,7 @@
 #define PROJECT_LORDIMU_H
 
 #include <string>
+#include <mutex>
 
 #include "cTypes.h"
 #include "cppTypes.h"
@@ -85,10 +86,13 @@ public:
   Vec3<float> gyro;
   Vec3<float> acc;
   Vec4<float> quat;
+
+
 private:
   mip_interface device_interface;
   LordImuDeviceInfo deviceInfo;
   LordImuBasicStatus basicStatus;
+
 };
 
 
