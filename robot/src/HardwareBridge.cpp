@@ -18,6 +18,8 @@
 #include "rt/rt_spi.h"
 #include "rt/rt_vectornav.h"
 
+// #define USE_MICROSTRAIN
+
 /*!
  * If an error occurs during initialization, before motors are enabled, print
  * error and exit.
@@ -312,9 +314,12 @@ void MiniCheetahHardwareBridge::runMicrostrain() {
   while(true) {
     _microstrainImu.run();
 
-#ifdef RUN_MICROSTRAIN
+#ifdef USE_MICROSTRAIN
     _vectorNavData.accelerometer = _microstrainImu.acc;
-    _vectorNavData.quat = _microstrainImu.quat;
+    _vectorNavData.quat[0] = _microstrainImu.quat[1];
+    _vectorNavData.quat[1] = _microstrainImu.quat[2];
+    _vectorNavData.quat[2] = _microstrainImu.quat[3];
+    _vectorNavData.quat[3] = _microstrainImu.quat[0];
     _vectorNavData.gyro = _microstrainImu.gyro;
 #endif
   }
