@@ -174,6 +174,9 @@ static void filter_callback(void* user_ptr, u8* packet, u16 packet_size, u8 call
   u16 field_offset = 0;
   mip_filter_attitude_quaternion quat;
 
+  Mat3<float> R = Mat3<float>::Identity();
+  R << 0, -1, 0, -1, 0, 0, 0, 0, 1;
+
   switch(callback_type) {
     case MIP_INTERFACE_CALLBACK_VALID_PACKET:
       while(mip_get_next_field(packet, &field_header,
@@ -184,6 +187,11 @@ static void filter_callback(void* user_ptr, u8* packet, u16 packet_size, u8 call
             memcpy(&quat, field_data, sizeof(mip_filter_attitude_quaternion));
             mip_filter_attitude_quaternion_byteswap(&quat);
             gLordImu->quat = Vec4<float>(quat.q);
+            Vec4<float> wz(sqrtf(2)/2.f, 0, 0, sqrtf(2)/2.f);
+            Vec4<float> wx(0, -1, 0, 0);
+            Vec4<float> wxwz = ori::quatProduct(wx, wz);
+            Vec4<float> wxwzi = ori::rotationMatrixToQuaternion(ori::quaternionToRotationMatrix(wxwz).transpose());
+            gLordImu->quat = ori::quatProduct(wxwzi, ori::quatProduct(gLordImu->quat, wxwz));
             gLordImu->good_packets++;
           }
             break;
@@ -218,6 +226,8 @@ static void ahrs_callback(void* user_ptr, u8* packet, u16 packet_size, u8 callba
   mip_ahrs_scaled_accel accel;
   mip_ahrs_scaled_gyro gyro;
 
+
+
   switch(callback_type) {
     case MIP_INTERFACE_CALLBACK_VALID_PACKET:
       //gLordImu->good_packets++;
@@ -227,13 +237,19 @@ static void ahrs_callback(void* user_ptr, u8* packet, u16 packet_size, u8 callba
           case MIP_AHRS_DATA_ACCEL_SCALED:
             memcpy(&accel, field_data, sizeof(mip_ahrs_scaled_accel));
             mip_ahrs_scaled_accel_byteswap(&accel);
-            gLordImu->acc = Vec3<float>(accel.scaled_accel);
+            //gLordImu->acc = Vec3<float>(accel.scaled_accel);
+            gLordImu->acc[0] = -accel.scaled_accel[1];
+            gLordImu->acc[1] = -accel.scaled_accel[0];
+            gLordImu->acc[2] = -accel.scaled_accel[2];
             gLordImu->good_packets++;
             break;
           case MIP_AHRS_DATA_GYRO_SCALED:
             memcpy(&gyro, field_data, sizeof(mip_ahrs_scaled_gyro));
             mip_ahrs_scaled_gyro_byteswap(&gyro);
-            gLordImu->gyro = Vec3<float>(gyro.scaled_gyro);
+            //gLordImu->gyro = Vec3<float>(gyro.scaled_gyro);
+            gLordImu->gyro[0] = -gyro.scaled_gyro[1];
+            gLordImu->gyro[1] = -gyro.scaled_gyro[0];
+            gLordImu->gyro[2] = -gyro.scaled_gyro[2];
             gLordImu->good_packets++;
             break;
           default:
