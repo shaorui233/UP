@@ -632,6 +632,12 @@ void BalanceControllerVBL::get_linear_error(double* lin_err_in)
 
 }
 
+double BalanceControllerVBL::get_cost_to_go()
+{
+  cost_to_go = s_LQR.transpose()*P_LQR*s_LQR;
+  return cost_to_go;
+}
+
 
 void BalanceControllerVBL::copy_Eigen_to_real_t(real_t* target, Eigen::MatrixXd &source, int nRows, int nCols )
 {

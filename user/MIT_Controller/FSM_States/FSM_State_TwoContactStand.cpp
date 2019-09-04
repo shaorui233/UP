@@ -7,6 +7,7 @@
 #include "FSM_State_TwoContactStand.h"
 #include <Utilities/Utilities_print.h>
 #include <iostream>
+#include <fstream>
 
 
 /**
@@ -63,10 +64,6 @@ void FSM_State_TwoContactStand<T>::run() {
   // Get orientation from state estimator
   for (int i = 0; i < 4; i++) {
     quat_act[i] = (double)this->_data->_stateEstimator->getResult().orientation(i);
-  }
-
-  if (iter % 200 == 0){
-    std::cout << "Initial yaw: " << iter << std::endl;
   }
 
   // Get current state from state estimator
@@ -268,6 +265,26 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
   }
 
+
+
+  // // Cost to go testing
+  // if (this->_data->userParameters->cmpc_x_drag == 1) {
+  //   contactStateScheduled[0] = 0;
+  //   contactStateScheduled[3] = 0;
+  //   rpy[1] = this->_data->userParameters->cmpc_gait * convert;
+
+  //   // record CTG
+  //   std::ofstream ofile;
+  //   ofile.open("data_log_ctg.csv", std::ios::app);
+  //   ofile << rpy[1] / convert << ", " << balanceControllerVBL.get_cost_to_go() << std::endl; 
+  //   ofile.close();
+  // }
+  // else if (iter > 2000) {
+  //   contactStateScheduled[0] = 0;
+  //   contactStateScheduled[3] = 0;
+  //   rpy[1] = 0.0;
+  // }
+
 }
 
 /**
@@ -443,6 +460,10 @@ TransitionData<T> FSM_State_TwoContactStand<T>::transition() {
       break;
 
     case FSM_StateName::BOUNDING:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::RECOVERY_STAND:
       this->transitionData.done = true;
       break;
 
