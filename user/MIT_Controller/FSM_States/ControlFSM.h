@@ -63,8 +63,7 @@ class ControlFSM {
              DesiredStateCommand<T>* _desiredStateCommand,
              RobotControlParameters* controlParameters,
              VisualizationData* visualizationData,
-             MIT_UserParameters* userParameters,
-             FloatingBaseModel<T>* _model);
+             MIT_UserParameters* userParameters);
 
   // Initializes the Control FSM instance
   void initialize();

@@ -54,7 +54,8 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   double pFeet[12], p_act[3], v_act[3], quat_act[4], rpy_act[3], O_err[3], se_xfb[13], pFeet_world[12], p_body[3];
 
   // Quadruped Model
-  FBModelState<float> state;
+  FloatingBaseModel<T> model;
+  FBModelState<T> state;
   double Ig_in[3], mass_in, p_COM[3];
   Vec3<T> c_body, c_world;
   Mat18<float> H;
@@ -65,8 +66,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   Vec3<T> pFeetVecBody;
 
   // Desired state of the body
-  double pFeet_des[12], p_des[3], v_des[3], rpy[3], omegaDes[3], baseState[5] = {0.0, 0.0, 0.0, 0.0, 0.0}, pweight;
-  double target, convert = 3.14159/180;
+  double pFeet_des[12], p_des[3], v_des[3], rpy[3], omegaDes[3], pweight, convert = 3.14159/180;
 
   // Joint positions for legs not in contact
   Vec3<T> q_lift_leg, qd_lift_leg;
@@ -78,7 +78,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   Vec4<T> conPhase;
 
   // Control Input
-  double f_ref_z[4], f_ref_world[12], fOpt[12], fOpt2[12];
+  double f_ref_z[4], f_ref_world[12], fOpt[12];
 
   // Leg Impedance Control
   Vec3<double> impedance_kp;

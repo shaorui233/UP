@@ -18,10 +18,14 @@
  */
 template <typename T>
 FSM_State_TwoContactStand<T>::FSM_State_TwoContactStand(ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::STAND_UP, "STAND_UP"){
+    : FSM_State<T>(_controlFSMData, FSM_StateName::TWO_CONTACT_STAND, "TWO_CONTACT_STAND"){
   // Post control safety checks
   this->checkPDesFoot = false;
   this->checkForceFeedForward = false;
+
+  // Build Quadruped Model
+  model = _controlFSMData->_quadruped->buildModel();
+
 }
 
 template <typename T>
@@ -190,19 +194,17 @@ void FSM_State_TwoContactStand<T>::run() {
 
 /**
  * Uses quadruped model to find CoM position relative to body position
- * and compute generalize gravity vector
+ * and compute generalized gravity vector
  */
 template <typename T>
 void FSM_State_TwoContactStand<T>::get_model_dynamics() {
   // Update state for the quadruped model using SE
   for (int i = 0; i < 3; i++){
-    //state.bodyOrientation[i] = this->_data->_stateEstimator->getResult().orientation(i);
     state.bodyOrientation[i] = quat_act[i];
     state.bodyPosition[i] = this->_data->_stateEstimator->getResult().position(i);
     state.bodyVelocity[i] = this->_data->_stateEstimator->getResult().omegaBody(i);
     state.bodyVelocity[i+3] = this->_data->_stateEstimator->getResult().vBody(i);
   }
-  //state.bodyOrientation[3] = this->_data->_stateEstimator->getResult().orientation(3);
   state.bodyOrientation[3] = quat_act[3];
   state.q.setZero(12);
   state.qd.setZero(12);
@@ -215,9 +217,9 @@ void FSM_State_TwoContactStand<T>::get_model_dynamics() {
    state.qd(3*i+1)= this->_data->_legController->datas[i].qd[1];
    state.qd(3*i+2)= this->_data->_legController->datas[i].qd[2];
   }
-  this->_data->_model->setState(state);
-  H = this->_data->_model->massMatrix();
-  G_ff = this->_data->_model->generalizedGravityForce();
+  model.setState(state);
+  H = model.massMatrix();
+  G_ff = model.generalizedGravityForce();
 
   // CoM relative to body frame
   mass_in = H(3,3);
@@ -265,9 +267,7 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
   }
 
-
-
-  // // Cost to go testing
+  // // Cost to go testing - can delete
   // if (this->_data->userParameters->cmpc_x_drag == 1) {
   //   contactStateScheduled[0] = 0;
   //   contactStateScheduled[3] = 0;
@@ -321,7 +321,7 @@ void FSM_State_TwoContactStand<T>::get_foot_locations() {
 
 }
 
-/**
+ /**
  * Convert euler angles to rotation matrix
  */
 template <typename T>
@@ -351,7 +351,6 @@ void FSM_State_TwoContactStand<T>::rpyToR(Mat3<float> &R, double* rpy_in) {
    R = Rz*Ry*Rx;
 
  }
-
 
 /**
  * Convert euler angles to quaternions
