@@ -68,7 +68,7 @@ void FSM_State_RecoveryStand<T>::onEnter() {
 
   _flag = FoldLegs;
   if( !_UpsideDown() ) { // Proper orientation
-    if (  (0.2 < body_height) && (body_height < 0.3) ){
+    if (  (0.2 < body_height) && (body_height < 0.45) ){
       printf("[Recovery Balance] body height is %f; Stand Up \n", body_height);
       _flag = StandUp;
     }else{

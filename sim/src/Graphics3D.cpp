@@ -601,12 +601,13 @@ void Graphics3D::_drawHeightMap() {
 
     for (int j(0); j < _map.cols(); ++j) {
       height = _map(i, j);
+      //if(_idx_map(i, j) > 0){ printf("%d, %d point: %d\n", i, j, _idx_map(i,j)); }
       if(_idx_map(i,j) == 0){
         glColor4f(0.f, 1.f, 0.f, 1.0f);
       }else if(_idx_map(i,j) == 1){
-        glColor4f(1.f, 0.f, 0.f, 1.0f);
-      }else if(_idx_map(i,j) == 2){
         glColor4f(0.f, 0.f, 1.f, 1.0f);
+      }else if(_idx_map(i,j) == 2){
+        glColor4f(1.f, 0.f, 0.f, 1.0f);
       }else{
         glColor4f(1.f, 1.f, 1.f, 1.0f);
       }
@@ -626,9 +627,9 @@ void Graphics3D::_drawHeightMap() {
       if(_idx_map(i,j) == 0){
         glColor4f(0.f, 1.f, 0.f, 1.0f);
       }else if(_idx_map(i,j) == 1){
-        glColor4f(1.f, 0.f, 0.f, 1.0f);
-      }else if(_idx_map(i,j) == 2){
         glColor4f(0.f, 0.f, 1.f, 1.0f);
+      }else if(_idx_map(i,j) == 2){
+        glColor4f(1.f, 0.f, 0.f, 1.0f);
       }else{
         glColor4f(1.f, 1.f, 1.f, 1.0f);
       }
@@ -850,23 +851,24 @@ void Graphics3D::_Additional_Drawing(int pass) {
   }
   // Heightmap Drawing
   if(_heightmap_data_update){
-    MeshVisualization mesh;
+    _drawHeightMap();
+    //MeshVisualization mesh;
 
-    mesh.left_corner.setZero();
-    mesh.left_corner[0] = -0.75 + _pos[0];
-    mesh.left_corner[1] = -0.75 + _pos[1];
-    mesh.rows = x_size;
-    mesh.cols = y_size;
-    mesh.grid_size = 0.015;
-    mesh.height_max = 0.7;
-    mesh.height_min = 0.;
+    //mesh.left_corner.setZero();
+    //mesh.left_corner[0] = -0.75 + _pos[0];
+    //mesh.left_corner[1] = -0.75 + _pos[1];
+    //mesh.rows = x_size;
+    //mesh.cols = y_size;
+    //mesh.grid_size = 0.015;
+    //mesh.height_max = 0.7;
+    //mesh.height_min = 0.;
 
-    for(int i(0); i<mesh.rows; ++i){
-      for(int j(0); j<mesh.cols; ++j){
-        mesh.height_map(i,j) = _map(i,j);
-      }
-    }
-    _drawMesh(mesh);
+    //for(int i(0); i<mesh.rows; ++i){
+      //for(int j(0); j<mesh.cols; ++j){
+        //mesh.height_map(i,j) = _map(i,j);
+      //}
+    //}
+    //_drawMesh(mesh);
   }
 
 

@@ -146,7 +146,9 @@ void VisionMPCLocomotion::initialize(){
 }
 
 template<>
-void VisionMPCLocomotion::run(ControlFSMData<float>& data, const Vec3<float> & vel_cmd) {
+void VisionMPCLocomotion::run(ControlFSMData<float>& data, 
+    const Vec3<float> & vel_cmd, const DMat<float> & height_map, const DMat<int> & idx_map) {
+  (void)idx_map;
 
   if(data.controlParameters->use_rc ){
     data.userParameters->cmpc_gait = data._desiredStateCommand->rcCommand->variable[0];
@@ -271,7 +273,16 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data, const Vec3<float> & v
     pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
     Pf[0] +=  pfx_rel;
     Pf[1] +=  pfy_rel;
-    Pf[2] = -0.01;
+
+    Vec3<float> local_pf = Pf - seResult.position;
+
+    int x_idx = floor(local_pf[0]/grid_size) + height_map.rows()/2;
+    int y_idx = floor(local_pf[1]/grid_size) + height_map.cols()/2;
+
+    Pf[2] = height_map(x_idx, y_idx);
+
+    Pf[2] -= 0.003;
+    //printf("%d, %d) foot: %f, %f, %f \n", x_idx, y_idx, local_pf[0], local_pf[1], Pf[2]);
     footSwingTrajectories[i].setFinalPosition(Pf);
   }
   // calc gait

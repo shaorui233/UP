@@ -20,8 +20,9 @@ FSM_State_Vision<T>::FSM_State_Vision(
     ControlFSMData<T>* _controlFSMData)
     : FSM_State<T>(_controlFSMData, FSM_StateName::VISION, "VISION"),
         vision_MPC(_controlFSMData->controlParameters->controller_dt,
-                25 / (1000. * _controlFSMData->controlParameters->controller_dt),
-                _controlFSMData->userParameters)
+                30 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                _controlFSMData->userParameters),
+        _visionLCM(getLcmUrl(255))
 {
   // Set the safety checks
   this->turnOnAllSafetyChecks();
@@ -34,7 +35,43 @@ FSM_State_Vision<T>::FSM_State_Vision(
   _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
   _wbc_data = new LocomotionCtrlData<T>();
   zero_vec3.setZero();
+
+  _visionLCM.subscribe("local_heightmap", &FSM_State_Vision<T>::handleHeightmapLCM, this);
+  _visionLCM.subscribe("traversability", &FSM_State_Vision<T>::handleIndexmapLCM, this);
+  _visionLCMThread = std::thread(&FSM_State_Vision<T>::visionLCMThread, this);
+  _height_map = DMat<T>::Zero(x_size, y_size);
+  _idx_map = DMat<int>::Zero(x_size, y_size);
 }
+
+template<typename T>
+void FSM_State_Vision<T>::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const heightmap_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+      _height_map(i,j) = msg->map[i][j];
+    }
+  }
+}
+
+
+template<typename T>
+void FSM_State_Vision<T>::handleIndexmapLCM(const lcm::ReceiveBuffer *rbuf,
+    const std::string &chan,
+    const traversability_map_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+      _idx_map(i,j) = msg->map[i][j];
+    }
+  }
+}
+
 
 template <typename T>
 void FSM_State_Vision<T>::onEnter() {
@@ -66,18 +103,20 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
   des_vel.setZero();
 
   Vec3<T> target_pos, curr_pos, curr_ori_rpy;
-  target_pos[0] = _ini_body_pos[0];
-  target_pos[1] = _ini_body_pos[1];
-  target_pos[2] = _ini_body_ori_rpy[2];
 
-  T moving_time = 1.0;
+  target_pos.setZero();
+
+  T moving_time = 7.0;
   T curr_time = (T)iter * 0.002;
-  if(curr_time > moving_time){
-    curr_time = moving_time;
-  }
-  target_pos[0] += 1.0 * curr_time/moving_time;
+  //if(curr_time > moving_time){
+    //curr_time = moving_time;
+  //}
+  //target_pos[0] += 1.0 * curr_time/moving_time;
+  target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
 
   curr_pos = (this->_data->_stateEstimator->getResult()).position;
+  curr_pos -= _ini_body_pos;
+  target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
   curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
  
   des_vel[0] = 1.0 * (target_pos[0] - curr_pos[0]);
@@ -204,7 +243,7 @@ void FSM_State_Vision<T>::_LocomotionControlStep(const Vec3<T> & des_vel) {
   // StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
   // Contact state logic
-  vision_MPC.run<T>(*this->_data, des_vel);
+  vision_MPC.run<T>(*this->_data, des_vel, _height_map, _idx_map);
 
   if(this->_data->userParameters->use_wbc > 0.9){
     _wbc_data->pBody_des = vision_MPC.pBody_des;

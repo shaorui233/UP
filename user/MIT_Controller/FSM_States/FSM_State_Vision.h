@@ -6,7 +6,7 @@
 #include <thread>
 #include <lcm-cpp.hpp>
 #include "heightmap_t.hpp"
-#include "rs_pointcloud_t.hpp"
+#include "traversability_map_t.hpp"
 
 template<typename T> class WBC_Ctrl;
 template<typename T> class LocomotionCtrlData;
@@ -44,6 +44,19 @@ class FSM_State_Vision : public FSM_State<T> {
   Vec3<T> _ini_body_pos;
   Vec3<T> _ini_body_ori_rpy;
   Vec3<T> zero_vec3;
+
+  size_t x_size = 100;
+  size_t y_size = 100;
+
+  DMat<T> _height_map;
+  DMat<int> _idx_map;
+
+  void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const heightmap_t* msg);
+  void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const traversability_map_t* msg);
+  void visionLCMThread() { while (true) { _visionLCM.handle(); } }
+
+  lcm::LCM _visionLCM;
+  std::thread _visionLCMThread;
 
   void _LocomotionControlStep(const Vec3<T> & vel_cmd);
   void _UpdateVelCommand(Vec3<T> & vel_cmd);
