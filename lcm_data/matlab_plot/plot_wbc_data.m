@@ -1,4 +1,4 @@
-close all
+close all5
 clc
 clear all
 %%
@@ -6,7 +6,7 @@ addpath('./functions')
 %load('./../matlab_log/data_exp_run4.mat')
 % load('./../matlab_log/data_exp_run5_freq.mat')
 %load('./../matlab_log/sim_data.mat')
-load('./../matlab_log/exp_run_15.mat')
+load('./../matlab_log/exp_dyn_13.mat')
 % load('./../matlab_log/hallway2.mat')
 % load('./../matlab_log/sim_data.mat')
 % load('./../matlab_log/exp_hallway.mat')
@@ -121,7 +121,7 @@ end
 plot(time(st_idx:end_idx), wbc_lcm_data.contact_est(st_idx:end_idx, j))
 
 end
-xlabe('foot vel')
+xlabel('foot vel')
 
 
 figure(fig(8))

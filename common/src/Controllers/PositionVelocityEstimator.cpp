@@ -122,6 +122,7 @@ void LinearKFPositionVelocityEstimator<T>::run() {
 
     T trust = T(1);
     T phase = fmin(this->_stateEstimatorData.result->contactEstimate(i), T(1));
+    //T trust_window = T(0.25);
     T trust_window = T(0.2);
 
     if (phase < trust_window) {
@@ -129,15 +130,17 @@ void LinearKFPositionVelocityEstimator<T>::run() {
     } else if (phase > (T(1) - trust_window)) {
       trust = (T(1) - phase) / trust_window;
     }
+    //T high_suspect_number(1000);
+    T high_suspect_number(100);
 
     // printf("Trust %d: %.3f\n", i, trust);
     Q.block(qindex, qindex, 3, 3) =
-        (T(1) + (T(1) - trust) * T(100)) * Q.block(qindex, qindex, 3, 3);
+        (T(1) + (T(1) - trust) * high_suspect_number) * Q.block(qindex, qindex, 3, 3);
     R.block(rindex1, rindex1, 3, 3) = 1 * R.block(rindex1, rindex1, 3, 3);
     R.block(rindex2, rindex2, 3, 3) =
-        (T(1) + (T(1) - trust) * 100.0f) * R.block(rindex2, rindex2, 3, 3);
+        (T(1) + (T(1) - trust) * high_suspect_number) * R.block(rindex2, rindex2, 3, 3);
     R(rindex3, rindex3) =
-        (T(1) + (T(1) - trust) * T(100)) * R(rindex3, rindex3);
+        (T(1) + (T(1) - trust) * high_suspect_number) * R(rindex3, rindex3);
 
     trusts(i) = trust;
 

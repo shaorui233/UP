@@ -270,7 +270,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   swingTimes[3] = dtMPC * gait->_swing;
   float side_sign[4] = {-1, 1, -1, 1};
   float interleave_y[4] = {-0.08, 0.08, 0.01, -0.01};
-  float interleave_gain = -0.13;
+  //float interleave_gain = -0.13;
+  float interleave_gain = -0.26;
   //float v_abs = std::fabs(seResult.vBody[0]);
   float v_abs = std::fabs(v_des_robot[0]);
   for(int i = 0; i < 4; i++)
@@ -320,8 +321,8 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       Pf[0] +=  pfx_rel;
       Pf[1] +=  pfy_rel + interleave_y[i] * v_abs * interleave_gain;
       //Pf[2] = -0.01;
-      //Pf[2] = -0.003;
-      Pf[2] = 0.0;
+      Pf[2] = -0.003;
+      //Pf[2] = 0.0;
       footSwingTrajectories[i].setFinalPosition(Pf);
     //}
 
@@ -666,7 +667,8 @@ void ConvexMPCLocomotion::updateMPCIfNeeded(int *mpcTable, ControlFSMData<float>
 void ConvexMPCLocomotion::solveDenseMPC(int *mpcTable, ControlFSMData<float> &data) {
   auto seResult = data._stateEstimator->getResult();
 
-  float Q[12] = {0.25, 0.25, 10, 2, 2, 20, 0, 0, 0.3, 0.2, 0.2, 0.2};
+  //float Q[12] = {0.25, 0.25, 10, 2, 2, 20, 0, 0, 0.3, 0.2, 0.2, 0.2};
+  float Q[12] = {0.25, 0.25, 10, 2, 2, 50, 0, 0, 0.3, 0.2, 0.2, 0.1};
   //float Q[12] = {0.25, 0.25, 10, 2, 2, 40, 0, 0, 0.3, 0.2, 0.2, 0.2};
   float yaw = seResult.rpy[2];
   float* weights = Q;

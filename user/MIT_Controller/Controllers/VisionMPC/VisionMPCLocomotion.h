@@ -68,7 +68,7 @@ private:
   Vec3<float> rpy_des;
   Vec3<float> v_rpy_des;
 
-  float _body_height = 0.3;
+  float _body_height = 0.31;
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data);
   void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);
   int iterationsBetweenMPC;

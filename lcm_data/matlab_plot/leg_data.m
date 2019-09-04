@@ -9,7 +9,7 @@ addpath('./functions')
 % load('./../matlab_log/exp_treadmill1.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
 % load('./../matlab_log/data_exp_bounding.mat')
-load('./../matlab_log/sim_data.mat')
+load('./../matlab_log/exp_dyn_13.mat')
 
 fig = fn_open_figures(6);
 

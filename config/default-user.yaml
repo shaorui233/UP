@@ -18,17 +18,17 @@ Kp_joint          : [3, 3, 3]
 #Kd_joint          : [1.5, 1.5, 1.5]
 #Kp_joint          : [15, 15, 15]
 
-Kp_body           : [30, 30, 30]
-Kd_body           : [3, 3, 3]
+Kp_body           : [100, 100, 100]
+Kd_body           : [10, 10, 10]
 
-Kp_foot           : [70, 70, 70]
-Kd_foot           : [3, 3, 3]
+Kp_foot           : [100, 100, 100]
+Kd_foot           : [10, 10, 10]
 
-Kp_ori            : [30, 30, 30]
-Kd_ori            : [3, 3, 3]
+Kp_ori            : [100, 100, 100]
+Kd_ori            : [10, 10, 10]
 
 cmpc_gait         : 9
-cmpc_x_drag       : 0
+cmpc_x_drag       : 5
 cmpc_use_sparse   : 0
 cmpc_bonus_swing  : 0
 jcqp_alpha        : 1.5
