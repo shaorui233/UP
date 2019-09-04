@@ -308,7 +308,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
 
       // Using the estimated velocity is correct
       //Vec3<float> des_vel_world = seResult.rBody.transpose() * des_vel;
-      float pfx_rel = seResult.vWorld[0] * .5 * gait->_stance * dtMPC +
+      float pfx_rel = seResult.vWorld[0] * (.5 + _parameters->cmpc_bonus_swing) * gait->_stance * dtMPC +
                       .03f*(seResult.vWorld[0]-v_des_world[0]) +
                       (0.5f*seResult.position[2]/9.81f) * (seResult.vWorld[1]*stateCommand->data.stateDes[11]);
 
@@ -691,16 +691,20 @@ void ConvexMPCLocomotion::solveDenseMPC(int *mpcTable, ControlFSMData<float> &da
 
   Vec3<float> pxy_act(p[0], p[1], 0);
   Vec3<float> pxy_des(world_position_desired[0], world_position_desired[1], 0);
-  Vec3<float> pxy_err = pxy_act - pxy_des;
+  //Vec3<float> pxy_err = pxy_act - pxy_des;
+  float pz_err = p[2] - _body_height;
   Vec3<float> vxy(seResult.vWorld[0], seResult.vWorld[1], 0);
 
   Timer t1;
   dtMPC = dt * iterationsBetweenMPC;
   setup_problem(dtMPC,horizonLength,0.4,120);
   update_x_drag(x_comp_integral);
-  if(vxy[0] > 0.1 || vxy[0] < -0.1) {
-    x_comp_integral += _parameters->cmpc_x_drag * pxy_err[0] * dtMPC / vxy[0];
+  if(vxy[0] > 0.3 || vxy[0] < -0.3) {
+    //x_comp_integral += _parameters->cmpc_x_drag * pxy_err[0] * dtMPC / vxy[0];
+    x_comp_integral += _parameters->cmpc_x_drag * pz_err * dtMPC / vxy[0];
   }
+
+  //printf("pz err: %.3f, pz int: %.3f\n", pz_err, x_comp_integral);
 
   update_solver_settings(_parameters->jcqp_max_iter, _parameters->jcqp_rho,
                          _parameters->jcqp_sigma, _parameters->jcqp_alpha, _parameters->jcqp_terminate, _parameters->use_jcqp);

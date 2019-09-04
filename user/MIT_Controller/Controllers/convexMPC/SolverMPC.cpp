@@ -237,7 +237,7 @@ void ct_ss_mats(Matrix<fpt,3,3> I_world, fpt m, Matrix<fpt,3,4> r_feet, Matrix<f
 {
   A.setZero();
   A(3,9) = 1.f;
-  A(9,9) = x_drag;
+  A(11,9) = x_drag;
   A(4,10) = 1.f;
   A(5,11) = 1.f;
 

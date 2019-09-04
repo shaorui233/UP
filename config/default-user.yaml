@@ -30,6 +30,7 @@ Kd_ori            : [3, 3, 3]
 cmpc_gait         : 9
 cmpc_x_drag       : 0
 cmpc_use_sparse   : 0
+cmpc_bonus_swing  : 0
 jcqp_alpha        : 1.5
 jcqp_max_iter     : 10000
 jcqp_rho          : 1e-07
