@@ -196,7 +196,6 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
     gait = &bounding;
   else if(gaitNumber == 2)
     gait = &pronking;
-    //gait = &galloping;
   else if(gaitNumber == 3)
     gait = &galloping;
   else if(gaitNumber == 4)
@@ -293,6 +292,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       //if(i<2){
         //pRobotFrame[0] += 0.02;
       //}
+      pRobotFrame[1] += interleave_y[i] * v_abs * interleave_gain;
       Vec3<float> pYawCorrected = 
         coordinateRotation(CoordinateAxis::Z, 
             -stateCommand->data.stateDes[11] * gait->_stance * dtMPC / 2) * pRobotFrame;
@@ -325,7 +325,7 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
       pfx_rel = fminf(fmaxf(pfx_rel, -p_rel_max), p_rel_max);
       pfy_rel = fminf(fmaxf(pfy_rel, -p_rel_max), p_rel_max);
       Pf[0] +=  pfx_rel;
-      Pf[1] +=  pfy_rel + interleave_y[i] * v_abs * interleave_gain;
+      Pf[1] +=  pfy_rel;
       //Pf[2] = -0.01;
       Pf[2] = -0.003;
       //Pf[2] = 0.0;

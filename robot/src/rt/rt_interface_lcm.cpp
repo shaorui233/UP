@@ -59,6 +59,7 @@ void Handler::rc_channels_handler(const lcm::ReceiveBuffer *rbuf,
   rc_channels = *msg;
   pthread_mutex_unlock(&lcm_get_set_mutex);
 }
+
 void get_main_control_settings(void *settings) {
   pthread_mutex_lock(&lcm_get_set_mutex);
   v_memcpy(settings, &main_control_settings, sizeof(main_control_settings));
@@ -131,9 +132,15 @@ void sbus_packet_complete() {
       if (ch9 == 1811) {
         main_control_settings.variable[0] = 4;
       }  // Stand
-      else if (ch9 == 992) {
+      else if (ch9 == 992 && (ch13==1811)) {
         main_control_settings.variable[0] = 0;
       }  // Trot
+      else if (ch9 == 992 && (ch13==992)) {
+        main_control_settings.variable[0] = 3;
+      }  // Gallop
+      else if (ch9 == 992 && (ch13==172)) {
+        main_control_settings.variable[0] = 8;
+      }  // Pacing 
       else if ((ch9 == 172) && (ch13 == 1811)) {
         main_control_settings.variable[0] = 5;
       }  // Trot run
@@ -142,7 +149,7 @@ void sbus_packet_complete() {
       }  // Pronk
       else if ((ch9 == 172) && (ch13 == 172)) {
         main_control_settings.variable[0] = 1;
-      }  // Bound
+      }  // Bounding
       //main_control_settings.rpy_des[0] = ((float)ch4 - 1000) * .001f;
       //main_control_settings.rpy_des[1] = v_scale * ((float)ch1 - 1000) * .001f;
       //main_control_settings.rpy_des[2] = ((float)ch2 - 1000) * .001f;

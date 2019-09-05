@@ -20,6 +20,7 @@
 #define K_VISION 8
 #define K_BACKFLIP 9
 #define K_TWO_CONTACT_STAND 10
+#define K_JUMP 11
 
 // Specific control states
 #define K_JOINT_PD 11
