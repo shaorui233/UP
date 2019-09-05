@@ -310,6 +310,28 @@ void BalanceControllerVBL::calc_linear_error()
 
 }
 
+bool BalanceControllerVBL::check_constraints_active()
+{
+  for (int leg = 1; leg < 2; leg++) {
+    if (sqrt(xOpt_combined[3*leg]*xOpt_combined[3*leg]) > 0.9*0.7071*mu_friction*xOpt_combined[3*leg+2]) {
+      return true;
+    }
+
+    if (sqrt(xOpt_combined[3*leg+1]*xOpt_combined[3*leg+1]) > 0.9*0.7071*mu_friction*xOpt_combined[3*leg+2]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+double BalanceControllerVBL::get_orientation_error()
+{
+  double norm_error;
+  norm_error = sqrt(orientation_error[0] * orientation_error[0] + orientation_error[1] * orientation_error[1] + orientation_error[2] * orientation_error[2]);
+
+  return norm_error;
+}
+
 
 void BalanceControllerVBL::calc_constraint_check()
 {

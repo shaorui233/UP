@@ -76,6 +76,8 @@ class BalanceControllerVBL
       // Get info to write to data file
       void get_linear_error(double* lin_error_in);
       double get_cost_to_go();
+      double get_orientation_error();
+      bool check_constraints_active();
 
       // Misc
       void verifyModel(double* vbd_command);

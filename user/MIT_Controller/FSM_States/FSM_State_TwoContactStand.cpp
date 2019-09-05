@@ -109,7 +109,7 @@ void FSM_State_TwoContactStand<T>::run() {
   get_desired_state();
 
   // Set Control Parameters
-  balanceControllerVBL.set_friction(0.45);
+  balanceControllerVBL.set_friction(mu_ctrl);
   balanceControllerVBL.set_mass(mass_in);
   refGRF.set_mass(mass_in);
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
@@ -243,8 +243,7 @@ void FSM_State_TwoContactStand<T>::get_model_dynamics() {
 template <typename T>
 void FSM_State_TwoContactStand<T>::get_desired_state() {
   // Prep state
-  p_des[0] = 0.5*pFeet_world[1*3]+0.5*pFeet_world[2*3];
-  p_des[1] = 0.5*pFeet_world[1*3+1]+0.5*pFeet_world[2*3+1];
+  pweight = 0.5;
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
     p_des[2] = 0.4;
   else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
@@ -263,27 +262,38 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[3] = 0;
 
     // To do - increase ability to change state via gamepad
-    rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
-    rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
+    // rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
+    // rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
   }
 
-  // // Cost to go testing - can delete
-  // if (this->_data->userParameters->cmpc_x_drag == 1) {
-  //   contactStateScheduled[0] = 0;
-  //   contactStateScheduled[3] = 0;
-  //   rpy[1] = this->_data->userParameters->cmpc_gait * convert;
+  // Cost to go testing - varying friction test
+  if (this->_data->userParameters->cmpc_x_drag == 1) {
+    contactStateScheduled[0] = 0;
+    contactStateScheduled[3] = 0;
+    mu_ctrl = this->_data->userParameters->cmpc_gait;
+    rpy[0] = this->_data->userParameters->Kd_foot[0] * convert;
+    rpy[1] = this->_data->userParameters->Kd_foot[1] * convert;
+    rpy[2] = this->_data->userParameters->Kd_foot[2] * convert;
 
-  //   // record CTG
-  //   std::ofstream ofile;
-  //   ofile.open("data_log_ctg.csv", std::ios::app);
-  //   ofile << rpy[1] / convert << ", " << balanceControllerVBL.get_cost_to_go() << std::endl; 
-  //   ofile.close();
-  // }
-  // else if (iter > 2000) {
-  //   contactStateScheduled[0] = 0;
-  //   contactStateScheduled[3] = 0;
-  //   rpy[1] = 0.0;
-  // }
+    // record CTG
+    std::ofstream ofile;
+    ofile.open("data_log_nonlin.csv", std::ios::app);
+    // Data: Roll, Pitch, Yaw, Angle axis error, UCTG, friction coeff, SE(1) or CS(2), constraints active
+    ofile << rpy[0] / convert << ", " << rpy[1]  / convert << ", " << rpy[2]  / convert << ", ";
+    ofile << balanceControllerVBL.get_orientation_error() << ", " << balanceControllerVBL.get_cost_to_go() << ", ";
+    ofile << mu_ctrl <<  ", " << this->_data->controlParameters->cheater_mode << ", " << balanceControllerVBL.check_constraints_active() << std::endl; 
+    ofile.close();
+  }
+  else if (iter > 2000) {
+    mu_ctrl = 1.5;
+    contactStateScheduled[0] = 0;
+    contactStateScheduled[3] = 0;
+    rpy[1] = 0.0;
+  }
+
+  // Use pweight to get position
+  p_des[0] = pweight * pFeet_world[1*3] + (1.- pweight) * pFeet_world[2*3];
+  p_des[1] = pweight * pFeet_world[1*3+1] + (1.- pweight) * pFeet_world[2*3+1];
 
 }
 

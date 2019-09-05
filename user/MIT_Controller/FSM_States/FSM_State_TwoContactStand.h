@@ -72,7 +72,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   Vec3<T> q_lift_leg, qd_lift_leg;
 
   // Contact Data
-  double minForce, maxForce;
+  double minForce, maxForce, mu_ctrl = 0.75;
   double minForces[4], maxForces[4];
   double contactStateScheduled[4] = {1, 1, 1, 1};
   Vec4<T> conPhase;
