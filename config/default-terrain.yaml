@@ -37,7 +37,7 @@ ground-plane:
     #depth: 0.45
     #width: 0.6
     #height: .1
-    #position:  [0.025, 0, -0.48]
+    #position:  [2., 0, 0.05]
     #orientation: [0,.0,0]  # roll pitch yaw
     #transparent: 1
 

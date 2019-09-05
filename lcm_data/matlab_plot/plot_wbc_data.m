@@ -1,4 +1,4 @@
-close all5
+close all
 clc
 clear all
 %%
@@ -6,7 +6,7 @@ addpath('./functions')
 %load('./../matlab_log/data_exp_run4.mat')
 % load('./../matlab_log/data_exp_run5_freq.mat')
 %load('./../matlab_log/sim_data.mat')
-load('./../matlab_log/exp_dyn_13.mat')
+load('./../matlab_log/run_3.mat')
 % load('./../matlab_log/hallway2.mat')
 % load('./../matlab_log/sim_data.mat')
 % load('./../matlab_log/exp_hallway.mat')
