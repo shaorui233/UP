@@ -58,8 +58,12 @@ class FSM_State_Vision : public FSM_State<T> {
   lcm::LCM _visionLCM;
   std::thread _visionLCMThread;
 
+  vectorAligned< Vec3<T> > _obs_list; // loc, height
+
+  void _UpdateObstacle();
   void _LocomotionControlStep(const Vec3<T> & vel_cmd);
   void _UpdateVelCommand(Vec3<T> & vel_cmd);
+  void _Visualization(const Vec3<T> & des_vel);
 };
 
 #endif  // FSM_STATE_LOCOMOTION_H

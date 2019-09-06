@@ -94,8 +94,57 @@ template <typename T>
 void FSM_State_Vision<T>::run() {
   // Call the locomotion control logic for this iteration
   Vec3<T> des_vel; // x,y, yaw
+  _UpdateObstacle();
   _UpdateVelCommand(des_vel);
   _LocomotionControlStep(des_vel);
+  _Visualization(des_vel);
+}
+template <typename T>
+void FSM_State_Vision<T>::_UpdateObstacle(){
+  _obs_list.clear();
+  Vec3<T> test1; test1<< 0.7, 0.12, 0.4;
+  _obs_list.push_back(test1);
+}
+
+template <typename T>
+void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
+  auto* arrow = this->_data->visualizationData->addArrow();
+  arrow->base_position = (this->_data->_stateEstimator->getResult()).position;
+  arrow->direction = des_vel;
+  arrow->color << 1.0, 0.2, 0.2, 1.;
+  arrow->head_width = 0.04;
+  arrow->head_length = 0.05;
+  arrow->shaft_width = 0.01;
+
+
+
+  auto* mesh = this->_data->visualizationData->addMesh();
+  mesh->left_corner.setZero(); // = (this->_data->_stateEstimator->getResult()).position;
+  mesh->left_corner[1] = -0.5;
+
+  mesh->rows = 100;
+  mesh->cols = 100;
+  mesh->grid_size = 0.01;
+  mesh->height_max = 0.5;
+  mesh->height_min = -0.05;
+
+  T x, y;
+  T x_obs, y_obs;
+  T sigma(0.15);
+  T height(0.5);
+  for(int i(0); i<mesh->rows; ++i){
+    for(int j(0); j<mesh->cols; ++j){
+      for(size_t obs(0); obs < _obs_list.size(); ++obs){
+        x = i*mesh->grid_size + mesh->left_corner[0]; 
+        y = j*mesh->grid_size + mesh->left_corner[1]; 
+        x_obs = _obs_list[obs][0];
+        y_obs = _obs_list[obs][1];
+        T inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
+        mesh->height_map(i,j) = exp(-inerproduct/(2*sigma*sigma)) * height;
+      }
+    }
+  }
+
 }
 
 template <typename T>
@@ -106,7 +155,7 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   target_pos.setZero();
 
-  T moving_time = 7.0;
+  T moving_time = 10.0;
   T curr_time = (T)iter * 0.002;
   //if(curr_time > moving_time){
     //curr_time = moving_time;
@@ -121,6 +170,30 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
  
   des_vel[0] = 1.0 * (target_pos[0] - curr_pos[0]);
   des_vel[1] = 1.0 * (target_pos[1] - curr_pos[1]);
+
+  //des_vel[0] = 0.5;
+  T inerproduct;
+  T x, y, x_obs, y_obs;
+  T vel_x, vel_y;
+  T sigma(0.15);
+  T h(0.5);
+  for(size_t i(0); i<_obs_list.size(); ++i){
+    x = curr_pos[0];
+    y = curr_pos[1];
+    x_obs = _obs_list[i][0];
+    y_obs = _obs_list[i][1];
+    inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
+    vel_x = h*((x-x_obs)/ sigma/sigma)*exp(-inerproduct/(2*sigma*sigma));
+    vel_y = h*((y-y_obs)/ sigma/sigma)*exp(-inerproduct/(2*sigma*sigma));
+    //printf("vel_x, y: %f, %f\n", vel_x, vel_y);
+
+    des_vel[0] += vel_x;
+    des_vel[1] += vel_y;
+  }
+  //printf("des vel_x, y: %f, %f\n", des_vel[0], des_vel[1]);
+
+  des_vel[0] = fminf(fmaxf(des_vel[0], -1.), 1.);
+  des_vel[1] = fminf(fmaxf(des_vel[1], -1.), 1.);
 
 }
  
