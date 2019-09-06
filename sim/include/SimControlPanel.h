@@ -20,6 +20,8 @@
 #include "rs_pointcloud_t.hpp"
 #include "heightmap_t.hpp"
 #include "traversability_map_t.hpp"
+#include "obstacle_visual_t.hpp"
+#include "velocity_visual_t.hpp"
 
 namespace Ui {
 class SimControlPanel;
@@ -116,21 +118,33 @@ public slots:
   std::string _terrainFileName;
 
   // Vision data Drawing
-  void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const heightmap_t* msg);
+  void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const heightmap_t* msg);
   void heightmapLCMThread() { while (true) { _heightmapLCM.handle(); } }
 
-  void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const rs_pointcloud_t* msg);
+  void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const rs_pointcloud_t* msg);
   void pointsLCMThread() { while (true) { _pointsLCM.handle(); } }
 
-  void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const traversability_map_t* msg);
+  void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const traversability_map_t* msg);
   void indexmapLCMThread() { while (true) { _indexmapLCM.handle(); } }
+
+  void handleObstacleLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const obstacle_visual_t* msg);
+  void handleVelocityCMDLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const velocity_visual_t* msg);
+  void ctrlVisionLCMThread(){ while(true){ _ctrlVisionLCM.handle();  } }
 
   lcm::LCM _heightmapLCM;
   lcm::LCM _pointsLCM;
   lcm::LCM _indexmapLCM;
+  lcm::LCM _ctrlVisionLCM;
+
   std::thread _pointsLCMThread;
   std::thread _heightmapLCMThread;
   std::thread _indexmapLCMThread;
+  std::thread _ctrlVisionLCMThread;
 };
 
 #endif  // SIMCONTROLPANEL_H

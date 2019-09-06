@@ -1,0 +1,7 @@
+struct obstacle_visual_t
+{
+  double location[100][2];
+  double sigma;
+  double height;
+  double mesh_center_pos[3];
+}

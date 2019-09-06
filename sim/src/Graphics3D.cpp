@@ -586,7 +586,15 @@ void Graphics3D::_drawMesh(MeshVisualization &mesh) {
   glPopAttrib();
 }
 
-
+void Graphics3D::_drawVelArrow(){
+  //glEnable(GL_BLEND);
+  //glDisable(GL_BLEND);
+  //glPushAttrib(GL_COLOR_BUFFER_BIT);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glColor4f(1.f, 0.f, 0.f, 1.0f);
+  _drawArrow(_vel_cmd_pos, _vel_cmd_dir, 0.01, 0.03, 0.055);
+  //glPopAttrib();
+}
 void Graphics3D::_drawHeightMap() {
 
   glPushMatrix();
@@ -831,6 +839,8 @@ void Graphics3D::_Additional_Drawing(int pass) {
     _drawSphere(_drawList._visualizationData->spheres[i]);
   }
 
+  if(_vel_cmd_update){ _drawVelArrow(); }
+
   // Pointcloud Drawing
   if(_pointcloud_data_update){
     int num_skip = 5;
@@ -850,26 +860,7 @@ void Graphics3D::_Additional_Drawing(int pass) {
     _drawMesh(_drawList._visualizationData->meshes[i]);
   }
   // Heightmap Drawing
-  if(_heightmap_data_update){
-    _drawHeightMap();
-    //MeshVisualization mesh;
-
-    //mesh.left_corner.setZero();
-    //mesh.left_corner[0] = -0.75 + _pos[0];
-    //mesh.left_corner[1] = -0.75 + _pos[1];
-    //mesh.rows = x_size;
-    //mesh.cols = y_size;
-    //mesh.grid_size = 0.015;
-    //mesh.height_max = 0.7;
-    //mesh.height_min = 0.;
-
-    //for(int i(0); i<mesh.rows; ++i){
-      //for(int j(0); j<mesh.cols; ++j){
-        //mesh.height_map(i,j) = _map(i,j);
-      //}
-    //}
-    //_drawMesh(mesh);
-  }
+  if(_heightmap_data_update){ _drawHeightMap(); }
 
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {

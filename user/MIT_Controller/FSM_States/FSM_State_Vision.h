@@ -7,6 +7,7 @@
 #include <lcm-cpp.hpp>
 #include "heightmap_t.hpp"
 #include "traversability_map_t.hpp"
+#include "velocity_visual_t.hpp"
 
 template<typename T> class WBC_Ctrl;
 template<typename T> class LocomotionCtrlData;

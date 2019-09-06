@@ -97,8 +97,36 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _indexmapLCM.subscribe("traversability", &SimControlPanel::handleIndexmapLCM, this);
   _indexmapLCMThread = std::thread(&SimControlPanel::indexmapLCMThread, this);
 
+  _ctrlVisionLCM.subscribe("velocity_cmd", &SimControlPanel::handleVelocityCMDLCM, this);
+  _ctrlVisionLCM.subscribe("obstacle_visual", &SimControlPanel::handleObstacleLCM, this);
+  _ctrlVisionLCMThread = std::thread(&SimControlPanel::ctrlVisionLCMThread, this);
+
 }
 
+void SimControlPanel::handleVelocityCMDLCM(const lcm::ReceiveBuffer* rbuf, 
+    const std::string & chan,
+    const velocity_visual_t* msg){
+  (void)rbuf;
+  (void)chan;
+ 
+  if(_graphicsWindow){
+    for(size_t i(0); i<3; ++i){
+      _graphicsWindow->_vel_cmd_dir[i] = msg->vel_cmd[i];
+      _graphicsWindow->_vel_cmd_pos[i] = msg->base_position[i];
+    }
+    _graphicsWindow->_vel_cmd_update = true;
+  }
+}
+
+void SimControlPanel::handleObstacleLCM(const lcm::ReceiveBuffer* rbuf, 
+    const std::string & chan,
+    const obstacle_visual_t* msg){
+  (void)rbuf;
+  (void)chan;
+  (void)msg;
+  
+  
+}
 void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
                                       const std::string &chan,
                                       const rs_pointcloud_t*msg) {

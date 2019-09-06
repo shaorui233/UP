@@ -108,15 +108,21 @@ void FSM_State_Vision<T>::_UpdateObstacle(){
 
 template <typename T>
 void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
-  auto* arrow = this->_data->visualizationData->addArrow();
-  arrow->base_position = (this->_data->_stateEstimator->getResult()).position;
-  arrow->direction = des_vel;
-  arrow->color << 1.0, 0.2, 0.2, 1.;
-  arrow->head_width = 0.04;
-  arrow->head_length = 0.05;
-  arrow->shaft_width = 0.01;
+  //auto* arrow = this->_data->visualizationData->addArrow();
+  //arrow->base_position = (this->_data->_stateEstimator->getResult()).position;
+  //arrow->direction = des_vel;
+  //arrow->color << 1.0, 0.2, 0.2, 1.;
+  //arrow->head_width = 0.04;
+  //arrow->head_length = 0.05;
+  //arrow->shaft_width = 0.01;
 
-
+  velocity_visual_t vel_visual;
+  for(size_t i(0); i<3; ++i){
+    vel_visual.vel_cmd[i] = des_vel[i];
+    vel_visual.base_position[i] = (this->_data->_stateEstimator->getResult()).position[i];
+  }
+  _visionLCM.publish("velocity_cmd", &vel_visual);
+  
 
   auto* mesh = this->_data->visualizationData->addMesh();
   mesh->left_corner.setZero(); // = (this->_data->_stateEstimator->getResult()).position;
