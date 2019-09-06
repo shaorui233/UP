@@ -2,6 +2,9 @@
 #define FSM_STATE_BACKFLIP_H
 
 #include "FSM_State.h"
+#include <Controllers/BackFlip/DataReader.hpp>
+#include <Controllers/BackFlip/BackFlipCtrl.hpp>
+
 
 /**
  *
@@ -48,6 +51,34 @@ class FSM_State_BackFlip : public FSM_State<T> {
   void _SetJPosInterPts(
       const size_t & curr_iter, size_t max_iter, int leg, 
       const Vec3<T> & ini, const Vec3<T> & fin);
+
+
+
+  // New
+  DataReader* _data_reader;
+  bool _b_running = true;
+  bool _b_first_visit = true;
+  int _count = 0;
+  int _waiting_count = 6;
+  float _curr_time = 0;
+
+  BackFlipCtrl<T>* backflip_ctrl_;
+
+  void SetTestParameter(const std::string& test_file);
+  bool _Initialization();
+  void ComputeCommand();
+
+
+  // From Cheetah_Data  
+  double ang_vel[3], body_ori[4], jpos[12], jvel[12];
+  bool foot_contact[4];
+  double dir_command[2], ori_command[3];
+
+  double global_body_pos[3];
+
+  int mode;
+  bool cheater_mode;
+
 
 };
 

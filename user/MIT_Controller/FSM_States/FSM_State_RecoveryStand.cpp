@@ -251,6 +251,11 @@ FSM_StateName FSM_State_RecoveryStand<T>::checkTransition() {
       this->nextStateName = FSM_StateName::TWO_CONTACT_STAND;
       break;
 
+    case K_BACKFLIP: 
+      this->nextStateName = FSM_StateName::BACKFLIP;
+      break;
+
+
     case K_VISION: 
       this->nextStateName = FSM_StateName::VISION;
       break;
@@ -292,6 +297,10 @@ TransitionData<T> FSM_State_RecoveryStand<T>::transition() {
       break;
 
     case FSM_StateName::TWO_CONTACT_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::BACKFLIP:
       this->transitionData.done = true;
       break;
 

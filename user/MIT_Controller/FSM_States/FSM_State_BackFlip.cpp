@@ -6,6 +6,7 @@
 
 #include "FSM_State_BackFlip.h"
 #include <Utilities/Utilities_print.h>
+#include <ParamHandler/ParamHandler.hpp>
 
 
 /**
@@ -27,7 +28,24 @@ FSM_State_BackFlip<T>::FSM_State_BackFlip(ControlFSMData<T>* _controlFSMData)
 
   zero_vec3.setZero();
   f_ff << 0.f, 0.f, -25.f;
+
+
+
+  // From BackFlip Test Constructor
+  _data_reader = new DataReader(this->_data->_quadruped->_robotType);
+
+  backflip_ctrl_ = new BackFlipCtrl<T>(_controlFSMData->_quadruped->buildModel(), _data_reader, this->_data->controlParameters->controller_dt);
+
+  if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
+    backflip_ctrl_->SetTestParameter("user/WBC_Controller/config/TEST_backflip_cheetah3.yaml");
+  else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
+    backflip_ctrl_->SetTestParameter("user/WBC_Controller/config/TEST_backflip_mini_cheetah.yaml");
+  else {
+    printf("[Body Ctrl Test] Invalid robot type\n");
+  }
+
 }
+
 
 template <typename T>
 void FSM_State_BackFlip<T>::onEnter() {
@@ -54,8 +72,70 @@ void FSM_State_BackFlip<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_BackFlip<T>::run() {
-  ++_state_iter;
+  // Set the desired joint positions for the robot before jumping (not sure about this)
+  for (int leg = 0; leg < 4; ++leg) {
+    jpos[3 * leg] = 0.0;
+    jpos[3 * leg + 1] = -0.8;
+    jpos[3 *leg + 2] = 1.64;
+  }
+
+// Command Computation
+  if (_b_running) {
+    if (!_Initialization()) {
+      ComputeCommand();
+    }
+  } else {
+    //_SafeCommand(data, command); - need to add
+  }
+
+  // Note: not sure what to do after robot lands...
+
+  ++_count;
+  _curr_time += this->_data->controlParameters->controller_dt;
+
 }
+
+
+template <typename T>
+bool FSM_State_BackFlip<T>::_Initialization() {
+  static bool test_initialized(false);
+  if (!test_initialized) {
+    //_TestInitialization();
+    backflip_ctrl_->CtrlInitialization("CTRL_backflip");
+    test_initialized = true;
+    printf("[Cheetah Test] Test initialization is done\n");
+  }
+  if (_count < _waiting_count) {
+    for (int leg = 0; leg < 4; ++leg) {
+      for (int jidx = 0; jidx < 3; ++jidx) {
+        this->_data->_legController->commands[leg].tauFeedForward[jidx] = 0.;
+        this->_data->_legController->commands[leg].qDes[jidx] = jpos[3 * leg + jidx];
+        this->_data->_legController->commands[leg].qdDes[jidx] = 0.;
+        this->_data->_legController->commands[leg].kpJoint(jidx,jidx) = 20.; // get from control parameters?
+        this->_data->_legController->commands[leg].kdJoint(jidx,jidx) = 2.;
+      }
+    }
+    return true;
+  }
+  
+  return false;
+}
+
+template <typename T>
+void FSM_State_BackFlip<T>::ComputeCommand() {
+  if (_b_first_visit) {
+    backflip_ctrl_->FirstVisit(_curr_time);
+    _b_first_visit = false;
+  }
+
+  backflip_ctrl_->OneStep(_curr_time, this->_data->_legController->commands);
+
+  if (backflip_ctrl_->EndOfPhase(this->_data->_legController->datas)) {
+    backflip_ctrl_->LastVisit();
+    _b_first_visit = true;
+  }
+}
+
 
 template <typename T>
 void FSM_State_BackFlip<T>::_SetJPosInterPts(
@@ -159,6 +239,10 @@ TransitionData<T> FSM_State_BackFlip<T>::transition() {
       break;
 
     case FSM_StateName::BOUNDING:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::RECOVERY_STAND:
       this->transitionData.done = true;
       break;
 
