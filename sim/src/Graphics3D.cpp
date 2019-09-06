@@ -595,6 +595,37 @@ void Graphics3D::_drawVelArrow(){
   _drawArrow(_vel_cmd_pos, _vel_cmd_dir, 0.01, 0.03, 0.055);
   //glPopAttrib();
 }
+
+void Graphics3D::_drawObstacleField() {
+  MeshVisualization mesh;
+  double x_obs, y_obs, z_obs, x, y, Prod;
+  double grid_size = 0.01;
+  int num_grid = floor(_obs_sigma*4/grid_size);
+  mesh.grid_size = grid_size;
+  mesh.height_max = _obs_height;
+  mesh.height_min = -0.01;
+
+  for(size_t i(0); i<_obs_list.size(); ++i){
+    x_obs = _obs_list[i][0];
+    y_obs = _obs_list[i][1];
+    z_obs = _obs_list[i][2];
+
+    mesh.left_corner[0] = x_obs - _obs_sigma*2;
+    mesh.left_corner[1] = y_obs - _obs_sigma*2;
+    mesh.left_corner[2] = z_obs;
+
+    for(int row(0); row<num_grid; ++row){
+      for(int col(0); col<num_grid; ++col){
+        x = row* mesh.grid_size + mesh.left_corner[0];
+        y = col* mesh.grid_size + mesh.left_corner[1];
+        Prod = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs); 
+        mesh.height_map(row, col) = exp(-Prod/(2*_obs_sigma*_obs_sigma))*_obs_height;
+      }
+    }
+    _drawMesh(mesh);
+  }
+}
+
 void Graphics3D::_drawHeightMap() {
 
   glPushMatrix();
@@ -861,6 +892,7 @@ void Graphics3D::_Additional_Drawing(int pass) {
   }
   // Heightmap Drawing
   if(_heightmap_data_update){ _drawHeightMap(); }
+  //if(_obstacle_update){ _drawObstacleField(); }
 
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {

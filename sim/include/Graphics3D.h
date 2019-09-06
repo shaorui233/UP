@@ -188,8 +188,14 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   Vec3<float> _vel_cmd_dir, _vel_cmd_pos;
   bool _vel_cmd_update = false;
 
+  vectorAligned< Vec3<double> > _obs_list;
+  float _obs_sigma;
+  float _obs_height;
+  bool _obstacle_update = false;
+
   void _drawHeightMap();
   void _drawVelArrow();
+  void _drawObstacleField();
 };
 
 #endif  // PROJECT_GRAPHICS3D_H

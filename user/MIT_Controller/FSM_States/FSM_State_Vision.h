@@ -8,6 +8,7 @@
 #include "heightmap_t.hpp"
 #include "traversability_map_t.hpp"
 #include "velocity_visual_t.hpp"
+#include "obstacle_visual_t.hpp"
 
 template<typename T> class WBC_Ctrl;
 template<typename T> class LocomotionCtrlData;
@@ -60,6 +61,7 @@ class FSM_State_Vision : public FSM_State<T> {
   std::thread _visionLCMThread;
 
   vectorAligned< Vec3<T> > _obs_list; // loc, height
+  obstacle_visual_t _obs_visual_lcm;
 
   void _UpdateObstacle();
   void _LocomotionControlStep(const Vec3<T> & vel_cmd);
