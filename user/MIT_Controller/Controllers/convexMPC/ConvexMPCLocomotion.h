@@ -72,7 +72,7 @@ private:
   // High speed running
   //float _body_height = 0.34;
   
-  float _body_height = 0.30;
+  float _body_height = 0.29;
 
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);
   void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);
