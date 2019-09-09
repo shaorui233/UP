@@ -1,7 +1,6 @@
 #ifndef BACKFLIP_CTRL
 #define BACKFLIP_CTRL
 
-#include <ParamHandler/ParamHandler.hpp>
 #include <Controllers/BackFlip/DataReader.hpp>
 #include <Dynamics/FloatingBaseModel.h>
 #include <Controllers/LegController.h>
@@ -16,9 +15,7 @@ class BackFlipCtrl {
   void FirstVisit(float _curr_time);
   void LastVisit();
   bool EndOfPhase(LegControllerData<T>* data);
-
-  void CtrlInitialization(const std::string& category_name);
-  void SetTestParameter(const std::string& test_file);
+  void SetParameter();
 
   DMat<T> _A;
   DMat<T> _Ainv;
@@ -44,12 +41,11 @@ class BackFlipCtrl {
   void _update_joint_command();
 
   T _ctrl_start_time;
-  T _q_knee_max;
-  T _qdot_knee_max;
+  T _q_knee_max = 2.0;
+  T _qdot_knee_max = 2.0;
 
   T _state_machine_time;
 
-  ParamHandler* _param_handler;
   FloatingBaseModel<T> _model;
 
   int current_iteration, pre_mode_count;

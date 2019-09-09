@@ -1,16 +1,5 @@
 #include "BackFlipCtrl.hpp"
 
-// #include <WBC_States/Cheetah_DynaCtrl_Definition.h>
-// #include <WBC_States/StateProvider.hpp>
-// #include <WBC_States/common/ContactSet/SingleContact.hpp>
-// #include <WBC_States/common/TaskSet/BodyOriTask.hpp>
-// #include <WBC_States/common/TaskSet/BodyPosTask.hpp>
-// #include <WBC_States/common/TaskSet/LinkPosTask.hpp>
-
-#include <ParamHandler/ParamHandler.hpp>
-// #include <WBC/WBLC/KinWBC.hpp>
-// #include <WBC/WBLC/WBLC.hpp>
-// #include <WBC_States/Test.hpp>
 
 template <typename T>
 BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T> robot,
@@ -29,20 +18,11 @@ BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T> robot,
   _Kp_joint.resize(3);
   _Kd_joint.resize(3);
 
-
-  // This should be done in the setTestParameters? Or using the controler parameters yaml?
-  for(int i=0; i<3; i++){
-    _Kp_joint[i]=20.0;
-    _Kd_joint[i]=2.0;
-  }
-
 }
 
 
 template <typename T>
-BackFlipCtrl<T>::~BackFlipCtrl() {
-  delete _param_handler;
-}
+BackFlipCtrl<T>::~BackFlipCtrl() {}
 
 template <typename T>
 void BackFlipCtrl<T>::OneStep(float _curr_time, LegControllerCommand<T>* command) {
@@ -152,10 +132,6 @@ void BackFlipCtrl<T>::_update_joint_command() {
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
 
-    // for(int i=0; i<3; i++){
-    // 	_Kp_joint[i]=20.0;
-    // 	_Kd_joint[i]=2.0;
-    // }
   }
 
   // Abduction
@@ -234,32 +210,14 @@ bool BackFlipCtrl<T>::EndOfPhase(LegControllerData<T>* data) {
 }
 
 template <typename T>
-void BackFlipCtrl<T>::CtrlInitialization(const std::string& category_name) {
-  // Not working
-  _param_handler->getValue<T>(category_name, "q_knee_max", _q_knee_max);
-  _param_handler->getValue<T>(category_name, "qdot_knee_max", _qdot_knee_max);
-
-  _q_knee_max = 2.0;
-  _qdot_knee_max = 2.0;
-}
-
-template <typename T>
-void BackFlipCtrl<T>::SetTestParameter(const std::string& test_file) {
-  _param_handler = new ParamHandler(test_file);
-
-  std::vector<T> tmp_vec;
-  // Feedback Gain
-  _param_handler->getVector<T>("Kp", tmp_vec);
-  for (size_t i(0); i < tmp_vec.size(); ++i) {
-    _Kp[i] = tmp_vec[i];
+void BackFlipCtrl<T>::SetParameter() {
+  for (int i = 0;i < 12;i++) {
+    _Kp[i] = 1000;
+    _Kd[i] = 5.;
   }
-  _param_handler->getVector<T>("Kd", tmp_vec);
-  for (size_t i(0); i < tmp_vec.size(); ++i) {
-    _Kd[i] = tmp_vec[i];
-  }
-  // Joint level feedback gain
-  _param_handler->getVector<T>("Kp_joint_backflip", _Kp_joint);
-  _param_handler->getVector<T>("Kd_joint_backflip", _Kd_joint);
+
+  _Kp_joint = {20.0, 20.0, 20.0};
+  _Kd_joint = {2.0, 2.0, 2.0};
 
 }
 

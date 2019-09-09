@@ -6,7 +6,6 @@
 
 #include "FSM_State_BackFlip.h"
 #include <Utilities/Utilities_print.h>
-#include <ParamHandler/ParamHandler.hpp>
 
 
 /**
@@ -29,17 +28,10 @@ FSM_State_BackFlip<T>::FSM_State_BackFlip(ControlFSMData<T>* _controlFSMData)
   zero_vec3.setZero();
   f_ff << 0.f, 0.f, -25.f;
 
-  // From BackFlip Test Constructor
   _data_reader = new DataReader(this->_data->_quadruped->_robotType);
 
   backflip_ctrl_ = new BackFlipCtrl<T>(_controlFSMData->_quadruped->buildModel(), _data_reader, this->_data->controlParameters->controller_dt);
-
-  if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
-    backflip_ctrl_->SetTestParameter("user/WBC_Controller/WBC_States/config/TEST_backflip_cheetah3.yaml");
-  else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
-    backflip_ctrl_->SetTestParameter("user/WBC_Controller/WBC_States/config/TEST_backflip_mini_cheetah.yaml");
-  else
-    printf("[Body Ctrl Test] Invalid robot type\n");
+  backflip_ctrl_->SetParameter();
 
 }
 
@@ -82,8 +74,6 @@ void FSM_State_BackFlip<T>::run() {
     _SafeCommand();
   }
 
-  // Note: not sure what to do after robot lands...
-
   ++_count;
   _curr_time += this->_data->controlParameters->controller_dt;
 
@@ -91,11 +81,9 @@ void FSM_State_BackFlip<T>::run() {
 
 
 template <typename T>
-bool FSM_State_BackFlip<T>::_Initialization() {
+bool FSM_State_BackFlip<T>::_Initialization() { // do away with this?
   static bool test_initialized(false);
   if (!test_initialized) {
-    //_TestInitialization();
-    backflip_ctrl_->CtrlInitialization("CTRL_backflip"); // not working
     test_initialized = true;
     printf("[Cheetah Test] Test initialization is done\n");
   }
@@ -126,7 +114,6 @@ void FSM_State_BackFlip<T>::ComputeCommand() {
 
   if (backflip_ctrl_->EndOfPhase(this->_data->_legController->datas)) {
     backflip_ctrl_->LastVisit();
-    // here is where we should we switching to next phase.. but what is that?
   }
 }
 
