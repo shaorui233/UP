@@ -126,37 +126,7 @@ void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
   _obs_visual_lcm.sigma = 0.15;
   _obs_visual_lcm.height = 0.5;
 
-
   _visionLCM.publish("obstacle_visual", &_obs_visual_lcm);
-
-
-  //auto* mesh = this->_data->visualizationData->addMesh();
-  //mesh->left_corner.setZero(); // = (this->_data->_stateEstimator->getResult()).position;
-  //mesh->left_corner[1] = -0.5;
-
-  //mesh->rows = 100;
-  //mesh->cols = 100;
-  //mesh->grid_size = 0.01;
-  //mesh->height_max = 0.5;
-  //mesh->height_min = -0.05;
-
-  //T x, y;
-  //T x_obs, y_obs;
-  //T sigma(0.15);
-  //T height(0.5);
-  //for(int i(0); i<mesh->rows; ++i){
-    //for(int j(0); j<mesh->cols; ++j){
-      //for(size_t obs(0); obs < _obs_list.size(); ++obs){
-        //x = i*mesh->grid_size + mesh->left_corner[0]; 
-        //y = j*mesh->grid_size + mesh->left_corner[1]; 
-        //x_obs = _obs_list[obs][0];
-        //y_obs = _obs_list[obs][1];
-        //T inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
-        //mesh->height_map(i,j) = exp(-inerproduct/(2*sigma*sigma)) * height;
-      //}
-    //}
-  //}
-
 }
 
 template <typename T>

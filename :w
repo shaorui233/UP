@@ -7,9 +7,9 @@ BackFlipCtrl<T>::BackFlipCtrl(DataReader* data_reader,
 
 	_data_reader = data_reader;
 	dt = _dt;
-  _key_pt_step = ceil(dt*1000);
 
-printf("dt: %f, step:%d\n", dt, _key_pt_step);
+  _key_pt_step = ceil(dt*10);
+  printf("****************%d\n",_key_pt_step);
   _Kp.resize(12);
   _Kd.resize(12);
   _des_jpos.resize(12);
@@ -25,10 +25,9 @@ template <typename T>
 BackFlipCtrl<T>::~BackFlipCtrl() {}
 
 template <typename T>
-void BackFlipCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControllerCommand<T>* command) {
+void BackFlipCtrl<T>::OneStep(float _curr_time, LegControllerCommand<T>* command) {
   _state_machine_time = _curr_time - _ctrl_start_time;
 
-  _b_BackFlipPreparation = b_preparation;
   _update_joint_command();
 
   for (int leg = 0; leg < 4; ++leg) {
@@ -54,7 +53,7 @@ void BackFlipCtrl<T>::_update_joint_command() {
   _des_jvel.setZero();
   _jtorque.setZero();
 
-  if ( (pre_mode_count <  pre_mode_duration) || _b_BackFlipPreparation) {  
+  if (pre_mode_count <  pre_mode_duration) {  
     // move to the initial configuration to prepare for
     // backfliping
     if (pre_mode_count == 0) {
@@ -62,6 +61,8 @@ void BackFlipCtrl<T>::_update_joint_command() {
     }
     // printf("pre_mode_count: %d \n", pre_mode_count);
     
+ // Update 1kHz 
+    //pre_mode_count++;
     pre_mode_count += _key_pt_step;
     current_iteration = 0;
     tau_mult = 0;
@@ -103,6 +104,8 @@ void BackFlipCtrl<T>::_update_joint_command() {
 
     s = (float)(current_iteration - tuck_iteration) /
         (ramp_end_iteration - tuck_iteration);
+
+    // printf("tuck ramping phase s: %f \n",s);
 
     if (s > 1) {
       s = 1;

@@ -6,6 +6,7 @@
 
 #include "FSM_State_BackFlip.h"
 #include <Utilities/Utilities_print.h>
+#include <rt/rt_interface_lcm.h>
 
 
 /**
@@ -30,7 +31,7 @@ FSM_State_BackFlip<T>::FSM_State_BackFlip(ControlFSMData<T>* _controlFSMData)
 
   _data_reader = new DataReader(this->_data->_quadruped->_robotType);
 
-  backflip_ctrl_ = new BackFlipCtrl<T>(_controlFSMData->_quadruped->buildModel(), _data_reader, this->_data->controlParameters->controller_dt);
+  backflip_ctrl_ = new BackFlipCtrl<T>(_data_reader, this->_data->controlParameters->controller_dt);
   backflip_ctrl_->SetParameter();
 
 }
@@ -110,7 +111,16 @@ void FSM_State_BackFlip<T>::ComputeCommand() {
     _b_first_visit = false;
   }
 
-  backflip_ctrl_->OneStep(_curr_time, this->_data->_legController->commands);
+  if(this->_data->controlParameters->use_rc){
+    if(this->_data->_desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
+      backflip_ctrl_->OneStep(_curr_time, true, this->_data->_legController->commands);
+    }else{
+      backflip_ctrl_->OneStep(_curr_time, false, this->_data->_legController->commands);
+    }
+
+  }else{
+    backflip_ctrl_->OneStep(_curr_time, false, this->_data->_legController->commands);
+  }
 
   if (backflip_ctrl_->EndOfPhase(this->_data->_legController->datas)) {
     backflip_ctrl_->LastVisit();

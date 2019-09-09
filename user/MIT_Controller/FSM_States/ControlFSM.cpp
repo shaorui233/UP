@@ -106,6 +106,9 @@ void ControlFSM<T>::runFSM() {
       data.controlParameters->control_mode = K_BALANCE_STAND;
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
       data.controlParameters->control_mode = K_VISION;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
+        data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
+      data.controlParameters->control_mode = K_BACKFLIP;
     }
     //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
   }

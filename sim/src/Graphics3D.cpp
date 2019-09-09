@@ -600,10 +600,13 @@ void Graphics3D::_drawObstacleField() {
   MeshVisualization mesh;
   double x_obs, y_obs, z_obs, x, y, Prod;
   double grid_size = 0.01;
-  int num_grid = floor(_obs_sigma*4/grid_size);
+  int num_grid = floor(_obs_sigma*5/grid_size);
+
   mesh.grid_size = grid_size;
   mesh.height_max = _obs_height;
   mesh.height_min = -0.01;
+  mesh.rows = num_grid;
+  mesh.cols = num_grid;
 
   for(size_t i(0); i<_obs_list.size(); ++i){
     x_obs = _obs_list[i][0];
@@ -886,14 +889,12 @@ void Graphics3D::_Additional_Drawing(int pass) {
 
 
   glDisable(GL_BLEND);
-
   for (size_t i(0); i< _drawList._visualizationData->num_meshes; ++i){
     _drawMesh(_drawList._visualizationData->meshes[i]);
   }
   // Heightmap Drawing
   if(_heightmap_data_update){ _drawHeightMap(); }
-  //if(_obstacle_update){ _drawObstacleField(); }
-
+  if(_obstacle_update){ _drawObstacleField(); }
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
     PathVisualization path = _drawList._visualizationData->paths[i];

@@ -23,8 +23,8 @@
 #define K_JUMP 11
 
 // Specific control states
-#define K_JOINT_PD 11
-#define K_IMPEDANCE_CONTROL 12
+#define K_JOINT_PD 51
+#define K_IMPEDANCE_CONTROL 52
 
 #define K_INVALID 100
 

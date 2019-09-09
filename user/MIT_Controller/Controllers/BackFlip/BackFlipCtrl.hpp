@@ -8,19 +8,14 @@
 template <typename T>
 class BackFlipCtrl {
  public:
-  BackFlipCtrl(const FloatingBaseModel<T>, DataReader*, float _dt);
+  BackFlipCtrl(DataReader*, float _dt);
   ~BackFlipCtrl();
 
-  void OneStep(float _curr_time, LegControllerCommand<T>* command);
+  void OneStep(float _curr_time, bool b_preparation, LegControllerCommand<T>* command);
   void FirstVisit(float _curr_time);
   void LastVisit();
   bool EndOfPhase(LegControllerData<T>* data);
   void SetParameter();
-
-  DMat<T> _A;
-  DMat<T> _Ainv;
-  DVec<T> _grav;
-  DVec<T> _coriolis;
 
  protected:
   DataReader* _data_reader;
@@ -34,6 +29,8 @@ class BackFlipCtrl {
 
   std::vector<T> _Kp_joint, _Kd_joint;
 
+  bool _b_BackFlipPreparation = false;
+
   bool _b_set_height_target;
   T _end_time = 5.5;
   int _dim_contact;
@@ -46,23 +43,8 @@ class BackFlipCtrl {
 
   T _state_machine_time;
 
-  FloatingBaseModel<T> _model;
-
+  int _key_pt_step = 1;
   int current_iteration, pre_mode_count;
-
-  void _PreProcessing_Command() {
-    _A = _model.getMassMatrix();
-    _grav = _model.getGravityForce();
-    _coriolis = _model.getCoriolisForce();
-    _Ainv = _A.inverse();
-  }
-
-  void _PostProcessing_Command() {
-    // for(size_t i(0); i<_task_list.size(); ++i){ _task_list[i]->UnsetTask(); }
-    // for(size_t i(0); i<_contact_list.size(); ++i){
-    // _contact_list[i]->UnsetContact(); }
-  }
-
 };
 
 #endif

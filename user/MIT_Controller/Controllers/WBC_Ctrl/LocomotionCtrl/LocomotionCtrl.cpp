@@ -211,10 +211,13 @@ void LocomotionCtrl<T>::_LCM_PublishData() {
     WBCtrl::_wbc_data_lcm.body_vel_cmd[i] = _input_data->vBody_des[i];
     WBCtrl::_wbc_data_lcm.body_ori_cmd[i] = _quat_des[i];
 
-    WBCtrl::_wbc_data_lcm.body_pos[i] = WBCtrl::_state.bodyPosition[i];
-    WBCtrl::_wbc_data_lcm.body_vel[i] = WBCtrl::_state.bodyVelocity[i+3];
-    WBCtrl::_wbc_data_lcm.body_ori[i] = WBCtrl::_state.bodyOrientation[i];
+    Quat<T> quat = WBCtrl::_state.bodyOrientation;
+    Mat3<T> Rot = ori::quaternionToRotationMatrix(quat);
+    Vec3<T> global_body_vel = Rot.transpose() * WBCtrl::_state.bodyVelocity.tail(3);
 
+    WBCtrl::_wbc_data_lcm.body_pos[i] = WBCtrl::_state.bodyPosition[i];
+    WBCtrl::_wbc_data_lcm.body_vel[i] = global_body_vel[i];
+    WBCtrl::_wbc_data_lcm.body_ori[i] = WBCtrl::_state.bodyOrientation[i];
     WBCtrl::_wbc_data_lcm.body_ang_vel[i] = WBCtrl::_state.bodyVelocity[i];
   }
   WBCtrl::_wbc_data_lcm.body_ori_cmd[3] = _quat_des[3];

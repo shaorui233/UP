@@ -50,7 +50,8 @@ SimControlPanel::SimControlPanel(QWidget* parent)
       _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE),
       _heightmapLCM(getLcmUrl(255)),
       _pointsLCM(getLcmUrl(255)),
-      _indexmapLCM(getLcmUrl(255))
+      _indexmapLCM(getLcmUrl(255)),
+      _ctrlVisionLCM(getLcmUrl(255))
 {
 
   ui->setupUi(this); // QT setup
@@ -138,6 +139,7 @@ void SimControlPanel::handleObstacleLCM(const lcm::ReceiveBuffer* rbuf,
     _graphicsWindow->_obs_height = msg->height;
 
     _graphicsWindow->_obstacle_update = true;
+    //printf("%f, %f\n", _graphicsWindow->_obs_list[0][0], _graphicsWindow->_obs_list[0][1]);
   }
 
 }
