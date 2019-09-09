@@ -270,9 +270,9 @@ void ConvexMPCLocomotion::run(ControlFSMData<float>& data) {
   swingTimes[2] = dtMPC * gait->_swing;
   swingTimes[3] = dtMPC * gait->_swing;
   float side_sign[4] = {-1, 1, -1, 1};
-  float interleave_y[4] = {-0.08, 0.08, 0.04, -0.04};
+  float interleave_y[4] = {-0.08, 0.08, 0.02, -0.02};
   //float interleave_gain = -0.13;
-  float interleave_gain = -0.35;
+  float interleave_gain = -0.2;
   //float v_abs = std::fabs(seResult.vBody[0]);
   float v_abs = std::fabs(v_des_robot[0]);
   for(int i = 0; i < 4; i++)

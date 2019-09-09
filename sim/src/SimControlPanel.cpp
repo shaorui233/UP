@@ -123,12 +123,26 @@ void SimControlPanel::handleObstacleLCM(const lcm::ReceiveBuffer* rbuf,
     const obstacle_visual_t* msg){
   (void)rbuf;
   (void)chan;
-  (void)msg;
-  
-  
+ 
+  if(_graphicsWindow){
+    _graphicsWindow->_obs_list.clear();
+    Vec3<double> obs_loc;
+    for(int i(0); i<msg->num_obs; ++i){
+      obs_loc[0] = msg->location[i][0];
+      obs_loc[1] = msg->location[i][1];
+      obs_loc[2] = msg->location[i][2];
+
+      _graphicsWindow->_obs_list.push_back(obs_loc);
+    }
+    _graphicsWindow->_obs_sigma = msg->sigma;
+    _graphicsWindow->_obs_height = msg->height;
+
+    _graphicsWindow->_obstacle_update = true;
+  }
+
 }
 void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
-                                      const std::string &chan,
+    const std::string &chan,
                                       const rs_pointcloud_t*msg) {
   (void)rbuf;
   (void)chan;

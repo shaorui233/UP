@@ -22,7 +22,7 @@ FSM_State_Locomotion<T>::FSM_State_Locomotion(
         cMPCOld(_controlFSMData->controlParameters->controller_dt,
                 //30 / (1000. * _controlFSMData->controlParameters->controller_dt),
                 //22 / (1000. * _controlFSMData->controlParameters->controller_dt),
-                25 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                27 / (1000. * _controlFSMData->controlParameters->controller_dt),
                 _controlFSMData->userParameters){
   // Set the safety checks
   this->turnOnAllSafetyChecks();

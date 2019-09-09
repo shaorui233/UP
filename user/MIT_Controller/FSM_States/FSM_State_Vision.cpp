@@ -39,6 +39,7 @@ FSM_State_Vision<T>::FSM_State_Vision(
   _visionLCM.subscribe("local_heightmap", &FSM_State_Vision<T>::handleHeightmapLCM, this);
   _visionLCM.subscribe("traversability", &FSM_State_Vision<T>::handleIndexmapLCM, this);
   _visionLCMThread = std::thread(&FSM_State_Vision<T>::visionLCMThread, this);
+
   _height_map = DMat<T>::Zero(x_size, y_size);
   _idx_map = DMat<int>::Zero(x_size, y_size);
 }
@@ -108,14 +109,6 @@ void FSM_State_Vision<T>::_UpdateObstacle(){
 
 template <typename T>
 void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
-  //auto* arrow = this->_data->visualizationData->addArrow();
-  //arrow->base_position = (this->_data->_stateEstimator->getResult()).position;
-  //arrow->direction = des_vel;
-  //arrow->color << 1.0, 0.2, 0.2, 1.;
-  //arrow->head_width = 0.04;
-  //arrow->head_length = 0.05;
-  //arrow->shaft_width = 0.01;
-
   velocity_visual_t vel_visual;
   for(size_t i(0); i<3; ++i){
     vel_visual.vel_cmd[i] = des_vel[i];
@@ -124,32 +117,45 @@ void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
   _visionLCM.publish("velocity_cmd", &vel_visual);
   
 
-  auto* mesh = this->_data->visualizationData->addMesh();
-  mesh->left_corner.setZero(); // = (this->_data->_stateEstimator->getResult()).position;
-  mesh->left_corner[1] = -0.5;
-
-  mesh->rows = 100;
-  mesh->cols = 100;
-  mesh->grid_size = 0.01;
-  mesh->height_max = 0.5;
-  mesh->height_min = -0.05;
-
-  T x, y;
-  T x_obs, y_obs;
-  T sigma(0.15);
-  T height(0.5);
-  for(int i(0); i<mesh->rows; ++i){
-    for(int j(0); j<mesh->cols; ++j){
-      for(size_t obs(0); obs < _obs_list.size(); ++obs){
-        x = i*mesh->grid_size + mesh->left_corner[0]; 
-        y = j*mesh->grid_size + mesh->left_corner[1]; 
-        x_obs = _obs_list[obs][0];
-        y_obs = _obs_list[obs][1];
-        T inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
-        mesh->height_map(i,j) = exp(-inerproduct/(2*sigma*sigma)) * height;
-      }
-    }
+  _obs_visual_lcm.num_obs = _obs_list.size();
+  for(size_t i(0); i<_obs_list.size(); ++i){
+    _obs_visual_lcm.location[i][0] = _obs_list[i][0];
+    _obs_visual_lcm.location[i][1] = _obs_list[i][1];
+    _obs_visual_lcm.location[i][2] = 0;
   }
+  _obs_visual_lcm.sigma = 0.15;
+  _obs_visual_lcm.height = 0.5;
+
+
+  _visionLCM.publish("obstacle_visual", &_obs_visual_lcm);
+
+
+  //auto* mesh = this->_data->visualizationData->addMesh();
+  //mesh->left_corner.setZero(); // = (this->_data->_stateEstimator->getResult()).position;
+  //mesh->left_corner[1] = -0.5;
+
+  //mesh->rows = 100;
+  //mesh->cols = 100;
+  //mesh->grid_size = 0.01;
+  //mesh->height_max = 0.5;
+  //mesh->height_min = -0.05;
+
+  //T x, y;
+  //T x_obs, y_obs;
+  //T sigma(0.15);
+  //T height(0.5);
+  //for(int i(0); i<mesh->rows; ++i){
+    //for(int j(0); j<mesh->cols; ++j){
+      //for(size_t obs(0); obs < _obs_list.size(); ++obs){
+        //x = i*mesh->grid_size + mesh->left_corner[0]; 
+        //y = j*mesh->grid_size + mesh->left_corner[1]; 
+        //x_obs = _obs_list[obs][0];
+        //y_obs = _obs_list[obs][1];
+        //T inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
+        //mesh->height_map(i,j) = exp(-inerproduct/(2*sigma*sigma)) * height;
+      //}
+    //}
+  //}
 
 }
 
