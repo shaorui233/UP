@@ -38,7 +38,7 @@ class BackFlipCtrl {
   std::vector<T> _Kp_joint, _Kd_joint;
 
   bool _b_set_height_target;
-  T _end_time;
+  T _end_time = 5.5;
   int _dim_contact;
 
   void _update_joint_command();
@@ -51,6 +51,8 @@ class BackFlipCtrl {
 
   ParamHandler* _param_handler;
   FloatingBaseModel<T> _model;
+
+  int current_iteration, pre_mode_count;
 
   void _PreProcessing_Command() {
     _A = _model.getMassMatrix();

@@ -29,20 +29,17 @@ FSM_State_BackFlip<T>::FSM_State_BackFlip(ControlFSMData<T>* _controlFSMData)
   zero_vec3.setZero();
   f_ff << 0.f, 0.f, -25.f;
 
-
-
   // From BackFlip Test Constructor
   _data_reader = new DataReader(this->_data->_quadruped->_robotType);
 
   backflip_ctrl_ = new BackFlipCtrl<T>(_controlFSMData->_quadruped->buildModel(), _data_reader, this->_data->controlParameters->controller_dt);
 
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
-    backflip_ctrl_->SetTestParameter("user/WBC_Controller/config/TEST_backflip_cheetah3.yaml");
+    backflip_ctrl_->SetTestParameter("user/WBC_Controller/WBC_States/config/TEST_backflip_cheetah3.yaml");
   else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
-    backflip_ctrl_->SetTestParameter("user/WBC_Controller/config/TEST_backflip_mini_cheetah.yaml");
-  else {
+    backflip_ctrl_->SetTestParameter("user/WBC_Controller/WBC_States/config/TEST_backflip_mini_cheetah.yaml");
+  else
     printf("[Body Ctrl Test] Invalid robot type\n");
-  }
 
 }
 
@@ -58,13 +55,16 @@ void FSM_State_BackFlip<T>::onEnter() {
   // Reset iteration counter
   iter = 0;
   _state_iter = 0;
+  _count = 0;
+  _curr_time = 0;
+  _motion_start_iter = 0;
+  _b_first_visit = true;
   
   // initial configuration, position
   for(size_t i(0); i < 4; ++i) {
     initial_jpos[i] = this->_data->_legController->datas[i].q;
   }
 
-  _motion_start_iter = 0;
 }
 
 /**
@@ -72,12 +72,6 @@ void FSM_State_BackFlip<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_BackFlip<T>::run() {
-  // Set the desired joint positions for the robot before jumping (not sure about this)
-  for (int leg = 0; leg < 4; ++leg) {
-    jpos[3 * leg] = 0.0;
-    jpos[3 * leg + 1] = -0.8;
-    jpos[3 *leg + 2] = 1.64;
-  }
 
 // Command Computation
   if (_b_running) {
@@ -85,7 +79,7 @@ void FSM_State_BackFlip<T>::run() {
       ComputeCommand();
     }
   } else {
-    //_SafeCommand(data, command); - need to add
+    _SafeCommand();
   }
 
   // Note: not sure what to do after robot lands...
@@ -101,17 +95,17 @@ bool FSM_State_BackFlip<T>::_Initialization() {
   static bool test_initialized(false);
   if (!test_initialized) {
     //_TestInitialization();
-    backflip_ctrl_->CtrlInitialization("CTRL_backflip");
+    backflip_ctrl_->CtrlInitialization("CTRL_backflip"); // not working
     test_initialized = true;
     printf("[Cheetah Test] Test initialization is done\n");
   }
   if (_count < _waiting_count) {
     for (int leg = 0; leg < 4; ++leg) {
+      this->_data->_legController->commands[leg].qDes = initial_jpos[leg];
       for (int jidx = 0; jidx < 3; ++jidx) {
         this->_data->_legController->commands[leg].tauFeedForward[jidx] = 0.;
-        this->_data->_legController->commands[leg].qDes[jidx] = jpos[3 * leg + jidx];
         this->_data->_legController->commands[leg].qdDes[jidx] = 0.;
-        this->_data->_legController->commands[leg].kpJoint(jidx,jidx) = 20.; // get from control parameters?
+        this->_data->_legController->commands[leg].kpJoint(jidx,jidx) = 20.;
         this->_data->_legController->commands[leg].kdJoint(jidx,jidx) = 2.;
       }
     }
@@ -132,7 +126,18 @@ void FSM_State_BackFlip<T>::ComputeCommand() {
 
   if (backflip_ctrl_->EndOfPhase(this->_data->_legController->datas)) {
     backflip_ctrl_->LastVisit();
-    _b_first_visit = true;
+    // here is where we should we switching to next phase.. but what is that?
+  }
+}
+
+template <typename T>
+void FSM_State_BackFlip<T>::_SafeCommand() {
+  for (int leg = 0; leg < 4; ++leg) {
+    for (int jidx = 0; jidx < 3; ++jidx) {
+      this->_data->_legController->commands[leg].tauFeedForward[jidx] = 0.;
+      this->_data->_legController->commands[leg].qDes[jidx] = this->_data->_legController->datas[leg].q[jidx];
+      this->_data->_legController->commands[leg].qdDes[jidx] = 0.;
+    }
   }
 }
 
@@ -261,7 +266,7 @@ TransitionData<T> FSM_State_BackFlip<T>::transition() {
  */
 template <typename T>
 void FSM_State_BackFlip<T>::onExit() {
-  // Nothing to clean up when exiting
+  // nothing to clean up?
 }
 
 // template class FSM_State_BackFlip<double>;

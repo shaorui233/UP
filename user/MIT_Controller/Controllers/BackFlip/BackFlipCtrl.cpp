@@ -21,20 +21,20 @@ BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T> robot,
 	_data_reader = data_reader;
 	dt = _dt;
 
-  	_Kp.resize(12);
-  	_Kd.resize(12);
-  	_des_jpos.resize(12);
-  	_des_jvel.resize(12);
-  	_jtorque.resize(12);
-  	_Kp_joint.resize(3);
-  	_Kd_joint.resize(3);
+  _Kp.resize(12);
+  _Kd.resize(12);
+  _des_jpos.resize(12);
+  _des_jvel.resize(12);
+  _jtorque.resize(12);
+  _Kp_joint.resize(3);
+  _Kd_joint.resize(3);
 
 
-  	// This should be done in the setTestParameters? Or using the controler parameters yaml?
-  	for(int i=0; i<3; i++){
-    	_Kp_joint[i]=20.0;
-    	_Kd_joint[i]=2.0;
-    }
+  // This should be done in the setTestParameters? Or using the controler parameters yaml?
+  for(int i=0; i<3; i++){
+    _Kp_joint[i]=20.0;
+    _Kd_joint[i]=2.0;
+  }
 
 }
 
@@ -66,9 +66,6 @@ void BackFlipCtrl<T>::OneStep(float _curr_time, LegControllerCommand<T>* command
 
 template <typename T>
 void BackFlipCtrl<T>::_update_joint_command() {
-  static int current_iteration(0);
-  static int pre_mode_count(0);
-
   int pre_mode_duration(2000);
   int tuck_iteration(600);
   int ramp_end_iteration(650);
@@ -155,10 +152,10 @@ void BackFlipCtrl<T>::_update_joint_command() {
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
 
-    for(int i=0; i<3; i++){
-    	_Kp_joint[i]=20.0;
-    	_Kd_joint[i]=2.0;
-    }
+    // for(int i=0; i<3; i++){
+    // 	_Kp_joint[i]=20.0;
+    // 	_Kd_joint[i]=2.0;
+    // }
   }
 
   // Abduction
@@ -209,6 +206,9 @@ void BackFlipCtrl<T>::_update_joint_command() {
 template <typename T>
 void BackFlipCtrl<T>::FirstVisit(float _curr_time) {
   _ctrl_start_time = _curr_time;
+  current_iteration = 0;
+  pre_mode_count = 0;
+
 }
 
 template <typename T>
@@ -221,15 +221,12 @@ bool BackFlipCtrl<T>::EndOfPhase(LegControllerData<T>* data) {
   }
 
   for (int leg(0); leg < 4; ++leg) {
-  	for (size_t jidx(0); jidx < cheetah::num_leg_joint; ++jidx) {
-
   		if(_state_machine_time>2.7 && data[leg].q[1] > _q_knee_max && data[leg].qd[1] > _qdot_knee_max){
-  	 		printf("Contact detected at leg [%d] => Switch to the landing phase !!! \n", leg/3); 
-			printf("state_machine_time: %lf \n",_state_machine_time); 
-			printf("Q-Knee: %lf \n",data[leg].q[1]);
+  	 		printf("Contact detected at leg [%d] => Switch to the landing phase !!! \n", leg); 
+			  printf("state_machine_time: %lf \n",_state_machine_time); 
+			  printf("Q-Knee: %lf \n",data[leg].q[1]);
   	 		printf("Qdot-Knee: %lf \n",data[leg].qd[1]);
   	 		return true;
-  	 	}
   	 } 
   }
 
@@ -238,8 +235,12 @@ bool BackFlipCtrl<T>::EndOfPhase(LegControllerData<T>* data) {
 
 template <typename T>
 void BackFlipCtrl<T>::CtrlInitialization(const std::string& category_name) {
-  _param_handler->getValue<T>(category_name, "qdot_knee_max", _q_knee_max);
+  // Not working
+  _param_handler->getValue<T>(category_name, "q_knee_max", _q_knee_max);
   _param_handler->getValue<T>(category_name, "qdot_knee_max", _qdot_knee_max);
+
+  _q_knee_max = 2.0;
+  _qdot_knee_max = 2.0;
 }
 
 template <typename T>
@@ -259,6 +260,7 @@ void BackFlipCtrl<T>::SetTestParameter(const std::string& test_file) {
   // Joint level feedback gain
   _param_handler->getVector<T>("Kp_joint_backflip", _Kp_joint);
   _param_handler->getVector<T>("Kd_joint_backflip", _Kd_joint);
+
 }
 
 template class BackFlipCtrl<double>;
