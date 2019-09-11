@@ -103,8 +103,52 @@ void FSM_State_Vision<T>::run() {
 template <typename T>
 void FSM_State_Vision<T>::_UpdateObstacle(){
   _obs_list.clear();
-  Vec3<T> test1; test1<< 0.7, 0.12, 0.4;
-  _obs_list.push_back(test1);
+  // TEST
+  //Vec3<T> test1; 
+  //test1<< 0.7, 0.20, 0.4;
+  //_obs_list.push_back(test1);
+  //test1<< 0.7, -0.20, 0.4;
+  //_obs_list.push_back(test1);
+
+  
+  T obstacle_height = 0.15;
+  T threshold_gap = 0.08;
+  bool add_obs(true);
+  Vec3<T> robot_loc = (this->_data->_stateEstimator->getResult()).position;
+  Vec3<T> obs; obs[2] = 0.4; // height (dummy)
+
+  //size_t num_obs_limit = 10;
+  T dist(0.);
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+      if( (_height_map(i, j) > obstacle_height) ){ // if too high point
+        add_obs = true;
+        obs[0] = i*grid_size - 50*grid_size + robot_loc[0];
+        obs[1] = j*grid_size - 50*grid_size + robot_loc[1];
+
+        // check with already added obstacle
+        for(size_t idx_obs(0); idx_obs < _obs_list.size(); ++idx_obs){
+          dist = sqrt(  (obs[0] - _obs_list[idx_obs][0])*(obs[0] - _obs_list[idx_obs][0]) + 
+              (obs[1] - _obs_list[idx_obs][1])*(obs[1] - _obs_list[idx_obs][1]) ); 
+          if(dist < threshold_gap){
+            add_obs = false;
+          }
+        }// distance check
+        if(add_obs){
+            _obs_list.push_back(obs);
+        }
+      }
+    } // y loop
+  } // x loop
+
+  //_print_obstacle_list();
+}
+
+template <typename T>
+void FSM_State_Vision<T>::_print_obstacle_list(){
+  for(size_t i(0); i < _obs_list.size(); ++i){
+    printf("%lu th obstacle: %f, %f, %f\n", i, _obs_list[i][0], _obs_list[i][1], _obs_list[i][2] );
+  }
 }
 
 template <typename T>
@@ -143,6 +187,7 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
     //curr_time = moving_time;
   //}
   //target_pos[0] += 1.0 * curr_time/moving_time;
+  //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
   target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
 
   curr_pos = (this->_data->_stateEstimator->getResult()).position;
@@ -150,8 +195,9 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
   target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
   curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
  
-  des_vel[0] = 1.0 * (target_pos[0] - curr_pos[0]);
-  des_vel[1] = 1.0 * (target_pos[1] - curr_pos[1]);
+  des_vel[0] = 0.8 * (target_pos[0] - curr_pos[0]);
+  des_vel[1] = 0.8 * (target_pos[1] - curr_pos[1]);
+  des_vel[2] = 0.8 * (_ini_body_ori_rpy[2] - curr_ori_rpy[2]);
 
   //des_vel[0] = 0.5;
   T inerproduct;

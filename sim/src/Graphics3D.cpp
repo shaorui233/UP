@@ -598,38 +598,51 @@ void Graphics3D::_drawVelArrow(){
 
 void Graphics3D::_drawObstacleField() {
   MeshVisualization mesh;
-  double x_obs, y_obs, z_obs, x, y, Prod;
-  double grid_size = 0.01;
-  int num_grid = floor(_obs_sigma*5/grid_size);
+  double x_obs, y_obs, z_obs;
+  (void)z_obs;
+  double x, y, Prod;
+  vectorAligned<Vec3<double> > obs_list_copy;
+  size_t num_obs = _obs_list.size();
+  //printf("num obs: %lu\n", num_obs);
+  for(size_t i(0); i<num_obs; ++i){
+    obs_list_copy.push_back(_obs_list[i]);
+  }
+  double grid_size = 0.02;
+  int num_grid = 100; //floor(_obs_sigma*5/grid_size);
 
   mesh.grid_size = grid_size;
-  mesh.height_max = _obs_height;
+  mesh.height_max = 0.5;// _obs_height;
   mesh.height_min = -0.01;
   mesh.rows = num_grid;
   mesh.cols = num_grid;
+  mesh.height_map.setZero();
 
-  for(size_t i(0); i<_obs_list.size(); ++i){
-    x_obs = _obs_list[i][0];
-    y_obs = _obs_list[i][1];
-    z_obs = _obs_list[i][2];
+  mesh.left_corner[0] = _vel_cmd_pos[0] - 1.; //x_obs - _obs_sigma*2;
+  mesh.left_corner[1] = _vel_cmd_pos[1] - 1.; //y_obs - _obs_sigma*2;
+  mesh.left_corner[2] = 0.; //z_obs;
 
-    mesh.left_corner[0] = x_obs - _obs_sigma*2;
-    mesh.left_corner[1] = y_obs - _obs_sigma*2;
-    mesh.left_corner[2] = z_obs;
 
-    for(int row(0); row<num_grid; ++row){
-      for(int col(0); col<num_grid; ++col){
+  for(int row(0); row<num_grid; ++row){
+    for(int col(0); col<num_grid; ++col){
+      for(size_t i(0); i<num_obs; ++i){
+        x_obs = obs_list_copy[i][0];
+        y_obs = obs_list_copy[i][1];
+        z_obs = obs_list_copy[i][2];
+
         x = row* mesh.grid_size + mesh.left_corner[0];
         y = col* mesh.grid_size + mesh.left_corner[1];
         Prod = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs); 
-        mesh.height_map(row, col) = exp(-Prod/(2*_obs_sigma*_obs_sigma))*_obs_height;
+        mesh.height_map(row, col) += exp(-Prod/(2*_obs_sigma*_obs_sigma))*_obs_height;
       }
     }
-    _drawMesh(mesh);
   }
+  _drawMesh(mesh);
 }
 
 void Graphics3D::_drawHeightMap() {
+
+  glPushAttrib(GL_LIGHTING_BIT);
+  glDisable(GL_LIGHTING);
 
   glPushMatrix();
   glTranslatef(-0.75 + _pos[0], -0.75 + _pos[1], 0);
@@ -681,7 +694,9 @@ void Graphics3D::_drawHeightMap() {
     glDisable(GL_BLEND);
     glEnd();
   }
+  //glPopAttrib();
   glPopMatrix();
+  glEnable(GL_LIGHTING);
   glPopAttrib();
 }
 
@@ -893,8 +908,8 @@ void Graphics3D::_Additional_Drawing(int pass) {
     _drawMesh(_drawList._visualizationData->meshes[i]);
   }
   // Heightmap Drawing
-  if(_heightmap_data_update){ _drawHeightMap(); }
   if(_obstacle_update){ _drawObstacleField(); }
+  if(_heightmap_data_update){ _drawHeightMap(); }
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
     PathVisualization path = _drawList._visualizationData->paths[i];

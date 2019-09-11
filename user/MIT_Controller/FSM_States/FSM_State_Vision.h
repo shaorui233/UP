@@ -49,6 +49,7 @@ class FSM_State_Vision : public FSM_State<T> {
 
   size_t x_size = 100;
   size_t y_size = 100;
+  double grid_size = 0.015;
 
   DMat<T> _height_map;
   DMat<int> _idx_map;
@@ -67,6 +68,7 @@ class FSM_State_Vision : public FSM_State<T> {
   void _LocomotionControlStep(const Vec3<T> & vel_cmd);
   void _UpdateVelCommand(Vec3<T> & vel_cmd);
   void _Visualization(const Vec3<T> & des_vel);
+  void _print_obstacle_list();
 };
 
 #endif  // FSM_STATE_LOCOMOTION_H
