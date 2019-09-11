@@ -51,10 +51,6 @@ void FSM_State_TwoContactStand<T>::run() {
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
     // Manually setting weights now to avoid altering other controllers
-    // x_weights[i] = this->_data->userParameters->Kp_body[i];
-    // xdot_weights[i] = this->_data->userParameters->Kd_body[i];
-    // R_weights[i] = this->_data->userParameters->Kp_ori[i];
-    // omega_weights[i] = this->_data->userParameters->Kd_ori[i];
     x_weights[i] = 300;
     xdot_weights[i] = 50;
     R_weights[i] = 20000;
@@ -262,38 +258,9 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[3] = 0;
 
     // To do - increase ability to change state via gamepad
-    // rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
-    // rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
+    rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
+    rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
   }
-
-  // Cost to go testing - varying friction test
-  if (this->_data->userParameters->cmpc_x_drag == 1) {
-    contactStateScheduled[0] = 0;
-    contactStateScheduled[3] = 0;
-    mu_ctrl = this->_data->userParameters->cmpc_gait;
-    rpy[0] = this->_data->userParameters->Kd_foot[0] * convert;
-    rpy[1] = this->_data->userParameters->Kd_foot[1] * convert;
-    rpy[2] = this->_data->userParameters->Kd_foot[2] * convert;
-
-    // record CTG
-    std::ofstream ofile;
-    ofile.open("data_log_nonlin.csv", std::ios::app);
-    // Data: Roll, Pitch, Yaw, Angle axis error, UCTG, friction coeff, SE(1) or CS(2), constraints active
-    ofile << rpy[0] / convert << ", " << rpy[1]  / convert << ", " << rpy[2]  / convert << ", ";
-    ofile << balanceControllerVBL.get_orientation_error() << ", " << balanceControllerVBL.get_cost_to_go() << ", ";
-    ofile << mu_ctrl <<  ", " << this->_data->controlParameters->cheater_mode << ", " << balanceControllerVBL.check_constraints_active() << std::endl; 
-    ofile.close();
-  }
-  else if (iter > 2000) {
-    mu_ctrl = 1.5;
-    contactStateScheduled[0] = 0;
-    contactStateScheduled[3] = 0;
-    rpy[1] = 0.0;
-  }
-
-  // Use pweight to get position
-  p_des[0] = pweight * pFeet_world[1*3] + (1.- pweight) * pFeet_world[2*3];
-  p_des[1] = pweight * pFeet_world[1*3+1] + (1.- pweight) * pFeet_world[2*3+1];
 
 }
 
