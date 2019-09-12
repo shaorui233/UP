@@ -53,6 +53,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.vision = new FSM_State_Vision<T>(&data);
   statesList.backflip = new FSM_State_BackFlip<T>(&data);
   statesList.twocontactStand = new FSM_State_TwoContactStand<T>(&data);
+  statesList.frontJump = new FSM_State_FrontJump<T>(&data);
 
   safetyChecker = new SafetyChecker<T>(&data);
 
@@ -273,6 +274,9 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 
     case FSM_StateName::TWO_CONTACT_STAND:
       return statesList.twocontactStand;
+
+    case FSM_StateName::FRONTJUMP:
+      return statesList.frontJump;
 
     default:
       return statesList.invalid;

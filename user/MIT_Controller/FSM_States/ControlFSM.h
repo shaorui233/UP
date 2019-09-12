@@ -22,6 +22,7 @@
 #include "../FSM_States/FSM_State_Vision.h"
 #include "../FSM_States/FSM_State_BackFlip.h"
 #include "../FSM_States/FSM_State_TwoContactStand.h"
+#include "../FSM_States/FSM_State_FrontJump.h"
 
 //#include <lcm/lcm-cpp.hpp>
 //#include "state_estimator_lcmt.hpp"
@@ -49,6 +50,7 @@ struct FSM_StatesList {
   FSM_State_Vision<T>* vision;
   FSM_State_BackFlip<T>* backflip;
   FSM_State_TwoContactStand<T>* twocontactStand;
+  FSM_State_FrontJump<T>* frontJump;
 };
 
 /**

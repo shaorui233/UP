@@ -4,7 +4,7 @@
  * balance control mode.
  */
 
-#include "FSM_State_BackFlip.h"
+#include "FSM_State_FrontJump.h"
 #include <Utilities/Utilities_print.h>
 #include <rt/rt_interface_lcm.h>
 
@@ -16,7 +16,7 @@
  * @param _controlFSMData holds all of the relevant control data
  */
 template <typename T>
-FSM_State_BackFlip<T>::FSM_State_BackFlip(ControlFSMData<T>* _controlFSMData)
+FSM_State_FrontJump<T>::FSM_State_FrontJump(ControlFSMData<T>* _controlFSMData)
     : FSM_State<T>(_controlFSMData, FSM_StateName::STAND_UP, "STAND_UP"){
   // Do nothing
   // Set the pre controls safety checks
@@ -29,16 +29,16 @@ FSM_State_BackFlip<T>::FSM_State_BackFlip(ControlFSMData<T>* _controlFSMData)
   zero_vec3.setZero();
   f_ff << 0.f, 0.f, -25.f;
 
-  _data_reader = new DataReader(this->_data->_quadruped->_robotType, FSM_StateName::BACKFLIP);
+  _data_reader = new DataReader(this->_data->_quadruped->_robotType, FSM_StateName::FRONTJUMP);
 
-  backflip_ctrl_ = new BackFlipCtrl<T>(_data_reader, this->_data->controlParameters->controller_dt);
-  backflip_ctrl_->SetParameter();
+  front_jump_ctrl_ = new FrontJumpCtrl<T>(_data_reader, this->_data->controlParameters->controller_dt);
+  front_jump_ctrl_->SetParameter();
 
 }
 
 
 template <typename T>
-void FSM_State_BackFlip<T>::onEnter() {
+void FSM_State_FrontJump<T>::onEnter() {
   // Default is to not transition
   this->nextStateName = this->stateName;
 
@@ -64,7 +64,7 @@ void FSM_State_BackFlip<T>::onEnter() {
  * Calls the functions to be executed on each control loop iteration.
  */
 template <typename T>
-void FSM_State_BackFlip<T>::run() {
+void FSM_State_FrontJump<T>::run() {
 
 // Command Computation
   if (_b_running) {
@@ -82,7 +82,7 @@ void FSM_State_BackFlip<T>::run() {
 
 
 template <typename T>
-bool FSM_State_BackFlip<T>::_Initialization() { // do away with this?
+bool FSM_State_FrontJump<T>::_Initialization() { // do away with this?
   static bool test_initialized(false);
   if (!test_initialized) {
     test_initialized = true;
@@ -105,30 +105,30 @@ bool FSM_State_BackFlip<T>::_Initialization() { // do away with this?
 }
 
 template <typename T>
-void FSM_State_BackFlip<T>::ComputeCommand() {
+void FSM_State_FrontJump<T>::ComputeCommand() {
   if (_b_first_visit) {
-    backflip_ctrl_->FirstVisit(_curr_time);
+    front_jump_ctrl_->FirstVisit(_curr_time);
     _b_first_visit = false;
   }
 
   if(this->_data->controlParameters->use_rc){
     if(this->_data->_desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
-      backflip_ctrl_->OneStep(_curr_time, true, this->_data->_legController->commands);
+      front_jump_ctrl_->OneStep(_curr_time, true, this->_data->_legController->commands);
     }else{
-      backflip_ctrl_->OneStep(_curr_time, false, this->_data->_legController->commands);
+      front_jump_ctrl_->OneStep(_curr_time, false, this->_data->_legController->commands);
     }
 
   }else{
-    backflip_ctrl_->OneStep(_curr_time, false, this->_data->_legController->commands);
+    front_jump_ctrl_->OneStep(_curr_time, false, this->_data->_legController->commands);
   }
 
-  if (backflip_ctrl_->EndOfPhase(this->_data->_legController->datas)) {
-    backflip_ctrl_->LastVisit();
+  if (front_jump_ctrl_->EndOfPhase(this->_data->_legController->datas)) {
+    front_jump_ctrl_->LastVisit();
   }
 }
 
 template <typename T>
-void FSM_State_BackFlip<T>::_SafeCommand() {
+void FSM_State_FrontJump<T>::_SafeCommand() {
   for (int leg = 0; leg < 4; ++leg) {
     for (int jidx = 0; jidx < 3; ++jidx) {
       this->_data->_legController->commands[leg].tauFeedForward[jidx] = 0.;
@@ -140,7 +140,7 @@ void FSM_State_BackFlip<T>::_SafeCommand() {
 
 
 template <typename T>
-void FSM_State_BackFlip<T>::_SetJPosInterPts(
+void FSM_State_FrontJump<T>::_SetJPosInterPts(
     const size_t & curr_iter, size_t max_iter, int leg, 
     const Vec3<T> & ini, const Vec3<T> & fin){
 
@@ -178,13 +178,13 @@ void FSM_State_BackFlip<T>::_SetJPosInterPts(
  * @return the enumerated FSM state name to transition into
  */
 template <typename T>
-FSM_StateName FSM_State_BackFlip<T>::checkTransition() {
+FSM_StateName FSM_State_FrontJump<T>::checkTransition() {
   this->nextStateName = this->stateName;
   iter++;
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
-    case K_BACKFLIP:
+    case K_FRONTJUMP:
       break;
 
     case K_RECOVERY_STAND:
@@ -210,7 +210,7 @@ FSM_StateName FSM_State_BackFlip<T>::checkTransition() {
 
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
-                << K_BACKFLIP << " to "
+                << K_FRONTJUMP << " to "
                 << this->_data->controlParameters->control_mode << std::endl;
   }
 
@@ -225,7 +225,7 @@ FSM_StateName FSM_State_BackFlip<T>::checkTransition() {
  * @return true if transition is complete
  */
 template <typename T>
-TransitionData<T> FSM_State_BackFlip<T>::transition() {
+TransitionData<T> FSM_State_FrontJump<T>::transition() {
   // Finish Transition
   switch (this->nextStateName) {
     case FSM_StateName::PASSIVE:  // normal
@@ -262,9 +262,9 @@ TransitionData<T> FSM_State_BackFlip<T>::transition() {
  * Cleans up the state information on exiting the state.
  */
 template <typename T>
-void FSM_State_BackFlip<T>::onExit() {
+void FSM_State_FrontJump<T>::onExit() {
   // nothing to clean up?
 }
 
-// template class FSM_State_BackFlip<double>;
-template class FSM_State_BackFlip<float>;
+// template class FSM_State_FrontJump<double>;
+template class FSM_State_FrontJump<float>;

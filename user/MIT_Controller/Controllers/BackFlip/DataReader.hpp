@@ -1,6 +1,7 @@
 #ifndef BACKFLIP_DATA_READER_H
 #define BACKFLIP_DATA_READER_H
 #include <cppTypes.h>
+#include <FSM_States/FSM_State.h>
 
 enum plan_offsets {
   q0_offset = 0,     // x, z, yaw, front hip, front knee, rear hip, rear knee
@@ -15,7 +16,7 @@ class DataReader {
  public:
   static const int plan_cols = 22;
 
-  DataReader(const RobotType &);
+  DataReader(const RobotType &, FSM_StateName stateNameIn);
   void load_control_plan(const char *filename);
   void unload_control_plan();
   float *get_initial_configuration();

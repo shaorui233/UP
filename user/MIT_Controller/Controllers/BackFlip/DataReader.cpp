@@ -4,10 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-DataReader::DataReader(const RobotType& type) : _type(type) {
+DataReader::DataReader(const RobotType& type, FSM_StateName stateNameIn) : _type(type) {
   if (_type == RobotType::MINI_CHEETAH) {
-    printf("[Backflip DataReader] Setup for mini cheetah\n");
-    load_control_plan(THIS_COM "user/WBC_Controller/WBC_States/BackFlip/data/mc_flip.dat");
+    
+    if (stateNameIn == FSM_StateName::BACKFLIP) {
+      load_control_plan(THIS_COM "user/WBC_Controller/WBC_States/BackFlip/data/mc_flip.dat");
+      printf("[Backflip DataReader] Setup for mini cheetah\n");
+    }
+    else if (stateNameIn == FSM_StateName::FRONTJUMP) {
+      load_control_plan(THIS_COM "user/MIT_Controller/Controllers/FrontJump/front_jump_data.dat");
+      printf("[Front Jump DataReader] Setup for mini cheetah\n");
+    }
   } else {
     printf("[Backflip DataReader] Setup for cheetah 3\n");
     load_control_plan(THIS_COM "user/WBC_Controller/WBC_States/BackFlip/data/backflip.dat");
