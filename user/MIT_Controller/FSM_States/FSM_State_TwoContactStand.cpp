@@ -260,7 +260,11 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     // To do - increase ability to change state via gamepad
     rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
     rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
+    pweight = 0.5 + 0.1 * this->_data->_desiredStateCommand->data.stateDes[6];
   }
+
+  p_des[0] = pweight * pFeet_world[3*1] + (1 - pweight) * pFeet_world[3*2];
+  p_des[1] = pweight * pFeet_world[3*1+1] + (1 - pweight) * pFeet_world[3*2+1];
 
 }
 
