@@ -159,7 +159,7 @@ void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
     _graphicsWindow->_pos[1] = msg->position[1];
     _graphicsWindow->_pos[2] = msg->position[2];
 
-    //_graphicsWindow->_pointcloud_data_update = true;
+    _graphicsWindow->_pointcloud_data_update = true;
   }
 }
 

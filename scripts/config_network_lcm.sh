@@ -52,8 +52,8 @@ if [ "$1" == "mc-top" ]; then
 fi
 
 if [ "$1" == "dhkim" ]; then
-    sudo ifconfig enx70886b886192 multicast
-    sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev enx70886b886192
+    sudo ifconfig enx70886b885732 multicast
+    sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev enx70886b885732
 fi
 
 
