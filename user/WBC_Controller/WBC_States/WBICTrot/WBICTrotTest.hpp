@@ -1,4 +1,4 @@
-#ifndef WBIC_TROT_TEST_eheetah
+#ifndef WBIC_TROT_TEST_Cheetah
 #define WBIC_TROT_TEST_Cheetah
 
 #include <Dynamics/Quadruped.h>

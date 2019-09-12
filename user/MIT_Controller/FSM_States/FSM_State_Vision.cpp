@@ -18,21 +18,12 @@
 template <typename T>
 FSM_State_Vision<T>::FSM_State_Vision(
     ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION"),
-        cMPCOld(_controlFSMData->controlParameters->controller_dt,
-                //30 / (1000. * _controlFSMData->controlParameters->controller_dt),
-                25 / (1000. * _controlFSMData->controlParameters->controller_dt),
-                _controlFSMData->userParameters)
-      //_visionLCM(getLcmUrl(255)),
-      //_pointsLCM(getLcmUrl(255))
+    : FSM_State<T>(_controlFSMData, FSM_StateName::VISION, "VISION"),
+        vision_MPC(_controlFSMData->controlParameters->controller_dt,
+                30 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                _controlFSMData->userParameters),
+        _visionLCM(getLcmUrl(255))
 {
-  //_visionLCM.subscribe("local_heightmap", &FSM_State_Vision<T>::handleVisionLCM, this);
-  //_visionLCMThread = std::thread(&FSM_State_Vision<T>::visionLCMThread, this);
-
-  //_pointsLCM.subscribe("cf_pointcloud", &FSM_State_Vision<T>::handlePointsLCM, this);
-  //_pointsLCMThread = std::thread(&FSM_State_Vision<T>::pointsLCMThread, this);
-
-  //_map = DMat<T>::Zero(x_size, y_size);
   // Set the safety checks
   this->turnOnAllSafetyChecks();
   // Turn off Foot pos command since it is set in WBC as operational task
@@ -43,53 +34,44 @@ FSM_State_Vision<T>::FSM_State_Vision(
   this->footstepLocations = Mat34<T>::Zero();
   _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
   _wbc_data = new LocomotionCtrlData<T>();
+  zero_vec3.setZero();
+
+  _visionLCM.subscribe("local_heightmap", &FSM_State_Vision<T>::handleHeightmapLCM, this);
+  _visionLCM.subscribe("traversability", &FSM_State_Vision<T>::handleIndexmapLCM, this);
+  _visionLCMThread = std::thread(&FSM_State_Vision<T>::visionLCMThread, this);
+
+  _height_map = DMat<T>::Zero(x_size, y_size);
+  _idx_map = DMat<int>::Zero(x_size, y_size);
 }
 
-//template <typename T>
-//void FSM_State_Vision<T>::handleVisionLCM(const lcm::ReceiveBuffer *rbuf,
-                                      //const std::string &chan,
-                                      //const heightmap_t *msg) {
-  //(void)rbuf;
-  //(void)chan;
+template<typename T>
+void FSM_State_Vision<T>::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const heightmap_t *msg) {
+  (void)rbuf;
+  (void)chan;
 
-  //_b_writing = true;
-  //for(size_t i(0); i<x_size; ++i){
-    //for(size_t j(0); j<y_size; ++j){
-         //_map(i,j) = msg->map[i][j];
-    //}
-  //}
-  //_b_writing = false;
-//}
-
-//template <typename T>
-//void FSM_State_Vision<T>::visionLCMThread() {
-  //while (true) {
-    //_visionLCM.handle();
-    //_b_vision_update = true;
-  //}
-//}
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+      _height_map(i,j) = msg->map[i][j];
+    }
+  }
+}
 
 
-//template <typename T>
-//void FSM_State_Vision<T>::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
-                                      //const std::string &chan,
-                                      //const rs_pointcloud_t*msg) {
-  //(void)rbuf;
-  //(void)chan;
+template<typename T>
+void FSM_State_Vision<T>::handleIndexmapLCM(const lcm::ReceiveBuffer *rbuf,
+    const std::string &chan,
+    const traversability_map_t *msg) {
+  (void)rbuf;
+  (void)chan;
 
-  //for(size_t i(0); i<num_points; ++i){
-      //for(size_t j(0); j<3; ++j){
-         //_points[i][j] = msg->pointlist[i][j];
-      //}
-  //}
-//}
-
-//template <typename T>
-//void FSM_State_Vision<T>::pointsLCMThread() {
-  //while (true) {
-    //_pointsLCM.handle();
-  //}
-//}
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+      _idx_map(i,j) = msg->map[i][j];
+    }
+  }
+}
 
 
 template <typename T>
@@ -99,7 +81,11 @@ void FSM_State_Vision<T>::onEnter() {
 
   // Reset the transition data
   this->transitionData.zero();
-  cMPCOld.initialize();
+  vision_MPC.initialize();
+
+  _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
+  _ini_body_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
+  printf("[FSM VISION] On Enter\n");
 }
 
 /**
@@ -107,51 +93,138 @@ void FSM_State_Vision<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_Vision<T>::run() {
-  //_AddMeshDrawing();
-  //_AddPointsDrawing();
   // Call the locomotion control logic for this iteration
-  LocomotionControlStep();
+  Vec3<T> des_vel; // x,y, yaw
+  _UpdateObstacle();
+  _UpdateVelCommand(des_vel);
+  _LocomotionControlStep(des_vel);
+  _Visualization(des_vel);
+}
+template <typename T>
+void FSM_State_Vision<T>::_UpdateObstacle(){
+  _obs_list.clear();
+  // TEST
+  //Vec3<T> test1; 
+  //test1<< 0.7, 0.20, 0.4;
+  //_obs_list.push_back(test1);
+  //test1<< 0.7, -0.20, 0.4;
+  //_obs_list.push_back(test1);
+
+  
+  T obstacle_height = 0.15;
+  T threshold_gap = 0.08;
+  bool add_obs(true);
+  Vec3<T> robot_loc = (this->_data->_stateEstimator->getResult()).position;
+  Vec3<T> obs; obs[2] = 0.4; // height (dummy)
+
+  //size_t num_obs_limit = 10;
+  T dist(0.);
+  for(size_t i(0); i<x_size; ++i){
+    for(size_t j(0); j<y_size; ++j){
+      if( (_height_map(i, j) > obstacle_height) ){ // if too high point
+        add_obs = true;
+        obs[0] = i*grid_size - 50*grid_size + robot_loc[0];
+        obs[1] = j*grid_size - 50*grid_size + robot_loc[1];
+
+        // check with already added obstacle
+        for(size_t idx_obs(0); idx_obs < _obs_list.size(); ++idx_obs){
+          dist = sqrt(  (obs[0] - _obs_list[idx_obs][0])*(obs[0] - _obs_list[idx_obs][0]) + 
+              (obs[1] - _obs_list[idx_obs][1])*(obs[1] - _obs_list[idx_obs][1]) ); 
+          if(dist < threshold_gap){
+            add_obs = false;
+          }
+        }// distance check
+        if(add_obs){
+            _obs_list.push_back(obs);
+        }
+      }
+    } // y loop
+  } // x loop
+
+  //_print_obstacle_list();
 }
 
+template <typename T>
+void FSM_State_Vision<T>::_print_obstacle_list(){
+  for(size_t i(0); i < _obs_list.size(); ++i){
+    printf("%lu th obstacle: %f, %f, %f\n", i, _obs_list[i][0], _obs_list[i][1], _obs_list[i][2] );
+  }
+}
 
-//template<typename T>
-//void FSM_State_Vision<T>::_AddMeshDrawing(){
-  //auto* mesh = this->_data->visualizationData->addMesh();
-  //if(mesh){
-    //Vec3<T> pos = this->_data->_stateEstimator->getResult().position;
+template <typename T>
+void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
+  velocity_visual_t vel_visual;
+  for(size_t i(0); i<3; ++i){
+    vel_visual.vel_cmd[i] = des_vel[i];
+    vel_visual.base_position[i] = (this->_data->_stateEstimator->getResult()).position[i];
+  }
+  _visionLCM.publish("velocity_cmd", &vel_visual);
+  
 
-    //mesh->left_corner.setZero();
-    //mesh->left_corner[0] = -0.75 + pos[0];
-    //mesh->left_corner[1] = -0.75 + pos[1];
-    //mesh->rows = x_size;
-    //mesh->cols = y_size;
-    //mesh->grid_size = 0.015;
-    //mesh->height_max = 0.7;
-    //mesh->height_min = 0.;
+  _obs_visual_lcm.num_obs = _obs_list.size();
+  for(size_t i(0); i<_obs_list.size(); ++i){
+    _obs_visual_lcm.location[i][0] = _obs_list[i][0];
+    _obs_visual_lcm.location[i][1] = _obs_list[i][1];
+    _obs_visual_lcm.location[i][2] = 0;
+  }
+  _obs_visual_lcm.sigma = 0.15;
+  _obs_visual_lcm.height = 0.5;
 
-      //for(int i(0); i<mesh->rows; ++i){
-        //for(int j(0); j<mesh->cols; ++j){
-          //mesh->height_map(i,j) = _map(i,j);
-        //}
-      //}
+  _visionLCM.publish("obstacle_visual", &_obs_visual_lcm);
+}
+
+template <typename T>
+void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
+  des_vel.setZero();
+
+  Vec3<T> target_pos, curr_pos, curr_ori_rpy;
+
+  target_pos.setZero();
+
+  T moving_time = 10.0;
+  T curr_time = (T)iter * 0.002;
+  //if(curr_time > moving_time){
+    //curr_time = moving_time;
   //}
-//}
+  //target_pos[0] += 1.0 * curr_time/moving_time;
+  //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
+  target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
 
+  curr_pos = (this->_data->_stateEstimator->getResult()).position;
+  curr_pos -= _ini_body_pos;
+  target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
+  curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
+ 
+  des_vel[0] = 0.8 * (target_pos[0] - curr_pos[0]);
+  des_vel[1] = 0.8 * (target_pos[1] - curr_pos[1]);
+  des_vel[2] = 0.8 * (_ini_body_ori_rpy[2] - curr_ori_rpy[2]);
 
-//template<typename T>
-//void FSM_State_Vision<T>::_AddPointsDrawing(){
-  //int num_skip = 5;
-  //for(size_t i(0); i<num_points/num_skip; ++i){
-    //auto* point = this->_data->visualizationData->addSphere();
-    //if(point){
-      //point->position = _points[i*num_skip];
-      //point->color = {1.0, 0.2, 0.2, 1.0};
-      //point->radius = 0.007;
-    //} 
-  //}
-//}
+  //des_vel[0] = 0.5;
+  T inerproduct;
+  T x, y, x_obs, y_obs;
+  T vel_x, vel_y;
+  T sigma(0.15);
+  T h(0.5);
+  for(size_t i(0); i<_obs_list.size(); ++i){
+    x = curr_pos[0];
+    y = curr_pos[1];
+    x_obs = _obs_list[i][0];
+    y_obs = _obs_list[i][1];
+    inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
+    vel_x = h*((x-x_obs)/ sigma/sigma)*exp(-inerproduct/(2*sigma*sigma));
+    vel_y = h*((y-y_obs)/ sigma/sigma)*exp(-inerproduct/(2*sigma*sigma));
+    //printf("vel_x, y: %f, %f\n", vel_x, vel_y);
 
+    des_vel[0] += vel_x;
+    des_vel[1] += vel_y;
+  }
+  //printf("des vel_x, y: %f, %f\n", des_vel[0], des_vel[1]);
 
+  des_vel[0] = fminf(fmaxf(des_vel[0], -1.), 1.);
+  des_vel[1] = fminf(fmaxf(des_vel[1], -1.), 1.);
+
+}
+ 
 /**
  * Manages which states can be transitioned into either by the user
  * commands or state event triggers.
@@ -191,11 +264,6 @@ FSM_StateName FSM_State_Vision<T>::checkTransition() {
 
       break;
 
-    case K_STAND_UP:
-      this->nextStateName = FSM_StateName::STAND_UP;
-      this->transitionDuration = 0.;
-      break;
-
     case K_RECOVERY_STAND:
       this->nextStateName = FSM_StateName::RECOVERY_STAND;
       this->transitionDuration = 0.;
@@ -222,7 +290,7 @@ TransitionData<T> FSM_State_Vision<T>::transition() {
   // Switch FSM control mode
   switch (this->nextStateName) {
     case FSM_StateName::BALANCE_STAND:
-      LocomotionControlStep();
+      _LocomotionControlStep(zero_vec3);
 
       iter++;
       if (iter >= this->transitionDuration * 1000) {
@@ -235,16 +303,15 @@ TransitionData<T> FSM_State_Vision<T>::transition() {
 
     case FSM_StateName::PASSIVE:
       this->turnOffAllSafetyChecks();
-
       this->transitionData.done = true;
 
-      break;
-
-    case FSM_StateName::STAND_UP:
-      this->transitionData.done = true;
       break;
 
     case FSM_StateName::RECOVERY_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::LOCOMOTION:
       this->transitionData.done = true;
       break;
 
@@ -273,27 +340,27 @@ void FSM_State_Vision<T>::onExit() {
  * each stance or swing leg.
  */
 template <typename T>
-void FSM_State_Vision<T>::LocomotionControlStep() {
+void FSM_State_Vision<T>::_LocomotionControlStep(const Vec3<T> & des_vel) {
   // StateEstimate<T> stateEstimate = this->_data->_stateEstimator->getResult();
 
   // Contact state logic
-  cMPCOld.run<T>(*this->_data);
+  vision_MPC.run<T>(*this->_data, des_vel, _height_map, _idx_map);
 
   if(this->_data->userParameters->use_wbc > 0.9){
-    _wbc_data->pBody_des = cMPCOld.pBody_des;
-    _wbc_data->vBody_des = cMPCOld.vBody_des;
-    _wbc_data->aBody_des = cMPCOld.aBody_des;
+    _wbc_data->pBody_des = vision_MPC.pBody_des;
+    _wbc_data->vBody_des = vision_MPC.vBody_des;
+    _wbc_data->aBody_des = vision_MPC.aBody_des;
 
-    _wbc_data->pBody_RPY_des = cMPCOld.pBody_RPY_des;
-    _wbc_data->vBody_Ori_des = cMPCOld.vBody_Ori_des;
+    _wbc_data->pBody_RPY_des = vision_MPC.pBody_RPY_des;
+    _wbc_data->vBody_Ori_des = vision_MPC.vBody_Ori_des;
     
     for(size_t i(0); i<4; ++i){
-      _wbc_data->pFoot_des[i] = cMPCOld.pFoot_des[i];
-      _wbc_data->vFoot_des[i] = cMPCOld.vFoot_des[i];
-      _wbc_data->aFoot_des[i] = cMPCOld.aFoot_des[i];
-      _wbc_data->Fr_des[i] = cMPCOld.Fr_des[i]; 
+      _wbc_data->pFoot_des[i] = vision_MPC.pFoot_des[i];
+      _wbc_data->vFoot_des[i] = vision_MPC.vFoot_des[i];
+      _wbc_data->aFoot_des[i] = vision_MPC.aFoot_des[i];
+      _wbc_data->Fr_des[i] = vision_MPC.Fr_des[i]; 
     }
-    _wbc_data->contact_state = cMPCOld.contact_state;
+    _wbc_data->contact_state = vision_MPC.contact_state;
     _wbc_ctrl->run(_wbc_data, *this->_data);
 
   }

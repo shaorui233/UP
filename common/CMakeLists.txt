@@ -46,16 +46,15 @@ endif()
 
 # Test
 file(GLOB_RECURSE test_sources "test/test_*.cpp")             # test cpp files
-add_executable(test-common ${test_sources} ${sources})
-target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread)
+add_executable(test-common ${test_sources})
+target_link_libraries(test-common gtest gmock_main lcm rt inih osqp dynacore_param_handler pthread biomimetics)
 target_link_libraries(test-common Goldfarb_Optimizer)
 target_link_libraries(test-common JCQP)
 
 if(IPOPT_OPTION)
 link_directories("../third-party/CoinIpopt/build/lib")
 include_directories(SYSTEM "../third-party/CoinIpopt/build/include/coin")
-find_library(ipopt NAMES libipopt.so PATHS
-  "../third-party/CoinIpopt/build/lib")
+find_library(ipopt NAMES libipopt.so PATHS "../third-party/CoinIpopt/build/lib")
 target_link_libraries(test-common ${ipopt})# liblapack blas m dl ipoptamplinterface)
 target_link_libraries(test-common WBC_Ctrl)# liblapack blas m dl ipoptamplinterface)
 endif(IPOPT_OPTION)

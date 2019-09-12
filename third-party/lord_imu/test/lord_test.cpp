@@ -21,14 +21,18 @@ int main(int argc, char** argv) {
   baudrate = std::atoi(argv[2]);
 
   LordImu imu;
-  imu.init(com_port, baudrate);
-
-  while(true) {
-    imu.run();
-    Vec3<float> rpy = ori::quatToRPY(imu.quat);
-    printf("rpy: %.3f %.3f %.3f\n", rpy[0], rpy[1], rpy[2]);
+  if(imu.tryInit(com_port, baudrate)) {
+    while(true) {
+      imu.run();
+      //std::cout << "Q: " << imu.quat.transpose() << "\n";
+      //Vec3<float> rpy = ori::quatToRPY(imu.quat);
+      //Vec3<float> acc = imu.acc;
+      Vec3<float> ang = imu.gyro;
+      //printf("rpy: %.3f %.3f %.3f\n", rpy[0], rpy[1], rpy[2]);
+      //printf("acc: %.3f %.3f %.3f\n", acc[0], acc[1], acc[2]);
+      printf("ang: %.3f %.3f %.3f\n", ang[0], ang[1], ang[2]);
+    }
   }
-
 
 
   return 0;

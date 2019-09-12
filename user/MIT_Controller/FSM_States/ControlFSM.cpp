@@ -6,6 +6,7 @@
  */
 
 #include "ControlFSM.h"
+#include <rt/rt_interface_lcm.h>
 
 /**
  * Constructor for the Control FSM. Passes in all of the necessary
@@ -52,6 +53,7 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.vision = new FSM_State_Vision<T>(&data);
   statesList.backflip = new FSM_State_BackFlip<T>(&data);
   statesList.twocontactStand = new FSM_State_TwoContactStand<T>(&data);
+  statesList.frontJump = new FSM_State_FrontJump<T>(&data);
 
   safetyChecker = new SafetyChecker<T>(&data);
 
@@ -97,13 +99,19 @@ void ControlFSM<T>::runFSM() {
   operatingMode = safetyPreCheck();
 
   if(data.controlParameters->use_rc){
-    if(data._desiredStateCommand->rcCommand->mode == 12){
+    if(data._desiredStateCommand->rcCommand->mode == RC_mode::RECOVERY_STAND){
       data.controlParameters->control_mode = K_RECOVERY_STAND;
-    } else if(data._desiredStateCommand->rcCommand->mode == 11){
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::LOCOMOTION){
       data.controlParameters->control_mode = K_LOCOMOTION;
-    } else if(data._desiredStateCommand->rcCommand->mode == 3){
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::QP_STAND){
       data.controlParameters->control_mode = K_BALANCE_STAND;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
+      data.controlParameters->control_mode = K_VISION;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
+        data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
+      data.controlParameters->control_mode = K_BACKFLIP;
     }
+    //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
   }
 
   if(data.controlParameters->control_mode == K_RECOVERY_STAND){
@@ -266,6 +274,9 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 
     case FSM_StateName::TWO_CONTACT_STAND:
       return statesList.twocontactStand;
+
+    case FSM_StateName::FRONTJUMP:
+      return statesList.frontJump;
 
     default:
       return statesList.invalid;

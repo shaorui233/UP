@@ -10,6 +10,19 @@ constexpr u32 IMU_PACKET_TIMEOUT_MS = 1000;
 //constexpr u32 MIP_SDK_GX4_25_IMU_DIRECT_MODE = 0x02;
 constexpr u32 MIP_SDK_STANDARD_MODE = 0x01;
 
+static std::mutex dataMutex;
+
+bool LordImu::tryInit(u32 port, u32 baud_rate) {
+  try {
+    init(port, baud_rate);
+  } catch(std::exception& e) {
+    printf("[LordIMU] failed to initialize: %s\n", e.what());
+    return false;
+  }
+
+  return true;
+}
+
 void LordImu::init(u32 port, u32 baud_rate) {
   printf("[Lord IMU] Open port %d, baud rate %d\n", port, baud_rate);
 
@@ -163,6 +176,9 @@ static void filter_callback(void* user_ptr, u8* packet, u16 packet_size, u8 call
   u16 field_offset = 0;
   mip_filter_attitude_quaternion quat;
 
+  Mat3<float> R = Mat3<float>::Identity();
+  R << 0, -1, 0, -1, 0, 0, 0, 0, 1;
+
   switch(callback_type) {
     case MIP_INTERFACE_CALLBACK_VALID_PACKET:
       while(mip_get_next_field(packet, &field_header,
@@ -172,8 +188,15 @@ static void filter_callback(void* user_ptr, u8* packet, u16 packet_size, u8 call
           {
             memcpy(&quat, field_data, sizeof(mip_filter_attitude_quaternion));
             mip_filter_attitude_quaternion_byteswap(&quat);
+            dataMutex.lock();
             gLordImu->quat = Vec4<float>(quat.q);
+            Vec4<float> wz(sqrtf(2)/2.f, 0, 0, sqrtf(2)/2.f);
+            Vec4<float> wx(0, -1, 0, 0);
+            Vec4<float> wxwz = ori::quatProduct(wx, wz);
+            Vec4<float> wxwzi = ori::rotationMatrixToQuaternion(ori::quaternionToRotationMatrix(wxwz).transpose());
+            gLordImu->quat = ori::quatProduct(wxwzi, ori::quatProduct(gLordImu->quat, wxwz));
             gLordImu->good_packets++;
+            dataMutex.unlock();
           }
             break;
           default:
@@ -207,6 +230,8 @@ static void ahrs_callback(void* user_ptr, u8* packet, u16 packet_size, u8 callba
   mip_ahrs_scaled_accel accel;
   mip_ahrs_scaled_gyro gyro;
 
+
+
   switch(callback_type) {
     case MIP_INTERFACE_CALLBACK_VALID_PACKET:
       //gLordImu->good_packets++;
@@ -216,14 +241,24 @@ static void ahrs_callback(void* user_ptr, u8* packet, u16 packet_size, u8 callba
           case MIP_AHRS_DATA_ACCEL_SCALED:
             memcpy(&accel, field_data, sizeof(mip_ahrs_scaled_accel));
             mip_ahrs_scaled_accel_byteswap(&accel);
-            gLordImu->acc = Vec3<float>(accel.scaled_accel);
+            //gLordImu->acc = Vec3<float>(accel.scaled_accel);
+            dataMutex.lock();
+            gLordImu->acc[0] = 9.81f * -accel.scaled_accel[1];
+            gLordImu->acc[1] = 9.81f * -accel.scaled_accel[0];
+            gLordImu->acc[2] = 9.81f * -accel.scaled_accel[2];
             gLordImu->good_packets++;
+            dataMutex.unlock();
             break;
           case MIP_AHRS_DATA_GYRO_SCALED:
+            dataMutex.lock();
             memcpy(&gyro, field_data, sizeof(mip_ahrs_scaled_gyro));
             mip_ahrs_scaled_gyro_byteswap(&gyro);
-            gLordImu->gyro = Vec3<float>(gyro.scaled_gyro);
+            //gLordImu->gyro = Vec3<float>(gyro.scaled_gyro);
+            gLordImu->gyro[0] = -gyro.scaled_gyro[1];
+            gLordImu->gyro[1] = -gyro.scaled_gyro[0];
+            gLordImu->gyro[2] = -gyro.scaled_gyro[2];
             gLordImu->good_packets++;
+            dataMutex.unlock();
             break;
           default:
             printf("[Lord IMU] Unknown AHRS packet %d\n", field_header->descriptor);
@@ -320,8 +355,27 @@ void LordImu::enable() {
 }
 
 void LordImu::run() {
-  mip_interface_update(&device_interface);
+  for(u32 i = 0; i < 32; i++)
+    mip_interface_update(&device_interface);
   usleep(100);
+}
+
+void LordImu::updateLCM(microstrain_lcmt *message) {
+  dataMutex.lock();
+  for(u32 i = 0; i < 4; i++) {
+    message->quat[i] = quat[i];
+  }
+
+  Vec3<float> rpy = ori::quatToRPY(quat);
+  for(u32 i = 0; i < 3; i++) {
+    message->rpy[i] = rpy[i];
+    message->acc[i] = acc[i];
+    message->omega[i] = gyro[i];
+  }
+
+  message->good_packets = good_packets;
+  message->bad_packets = invalid_packets + unknown_packets + timeout_packets;
+  dataMutex.unlock();
 }
 
 void LordImu::print_packet_stats() {

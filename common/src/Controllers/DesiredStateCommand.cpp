@@ -4,7 +4,7 @@
  */
 
 #include "Controllers/DesiredStateCommand.h"
-
+#include "../robot/include/rt/rt_interface_lcm.h"
 /*=========================== Gait Data ===============================*/
 /**
  *
@@ -37,12 +37,13 @@ void DesiredStateCommand<T>::convertToStateCommands() {
   Vec2<float> joystickLeft, joystickRight;
 
   if(parameters->use_rc) {
-    if(rcCommand->mode == 3){ // Stand
+    if(rcCommand->mode == RC_mode::QP_STAND){ // Stand
       joystickLeft[0] = -rcCommand->p_des[1]; // Y
       joystickLeft[1] = 0.;
       joystickRight[0] = -rcCommand->rpy_des[2]; // Yaw
       joystickRight[1] = rcCommand->rpy_des[1]; // Pitch
-    }else if(rcCommand->mode == 11){ // Walking
+    }else if(rcCommand->mode == RC_mode::LOCOMOTION ||
+        rcCommand->mode == RC_mode::VISION){ // Walking
       joystickLeft[0] = -rcCommand->v_des[1]; // Y
       joystickLeft[1] = rcCommand->v_des[0]; // X
       joystickRight[0] = -rcCommand->omega_des[2]; // Yaw

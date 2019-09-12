@@ -16,8 +16,7 @@
 template <typename T>
 FSM_State_BalanceStand<T>::FSM_State_BalanceStand(
     ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND,
-                   "BALANCE_STAND") {
+    : FSM_State<T>(_controlFSMData, FSM_StateName::BALANCE_STAND,"BALANCE_STAND") {
   // Set the pre controls safety checks
   this->turnOnAllSafetyChecks();
   // Turn off Foot pos command since it is set in WBC as operational task
@@ -116,11 +115,16 @@ FSM_StateName FSM_State_BalanceStand<T>::checkTransition() {
 
       break;
 
+    case K_VISION:
+      this->nextStateName = FSM_StateName::VISION;
+      // Transition time is immediate
+      this->transitionDuration = 0.0;
+      break;
+
     case K_RECOVERY_STAND:
       this->nextStateName = FSM_StateName::RECOVERY_STAND;
       // Transition time is immediate
       this->transitionDuration = 0.0;
-
       break;
 
     default:
@@ -161,6 +165,10 @@ TransitionData<T> FSM_State_BalanceStand<T>::transition() {
       break;
 
     case FSM_StateName::RECOVERY_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::VISION:
       this->transitionData.done = true;
       break;
 

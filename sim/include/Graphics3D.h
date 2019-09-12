@@ -171,16 +171,31 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
 
   bool _pause = false;
 
-  DMat<float> _map;
-  Vec3<float> _pos;
+  // Vision data visualization
   Vec3<float> _points[5001];
+  size_t _num_points = 5001;
+  bool _pointcloud_data_update = false;
 
   size_t x_size = 100;
   size_t y_size = 100;
+  DMat<float> _map;
+  DMat<int> _idx_map;
+  Vec3<float> _pos;
 
-  size_t _num_points = 5001;
-  bool _pointcloud_data_update = false;
   bool _heightmap_data_update = false;
+  bool _indexmap_data_update = false;
+  
+  Vec3<float> _vel_cmd_dir, _vel_cmd_pos;
+  bool _vel_cmd_update = false;
+
+  vectorAligned< Vec3<double> > _obs_list;
+  float _obs_sigma = 0.15;
+  float _obs_height;
+  bool _obstacle_update = false;
+
+  void _drawHeightMap();
+  void _drawVelArrow();
+  void _drawObstacleField();
 };
 
 #endif  // PROJECT_GRAPHICS3D_H

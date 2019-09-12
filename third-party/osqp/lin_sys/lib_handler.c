@@ -1,5 +1,6 @@
 #include "lib_handler.h"
 #include <ctype.h> // Needed for tolower functions
+#include <string.h>
 
 #include "constants.h"
 

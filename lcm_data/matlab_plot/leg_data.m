@@ -9,7 +9,7 @@ addpath('./functions')
 % load('./../matlab_log/exp_treadmill1.mat')
 %load('./../matlab_log/data_exp_bounding.mat')
 % load('./../matlab_log/data_exp_bounding.mat')
-load('./../matlab_log/sim_data.mat')
+load('./../matlab_log/run_3.mat')
 
 fig = fn_open_figures(6);
 
@@ -69,14 +69,16 @@ xlabel('Foot pos')
 
 % foot vel
 figure(fig(5))
-for i =1:12
-    subplot(4,3,i)
+for i =1:4
+    subplot(4,1,i)
 hold on
-plot(time(st_idx:end_idx), leg_control_data.v(st_idx:end_idx,i))
-plot(time(st_idx:end_idx), leg_control_data.v(st_idx:end_idx,3))
+plot(leg_control_data.lcm_timestamp, leg_control_data.v(:,3*i-2))
+plot(leg_control_data.lcm_timestamp, leg_control_data.v(:,3*i))
+plot(wbc_lcm_data.lcm_timestamp, wbc_lcm_data.Fr(:,3*i)*0.05) 
 
 grid on
 axis tight
+xlim([70, 80])
 end
 xlabel('Foot vel')
 

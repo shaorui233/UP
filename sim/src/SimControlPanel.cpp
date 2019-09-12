@@ -48,8 +48,10 @@ SimControlPanel::SimControlPanel(QWidget* parent)
       ui(new Ui::SimControlPanel),
       _userParameters("user-parameters"),
       _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE),
+      _heightmapLCM(getLcmUrl(255)),
       _pointsLCM(getLcmUrl(255)),
-      _heightmapLCM(getLcmUrl(255))
+      _indexmapLCM(getLcmUrl(255)),
+      _ctrlVisionLCM(getLcmUrl(255))
 {
 
   ui->setupUi(this); // QT setup
@@ -93,25 +95,87 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _heightmapLCM.subscribe("local_heightmap", &SimControlPanel::handleHeightmapLCM, this);
   _heightmapLCMThread = std::thread(&SimControlPanel::heightmapLCMThread, this);
 
+  _indexmapLCM.subscribe("traversability", &SimControlPanel::handleIndexmapLCM, this);
+  _indexmapLCMThread = std::thread(&SimControlPanel::indexmapLCMThread, this);
+
+  _ctrlVisionLCM.subscribe("velocity_cmd", &SimControlPanel::handleVelocityCMDLCM, this);
+  _ctrlVisionLCM.subscribe("obstacle_visual", &SimControlPanel::handleObstacleLCM, this);
+  _ctrlVisionLCMThread = std::thread(&SimControlPanel::ctrlVisionLCMThread, this);
+
 }
 
+void SimControlPanel::handleVelocityCMDLCM(const lcm::ReceiveBuffer* rbuf, 
+    const std::string & chan,
+    const velocity_visual_t* msg){
+  (void)rbuf;
+  (void)chan;
+ 
+  if(_graphicsWindow){
+    for(size_t i(0); i<3; ++i){
+      _graphicsWindow->_vel_cmd_dir[i] = msg->vel_cmd[i];
+      _graphicsWindow->_vel_cmd_pos[i] = msg->base_position[i];
+    }
+    _graphicsWindow->_vel_cmd_update = true;
+  }
+}
+
+void SimControlPanel::handleObstacleLCM(const lcm::ReceiveBuffer* rbuf, 
+    const std::string & chan,
+    const obstacle_visual_t* msg){
+  (void)rbuf;
+  (void)chan;
+ 
+  if(_graphicsWindow){
+    _graphicsWindow->_obs_list.clear();
+    Vec3<double> obs_loc;
+    for(int i(0); i<msg->num_obs; ++i){
+      obs_loc[0] = msg->location[i][0];
+      obs_loc[1] = msg->location[i][1];
+      obs_loc[2] = msg->location[i][2];
+
+      _graphicsWindow->_obs_list.push_back(obs_loc);
+    }
+    _graphicsWindow->_obs_sigma = msg->sigma;
+    _graphicsWindow->_obs_height = msg->height;
+
+    _graphicsWindow->_obstacle_update = true;
+    //printf("%f, %f\n", _graphicsWindow->_obs_list[0][0], _graphicsWindow->_obs_list[0][1]);
+  }
+
+}
 void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
-                                      const std::string &chan,
+    const std::string &chan,
                                       const rs_pointcloud_t*msg) {
   (void)rbuf;
   (void)chan;
 
-  if(_simulation){
-    for(size_t i(0); i<_simulation->_window->_num_points; ++i){
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->_num_points; ++i){
       for(size_t j(0); j<3; ++j){
-        _simulation->_window->_points[i][j] = msg->pointlist[i][j];
+        _graphicsWindow->_points[i][j] = msg->pointlist[i][j];
       }
     }
-    _simulation->_window->_pos[0] = msg->position[0];
-    _simulation->_window->_pos[1] = msg->position[1];
-    _simulation->_window->_pos[2] = msg->position[2];
+    _graphicsWindow->_pos[0] = msg->position[0];
+    _graphicsWindow->_pos[1] = msg->position[1];
+    _graphicsWindow->_pos[2] = msg->position[2];
 
-    _simulation->_window->_pointcloud_data_update = true;
+    _graphicsWindow->_pointcloud_data_update = true;
+  }
+}
+
+void SimControlPanel::handleIndexmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const traversability_map_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->x_size; ++i){
+      for(size_t j(0); j<_graphicsWindow->y_size; ++j){
+        _graphicsWindow->_idx_map(i,j) = msg->map[i][j];
+      }
+    }
+    _graphicsWindow->_indexmap_data_update = true;
   }
 }
 
@@ -122,13 +186,13 @@ void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
   (void)rbuf;
   (void)chan;
 
-  if(_simulation){
-    for(size_t i(0); i<_simulation->_window->x_size; ++i){
-      for(size_t j(0); j<_simulation->_window->y_size; ++j){
-        _simulation->_window->_map(i,j) = msg->map[i][j];
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->x_size; ++i){
+      for(size_t j(0); j<_graphicsWindow->y_size; ++j){
+        _graphicsWindow->_map(i,j) = msg->map[i][j];
       }
     }
-    _simulation->_window->_heightmap_data_update = true;
+    _graphicsWindow->_heightmap_data_update = true;
   }
 }
 

@@ -1,12 +1,14 @@
 #ifndef FSM_STATE_VISION_H
 #define FSM_STATE_VISION_H
 
-#include <Controllers/convexMPC/ConvexMPCLocomotion.h>
+#include <Controllers/VisionMPC/VisionMPCLocomotion.h>
 #include "FSM_State.h"
 #include <thread>
 #include <lcm-cpp.hpp>
 #include "heightmap_t.hpp"
-#include "rs_pointcloud_t.hpp"
+#include "traversability_map_t.hpp"
+#include "velocity_visual_t.hpp"
+#include "obstacle_visual_t.hpp"
 
 template<typename T> class WBC_Ctrl;
 template<typename T> class LocomotionCtrlData;
@@ -37,38 +39,36 @@ class FSM_State_Vision : public FSM_State<T> {
  private:
   // Keep track of the control iterations
   int iter = 0;
-  ConvexMPCLocomotion cMPCOld;
+  VisionMPCLocomotion vision_MPC;
   WBC_Ctrl<T> * _wbc_ctrl;
   LocomotionCtrlData<T> * _wbc_data;
 
-  // Parses contact specific controls to the leg controller
-  void LocomotionControlStep();
+  Vec3<T> _ini_body_pos;
+  Vec3<T> _ini_body_ori_rpy;
+  Vec3<T> zero_vec3;
 
-  //void _AddMeshDrawing();
-  //void _AddPointsDrawing();
+  size_t x_size = 100;
+  size_t y_size = 100;
+  double grid_size = 0.015;
 
-  //void handleVisionLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-                       //const heightmap_t* msg);
-  //void visionLCMThread();
+  DMat<T> _height_map;
+  DMat<int> _idx_map;
 
-  //void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan,
-                       //const rs_pointcloud_t* msg);
-  //void pointsLCMThread();
+  void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const heightmap_t* msg);
+  void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const traversability_map_t* msg);
+  void visionLCMThread() { while (true) { _visionLCM.handle(); } }
 
-  //lcm::LCM _visionLCM;
-  //std::thread _visionLCMThread;
+  lcm::LCM _visionLCM;
+  std::thread _visionLCMThread;
 
-  //lcm::LCM _pointsLCM;
-  //std::thread _pointsLCMThread;
+  vectorAligned< Vec3<T> > _obs_list; // loc, height
+  obstacle_visual_t _obs_visual_lcm;
 
-  //bool _b_vision_update = false;
-
-  //DMat<T> _map;
-  //Vec3<T> _points[5001];
-  //size_t x_size = 100;
-  //size_t y_size = 100;
-  //size_t num_points = 5001;
-  //bool _b_writing = false;
+  void _UpdateObstacle();
+  void _LocomotionControlStep(const Vec3<T> & vel_cmd);
+  void _UpdateVelCommand(Vec3<T> & vel_cmd);
+  void _Visualization(const Vec3<T> & des_vel);
+  void _print_obstacle_list();
 };
 
 #endif  // FSM_STATE_LOCOMOTION_H

@@ -68,7 +68,7 @@ void FSM_State_RecoveryStand<T>::onEnter() {
 
   _flag = FoldLegs;
   if( !_UpsideDown() ) { // Proper orientation
-    if (  (0.2 < body_height) && (body_height < 0.3) ){
+    if (  (0.2 < body_height) && (body_height < 0.45) ){
       printf("[Recovery Balance] body height is %f; Stand Up \n", body_height);
       _flag = StandUp;
     }else{
@@ -251,6 +251,18 @@ FSM_StateName FSM_State_RecoveryStand<T>::checkTransition() {
       this->nextStateName = FSM_StateName::TWO_CONTACT_STAND;
       break;
 
+    case K_BACKFLIP: 
+      this->nextStateName = FSM_StateName::BACKFLIP;
+      break;
+
+    case K_FRONTJUMP: 
+      this->nextStateName = FSM_StateName::FRONTJUMP;
+      break;
+
+    case K_VISION: 
+      this->nextStateName = FSM_StateName::VISION;
+      break;
+
     default:
       std::cout << "[CONTROL FSM] Bad Request: Cannot transition from "
                 << K_RECOVERY_STAND << " to "
@@ -288,6 +300,18 @@ TransitionData<T> FSM_State_RecoveryStand<T>::transition() {
       break;
 
     case FSM_StateName::TWO_CONTACT_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::BACKFLIP:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::FRONTJUMP:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::VISION:
       this->transitionData.done = true;
       break;
 

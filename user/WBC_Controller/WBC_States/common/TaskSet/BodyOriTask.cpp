@@ -57,11 +57,11 @@ bool BodyOriTask<T>::_UpdateCommand(void* pos_des, const DVec<T>& vel_des,
     TK::op_cmd_[i] = _Kp[i] * ori_err_so3[i] +
                      _Kd[i] * (TK::vel_des_[i] - curr_vel[i]) + TK::acc_des_[i];
   }
-   printf("[Body Ori Task]\n");
-   pretty_print(TK::pos_err_, std::cout, "pos_err_");
-   pretty_print(*ori_cmd, std::cout, "des_ori");
-   pretty_print(link_ori, std::cout, "curr_ori");
-   pretty_print(ori_err, std::cout, "quat_err");
+   //printf("[Body Ori Task]\n");
+   //pretty_print(TK::pos_err_, std::cout, "pos_err_");
+   //pretty_print(*ori_cmd, std::cout, "des_ori");
+   //pretty_print(link_ori, std::cout, "curr_ori");
+   //pretty_print(ori_err, std::cout, "quat_err");
 
   // pretty_print(link_ori_inv, std::cout, "ori_inv");
   // pretty_print(ori_err, std::cout, "ori_err");
