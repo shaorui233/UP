@@ -83,8 +83,9 @@ void RobotRunner::init() {
  */
 void RobotRunner::run() {
   // Run the state estimator step
-  _stateEstimator->run(cheetahMainVisualization);
-  cheetahMainVisualization->p = _stateEstimate.position;
+  //_stateEstimator->run(cheetahMainVisualization);
+  _stateEstimator->run();
+  //cheetahMainVisualization->p = _stateEstimate.position;
   visualizationData->clear();
 
   // Update the data from the robot
@@ -122,9 +123,11 @@ void RobotRunner::run() {
       } else {
         // Run Control 
         _robot_ctrl->runController();
+          cheetahMainVisualization->p = _stateEstimate.position;
 
         // Update Visualization
         _robot_ctrl->updateVisualization();
+          cheetahMainVisualization->p = _stateEstimate.position;
       }
     }
 
@@ -141,6 +144,7 @@ void RobotRunner::run() {
   }
   cheetahMainVisualization->p.setZero();
   cheetahMainVisualization->p = _stateEstimate.position;
+  cheetahMainVisualization->quat = _stateEstimate.orientation;
 
   // Sets the leg controller commands for the robot appropriate commands
   finalizeStep();
