@@ -9,6 +9,7 @@
 #include "traversability_map_t.hpp"
 #include "velocity_visual_t.hpp"
 #include "obstacle_visual_t.hpp"
+#include "localization_lcmt.hpp"
 
 template<typename T> class WBC_Ctrl;
 template<typename T> class LocomotionCtrlData;
@@ -46,6 +47,8 @@ class FSM_State_Vision : public FSM_State<T> {
   Vec3<T> _ini_body_pos;
   Vec3<T> _ini_body_ori_rpy;
   Vec3<T> zero_vec3;
+  Vec3<T> _global_robot_loc;
+  Vec3<T> _robot_rpy;
 
   size_t x_size = 100;
   size_t y_size = 100;
@@ -56,6 +59,8 @@ class FSM_State_Vision : public FSM_State<T> {
 
   void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const heightmap_t* msg);
   void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const traversability_map_t* msg);
+  void handleLocalization(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const localization_lcmt* msg);
+  bool _b_localization_data = false;
   void visionLCMThread() { while (true) { _visionLCM.handle(); } }
 
   lcm::LCM _visionLCM;
@@ -64,6 +69,8 @@ class FSM_State_Vision : public FSM_State<T> {
   vectorAligned< Vec3<T> > _obs_list; // loc, height
   obstacle_visual_t _obs_visual_lcm;
 
+void _updateStateEstimator();
+  void _JPosStand();
   void _UpdateObstacle();
   void _LocomotionControlStep(const Vec3<T> & vel_cmd);
   void _UpdateVelCommand(Vec3<T> & vel_cmd);

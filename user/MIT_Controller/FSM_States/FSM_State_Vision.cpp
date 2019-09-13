@@ -35,6 +35,8 @@ FSM_State_Vision<T>::FSM_State_Vision(
   _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
   _wbc_data = new LocomotionCtrlData<T>();
   zero_vec3.setZero();
+  _global_robot_loc.setZero();
+  _robot_rpy.setZero();
 
   _visionLCM.subscribe("local_heightmap", &FSM_State_Vision<T>::handleHeightmapLCM, this);
   _visionLCM.subscribe("traversability", &FSM_State_Vision<T>::handleIndexmapLCM, this);
@@ -42,6 +44,18 @@ FSM_State_Vision<T>::FSM_State_Vision(
 
   _height_map = DMat<T>::Zero(x_size, y_size);
   _idx_map = DMat<int>::Zero(x_size, y_size);
+}
+template<typename T>
+void FSM_State_Vision<T>::handleLocalization(const lcm::ReceiveBuffer* rbuf, 
+    const std::string& chan, const localization_lcmt* msg){
+  (void)rbuf;
+  (void)chan;
+
+  for(size_t i(0); i<3; ++i){
+    _robot_rpy[i] = msg->rpy[i];
+    _global_robot_loc[i] = msg->xyz[i];
+  }
+  _b_localization_data = true;
 }
 
 template<typename T>
@@ -83,6 +97,10 @@ void FSM_State_Vision<T>::onEnter() {
   this->transitionData.zero();
   vision_MPC.initialize();
 
+  if(_b_localization_data){
+    _updateStateEstimator();
+  }
+
   _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
   _ini_body_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
   printf("[FSM VISION] On Enter\n");
@@ -93,12 +111,30 @@ void FSM_State_Vision<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_Vision<T>::run() {
+  if(_b_localization_data){
+    _updateStateEstimator();
+  }
   // Call the locomotion control logic for this iteration
   Vec3<T> des_vel; // x,y, yaw
   _UpdateObstacle();
   _UpdateVelCommand(des_vel);
-  _LocomotionControlStep(des_vel);
+  //_LocomotionControlStep(des_vel);
+  // TEST
+  _JPosStand();
   _Visualization(des_vel);
+}
+template<typename T>
+void FSM_State_Vision<T>::_updateStateEstimator(){
+  //this->_data->_stateEstimator->
+}
+
+template<typename T>
+void FSM_State_Vision<T>::_JPosStand(){
+  Vec3<T> stand_jpos;
+  stand_jpos << 0.f, -.8f, 1.6f;
+  for(int leg(0); leg<4;++leg){
+    this->jointPDControl(leg, stand_jpos, zero_vec3);
+  }
 }
 template <typename T>
 void FSM_State_Vision<T>::_UpdateObstacle(){
@@ -114,7 +150,13 @@ void FSM_State_Vision<T>::_UpdateObstacle(){
   T obstacle_height = 0.15;
   T threshold_gap = 0.08;
   bool add_obs(true);
-  Vec3<T> robot_loc = (this->_data->_stateEstimator->getResult()).position;
+  Vec3<T> robot_loc;
+  if(_b_localization_data){
+    robot_loc = _global_robot_loc;
+  }
+  else{
+    robot_loc = (this->_data->_stateEstimator->getResult()).position;
+  }
   Vec3<T> obs; obs[2] = 0.4; // height (dummy)
 
   //size_t num_obs_limit = 10;
@@ -181,7 +223,7 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   target_pos.setZero();
 
-  T moving_time = 10.0;
+  T moving_time = 15.0;
   T curr_time = (T)iter * 0.002;
   //if(curr_time > moving_time){
     //curr_time = moving_time;
@@ -190,11 +232,16 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
   //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
   target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
 
-  curr_pos = (this->_data->_stateEstimator->getResult()).position;
-  curr_pos -= _ini_body_pos;
-  target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
-  curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
- 
+  if(_b_localization_data){
+    curr_pos = _global_robot_loc;
+    curr_ori_rpy = _robot_rpy;
+  }else{
+    curr_pos = (this->_data->_stateEstimator->getResult()).position;
+    curr_pos -= _ini_body_pos;
+    target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
+    curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
+
+  }
   des_vel[0] = 0.8 * (target_pos[0] - curr_pos[0]);
   des_vel[1] = 0.8 * (target_pos[1] - curr_pos[1]);
   des_vel[2] = 0.8 * (_ini_body_ori_rpy[2] - curr_ori_rpy[2]);

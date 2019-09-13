@@ -281,7 +281,7 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data,
 
     Pf[2] = height_map(x_idx, y_idx);
 
-    Pf[2] -= 0.003;
+    //Pf[2] -= 0.003;
     //printf("%d, %d) foot: %f, %f, %f \n", x_idx, y_idx, local_pf[0], local_pf[1], Pf[2]);
     footSwingTrajectories[i].setFinalPosition(Pf);
   }

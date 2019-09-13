@@ -46,9 +46,9 @@ template <typename T>
 void FrontJumpCtrl<T>::_update_joint_command() {
   int pre_mode_duration(700);
   int leg_clearance_iteration(440);
-  int leg_ramp_iteration(470);
-  int tuck_iteration(600);
-  int ramp_end_iteration(650);
+  int leg_ramp_iteration(750);
+  int tuck_iteration(650);
+  int ramp_end_iteration(670);
 
 
    float tau_mult;
@@ -153,8 +153,12 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     current_step = _data_reader->get_plan_at_time(0);
     // q_des_front_f << 0.0, current_step[3], current_step[4];
     // q_des_rear_f << 0.0, current_step[5], current_step[6];
-    q_des_front_f << 0.0, -1.2, 2.4;
-    q_des_rear_f << 0.0, -1.2, 2.4;
+    q_des_front_f << 0.0, -0.9, 1.8;
+    //q_des_rear_f << 0.0, -0.8, 1.2;
+    q_des_rear_f << 0.0, -0.8, 1.6;
+
+   //q_des_front_f << 0.0, -1.2, 2.4;
+    //q_des_rear_f << 0.0, -1.2, 2.4;
 
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
@@ -171,6 +175,14 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   _des_jpos[3] = s * (0.2);
   _des_jpos[6] = s * (-0.2);
   _des_jpos[9] = s * (0.2);
+
+  if(current_iteration >= tuck_iteration){
+  _des_jpos[0] = (-0.2);
+  _des_jpos[3] = (0.2);
+  _des_jpos[6] = (-0.2);
+  _des_jpos[9] = (0.2);
+
+   }
 
   // Front Hip
   for (int i = 1; i < 6; i += 3) {

@@ -51,6 +51,17 @@ void VectorNavOrientationEstimator<T>::run() {
   this->_stateEstimatorData.result->orientation[3] =
       this->_stateEstimatorData.vectorNavData->quat[2];
 
+  this->_stateEstimatorData.result->rpy =
+      ori::quatToRPY(this->_stateEstimatorData.result->orientation);
+
+  if(_b_first_visit){
+    _yaw_ini = this->_stateEstimatorData.result->rpy[2];
+    _b_first_visit = false;
+  }
+  this->_stateEstimatorData.result->rpy[2] -= _yaw_ini;
+  this->_stateEstimatorData.result->orientation = 
+    ori::rpyToQuat(this->_stateEstimatorData.result->rpy);
+
   this->_stateEstimatorData.result->rBody = ori::quaternionToRotationMatrix(
       this->_stateEstimatorData.result->orientation);
 
@@ -61,8 +72,6 @@ void VectorNavOrientationEstimator<T>::run() {
       this->_stateEstimatorData.result->rBody.transpose() *
       this->_stateEstimatorData.result->omegaBody;
 
-  this->_stateEstimatorData.result->rpy =
-      ori::quatToRPY(this->_stateEstimatorData.result->orientation);
   this->_stateEstimatorData.result->aBody =
       this->_stateEstimatorData.vectorNavData->accelerometer.template cast<T>();
   this->_stateEstimatorData.result->aWorld =
