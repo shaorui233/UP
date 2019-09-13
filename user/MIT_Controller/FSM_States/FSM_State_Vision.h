@@ -1,6 +1,7 @@
 #ifndef FSM_STATE_VISION_H
 #define FSM_STATE_VISION_H
 
+#include <Controllers/convexMPC/ConvexMPCLocomotion.h>
 #include <Controllers/VisionMPC/VisionMPCLocomotion.h>
 #include "FSM_State.h"
 #include <thread>
@@ -41,6 +42,8 @@ class FSM_State_Vision : public FSM_State<T> {
   // Keep track of the control iterations
   int iter = 0;
   VisionMPCLocomotion vision_MPC;
+  ConvexMPCLocomotion cMPCOld;
+
   WBC_Ctrl<T> * _wbc_ctrl;
   LocomotionCtrlData<T> * _wbc_data;
 
@@ -69,13 +72,17 @@ class FSM_State_Vision : public FSM_State<T> {
   vectorAligned< Vec3<T> > _obs_list; // loc, height
   obstacle_visual_t _obs_visual_lcm;
 
-void _updateStateEstimator();
+  void _updateStateEstimator();
   void _JPosStand();
   void _UpdateObstacle();
   void _LocomotionControlStep(const Vec3<T> & vel_cmd);
   void _UpdateVelCommand(Vec3<T> & vel_cmd);
+  void _RCLocomotionControl();
   void _Visualization(const Vec3<T> & des_vel);
   void _print_obstacle_list();
+
+  Vec3<T> _target_pos;
+
 };
 
 #endif  // FSM_STATE_LOCOMOTION_H

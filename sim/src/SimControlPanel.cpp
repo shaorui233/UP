@@ -155,10 +155,6 @@ void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
         _graphicsWindow->_points[i][j] = msg->pointlist[i][j];
       }
     }
-    _graphicsWindow->_pos[0] = msg->position[0];
-    _graphicsWindow->_pos[1] = msg->position[1];
-    _graphicsWindow->_pos[2] = msg->position[2];
-
     _graphicsWindow->_pointcloud_data_update = true;
   }
 }
@@ -192,6 +188,10 @@ void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
         _graphicsWindow->_map(i,j) = msg->map[i][j];
       }
     }
+    _graphicsWindow->_pos[0] = msg->robot_loc[0];
+    _graphicsWindow->_pos[1] = msg->robot_loc[1];
+    _graphicsWindow->_pos[2] = msg->robot_loc[2];
+
     _graphicsWindow->_heightmap_data_update = true;
   }
 }

@@ -126,6 +126,7 @@ class StateEstimatorContainer {
    * Get the result
    */
   const StateEstimate<T>& getResult() { return *_data.result; }
+  StateEstimate<T> * getResultHandle() { return _data.result; }
 
   /*!
    * Set the contact phase

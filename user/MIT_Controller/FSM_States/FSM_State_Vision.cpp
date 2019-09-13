@@ -22,7 +22,10 @@ FSM_State_Vision<T>::FSM_State_Vision(
         vision_MPC(_controlFSMData->controlParameters->controller_dt,
                 30 / (1000. * _controlFSMData->controlParameters->controller_dt),
                 _controlFSMData->userParameters),
-        _visionLCM(getLcmUrl(255))
+        cMPCOld(_controlFSMData->controlParameters->controller_dt,
+                30 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                _controlFSMData->userParameters),
+         _visionLCM(getLcmUrl(255))
 {
   // Set the safety checks
   this->turnOnAllSafetyChecks();
@@ -40,6 +43,7 @@ FSM_State_Vision<T>::FSM_State_Vision(
 
   _visionLCM.subscribe("local_heightmap", &FSM_State_Vision<T>::handleHeightmapLCM, this);
   _visionLCM.subscribe("traversability", &FSM_State_Vision<T>::handleIndexmapLCM, this);
+  _visionLCM.subscribe("global_to_robot", &FSM_State_Vision<T>::handleLocalization, this);
   _visionLCMThread = std::thread(&FSM_State_Vision<T>::visionLCMThread, this);
 
   _height_map = DMat<T>::Zero(x_size, y_size);
@@ -98,11 +102,13 @@ void FSM_State_Vision<T>::onEnter() {
   vision_MPC.initialize();
 
   if(_b_localization_data){
-    _updateStateEstimator();
+    //_updateStateEstimator();
+    _ini_body_pos = _global_robot_loc;
+    _ini_body_ori_rpy = _robot_rpy;
+  }else{
+    _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
+    _ini_body_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
   }
-
-  _ini_body_pos = (this->_data->_stateEstimator->getResult()).position;
-  _ini_body_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
   printf("[FSM VISION] On Enter\n");
 }
 
@@ -112,20 +118,60 @@ void FSM_State_Vision<T>::onEnter() {
 template <typename T>
 void FSM_State_Vision<T>::run() {
   if(_b_localization_data){
-    _updateStateEstimator();
+    //_updateStateEstimator();
   }
   // Call the locomotion control logic for this iteration
   Vec3<T> des_vel; // x,y, yaw
   _UpdateObstacle();
-  _UpdateVelCommand(des_vel);
+
+  // Vision Walking
+  //_UpdateVelCommand(des_vel);
   //_LocomotionControlStep(des_vel);
-  // TEST
-  _JPosStand();
+
+  // Convex Locomotion
+  _RCLocomotionControl();
+  
+
+  // Stand still
+  //_JPosStand(); 
   _Visualization(des_vel);
 }
+
+template <typename T>
+void FSM_State_Vision<T>::_RCLocomotionControl() {
+  cMPCOld.run<T>(*this->_data);
+
+  if(this->_data->userParameters->use_wbc > 0.9){
+    _wbc_data->pBody_des = cMPCOld.pBody_des;
+    _wbc_data->vBody_des = cMPCOld.vBody_des;
+    _wbc_data->aBody_des = cMPCOld.aBody_des;
+
+    _wbc_data->pBody_RPY_des = cMPCOld.pBody_RPY_des;
+    _wbc_data->vBody_Ori_des = cMPCOld.vBody_Ori_des;
+    
+    for(size_t i(0); i<4; ++i){
+      _wbc_data->pFoot_des[i] = cMPCOld.pFoot_des[i];
+      _wbc_data->vFoot_des[i] = cMPCOld.vFoot_des[i];
+      _wbc_data->aFoot_des[i] = cMPCOld.aFoot_des[i];
+      _wbc_data->Fr_des[i] = cMPCOld.Fr_des[i]; 
+    }
+    _wbc_data->contact_state = cMPCOld.contact_state;
+
+    _wbc_ctrl->run(_wbc_data, *this->_data);
+
+  }
+}
+
 template<typename T>
 void FSM_State_Vision<T>::_updateStateEstimator(){
-  //this->_data->_stateEstimator->
+  StateEstimate<T> * estimate_handle = this->_data->_stateEstimator->getResultHandle();
+
+  //printf("global robot:%f,%f,%f\n", _global_robot_loc[0], _global_robot_loc[1], _global_robot_loc[2]);
+  estimate_handle->position = _global_robot_loc;
+  estimate_handle->rpy = _robot_rpy;
+  // 
+  estimate_handle->rBody = rpyToRotMat(_robot_rpy);
+  estimate_handle->orientation = rpyToQuat(_robot_rpy);
 }
 
 template<typename T>
@@ -223,7 +269,7 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   target_pos.setZero();
 
-  T moving_time = 15.0;
+  T moving_time = 25.0;
   T curr_time = (T)iter * 0.002;
   //if(curr_time > moving_time){
     //curr_time = moving_time;
@@ -234,14 +280,15 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   if(_b_localization_data){
     curr_pos = _global_robot_loc;
+    curr_pos -= _ini_body_pos;
     curr_ori_rpy = _robot_rpy;
   }else{
     curr_pos = (this->_data->_stateEstimator->getResult()).position;
     curr_pos -= _ini_body_pos;
-    target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
     curr_ori_rpy = (this->_data->_stateEstimator->getResult()).rpy;
 
   }
+  target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
   des_vel[0] = 0.8 * (target_pos[0] - curr_pos[0]);
   des_vel[1] = 0.8 * (target_pos[1] - curr_pos[1]);
   des_vel[2] = 0.8 * (_ini_body_ori_rpy[2] - curr_ori_rpy[2]);
