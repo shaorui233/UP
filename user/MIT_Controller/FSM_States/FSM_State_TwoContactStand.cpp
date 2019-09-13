@@ -50,12 +50,17 @@ void FSM_State_TwoContactStand<T>::run() {
 
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
-    // Manually setting weights now to avoid altering other controllers
-    x_weights[i] = this->_data->userParameters->Kp_body[i];
-    xdot_weights[i] = this->_data->userParameters->Kd_body[i];
-    R_weights[i] = this->_data->userParameters->Kp_ori[i];
-    omega_weights[i] = this->_data->userParameters->Kd_ori[i];
+    // Manually setting weights (to avoid altering other controllers)
+    // x_weights[i] = this->_data->userParameters->Kp_body[i];
+    // xdot_weights[i] = this->_data->userParameters->Kd_body[i];
+    // R_weights[i] = this->_data->userParameters->Kp_ori[i];
+    // omega_weights[i] = this->_data->userParameters->Kd_ori[i];
+    x_weights[i] = 300.;
+    xdot_weights[i] = 50.;
+    R_weights[i] = 20000.;
+    omega_weights[i] = 150;
   }
+  x_weights[2] = 100000.;
   control_weight = .1;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
   refGRF.set_alpha_control(0.01);
