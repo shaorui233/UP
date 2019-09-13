@@ -33,6 +33,10 @@ class VectorNavOrientationEstimator : public GenericEstimator<T> {
  public:
   virtual void run();
   virtual void setup() {}
+  
+ protected:
+  bool _b_first_visit = true;
+  T _yaw_ini = 0.;
 };
 
 
