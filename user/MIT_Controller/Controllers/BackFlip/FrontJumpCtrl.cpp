@@ -1,15 +1,15 @@
-#include "BackFlipCtrl.hpp"
+#include "FrontJumpCtrl.hpp"
 
 
 template <typename T>
-BackFlipCtrl<T>::BackFlipCtrl(DataReader* data_reader,float _dt) : DataReadCtrl<T>(data_reader, _dt) {}
+FrontJumpCtrl<T>::FrontJumpCtrl(DataReader* data_reader,float _dt) : DataReadCtrl<T>(data_reader, _dt) {}
 
 
 template <typename T>
-BackFlipCtrl<T>::~BackFlipCtrl() {}
+FrontJumpCtrl<T>::~FrontJumpCtrl() {}
 
 template <typename T>
-void BackFlipCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControllerCommand<T>* command) {
+void FrontJumpCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControllerCommand<T>* command) {
   DataCtrl::_state_machine_time = _curr_time - DataCtrl::_ctrl_start_time;
 
   DataCtrl::_b_Preparation = b_preparation;
@@ -27,10 +27,13 @@ void BackFlipCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControlle
 }
 
 template <typename T>
-void BackFlipCtrl<T>::_update_joint_command() {
-  int pre_mode_duration(2000);
-  int tuck_iteration(600);
-  int ramp_end_iteration(650);
+void FrontJumpCtrl<T>::_update_joint_command() {
+  int pre_mode_duration(700);
+  int leg_clearance_iteration(440);
+  int leg_ramp_iteration(750);
+  int tuck_iteration(650);
+  int ramp_end_iteration(670);
+
 
    float tau_mult;
 
@@ -40,7 +43,7 @@ void BackFlipCtrl<T>::_update_joint_command() {
 
   if ( (DataCtrl::pre_mode_count <  pre_mode_duration) || DataCtrl::_b_Preparation) {  
     // move to the initial configuration to prepare for
-    // backfliping
+    // FrontJumping
     if (DataCtrl::pre_mode_count == 0) {
       printf("plan_timesteps: %d \n", DataCtrl::_data_reader->plan_timesteps);
     }
@@ -79,7 +82,37 @@ void BackFlipCtrl<T>::_update_joint_command() {
   //pretty_print(tau_rear, std::cout, "tau rear");
   float s(0.);
 
-  if (DataCtrl::current_iteration >= tuck_iteration) {  // ramp to landing configuration
+  if (DataCtrl::current_iteration >= leg_clearance_iteration && DataCtrl::current_iteration < tuck_iteration) {  // ramp to leg clearance for obstacle
+    qd_des_front << 0.0, 0.0, 0.0;
+    qd_des_rear << 0.0, 0.0, 0.0;
+    tau_front << 0.0, 0.0, 0.0;
+    tau_rear << 0.0, 0.0, 0.0;
+
+    s = (float)(DataCtrl::current_iteration - leg_clearance_iteration) /
+        (leg_ramp_iteration - leg_clearance_iteration);
+
+    if (s > 1) {
+      s = 1;
+    }
+
+    Vec3<float> q_des_front_0;
+    Vec3<float> q_des_rear_0;
+    Vec3<float> q_des_front_f;
+    Vec3<float> q_des_rear_f;
+
+    current_step = DataCtrl::_data_reader->get_plan_at_time(tuck_iteration);
+    q_des_front_0 << 0.0, current_step[3], current_step[4];
+    q_des_rear_0 << 0.0, current_step[5], current_step[6];
+
+    current_step = DataCtrl::_data_reader->get_plan_at_time(0);
+    q_des_front_f << 0.0, -1.25, 2.65;
+    q_des_rear_f << 0.0, -1.25, 2.65;
+
+
+    q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
+    q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
+
+  } else if (DataCtrl::current_iteration >= tuck_iteration) { // ramp to landing configuration
     qd_des_front << 0.0, 0.0, 0.0;
     qd_des_rear << 0.0, 0.0, 0.0;
     tau_front << 0.0, 0.0, 0.0;
@@ -104,8 +137,12 @@ void BackFlipCtrl<T>::_update_joint_command() {
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
     // q_des_front_f << 0.0, current_step[3], current_step[4];
     // q_des_rear_f << 0.0, current_step[5], current_step[6];
-    q_des_front_f << 0.0, -0.8425, 1.65;
-    q_des_rear_f << 0.0, -0.8425, 1.65;
+    q_des_front_f << 0.0, -0.9, 1.8;
+    //q_des_rear_f << 0.0, -0.8, 1.2;
+    q_des_rear_f << 0.0, -0.8, 1.6;
+
+   //q_des_front_f << 0.0, -1.2, 2.4;
+    //q_des_rear_f << 0.0, -1.2, 2.4;
 
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
@@ -122,6 +159,14 @@ void BackFlipCtrl<T>::_update_joint_command() {
   DataCtrl::_des_jpos[3] = s * (0.2);
   DataCtrl::_des_jpos[6] = s * (-0.2);
   DataCtrl::_des_jpos[9] = s * (0.2);
+
+  if(DataCtrl::current_iteration >= tuck_iteration){
+  DataCtrl::_des_jpos[0] = (-0.2);
+  DataCtrl::_des_jpos[3] = (0.2);
+  DataCtrl::_des_jpos[6] = (-0.2);
+  DataCtrl::_des_jpos[9] = (0.2);
+
+   }
 
   // Front Hip
   for (int i = 1; i < 6; i += 3) {
@@ -155,5 +200,6 @@ void BackFlipCtrl<T>::_update_joint_command() {
   DataCtrl::current_iteration += DataCtrl::_key_pt_step;
 }
 
-template class BackFlipCtrl<double>;
-template class BackFlipCtrl<float>;
+
+template class FrontJumpCtrl<double>;
+template class FrontJumpCtrl<float>;
