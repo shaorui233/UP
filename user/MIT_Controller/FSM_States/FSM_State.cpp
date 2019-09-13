@@ -61,8 +61,8 @@ void FSM_State<T>::cartesianImpedanceControl(int leg, Vec3<T> pDes,
   _data->_legController->commands[leg].pDes = pDes;
   // Create the cartesian P gain matrix
   kpMat << kp_cartesian[0], 0, 0, 0,
-      _data->controlParameters->stand_kp_cartesian[1], 0, 0, 0,
-      _data->controlParameters->stand_kp_cartesian[2];
+      kp_cartesian[1], 0, 0, 0,
+      kp_cartesian[2];
   _data->_legController->commands[leg].kpCartesian = kpMat;
 
   _data->_legController->commands[leg].vDes = vDes;
