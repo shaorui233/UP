@@ -51,12 +51,11 @@ void FSM_State_TwoContactStand<T>::run() {
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
     // Manually setting weights now to avoid altering other controllers
-    x_weights[i] = 300;
-    xdot_weights[i] = 50;
-    R_weights[i] = 20000;
-    omega_weights[i] = 150;
+    x_weights[i] = this->_data->userParameters->Kp_body[i];
+    xdot_weights[i] = this->_data->userParameters->Kd_body[i];
+    R_weights[i] = this->_data->userParameters->Kp_ori[i];
+    omega_weights[i] = this->_data->userParameters->Kd_ori[i];
   }
-  x_weights[2] = 100000;
   control_weight = .1;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
   refGRF.set_alpha_control(0.01);
@@ -155,14 +154,7 @@ void FSM_State_TwoContactStand<T>::run() {
       conPhase[leg] = 0.5;
     }
 
-    else if (leg < 2) {
-      q_lift_leg << 0, -1.52, 2.93;
-      this->jointPDControl(leg, q_lift_leg, qd_lift_leg);
-      conPhase[leg] = 0.0;
-    }
-
     else {
-      q_lift_leg << 0, -1.52, 2.93;
       this->jointPDControl(leg, q_lift_leg, qd_lift_leg);
       conPhase[leg] = 0.0;
     }
@@ -253,9 +245,26 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[i] = 1;
 
   // Lift legs after settling into prep state
-  if (iter > 2000) {
+  lift_iteration = 2000;
+  ramp_iteration = 3000;
+  Vec3<float> q_lift_leg_0;
+  float s(0.);
+  q_lift_leg_0 << 0., -0.9, 2.25;
+  if (iter > lift_iteration) {
     contactStateScheduled[0] = 0;
     contactStateScheduled[3] = 0;
+
+    // Set joint position for lifted legs
+    s = (float)(iter - lift_iteration) /
+        (ramp_iteration - lift_iteration);
+
+    if (s > 1) {
+      s = 1;
+    }
+
+
+    q_lift_leg << 0., -1.55, 2.5;
+    q_lift_leg = (1 - s) * q_lift_leg_0 + s * q_lift_leg;
 
     // To do - increase ability to change state via gamepad
     rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];

@@ -70,6 +70,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
 
   // Joint positions for legs not in contact
   Vec3<T> q_lift_leg, qd_lift_leg;
+  int lift_iteration, ramp_iteration;
 
   // Contact Data
   double minForce, maxForce, mu_ctrl = 0.4;
