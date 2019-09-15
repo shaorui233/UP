@@ -45,10 +45,10 @@ void FrontJumpCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControll
 template <typename T>
 void FrontJumpCtrl<T>::_update_joint_command() {
   int pre_mode_duration(700);
-  int leg_clearance_iteration(440);
-  int leg_ramp_iteration(750);
-  int tuck_iteration(650);
-  int ramp_end_iteration(670);
+  int leg_clearance_iteration(440); //440
+  int leg_ramp_iteration(750); //750
+  int tuck_iteration(650); //650 landing controller 
+  int ramp_end_iteration(670); //670
 
 
    float tau_mult;
