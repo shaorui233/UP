@@ -29,12 +29,6 @@ Kd_foot           : [10, 10, 10]
 Kp_ori            : [100, 100, 100]
 Kd_ori            : [10, 10, 10]
 
-#Kp_body           : [300, 300, 100000]
-#Kd_body           : [50, 50, 50]
-
-#Kp_ori            : [20000, 20000, 20000]
-#Kd_ori            : [150, 150, 150]
-
 cmpc_gait         : 9
 cmpc_x_drag       : 3
 cmpc_use_sparse   : 0

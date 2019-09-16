@@ -51,17 +51,13 @@ void FSM_State_TwoContactStand<T>::run() {
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
     // Manually setting weights (to avoid altering other controllers)
-    // x_weights[i] = this->_data->userParameters->Kp_body[i];
-    // xdot_weights[i] = this->_data->userParameters->Kd_body[i];
-    // R_weights[i] = this->_data->userParameters->Kp_ori[i];
-    // omega_weights[i] = this->_data->userParameters->Kd_ori[i];
-    x_weights[i] = 300.;
-    xdot_weights[i] = 50.;
-    R_weights[i] = 20000.;
-    omega_weights[i] = 150;
+    x_weights[i] = 20.;
+    xdot_weights[i] = 15.;
+    R_weights[i] = 8000.;
+    omega_weights[i] = 70.;
   }
-  x_weights[2] = 100000.;
-  control_weight = .1;
+  x_weights[2] = 12000.;
+  control_weight = .05;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
   refGRF.set_alpha_control(0.01);
 
@@ -267,14 +263,13 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
       s = 1;
     }
 
-
-    q_lift_leg << 0., -1.55, 2.5;
+    q_lift_leg << 0., -1.55, 2.75;
     q_lift_leg = (1 - s) * q_lift_leg_0 + s * q_lift_leg;
 
     // To do - increase ability to change state via gamepad
-    rpy[1] = this->_data->_desiredStateCommand->data.stateDes[4];
-    rpy[2] = this->_data->_desiredStateCommand->data.stateDes[11];
-    pweight = 0.5 + 0.1 * this->_data->_desiredStateCommand->data.stateDes[6];
+    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4] - 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
+    rpy[2] = 0.15 * this->_data->_desiredStateCommand->data.stateDes[11];
+    pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
   }
 
   p_des[0] = pweight * pFeet_world[3*1] + (1 - pweight) * pFeet_world[3*2];

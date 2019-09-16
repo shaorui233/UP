@@ -30,7 +30,7 @@ for i = 1:N_interp-1
     'LineWidth',2,...
     'MarkerEdgeColor','k',...
     'MarkerFaceColor',[.49 1 .63],...
-     'MarkerSize',10); axis(.5*[-3 1 -1.4 3]); 
+     'MarkerSize',10); axis(.5*[-1 3 -1.4 3]); 
  hold on;
  c_box = [c0 c1 c2];
  plot(c_box(1,:),c_box(2,:));
@@ -42,6 +42,12 @@ for i = 1:N_interp-1
  
  cf1 = reshape(f_graph1,2,[]);
  cf2 = reshape(f_graph2,2,[]);
+ 
+ %for forward jump plotting 
+ height = 0.4;
+ start_x = 0.45 ; 
+ plot([start_x 2], [height height]);
+ plot([start_x start_x], [-2 height]);
  
  plot(cf1(1,:),cf1(2,:));
  plot(cf2(1,:),cf2(2,:));

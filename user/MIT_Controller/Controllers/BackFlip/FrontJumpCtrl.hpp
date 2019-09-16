@@ -1,5 +1,5 @@
-#ifndef BACKFLIP_CTRL
-#define BACKFLIP_CTRL
+#ifndef FRONTJUMP_CTRL
+#define FRONTJUMP_CTRL
 
 #include "DataReader.hpp"
 #include "DataReadCtrl.hpp"
@@ -7,16 +7,15 @@
 #include <Controllers/LegController.h>
 
 template <typename T>
-class BackFlipCtrl : public DataReadCtrl<T> {
+class FrontJumpCtrl : public DataReadCtrl<T> {
  public:
-  BackFlipCtrl(DataReader*, float _dt);
-  virtual ~BackFlipCtrl();
+  FrontJumpCtrl(DataReader*, float _dt);
+  virtual ~FrontJumpCtrl();
 
   virtual void OneStep(float _curr_time, bool b_preparation, LegControllerCommand<T>* command);
 
  protected:
   void _update_joint_command();
-
 };
 
 #endif

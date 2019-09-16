@@ -26,9 +26,9 @@ end
 %% Contact schedule
 % integration settings
 res = 1; % change to increase/decrease timestep length without changing timing
-N = 88 * res; % number of timesteps 76
+N = 85 * res; % number of timesteps 76
 dt = 0.01 / res; % time between timesteps
-double_contact = 26*res; % timesteps spent with both feet on ground 26
+double_contact = 24*res; % timesteps spent with both feet on ground 26
 single_contact = 22*res; % timesteps spent with single foot on ground
 
 % N = 95 * res; % number of timesteps 95
@@ -114,7 +114,7 @@ for k = 1:N-1
     pf2k = pf_sym2(qk); % position of rear foot
     Hek = H_sym(qk);    % mass matrix
     % modify mass matrix to include rotors
-    Hek = add_offboard_rotors(Hek,2*params.I_rot,1,[0 0 0 36 81 36 81]); 
+    Hek = add_offboard_rotors(Hek,2*params.I_rot,1,[0 0 0 36 81 36 81]);  
     % bias torques
     Cek = C_sym(C_in(:,k));
     % jacobians
@@ -123,7 +123,7 @@ for k = 1:N-1
     % stack jacobians, remove y coordinate
     Jfek = [J1ek([1 3],:); J2ek([1 3],:)];
     % damping torque
-    tau_d = .2*Kd_j * Qk(8:end);
+    tau_d = .05*Kd_j * Qk(8:end); %changed from .2
     
     % build Aek, xek such that Aek*xek = bek:
     % notice that we use cs(k+1) here because the integration puts in a 
@@ -183,8 +183,8 @@ for k = 1:N-1
     
     % max torque
     % both feet on the ground, full torque all motors
-    tmax = 30;
-    hmax = 20;
+    tmax = 2*26;% 2 times becasue it isactually using 4 legs but in this optimisation only two joints 
+    hmax = 2*18;
     if(cs(k) == 2)
         opti.subject_to(tau_motor(:,k) <= [hmax;tmax;hmax;tmax]);
         opti.subject_to(tau_motor(:,k) >= -[hmax;tmax;hmax;tmax]);
@@ -227,8 +227,8 @@ opti.subject_to(qd(:,1) == zeros(7,1)); % initial velocity
 
 opti.subject_to(q(3,N) == 0); % flipped at the end
 opti.subject_to(q(2,N) <= 1.5); % end position
-opti.subject_to(q(2,N) >= 0.5); % end position
-opti.subject_to(q(1,N) >= .55);  % end position
+opti.subject_to(q(2,N) >= 0.7); % end position
+opti.subject_to(q(1,N) >= .8);  % end position
 %opti.subject_to(q(4:7,N) == q_init(4:7));  % this is now in the cost
 %functi
 toc;
@@ -249,6 +249,6 @@ Ffs = sol.value(f_f);
 Frs = sol.value(f_r);
 taus = sol.value(tau_motor);
 
-%write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_v2.dat", dt, N);
+write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_v3.dat", dt, N);
 %%enable this line if you want to save the file to a data file to be used
 %%on the robot

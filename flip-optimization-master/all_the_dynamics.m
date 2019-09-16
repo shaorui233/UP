@@ -53,9 +53,9 @@ end
 for i = 1:model.NB    
     %disp(i);% loop through bodies
     if length(f_ext{i}) > 0    
-        if(any(f_ext{i})) % huge time savings here!!!
+        %if(any(f_ext{i})) % huge time savings here!!!
             fvp{i} = fvp{i} - X0{i}' \ f_ext{i};  % transform it into body frame with spatial force xform
-        end
+        %end
     end                                                    %   remove it from fvp
 end
 
