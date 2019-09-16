@@ -110,6 +110,15 @@ void sbus_packet_complete() {
     } else if (ch10 == 992) { // Stand up recovery
       main_control_settings.mode = RC_mode::RECOVERY_STAND;
 
+      if(ch15==992){
+        main_control_settings.mode = RC_mode::BACKFLIP_PRE; }
+      else if(ch15==1811){
+        main_control_settings.mode = RC_mode::BACKFLIP; }
+      else if(ch12 == 1811){
+        main_control_settings.mode = RC_mode::QP_STAND; }
+      else if(ch12 == 992){
+        main_control_settings.mode = RC_mode::VISION; }
+
     } else if (ch10 == 1811) {  // ESTOP bar is down (Controller ON)
       main_control_settings.mode = RC_mode::LOCOMOTION; //Locomotion mode
 
