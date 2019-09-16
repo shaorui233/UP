@@ -660,6 +660,12 @@ double BalanceControllerVBL::get_cost_to_go()
   return cost_to_go;
 }
 
+void BalanceControllerVBL::get_fOpt_world(double* fopt_world)
+{
+  for(int i = 3; i < 6; i++)
+    fopt_world[i-3] = xOpt_combined(i);
+}
+
 
 void BalanceControllerVBL::copy_Eigen_to_real_t(real_t* target, Eigen::MatrixXd &source, int nRows, int nCols )
 {

@@ -179,6 +179,18 @@ void FSM_State_TwoContactStand<T>::run() {
     this->_data->_legController->commands[leg].tauFeedForward = this->jointFeedForwardTorques.col(leg);
   }
 
+  // Output data
+  if (iter % 10 == 0) {
+    double f_world[3];
+    balanceControllerVBL.get_fOpt_world(f_world);
+    std::ofstream myfile;
+    myfile.open ("force_log.csv");
+    myfile << f_world[0] << ", " << f_world[1] << ", " << f_world[2] << ", ";
+    myfile << std::endl;
+    myfile.close();
+  }
+
+
 }
 
 /**
@@ -267,7 +279,7 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     q_lift_leg = (1 - s) * q_lift_leg_0 + s * q_lift_leg;
 
     // To do - increase ability to change state via gamepad
-    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4] - 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
+    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4];// - 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
     rpy[2] = 0.15 * this->_data->_desiredStateCommand->data.stateDes[11];
     pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
   }

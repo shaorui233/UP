@@ -92,6 +92,10 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   double ini_yaw;
   Mat3<float> rBody_yaw; // rBody adjusted for initial yaw
 
+  // Compare expected vs actual toqrues
+  double tauOpt[12];
+  Mat3<T> Jleg;
+
 
 
 };
