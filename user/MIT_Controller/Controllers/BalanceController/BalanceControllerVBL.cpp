@@ -310,29 +310,6 @@ void BalanceControllerVBL::calc_linear_error()
 
 }
 
-bool BalanceControllerVBL::check_constraints_active()
-{
-  for (int leg = 1; leg < 2; leg++) {
-    if (sqrt(xOpt_combined[3*leg]*xOpt_combined[3*leg]) > 0.9*0.7071*mu_friction*xOpt_combined[3*leg+2]) {
-      return true;
-    }
-
-    if (sqrt(xOpt_combined[3*leg+1]*xOpt_combined[3*leg+1]) > 0.9*0.7071*mu_friction*xOpt_combined[3*leg+2]) {
-      return true;
-    }
-  }
-  return false;
-}
-
-double BalanceControllerVBL::get_orientation_error()
-{
-  double norm_error;
-  norm_error = sqrt(orientation_error[0] * orientation_error[0] + orientation_error[1] * orientation_error[1] + orientation_error[2] * orientation_error[2]);
-
-  return norm_error;
-}
-
-
 void BalanceControllerVBL::calc_constraint_check()
 {
    C_times_f_opt = C_control*xOpt_eigen;
@@ -642,24 +619,6 @@ bool BalanceControllerVBL::getQPFinished()
 {
    return QPFinished;
 }
-
-void BalanceControllerVBL::get_linear_error(double* lin_err_in)
-{
-  for (int i = 0; i < 3; i++) {
-    lin_err_in[i] = error_x_lin(i);
-    lin_err_in[i+3] = error_dx_lin(i);
-    lin_err_in[i+6] = error_R_lin(i);
-    lin_err_in[i+9] = error_omega_lin(i);
-  }
-
-}
-
-double BalanceControllerVBL::get_cost_to_go()
-{
-  cost_to_go = s_LQR.transpose()*P_LQR*s_LQR;
-  return cost_to_go;
-}
-
 
 void BalanceControllerVBL::copy_Eigen_to_real_t(real_t* target, Eigen::MatrixXd &source, int nRows, int nCols )
 {

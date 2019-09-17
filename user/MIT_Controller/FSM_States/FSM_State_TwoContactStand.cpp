@@ -7,6 +7,7 @@
 #include "FSM_State_TwoContactStand.h"
 #include <Utilities/Utilities_print.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 
 
@@ -53,10 +54,10 @@ void FSM_State_TwoContactStand<T>::run() {
     // Manually setting weights (to avoid altering other controllers)
     x_weights[i] = 20.;
     xdot_weights[i] = 15.;
-    R_weights[i] = 8000.;
-    omega_weights[i] = 70.;
+    R_weights[i] = 800.;
+    omega_weights[i] = 40.;
   }
-  x_weights[2] = 12000.;
+  x_weights[2] = 400.;
   control_weight = .05;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
   refGRF.set_alpha_control(0.01);
@@ -179,6 +180,16 @@ void FSM_State_TwoContactStand<T>::run() {
     this->_data->_legController->commands[leg].tauFeedForward = this->jointFeedForwardTorques.col(leg);
   }
 
+  // Compute expected torque for leg 1 to leg controller command
+  computeLegJacobianAndPosition(**&this->_data->_quadruped, this->_data->_legController->datas[1].q, &Jleg, (Vec3<T>*)nullptr, 1);
+  tauOpt[0] = Jleg(0,0)*fOpt[3]+Jleg(1,0)*fOpt[3+1]+Jleg(2,0)*fOpt[3+2]+G_ff[6+3];
+  tauOpt[1] = Jleg(0,1)*fOpt[3]+Jleg(1,1)*fOpt[3+1]+Jleg(2,1)*fOpt[3+2]+G_ff[6+3+1];
+  tauOpt[2] = Jleg(0,2)*fOpt[3]+Jleg(1,2)*fOpt[3+1]+Jleg(2,2)*fOpt[3+2]+G_ff[6+3+2];
+
+  for (int i = 0; i < 3; i++)
+    tauEst[i] = this->_data->_legController->datas[1].tauEstimate[i];
+
+
 }
 
 /**
@@ -267,7 +278,7 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     q_lift_leg = (1 - s) * q_lift_leg_0 + s * q_lift_leg;
 
     // To do - increase ability to change state via gamepad
-    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4] - 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
+    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4]- 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
     rpy[2] = 0.15 * this->_data->_desiredStateCommand->data.stateDes[11];
     pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
   }
