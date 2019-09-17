@@ -13,8 +13,8 @@ DataReader::DataReader(const RobotType& type, FSM_StateName stateNameIn) : _type
       printf("[Backflip DataReader] Setup for mini cheetah\n");
     }
     else if (stateNameIn == FSM_StateName::FRONTJUMP) {
-      //load_control_plan(THIS_COM "user/MIT_Controller/Controllers/FrontJump/front_jump_data.dat");
-      load_control_plan(THIS_COM "config/front_jump_data.dat");
+      //load_control_plan(THIS_COM "user/MIT_Controller/Controllers/FrontJump/front_jump_data.dat"); // front_jump_data.dat for succesfull test 1 file
+      load_control_plan(THIS_COM "config/front_jump_v3.dat");
       printf("[Front Jump DataReader] Setup for mini cheetah\n");
     }
   } else {
