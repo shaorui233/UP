@@ -106,14 +106,6 @@ void ControlFSM<T>::runFSM() {
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::QP_STAND){
       data.controlParameters->control_mode = K_BALANCE_STAND;
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
-<<<<<<< Updated upstream
-      data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
-    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
-        data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
-      //data.controlParameters->control_mode = K_BACKFLIP;
-      data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
-=======
-<<<<<<< HEAD
       //data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
       data.controlParameters->control_mode = K_VISION;
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
@@ -121,14 +113,6 @@ void ControlFSM<T>::runFSM() {
       //data.controlParameters->control_mode = K_BACKFLIP;
       //data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
       data.controlParameters->control_mode = K_FRONTJUMP;
-=======
-      data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
-    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
-        data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
-      //data.controlParameters->control_mode = K_BACKFLIP;
-      data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
->>>>>>> origin/master
->>>>>>> Stashed changes
     }
     //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
   }

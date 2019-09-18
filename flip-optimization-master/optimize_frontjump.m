@@ -11,13 +11,7 @@ addpath(genpath('spatial_v2'));
 %% Symbolic Dynamics
 % only do symbolic dynamics if we need to
 if ~(exist('symbolic_done','var'))
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
 if true
-=======
->>>>>>> origin/master
->>>>>>> Stashed changes
     disp_box('Generate Symbolic Dynamics');
     tic;
     params = get_robot_params(1);  % robot masses, lengths...
@@ -39,15 +33,9 @@ double_contact = 24*res; % timesteps spent with both feet on ground 26
 single_contact = 22*res; % timesteps spent with single foot on ground
 
 % N = 95 * res; % number of timesteps 95
-<<<<<<< Updated upstream
 % dt = 0.01 / res; % time between timesteps
-=======
-<<<<<<< HEAD
 % dt = 0.01 / res; % time between timestepss
-=======
 % dt = 0.01 / res; % time between timesteps
->>>>>>> origin/master
->>>>>>> Stashed changes
 % double_contact = 28*res; % timesteps spent with both feet on ground 28
 % single_contact = 26*res; % timesteps spent with single foot on ground 
 flight = N-double_contact-single_contact; % timesteps spent in the air
@@ -103,15 +91,7 @@ qerr = q(4:7,N) - q_end_des;
 opti.minimize(qerr'*qerr);
 
 % friction of ground
-<<<<<<< Updated upstream
-mu = 0.7;
-=======
-<<<<<<< HEAD
 mu = 0.5;
-=======
-mu = 0.7;
->>>>>>> origin/master
->>>>>>> Stashed changes
 
 
 %% Constraints
@@ -234,20 +214,10 @@ for k = 1:N-1
     % joint velocity
     %opti.subject_to(qdjk <= [18;18;18;18]);
     %opti.subject_to(qdjk >= -[18;18;18;18]);
-<<<<<<< Updated upstream
-    opti.subject_to(qdjk <= [40;26;40;26]); % hip knee hip knee
-    opti.subject_to(qdjk >= -[40;26;40;26]);
-=======
-<<<<<<< HEAD
     opti.subject_to(qdjk <= [40;26;40;26]*0.8); % hip knee hip knee
     opti.subject_to(qdjk >= -[40;26;40;26]*0.8);
 %     opti.subject_to(qdjk <= [30;18;30;18]); % hip knee hip knee
 %     opti.subject_to(qdjk >= -[30;18;30;18]);
-=======
-    opti.subject_to(qdjk <= [40;26;40;26]); % hip knee hip knee
-    opti.subject_to(qdjk >= -[40;26;40;26]);
->>>>>>> origin/master
->>>>>>> Stashed changes
 end
 
 
@@ -261,21 +231,9 @@ opti.subject_to(qd(:,1) == zeros(7,1)); % initial velocity
 
 
 opti.subject_to(q(3,N) == 0); % flipped at the end
-<<<<<<< Updated upstream
-opti.subject_to(q(2,N) <= 1.5); % end position
-opti.subject_to(q(2,N) >= 0.7); % end position
-opti.subject_to(q(1,N) >= .8);  % end position
-=======
-<<<<<<< HEAD
 %opti.subject_to(q(2,N) <= 2.0); % end position
 opti.subject_to(q(2,N) >= 0.6); % end position
 opti.subject_to(q(1,N) >= .6);  % end position
-=======
-opti.subject_to(q(2,N) <= 1.5); % end position
-opti.subject_to(q(2,N) >= 0.7); % end position
-opti.subject_to(q(1,N) >= .8);  % end position
->>>>>>> origin/master
->>>>>>> Stashed changes
 %opti.subject_to(q(4:7,N) == q_init(4:7));  % this is now in the cost
 %functi
 toc;
@@ -297,12 +255,6 @@ Frs = sol.value(f_r);
 taus = sol.value(tau_motor);
 
 write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_v3.dat", dt, N);
-<<<<<<< Updated upstream
-=======
-<<<<<<< HEAD
 make_figures
-=======
->>>>>>> origin/master
->>>>>>> Stashed changes
 %%enable this line if you want to save the file to a data file to be used
 %%on the robot
