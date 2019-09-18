@@ -29,10 +29,28 @@ void FrontJumpCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControll
 template <typename T>
 void FrontJumpCtrl<T>::_update_joint_command() {
   int pre_mode_duration(700);
+<<<<<<< Updated upstream
   int leg_clearance_iteration(440);
   int leg_ramp_iteration(750);
   int tuck_iteration(650);
   int ramp_end_iteration(670);
+=======
+<<<<<<< HEAD
+  //int leg_clearance_iteration(440);
+  //int leg_clearance_iteration(640);
+  //int leg_clearance_iteration(600);
+  int leg_clearance_iteration(850);
+  int leg_clearance_iteration_front(500);
+  int leg_ramp_iteration(750);
+  int tuck_iteration(750);
+  int ramp_end_iteration(800);
+=======
+  int leg_clearance_iteration(440);
+  int leg_ramp_iteration(750);
+  int tuck_iteration(650);
+  int ramp_end_iteration(670);
+>>>>>>> origin/master
+>>>>>>> Stashed changes
 
 
    float tau_mult;
@@ -78,11 +96,36 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   tau_front << 0.0, tau_mult * tau[0] / 2.0, tau_mult * tau[1] / 2.0;
   tau_rear << 0.0, tau_mult * tau[2] / 2.0, tau_mult * tau[3] / 2.0;
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+  if(q_des_front[1] < -M_PI/2.2){
+    q_des_front[1] = -M_PI/2.2;
+    qd_des_front[1] = 0.;
+    tau_front[1] = 0.;
+  }
+=======
+>>>>>>> origin/master
+>>>>>>> Stashed changes
   //pretty_print(tau_front, std::cout, "tau front");
   //pretty_print(tau_rear, std::cout, "tau rear");
   float s(0.);
 
+<<<<<<< Updated upstream
   if (DataCtrl::current_iteration >= leg_clearance_iteration && DataCtrl::current_iteration < tuck_iteration) {  // ramp to leg clearance for obstacle
+=======
+<<<<<<< HEAD
+  if (DataCtrl::current_iteration >= leg_clearance_iteration_front &&
+      DataCtrl::current_iteration <=leg_clearance_iteration){
+  q_des_front << 0.0, current_step[3], current_step[4];
+
+  }
+  if (DataCtrl::current_iteration >= leg_clearance_iteration 
+      && DataCtrl::current_iteration < tuck_iteration) {  // ramp to leg clearance for obstacle
+=======
+  if (DataCtrl::current_iteration >= leg_clearance_iteration && DataCtrl::current_iteration < tuck_iteration) {  // ramp to leg clearance for obstacle
+>>>>>>> origin/master
+>>>>>>> Stashed changes
     qd_des_front << 0.0, 0.0, 0.0;
     qd_des_rear << 0.0, 0.0, 0.0;
     tau_front << 0.0, 0.0, 0.0;
@@ -137,9 +180,27 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
     // q_des_front_f << 0.0, current_step[3], current_step[4];
     // q_des_rear_f << 0.0, current_step[5], current_step[6];
+<<<<<<< Updated upstream
     q_des_front_f << 0.0, -0.9, 1.8;
     //q_des_rear_f << 0.0, -0.8, 1.2;
     q_des_rear_f << 0.0, -0.8, 1.6;
+=======
+<<<<<<< HEAD
+    //q_des_front_f << 0.0, -0.9, 1.8;
+    //q_des_front_f << 0.0, -1.0, 2.05;
+    q_des_front_f << 0.0, -0.85, 1.7;
+    
+    //q_des_rear_f << 0.0, -0.8, 1.2;
+    //q_des_rear_f << 0.0, -0.8, 1.6;
+    //q_des_rear_f << 0.0, -1.0, 2.05;
+    q_des_rear_f << 0.0, -0.85, 1.7;
+    //q_des_rear_f << 0.0, -0.9, 1.8;
+=======
+    q_des_front_f << 0.0, -0.9, 1.8;
+    //q_des_rear_f << 0.0, -0.8, 1.2;
+    q_des_rear_f << 0.0, -0.8, 1.6;
+>>>>>>> origin/master
+>>>>>>> Stashed changes
 
    //q_des_front_f << 0.0, -1.2, 2.4;
     //q_des_rear_f << 0.0, -1.2, 2.4;

@@ -59,9 +59,23 @@ class DataReadCtrl {
       _Kp[i] = 1000;
       _Kd[i] = 5.;
     }
+<<<<<<< Updated upstream
     _Kp_joint = {20.0, 20.0, 20.0};
     _Kd_joint = {2.0, 2.0, 2.0};
   }
+=======
+<<<<<<< HEAD
+    //_Kp_joint = {20.0, 20.0, 20.0};
+    //_Kd_joint = {2.0, 2.0, 2.0};
+    _Kp_joint = {5.0, 5.0, 5.0};
+    _Kd_joint = {1.0, 1.0, 1.0};
+   }
+=======
+    _Kp_joint = {20.0, 20.0, 20.0};
+    _Kd_joint = {2.0, 2.0, 2.0};
+  }
+>>>>>>> origin/master
+>>>>>>> Stashed changes
 
  protected:
   DataReader* _data_reader;

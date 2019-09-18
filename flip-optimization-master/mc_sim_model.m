@@ -69,7 +69,15 @@ abad_r_location{4} = [-abadRotorLength  abadRotorWidth 0]'/2; % rear left:   leg
 
 % --- inertia of base - using a box ---
 body_inertia = 1e-6*[11253, 0, 0;     % Body inertia about COM
+<<<<<<< Updated upstream
                0, 362030, 0;
+=======
+<<<<<<< HEAD
+               0, 36203, 0;
+=======
+               0, 362030, 0;
+>>>>>>> origin/master
+>>>>>>> Stashed changes
                0, 0, 42673];
 
 % --- collision bounding box for body ---
