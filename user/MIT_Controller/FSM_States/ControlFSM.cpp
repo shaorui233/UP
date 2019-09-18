@@ -106,11 +106,13 @@ void ControlFSM<T>::runFSM() {
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::QP_STAND){
       data.controlParameters->control_mode = K_BALANCE_STAND;
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
-      data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
+      //data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
+      data.controlParameters->control_mode = K_VISION;
     } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
         data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
       //data.controlParameters->control_mode = K_BACKFLIP;
-      data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
+      //data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
+      data.controlParameters->control_mode = K_FRONTJUMP;
     }
     //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
   }

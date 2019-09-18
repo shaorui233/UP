@@ -59,9 +59,11 @@ class DataReadCtrl {
       _Kp[i] = 1000;
       _Kd[i] = 5.;
     }
-    _Kp_joint = {20.0, 20.0, 20.0};
-    _Kd_joint = {2.0, 2.0, 2.0};
-  }
+    //_Kp_joint = {20.0, 20.0, 20.0};
+    //_Kd_joint = {2.0, 2.0, 2.0};
+    _Kp_joint = {5.0, 5.0, 5.0};
+    _Kd_joint = {1.0, 1.0, 1.0};
+   }
 
  protected:
   DataReader* _data_reader;

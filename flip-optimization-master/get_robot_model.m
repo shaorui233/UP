@@ -54,6 +54,9 @@ nb = nb + 1;
 model.parent(nb) = nb - 1;
 model.jtype{nb} = 'Ry';
 model.Xtree{nb} = eye(6);
+I_body(1,1) = 0.061578;
+I_body(2,2) = 0.219522;
+I_body(3,3) = 0.271426;
 model.I{nb}     = I_body;
 
 nb_base = nb;
