@@ -2,6 +2,7 @@
 #include <ControlParameters/ControlParameters.h>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <ParamHandler.hpp>
 #include "ui_SimControlPanel.h"
 #include "JoystickTest.h"
 
@@ -40,6 +41,31 @@ static void updateQtableWithParameters(ControlParameters& params,
   }
 }
 
+std::string SimControlPanel::getDefaultUserParameterFileName() {
+  std::string path = getConfigDirectoryPath() + DEFAULT_USER_FILE;
+  ParamHandler paramHandler(path);
+
+  if(!paramHandler.fileOpenedSuccessfully()) {
+    throw std::runtime_error("Could not open yaml file for default user parameter file: " + path);
+  }
+
+  std::string collectionName;
+  if(!paramHandler.getString("__collection-name__", collectionName)) {
+    throw std::runtime_error("Could not find __collection-name__ parameter in default user parameter file");
+  }
+
+  if(collectionName != "user-parameter-file") {
+    throw std::runtime_error("default user parameter file has the wrong collection name, should be user-parameter-file");
+  }
+
+  std::string fileName;
+
+  if(!paramHandler.getString("file_name", fileName)) {
+    throw std::runtime_error("default user parameter file does not have a parameter named file_name");
+  }
+
+  return fileName;
+}
 /*!
  * Init sim window
  */
@@ -62,13 +88,14 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _loadedUserSettings = true;
 
   try {
-    _userParameters.defineAndInitializeFromYamlFile(getConfigDirectoryPath() + DEFAULT_USER_FILE);
+    _userParameters.defineAndInitializeFromYamlFile(getConfigDirectoryPath() + getDefaultUserParameterFileName());
   } catch (std::runtime_error& ex) {
     _loadedUserSettings = false;
   }
 
   if(!_loadedUserSettings) {
     printf("[SimControlPanel] Failed to load default user settings!\n");
+    throw std::runtime_error("Failed to load default user settings!");
   } else {
     // display user settings in qtable if we loaded successfully
     loadUserParameters(_userParameters);

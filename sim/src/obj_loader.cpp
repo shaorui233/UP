@@ -57,6 +57,8 @@ void load_obj_file(std::string fileName, std::vector<float>& positions,
         while (linePtr[0] == ' ') ++linePtr;
       }
       faces.push_back(face);
+    } else if (type == "" || type == "s" || type == "g" || type == "mtllib" || type == "usemtl") {
+      // unhandled, but not an error.
     } else {
       printf("ERROR bad obj line %s\n", line.c_str());
     }
