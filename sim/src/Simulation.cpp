@@ -619,6 +619,9 @@ void Simulation::runAtSpeed(std::function<void(std::string)> errorCallback, bool
     double dtLowLevelControl = _simParams.low_level_dt;
     double dtHighLevelControl = _simParams.high_level_dt;
     _desiredSimSpeed = (_window && _window->wantTurbo()) ? 100.f : _simParams.simulation_speed;
+    if(_window && _window->wantSloMo()) {
+      _desiredSimSpeed /= 10.;
+    }
     u64 nStepsPerFrame = (u64)(((1. / 60.) / dt) * _desiredSimSpeed);
     if (!_window->IsPaused() && steps < desiredSteps) {
       _simParams.lockMutex();   
