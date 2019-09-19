@@ -32,7 +32,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   //int leg_clearance_iteration(440);
   //int leg_clearance_iteration(640);
   //int leg_clearance_iteration(600);
-  int leg_clearance_iteration_front(250) ; 
+  int leg_clearance_iteration_front(240) ; 
   int leg_clearance_iteration(600);
   int leg_ramp_iteration(650);
   int tuck_iteration(650);
@@ -177,7 +177,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     //q_des_rear_f << 0.0, -0.8, 1.2;
     //q_des_rear_f << 0.0, -0.8, 1.6;
     //q_des_rear_f << 0.0, -1.0, 2.05;
-    q_des_rear_f << 0.0, -0.7, 1.7;
+    q_des_rear_f << 0.0, -0.7, 2.1;
     //q_des_rear_f << 0.0, -0.9, 1.8;
    //q_des_front_f << 0.0, -1.2, 2.4;
     //q_des_rear_f << 0.0, -1.2, 2.4;
