@@ -33,7 +33,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   //int leg_clearance_iteration(640);
   //int leg_clearance_iteration(600);
   int leg_clearance_iteration_front(250) ; 
-  int leg_clearance_iteration(550);
+  int leg_clearance_iteration(600);
   int leg_ramp_iteration(650);
   int tuck_iteration(650);
   int ramp_end_iteration(900);
@@ -105,7 +105,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     q_des_front << 0.0, current_step[3], current_step[4];
 
     current_step = DataCtrl::_data_reader->get_plan_at_time(leg_clearance_iteration_front);
-    q_des_front << 0.0, -1.75, 2.5;
+    q_des_front << 0.0, -2.3, 2.5;
   // implement the desried joint states to keep the hands in 
   }
   
@@ -137,7 +137,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     
     // SET THE DESIRED JOINT STATES FOR LEG_CLEARANCE_ITERATION
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
-    q_des_front_f << 0.0, -1.25, 2.5;
+    q_des_front_f << 0.0, -2.3, 2.5;
     q_des_rear_f << 0.0, -1.25, 2.5;
 
     // linear interpolation for the ramp 
@@ -172,12 +172,12 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     // q_des_rear_f << 0.0, current_step[5], current_step[6];
     //q_des_front_f << 0.0, -0.9, 1.8;
     //q_des_front_f << 0.0, -1.0, 2.05;
-    q_des_front_f << 0.0, -0.85, 1.7;
+    q_des_front_f << 0.0, -0.85, 1.9;
     
     //q_des_rear_f << 0.0, -0.8, 1.2;
     //q_des_rear_f << 0.0, -0.8, 1.6;
     //q_des_rear_f << 0.0, -1.0, 2.05;
-    q_des_rear_f << 0.0, -0.85, 1.55;
+    q_des_rear_f << 0.0, -0.7, 1.7;
     //q_des_rear_f << 0.0, -0.9, 1.8;
    //q_des_front_f << 0.0, -1.2, 2.4;
     //q_des_rear_f << 0.0, -1.2, 2.4;
