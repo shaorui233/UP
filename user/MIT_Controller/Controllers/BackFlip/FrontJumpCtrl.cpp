@@ -2,10 +2,7 @@
 
 
 template <typename T>
-FrontJumpCtrl<T>::FrontJumpCtrl(DataReader* data_reader,float _dt) : DataReadCtrl<T>(data_reader, _dt) {
-  _Kp_joint_front.resize(3);
-  _Kd_joint_front.resize(3);
-}
+FrontJumpCtrl<T>::FrontJumpCtrl(DataReader* data_reader,float _dt) : DataReadCtrl<T>(data_reader, _dt) {}
 
 
 template <typename T>
@@ -23,19 +20,10 @@ void FrontJumpCtrl<T>::OneStep(float _curr_time, bool b_preparation, LegControll
       command[leg].tauFeedForward[jidx] = DataCtrl::_jtorque[3 * leg + jidx];
       command[leg].qDes[jidx] = DataCtrl::_des_jpos[3 * leg + jidx] + 0 * _curr_time;
       command[leg].qdDes[jidx] = DataCtrl::_des_jvel[3 * leg + jidx];
+      command[leg].kpJoint(jidx, jidx) = DataCtrl::_Kp_joint[jidx];
+      command[leg].kdJoint(jidx, jidx) = DataCtrl::_Kd_joint[jidx];
     }
   }
-
-  command[0].kpJoint(jidx, jidx) = _Kp_joint_front[jidx];
-  command[0].kpJoint(jidx, jidx) = _Kp_joint_front[jidx];
-  command[1].kdJoint(jidx, jidx) = _Kd_joint_front[jidx];
-  command[1].kdJoint(jidx, jidx) = _Kd_joint_front[jidx];
-
-  command[2].kpJoint(jidx, jidx) = DataCtrl::_Kp_joint[jidx];
-  command[3].kdJoint(jidx, jidx) = DataCtrl::_Kd_joint[jidx];
-  command[2].kpJoint(jidx, jidx) = DataCtrl::_Kp_joint[jidx];
-  command[3].kdJoint(jidx, jidx) = DataCtrl::_Kd_joint[jidx];
-
 }
 
 template <typename T>
@@ -55,8 +43,6 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   DataCtrl::_des_jpos.setZero();
   DataCtrl::_des_jvel.setZero();
   DataCtrl::_jtorque.setZero();
-  _Kp_joint_front = _Kp_joint;
-  _Kd_joint_front = _Kd_joint;
 
 
   // PRE JUMP PREPATATION - CROUCH (FOLLOWS PREMODE DURATION TIMESTEPS) 
@@ -115,19 +101,20 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   
   // CONTROL LEG_CLEARANCE_ITERATION_FRONT
   if (DataCtrl::current_iteration >= leg_clearance_iteration_front &&
-      DataCtrl::current_iteration < tuck_iteration){
+      DataCtrl::current_iteration <=leg_clearance_iteration){
     q_des_front << 0.0, current_step[3], current_step[4];
 
     current_step = DataCtrl::_data_reader->get_plan_at_time(leg_clearance_iteration_front);
     q_des_front << 0.0, -2.3, 2.5;
-    _Kp_joint_front = 50.;
-    _Kd_joint_front = 2.;
   // implement the desried joint states to keep the hands in 
   }
+  
+  // implement another controller to keep the legs in
   
   // CONTROL LEG_CLEARNACE ITERATION 
   if (DataCtrl::current_iteration >= leg_clearance_iteration 
       && DataCtrl::current_iteration < tuck_iteration) {  // ramp to leg clearance for obstacle
+    qd_des_front << 0.0, 0.0, 0.0;
     qd_des_rear << 0.0, 0.0, 0.0;
     tau_front << 0.0, 0.0, 0.0;
     tau_rear << 0.0, 0.0, 0.0;
@@ -139,17 +126,22 @@ void FrontJumpCtrl<T>::_update_joint_command() {
       s = 1;
     }
 
+    Vec3<float> q_des_front_0;
     Vec3<float> q_des_rear_0;
+    Vec3<float> q_des_front_f;
     Vec3<float> q_des_rear_f;
 
     current_step = DataCtrl::_data_reader->get_plan_at_time(tuck_iteration);
+    q_des_front_0 << 0.0, current_step[3], current_step[4];
     q_des_rear_0 << 0.0, current_step[5], current_step[6];
     
     // SET THE DESIRED JOINT STATES FOR LEG_CLEARANCE_ITERATION
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
+    q_des_front_f << 0.0, -2.3, 2.5;
     q_des_rear_f << 0.0, -1.25, 2.5;
 
     // linear interpolation for the ramp 
+    q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
     
 
@@ -181,8 +173,6 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     //q_des_front_f << 0.0, -0.9, 1.8;
     //q_des_front_f << 0.0, -1.0, 2.05;
     q_des_front_f << 0.0, -0.85, 1.9;
-    _Kp_joint_front = 20.;
-    _Kd_joint_front = 2.;
     
     //q_des_rear_f << 0.0, -0.8, 1.2;
     //q_des_rear_f << 0.0, -0.8, 1.6;
