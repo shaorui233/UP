@@ -57,6 +57,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
 
   bool IsPaused() { return _pause; }
   bool wantTurbo() { return _turbo; }
+  bool wantSloMo() { return _sloMo; }
 
  protected:
   void initializeGL() override;
@@ -147,6 +148,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
 
   bool _rotOrig = true;
   bool _turbo = false;
+  bool _sloMo = false;
 
   QMatrix4x4 _cameraMatrix;
   Vec3<float> _v0;

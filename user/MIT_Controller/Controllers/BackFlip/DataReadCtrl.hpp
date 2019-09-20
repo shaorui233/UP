@@ -61,7 +61,7 @@ class DataReadCtrl {
     }
     //_Kp_joint = {20.0, 20.0, 20.0};
     //_Kd_joint = {2.0, 2.0, 2.0};
-    _Kp_joint = {5.0, 5.0, 5.0};
+    _Kp_joint = {10.0, 10.0, 10.0};
     _Kd_joint = {1.0, 1.0, 1.0};
    }
 

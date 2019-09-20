@@ -14,7 +14,7 @@
 #include "Simulation.h"
 
 #define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
-#define DEFAULT_USER_FILE "/default-user.yaml"
+#define DEFAULT_USER_FILE "/default-user-parameters-file.yaml"
 
 #include <lcm-cpp.hpp>
 #include "rs_pointcloud_t.hpp"
@@ -87,6 +87,8 @@ public slots:
   void loadUserParameters(ControlParameters& params);
 
  private:
+
+  std::string getDefaultUserParameterFileName();
   void updateUiEnable();
   bool isStopped() {
     return _state == SimulationWindowState::STOPPED;

@@ -32,19 +32,20 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   //int leg_clearance_iteration(440);
   //int leg_clearance_iteration(640);
   //int leg_clearance_iteration(600);
-  int leg_clearance_iteration(850);
-  int leg_clearance_iteration_front(500);
-  int leg_ramp_iteration(750);
-  int tuck_iteration(750);
-  int ramp_end_iteration(800);
+  int leg_clearance_iteration_front(240) ; 
+  int leg_clearance_iteration(600);
+  int leg_ramp_iteration(650);
+  int tuck_iteration(650);
+  int ramp_end_iteration(900);
 
-
-   float tau_mult;
+  float tau_mult;
 
   DataCtrl::_des_jpos.setZero();
   DataCtrl::_des_jvel.setZero();
   DataCtrl::_jtorque.setZero();
 
+
+  // PRE JUMP PREPATATION - CROUCH (FOLLOWS PREMODE DURATION TIMESTEPS) 
   if ( (DataCtrl::pre_mode_count <  pre_mode_duration) || DataCtrl::_b_Preparation) {  
     // move to the initial configuration to prepare for
     // FrontJumping
@@ -61,13 +62,17 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     // tau_mult = 1.;
   }
 
+  
+  // OBTAIN TIMSTEP DATA FROM THE DATA FILE 
   if (DataCtrl::current_iteration > DataCtrl::_data_reader->plan_timesteps - 1) {
     DataCtrl::current_iteration = DataCtrl::_data_reader->plan_timesteps - 1;
   }
 
+  // OBTAIN DATA FROM THE JUMP_DATA FILE GENERATED IN MATLAB 
   float* current_step = DataCtrl::_data_reader->get_plan_at_time(DataCtrl::current_iteration);
   float* tau = current_step + tau_offset;
 
+  // INITIALIZE JOINT PARAMETERS AND TORQUES 
   Vec3<float> q_des_front;
   Vec3<float> q_des_rear;
   Vec3<float> qd_des_front;
@@ -75,6 +80,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   Vec3<float> tau_front;
   Vec3<float> tau_rear;
 
+  // SETTING THE JOINT POSITIONS AND VELOCITIES AND FEEDING FORWARD THE JOINT TORQUES obtained from the data file 
   q_des_front << 0.0, current_step[3], current_step[4];
   q_des_rear << 0.0, current_step[5], current_step[6];
   qd_des_front << 0.0, current_step[10], current_step[11];
@@ -82,6 +88,7 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   tau_front << 0.0, tau_mult * tau[0] / 2.0, tau_mult * tau[1] / 2.0;
   tau_rear << 0.0, tau_mult * tau[2] / 2.0, tau_mult * tau[3] / 2.0;
 
+  // Limitation set so that the arms do not swing too far back and hit the legs 
   if(q_des_front[1] < -M_PI/2.2){
     q_des_front[1] = -M_PI/2.2;
     qd_des_front[1] = 0.;
@@ -91,11 +98,20 @@ void FrontJumpCtrl<T>::_update_joint_command() {
   //pretty_print(tau_rear, std::cout, "tau rear");
   float s(0.);
 
+  
+  // CONTROL LEG_CLEARANCE_ITERATION_FRONT
   if (DataCtrl::current_iteration >= leg_clearance_iteration_front &&
       DataCtrl::current_iteration <=leg_clearance_iteration){
-  q_des_front << 0.0, current_step[3], current_step[4];
+    q_des_front << 0.0, current_step[3], current_step[4];
 
+    current_step = DataCtrl::_data_reader->get_plan_at_time(leg_clearance_iteration_front);
+    q_des_front << 0.0, -2.3, 2.5;
+  // implement the desried joint states to keep the hands in 
   }
+  
+  // implement another controller to keep the legs in
+  
+  // CONTROL LEG_CLEARNACE ITERATION 
   if (DataCtrl::current_iteration >= leg_clearance_iteration 
       && DataCtrl::current_iteration < tuck_iteration) {  // ramp to leg clearance for obstacle
     qd_des_front << 0.0, 0.0, 0.0;
@@ -118,14 +134,16 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     current_step = DataCtrl::_data_reader->get_plan_at_time(tuck_iteration);
     q_des_front_0 << 0.0, current_step[3], current_step[4];
     q_des_rear_0 << 0.0, current_step[5], current_step[6];
-
+    
+    // SET THE DESIRED JOINT STATES FOR LEG_CLEARANCE_ITERATION
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
-    q_des_front_f << 0.0, -1.25, 2.65;
-    q_des_rear_f << 0.0, -1.25, 2.65;
+    q_des_front_f << 0.0, -2.3, 2.5;
+    q_des_rear_f << 0.0, -1.25, 2.5;
 
-
+    // linear interpolation for the ramp 
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
+    
 
   } else if (DataCtrl::current_iteration >= tuck_iteration) { // ramp to landing configuration
     qd_des_front << 0.0, 0.0, 0.0;
@@ -139,7 +157,6 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     if (s > 1) {
       s = 1;
     }
-
     Vec3<float> q_des_front_0;
     Vec3<float> q_des_rear_0;
     Vec3<float> q_des_front_f;
@@ -149,27 +166,29 @@ void FrontJumpCtrl<T>::_update_joint_command() {
     q_des_front_0 << 0.0, current_step[3], current_step[4];
     q_des_rear_0 << 0.0, current_step[5], current_step[6];
 
+    // SET THE DESIRED JOINT STATES FOR THE TUCK ITERATION CONTROLLER (LANDING CONTROLLER)
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
     // q_des_front_f << 0.0, current_step[3], current_step[4];
     // q_des_rear_f << 0.0, current_step[5], current_step[6];
     //q_des_front_f << 0.0, -0.9, 1.8;
     //q_des_front_f << 0.0, -1.0, 2.05;
-    q_des_front_f << 0.0, -0.85, 1.7;
+    q_des_front_f << 0.0, -0.85, 1.9;
     
     //q_des_rear_f << 0.0, -0.8, 1.2;
     //q_des_rear_f << 0.0, -0.8, 1.6;
     //q_des_rear_f << 0.0, -1.0, 2.05;
-    q_des_rear_f << 0.0, -0.85, 1.7;
+    q_des_rear_f << 0.0, -0.7, 2.1;
     //q_des_rear_f << 0.0, -0.9, 1.8;
-
    //q_des_front_f << 0.0, -1.2, 2.4;
     //q_des_rear_f << 0.0, -1.2, 2.4;
 
+    // ramp for linear interpolation for the tuck iteration 
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
 
   }
 
+  
   // Abduction
   for (int i = 0; i < 12; i += 3) {
     DataCtrl::_des_jpos[i] = 0.0;

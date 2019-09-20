@@ -23,14 +23,14 @@ if true
     
     symbolic_done = 1;
 end
-
+end
 %% Contact schedule
 % integration settings
 res = 1; % change to increase/decrease timestep length without changing timing
-N = 85 * res; % number of timesteps 76
+N = 95 * res; % number of timesteps 76
 dt = 0.01 / res; % time between timesteps
 double_contact = 24*res; % timesteps spent with both feet on ground 26
-single_contact = 22*res; % timesteps spent with single foot on ground
+single_contact = 28*res; % timesteps spent with single foot on ground
 
 % N = 95 * res; % number of timesteps 95
 % dt = 0.01 / res; % time between timesteps
@@ -186,8 +186,8 @@ for k = 1:N-1
     
     % max torque
     % both feet on the ground, full torque all motors
-    tmax = 2*26;% 2 times becasue it isactually using 4 legs but in this optimisation only two joints 
-    hmax = 2*18;
+    tmax = 2*26*0.9;% 2 times becasue it isactually using 4 legs but in this optimisation only two joints 
+    hmax = 2*18*0.9;
     if(cs(k) == 2)
         opti.subject_to(tau_motor(:,k) <= [hmax;tmax;hmax;tmax]);
         opti.subject_to(tau_motor(:,k) >= -[hmax;tmax;hmax;tmax]);
@@ -230,10 +230,10 @@ opti.subject_to(qd(:,1) == zeros(7,1)); % initial velocity
 % opti.subject_to(q(1,N) <= -.3);  % end position
 
 
-opti.subject_to(q(3,N) == 0); % flipped at the end
+opti.subject_to(q(3,N) == -pi/8); % flipped at the end
 %opti.subject_to(q(2,N) <= 2.0); % end position
-opti.subject_to(q(2,N) >= 0.6); % end position
-opti.subject_to(q(1,N) >= .6);  % end position
+opti.subject_to(q(2,N) >= 0.55); % end position
+opti.subject_to(q(1,N) >= 0.75);  % end position
 %opti.subject_to(q(4:7,N) == q_init(4:7));  % this is now in the cost
 %functi
 toc;
@@ -254,7 +254,7 @@ Ffs = sol.value(f_f);
 Frs = sol.value(f_r);
 taus = sol.value(tau_motor);
 
-write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_v3.dat", dt, N);
-make_figures
+write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_pitchup.dat", dt, N);
+%make_figures
 %%enable this line if you want to save the file to a data file to be used
 %%on the robot
