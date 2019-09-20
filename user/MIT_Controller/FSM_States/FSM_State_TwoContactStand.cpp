@@ -54,7 +54,7 @@ void FSM_State_TwoContactStand<T>::run() {
     // Manually setting weights (to avoid altering other controllers)
     x_weights[i] = 20.;
     xdot_weights[i] = 15.;
-    R_weights[i] = 800.;
+    R_weights[i] = 80000.;
     omega_weights[i] = 40.;
   }
   x_weights[2] = 400.;
@@ -257,8 +257,8 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[i] = 1;
 
   // Lift legs after settling into prep state
-  lift_iteration = 2000;
-  ramp_iteration = 3000;
+  lift_iteration = 2500;
+  ramp_iteration = 3500;
   Vec3<float> q_lift_leg_0;
   float s(0.);
   q_lift_leg_0 << 0., -0.9, 2.25;
@@ -278,7 +278,7 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     q_lift_leg = (1 - s) * q_lift_leg_0 + s * q_lift_leg;
 
     // To do - increase ability to change state via gamepad
-    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4]- 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
+    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4];
     rpy[2] = 0.15 * this->_data->_desiredStateCommand->data.stateDes[11];
     pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
   }
