@@ -16,6 +16,7 @@ class FrontJumpCtrl : public DataReadCtrl<T> {
 
  protected:
   void _update_joint_command();
+  std::vector<T> _Kp_joint_front, _Kd_joint_front;
 };
 
 #endif
