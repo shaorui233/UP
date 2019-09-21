@@ -640,7 +640,7 @@ void Graphics3D::_drawObstacleField() {
         x = row* mesh.grid_size + mesh.left_corner[0];
         y = col* mesh.grid_size + mesh.left_corner[1];
         Prod = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs); 
-        mesh.height_map(row, col) += exp(-Prod/(2*_obs_sigma*_obs_sigma))*_obs_height;
+        mesh.height_map(row, col) += exp(-Prod/(2*_obs_sigma*_obs_sigma))*z_obs;
       }
     }
   }

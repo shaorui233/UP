@@ -122,7 +122,7 @@ void FSM_State_Vision<T>::run() {
   }
   // Call the locomotion control logic for this iteration
   Vec3<T> des_vel; // x,y, yaw
-  //_UpdateObstacle();
+  _UpdateObstacle();
 
   // Vision Walking
   _UpdateVelCommand(des_vel);
@@ -196,7 +196,7 @@ void FSM_State_Vision<T>::_UpdateObstacle(){
   Vec3<T> robot_loc; 
   if(_b_localization_data){ robot_loc = _global_robot_loc; } 
   else{ robot_loc = (this->_data->_stateEstimator->getResult()).position; } 
-  Vec3<T> obs; obs[2] = 0.4; // height (dummy) //size_t num_obs_limit = 10;
+  Vec3<T> obs; obs[2] = 0.27; 
 
   T dist = 0;
   for(size_t i(0); i<x_size; ++i){
@@ -245,7 +245,7 @@ void FSM_State_Vision<T>::_Visualization(const Vec3<T> & des_vel){
   for(size_t i(0); i<_obs_list.size(); ++i){
     _obs_visual_lcm.location[i][0] = _obs_list[i][0];
     _obs_visual_lcm.location[i][1] = _obs_list[i][1];
-    _obs_visual_lcm.location[i][2] = 0;
+    _obs_visual_lcm.location[i][2] = _obs_list[i][2];
   }
   _obs_visual_lcm.sigma = 0.15;
   _obs_visual_lcm.height = 0.5;
@@ -261,15 +261,15 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   target_pos.setZero();
 
-  T moving_time = 10.0;
+  T moving_time = 25.0;
   T curr_time = (T)iter * 0.002;
-  if(curr_time > moving_time){
-    curr_time = moving_time;
-  }
+  //if(curr_time > moving_time){
+    //curr_time = moving_time;
+  //}
   //target_pos[0] += 2.0 * curr_time/moving_time;
-  target_pos[0] += 1.0 * curr_time/moving_time;
+  //target_pos[0] += 2.5 * curr_time/moving_time;
   //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
-  //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
+  target_pos[0] = 1.0 * (1-cos(2*M_PI*curr_time/moving_time));
 
   if(_b_localization_data){
     curr_pos = _global_robot_loc;
@@ -282,9 +282,9 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   }
   target_pos = rpyToRotMat(_ini_body_ori_rpy).transpose() * target_pos;
-  des_vel[0] = 0.8 * (target_pos[0] - curr_pos[0]);
-  des_vel[1] = 0.8 * (target_pos[1] - curr_pos[1]);
-  des_vel[2] = 0.8 * (_ini_body_ori_rpy[2] - curr_ori_rpy[2]);
+  des_vel[0] = 0.7 * (target_pos[0] - curr_pos[0]);
+  des_vel[1] = 0.7 * (target_pos[1] - curr_pos[1]);
+  des_vel[2] = 0.7 * (_ini_body_ori_rpy[2] - curr_ori_rpy[2]);
 
   //des_vel[0] = 0.5;
   T inerproduct;
@@ -297,6 +297,8 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
     y = curr_pos[1];
     x_obs = _obs_list[i][0];
     y_obs = _obs_list[i][1];
+    h = _obs_list[i][2];
+
     inerproduct = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs);
     vel_x = h*((x-x_obs)/ sigma/sigma)*exp(-inerproduct/(2*sigma*sigma));
     vel_y = h*((y-y_obs)/ sigma/sigma)*exp(-inerproduct/(2*sigma*sigma));
