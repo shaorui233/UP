@@ -186,8 +186,8 @@ for k = 1:N-1
     
     % max torque
     % both feet on the ground, full torque all motors
-    tmax = 2*26*0.9;% 2 times becasue it isactually using 4 legs but in this optimisation only two joints 
-    hmax = 2*18*0.9;
+    tmax = 2*26*0.95;% 2 times becasue it isactually using 4 legs but in this optimisation only two joints 
+    hmax = 2*18*0.95;
     if(cs(k) == 2)
         opti.subject_to(tau_motor(:,k) <= [hmax;tmax;hmax;tmax]);
         opti.subject_to(tau_motor(:,k) >= -[hmax;tmax;hmax;tmax]);
@@ -218,6 +218,10 @@ for k = 1:N-1
     opti.subject_to(qdjk >= -[40;26;40;26]*0.8);
 %     opti.subject_to(qdjk <= [30;18;30;18]); % hip knee hip knee
 %     opti.subject_to(qdjk >= -[30;18;30;18]);
+
+    %product = tau_motor(:,k).*(qdjk) ; 
+    %total_power = product(1,k) + product(2,k) + product(3,k) + product(4,k) ; 
+    %opti.subject_to(total_power < 1600) ; 
 end
 
 
@@ -230,10 +234,10 @@ opti.subject_to(qd(:,1) == zeros(7,1)); % initial velocity
 % opti.subject_to(q(1,N) <= -.3);  % end position
 
 
-opti.subject_to(q(3,N) == -pi/8); % flipped at the end
+opti.subject_to(q(3,N) == -pi/6); % flipped at the end
 %opti.subject_to(q(2,N) <= 2.0); % end position
-opti.subject_to(q(2,N) >= 0.55); % end position
-opti.subject_to(q(1,N) >= 0.75);  % end position
+opti.subject_to(q(2,N) >= 0.6); % end position
+opti.subject_to(q(1,N) >= 0.7);  % end position
 %opti.subject_to(q(4:7,N) == q_init(4:7));  % this is now in the cost
 %functi
 toc;
@@ -254,7 +258,10 @@ Ffs = sol.value(f_f);
 Frs = sol.value(f_r);
 taus = sol.value(tau_motor);
 
-write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_pitchup.dat", dt, N);
+write_results_to_file(Qs, taus, Ffs, Frs, "front_jump_pitchup_v2.dat", dt, N);
 %make_figures
 %%enable this line if you want to save the file to a data file to be used
 %%on the robot
+
+
+%%
