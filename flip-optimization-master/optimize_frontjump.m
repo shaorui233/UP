@@ -10,7 +10,7 @@ addpath(genpath('spatial_v2'));
 
 %% Symbolic Dynamics
 % only do symbolic dynamics if we need to
-if ~(exist('symbolic_done','var'))
+%if ~(exist('symbolic_done','var'))
 if true
     disp_box('Generate Symbolic Dynamics');
     tic;
@@ -22,7 +22,6 @@ if true
     toc;
     
     symbolic_done = 1;
-end
 end
 %% Contact schedule
 % integration settings
@@ -230,14 +229,14 @@ opti.subject_to(q(:,1) == q_init);    % inital configuration
 opti.subject_to(qd(:,1) == zeros(7,1)); % initial velocity
 % opti.subject_to(q(3,N) == -1.9*pi); % flipped at the end
 % opti.subject_to(q(2,N) <= .2); % end position
-% opti.subject_to(q(2,N) >= 0.1); % end position
+% opti.subject_to(q(2,1N) >= 0.1); % end position
 % opti.subject_to(q(1,N) <= -.3);  % end position
 
 
-opti.subject_to(q(3,N) == -pi/6); % flipped at the end
+opti.subject_to(q(3,N) == -pi/3); % flipped at the end
 %opti.subject_to(q(2,N) <= 2.0); % end position
 opti.subject_to(q(2,N) >= 0.6); % end position
-opti.subject_to(q(1,N) >= 0.7);  % end position
+opti.subject_to(q(1,N) >= 0.5);  % end position
 %opti.subject_to(q(4:7,N) == q_init(4:7));  % this is now in the cost
 %functi
 toc;
