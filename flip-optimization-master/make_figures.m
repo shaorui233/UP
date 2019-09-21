@@ -16,3 +16,12 @@ plot(t,Qs(7 + (4:7),:)'); title('Velocity'); legend('Front hip','Front knee','Re
 
 subplot(2,2,4);
 plot(t,Qs(4:7,:)'); title('Position'); legend('Front hip','Front knee','Rear hip','Rear knee');
+
+
+
+%product = taus.*(Qs(7 + (4:7),:)) ; 
+
+
+
+figure 
+plot(t, product) ; 
