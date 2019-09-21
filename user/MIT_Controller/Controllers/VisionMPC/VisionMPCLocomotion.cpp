@@ -4,9 +4,6 @@
 #include "VisionMPCLocomotion.h"
 #include "VisionMPC_interface.h"
 
-//#define DRAW_DEBUG_SWINGS
-//#define DRAW_DEBUG_PATH
-
 
 ///////////////
 // GAIT
@@ -144,6 +141,90 @@ void VisionMPCLocomotion::initialize(){
   rpy_des.setZero();
   v_rpy_des.setZero();
 }
+void VisionMPCLocomotion::_UpdateFoothold(Vec3<float> & foot, const Vec3<float> & body_pos,
+    const DMat<float> & height_map, const DMat<int> & idx_map){
+
+    Vec3<float> local_pf = foot - body_pos;
+
+    int row_idx_half = height_map.rows()/2;
+    int col_idx_half = height_map.rows()/2;
+
+    int x_idx = floor(local_pf[0]/grid_size) + row_idx_half;
+    int y_idx = floor(local_pf[1]/grid_size) + col_idx_half;
+
+    int x_idx_selected = x_idx;
+    int y_idx_selected = y_idx;
+
+    _IdxMapChecking(x_idx, y_idx, x_idx_selected, y_idx_selected, idx_map);
+
+    foot[0] = (x_idx_selected - row_idx_half)*grid_size + body_pos[0];
+    foot[1] = (y_idx_selected - col_idx_half)*grid_size + body_pos[1];
+    foot[2] = height_map(x_idx_selected, y_idx_selected);
+
+}
+
+void VisionMPCLocomotion::_IdxMapChecking(int x_idx, int y_idx, int & x_idx_selected, int & y_idx_selected, 
+    const DMat<int> & idx_map){
+
+  if(idx_map(x_idx, y_idx) == 0){ // (0,0)
+    x_idx_selected = x_idx;
+    y_idx_selected = y_idx;
+
+  }else if(idx_map(x_idx+1, y_idx) == 0){ // (1, 0)
+    x_idx_selected = x_idx+1;
+    y_idx_selected = y_idx;
+
+  }else if(idx_map(x_idx+1, y_idx+1) == 0){ // (1, 1)
+    x_idx_selected = x_idx+1;
+    y_idx_selected = y_idx+1;
+
+  }else if(idx_map(x_idx, y_idx+1) == 0){ // (0, 1)
+    x_idx_selected = x_idx;
+    y_idx_selected = y_idx+1;
+
+  }else if(idx_map(x_idx-1, y_idx+1) == 0){ // (-1, 1)
+    x_idx_selected = x_idx-1;
+    y_idx_selected = y_idx+1;
+
+  }else if(idx_map(x_idx-1, y_idx) == 0){ // (-1, 0)
+    x_idx_selected = x_idx-1;
+    y_idx_selected = y_idx;
+
+  }else if(idx_map(x_idx-1, y_idx-1) == 0){ // (-1, -1)
+    x_idx_selected = x_idx-1;
+    y_idx_selected = y_idx-1;
+
+  }else if(idx_map(x_idx, y_idx-1) == 0){ // (0, -1)
+    x_idx_selected = x_idx;
+    y_idx_selected = y_idx-1;
+
+  }else if(idx_map(x_idx+1, y_idx-1) == 0){ // (1, -1)
+    x_idx_selected = x_idx+1;
+    y_idx_selected = y_idx-1;
+
+  }else if(idx_map(x_idx+2, y_idx-1) == 0){ // (2, -1)
+    x_idx_selected = x_idx+2;
+    y_idx_selected = y_idx-1;
+
+  }else if(idx_map(x_idx+2, y_idx) == 0){ // (2, 0)
+    x_idx_selected = x_idx+2;
+    y_idx_selected = y_idx;
+
+  }else if(idx_map(x_idx+2, y_idx+1) == 0){ // (2, 1)
+    x_idx_selected = x_idx+2;
+    y_idx_selected = y_idx+1;
+
+  }else if(idx_map(x_idx+2, y_idx+2) == 0){ // (2, 2)
+    x_idx_selected = x_idx+2;
+    y_idx_selected = y_idx+2;
+
+  }else{
+    printf("no proper step location (%d, %d)\n", x_idx, y_idx);
+    x_idx_selected = x_idx;
+    y_idx_selected = y_idx;
+  }
+}
+
 
 template<>
 void VisionMPCLocomotion::run(ControlFSMData<float>& data, 
@@ -274,13 +355,9 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data,
     Pf[0] +=  pfx_rel;
     Pf[1] +=  pfy_rel;
 
-    Vec3<float> local_pf = Pf - seResult.position;
 
-    int x_idx = floor(local_pf[0]/grid_size) + height_map.rows()/2;
-    int y_idx = floor(local_pf[1]/grid_size) + height_map.cols()/2;
-
-    Pf[2] = height_map(x_idx, y_idx);
-
+    _UpdateFoothold(Pf, seResult.position, height_map, idx_map);
+    _fin_foot_loc[i] = Pf;
     //Pf[2] -= 0.003;
     //printf("%d, %d) foot: %f, %f, %f \n", x_idx, y_idx, local_pf[0], local_pf[1], Pf[2]);
     footSwingTrajectories[i].setFinalPosition(Pf);
@@ -309,23 +386,6 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data,
 
   Vec4<float> se_contactState(0,0,0,0);
 
-#ifdef DRAW_DEBUG_PATH
-  auto* trajectoryDebug = data.visualizationData->addPath();
-  if(trajectoryDebug) {
-    trajectoryDebug->num_points = 10;
-    trajectoryDebug->color = {0.2, 0.2, 0.7, 0.5};
-    for(int i = 0; i < 10; i++) {
-      trajectoryDebug->position[i][0] = trajAll[12*i + 3];
-      trajectoryDebug->position[i][1] = trajAll[12*i + 4];
-      trajectoryDebug->position[i][2] = trajAll[12*i + 5];
-      auto* ball = data.visualizationData->addSphere();
-      ball->radius = 0.01;
-      ball->position = trajectoryDebug->position[i];
-      ball->color = {1.0, 0.2, 0.2, 0.5};
-    }
-  }
-#endif
-
   for(int foot = 0; foot < 4; foot++)
   {
     float contactState = contactStates[foot];
@@ -337,34 +397,7 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data,
         firstSwing[foot] = false;
         footSwingTrajectories[foot].setInitialPosition(pFoot[foot]);
       }
-
-#ifdef DRAW_DEBUG_SWINGS
-      auto* debugPath = data.visualizationData->addPath();
-      if(debugPath) {
-        debugPath->num_points = 100;
-        debugPath->color = {0.2,1,0.2,0.5};
-        float step = (1.f - swingState) / 100.f;
-        for(int i = 0; i < 100; i++) {
-          footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState + i * step, swingTimes[foot]);
-          debugPath->position[i] = footSwingTrajectories[foot].getPosition();
-        }
-      }
-      auto* finalSphere = data.visualizationData->addSphere();
-      if(finalSphere) {
-        finalSphere->position = footSwingTrajectories[foot].getPosition();
-        finalSphere->radius = 0.02;
-        finalSphere->color = {0.6, 0.6, 0.2, 0.7};
-      }
-      footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState, swingTimes[foot]);
-      auto* actualSphere = data.visualizationData->addSphere();
-      auto* goalSphere = data.visualizationData->addSphere();
-      goalSphere->position = footSwingTrajectories[foot].getPosition();
-      actualSphere->position = pFoot[foot];
-      goalSphere->radius = 0.02;
-      actualSphere->radius = 0.02;
-      goalSphere->color = {0.2, 1, 0.2, 0.7};
-      actualSphere->color = {0.8, 0.2, 0.2, 0.7};
-#endif
+      footSwingTrajectories[foot].setHeight(_fin_foot_loc[foot][2]+0.04);
       footSwingTrajectories[foot].computeSwingTrajectoryBezier(swingState, swingTimes[foot]);
 
       Vec3<float> pDesFootWorld = footSwingTrajectories[foot].getPosition();
@@ -393,13 +426,6 @@ void VisionMPCLocomotion::run(ControlFSMData<float>& data,
     else // foot is in stance
     {
       firstSwing[foot] = true;
-
-#ifdef DRAW_DEBUG_SWINGS
-      auto* actualSphere = data.visualizationData->addSphere();
-      actualSphere->position = pFoot[foot];
-      actualSphere->radius = 0.02;
-      actualSphere->color = {0.2, 0.2, 0.8, 0.7};
-#endif
 
       Vec3<float> pDesFootWorld = footSwingTrajectories[foot].getPosition();
       Vec3<float> vDesFootWorld = footSwingTrajectories[foot].getVelocity();

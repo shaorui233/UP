@@ -57,7 +57,7 @@ void FSM_State_FrontJump<T>::onEnter() {
   for(size_t i(0); i < 4; ++i) {
     initial_jpos[i] = this->_data->_legController->datas[i].q;
   }
-
+  front_jump_ctrl_->SetParameter();
 }
 
 /**
