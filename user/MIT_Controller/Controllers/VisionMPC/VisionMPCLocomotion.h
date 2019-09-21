@@ -62,6 +62,12 @@ public:
   Vec4<float> contact_state;
 
 private:
+  void _UpdateFoothold(Vec3<float> & foot, const Vec3<float> & body_pos,
+      const DMat<float> & height_map, const DMat<int> & idx_map);
+  void _IdxMapChecking(int x_idx, int y_idx, int & x_idx_selected, int & y_idx_selected, 
+      const DMat<int> & idx_map);
+
+  Vec3<float> _fin_foot_loc[4];
   float grid_size = 0.015;
 
   Vec3<float> v_des_world;

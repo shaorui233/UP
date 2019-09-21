@@ -102,7 +102,7 @@ void FSM_State_Vision<T>::onEnter() {
   vision_MPC.initialize();
 
   if(_b_localization_data){
-    //_updateStateEstimator();
+    _updateStateEstimator();
     _ini_body_pos = _global_robot_loc;
     _ini_body_ori_rpy = _robot_rpy;
   }else{
@@ -118,18 +118,18 @@ void FSM_State_Vision<T>::onEnter() {
 template <typename T>
 void FSM_State_Vision<T>::run() {
   if(_b_localization_data){
-    //_updateStateEstimator();
+    _updateStateEstimator();
   }
   // Call the locomotion control logic for this iteration
   Vec3<T> des_vel; // x,y, yaw
-  _UpdateObstacle();
+  //_UpdateObstacle();
 
   // Vision Walking
-  //_UpdateVelCommand(des_vel);
-  //_LocomotionControlStep(des_vel);
+  _UpdateVelCommand(des_vel);
+  _LocomotionControlStep(des_vel);
 
   // Convex Locomotion
-  _RCLocomotionControl();
+  //_RCLocomotionControl();
   
 
   // Stand still
@@ -189,24 +189,16 @@ void FSM_State_Vision<T>::_UpdateObstacle(){
   //Vec3<T> test1; 
   //test1<< 0.7, 0.20, 0.4;
   //_obs_list.push_back(test1);
-  //test1<< 0.7, -0.20, 0.4;
-  //_obs_list.push_back(test1);
+  //test1<< 0.7, -0.20, 0.4; //_obs_list.push_back(test1); 
+  T obstacle_height = 0.15; 
+  T threshold_gap = 0.08; 
+  bool add_obs(true); 
+  Vec3<T> robot_loc; 
+  if(_b_localization_data){ robot_loc = _global_robot_loc; } 
+  else{ robot_loc = (this->_data->_stateEstimator->getResult()).position; } 
+  Vec3<T> obs; obs[2] = 0.4; // height (dummy) //size_t num_obs_limit = 10;
 
-  
-  T obstacle_height = 0.15;
-  T threshold_gap = 0.08;
-  bool add_obs(true);
-  Vec3<T> robot_loc;
-  if(_b_localization_data){
-    robot_loc = _global_robot_loc;
-  }
-  else{
-    robot_loc = (this->_data->_stateEstimator->getResult()).position;
-  }
-  Vec3<T> obs; obs[2] = 0.4; // height (dummy)
-
-  //size_t num_obs_limit = 10;
-  T dist(0.);
+  T dist = 0;
   for(size_t i(0); i<x_size; ++i){
     for(size_t j(0); j<y_size; ++j){
       if( (_height_map(i, j) > obstacle_height) ){ // if too high point
@@ -269,14 +261,15 @@ void FSM_State_Vision<T>::_UpdateVelCommand(Vec3<T> & des_vel) {
 
   target_pos.setZero();
 
-  T moving_time = 25.0;
+  T moving_time = 10.0;
   T curr_time = (T)iter * 0.002;
-  //if(curr_time > moving_time){
-    //curr_time = moving_time;
-  //}
-  //target_pos[0] += 1.0 * curr_time/moving_time;
+  if(curr_time > moving_time){
+    curr_time = moving_time;
+  }
+  //target_pos[0] += 2.0 * curr_time/moving_time;
+  target_pos[0] += 1.0 * curr_time/moving_time;
   //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
-  target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
+  //target_pos[0] = 0.7 * (1-cos(2*M_PI*curr_time/moving_time));
 
   if(_b_localization_data){
     curr_pos = _global_robot_loc;

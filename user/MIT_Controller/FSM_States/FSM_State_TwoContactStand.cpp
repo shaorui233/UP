@@ -52,14 +52,14 @@ void FSM_State_TwoContactStand<T>::run() {
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
     // Manually setting weights (to avoid altering other controllers)
-    x_weights[i] = 20.;
-    xdot_weights[i] = 5.;
-    R_weights[i] = 800.;
-    omega_weights[i] = 40.;
+    x_weights[i] = 8.;
+    xdot_weights[i] = 2.;
+    R_weights[i] = 350.;
+    omega_weights[i] = 15.;
   }
-  x_weights[2] = 2000.;
-  R_weights[1] = 400;
-  omega_weights[1] = 10.;
+  x_weights[2] = 600.;
+  R_weights[1] = 20;
+  omega_weights[1] = 1.;
   control_weight = .05;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
   refGRF.set_alpha_control(0.01);
@@ -259,8 +259,8 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[i] = 1;
 
   // Lift legs after settling into prep state
-  lift_iteration = 2500;
-  ramp_iteration = 3500;
+  lift_iteration = 7500;
+  ramp_iteration = 8500;
   Vec3<float> q_lift_leg_0;
   float s(0.);
   q_lift_leg_0 << 0., -0.9, 2.25;
