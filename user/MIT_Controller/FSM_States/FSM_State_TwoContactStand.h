@@ -48,7 +48,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
 
   // LQR Weights
   double x_weights[3], xdot_weights[3], R_weights[3], omega_weights[3];
-  double control_weight;
+  double alpha_control, beta_control;
 
   // Actual state of the body using estimator or cheater state
   double pFeet[12], p_act[3], v_act[3], quat_act[4], rpy_act[3], O_err[3], se_xfb[13], pFeet_world[12], p_body[3];
@@ -73,13 +73,13 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   int lift_iteration, ramp_iteration;
 
   // Contact Data
-  double minForce, maxForce, mu_ctrl = 0.4;
+  double minForce, maxForce, mu_ctrl = 0.45;
   double minForces[4], maxForces[4];
   double contactStateScheduled[4] = {1, 1, 1, 1};
   Vec4<T> conPhase;
 
   // Control Input
-  double f_ref_z[4], f_ref_world[12], fOpt[12];
+  double f_ref_z[4], f_ref_world[12], fOpt[12], fOpt_world[12];
 
   // Leg Impedance Control
   Vec3<double> impedance_kp;
@@ -95,8 +95,6 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   // Compare expected joint torques to actual leg controller
   double tauOpt[3], tauEst[3];
   Mat3<T> Jleg;
-
-
 
 };
 

@@ -52,16 +52,18 @@ void FSM_State_TwoContactStand<T>::run() {
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
     // Manually setting weights (to avoid altering other controllers)
-    x_weights[i] = 8.;
-    xdot_weights[i] = 2.;
-    R_weights[i] = 350.;
-    omega_weights[i] = 15.;
+    x_weights[i] = 20.;
+    xdot_weights[i] = 5.;
+    R_weights[i] = 800.;
+    omega_weights[i] = 40.;
   }
-  x_weights[2] = 600.;
-  R_weights[1] = 20;
-  omega_weights[1] = 1.;
-  control_weight = .05;
-  balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,control_weight);
+  x_weights[2] = 1500.;
+  xdot_weights[2] = 200.;
+  R_weights[0] = 400;
+  omega_weights[0] = 3.;
+  alpha_control = 2.0;
+  beta_control = 0.5;
+  balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,alpha_control,beta_control);
   refGRF.set_alpha_control(0.01);
 
   // Get orientation from state estimator
@@ -144,6 +146,9 @@ void FSM_State_TwoContactStand<T>::run() {
   balanceControllerVBL.updateProblemData(se_xfb, pFeet, pFeet_des, rpy, rpy_act);
   balanceControllerVBL.solveQP_nonThreaded(fOpt);
   balanceControllerVBL.publish_data_lcm();
+  for (int i = 0;i < 12; i++)
+    fOpt_world[i]= balanceControllerVBL.xOpt_combined[i];
+
 
   // Remove impedance control for all joints
   impedance_kp << 0.0, 0.0, 0.0;
@@ -190,7 +195,6 @@ void FSM_State_TwoContactStand<T>::run() {
 
   for (int i = 0; i < 3; i++)
     tauEst[i] = this->_data->_legController->datas[1].tauEstimate[i];
-
 
 }
 
@@ -259,16 +263,16 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     contactStateScheduled[i] = 1;
 
   // Lift legs after settling into prep state
-  lift_iteration = 7500;
-  ramp_iteration = 8500;
+  lift_iteration = 8500;
+  ramp_iteration = 9000;
   Vec3<float> q_lift_leg_0;
-  float s(0.);
   q_lift_leg_0 << 0., -0.9, 2.25;
   if (iter > lift_iteration) {
-    contactStateScheduled[0] = 0;
-    contactStateScheduled[3] = 0;
+    //contactStateScheduled[0] = 0;
+    //contactStateScheduled[3] = 0;
 
     // Set joint position for lifted legs
+    float s(0.);
     s = (float)(iter - lift_iteration) /
         (ramp_iteration - lift_iteration);
 
@@ -401,7 +405,7 @@ void FSM_State_TwoContactStand<T>::quatToEuler(double* quat_in, double* rpy_in) 
 template <typename T>
 FSM_StateName FSM_State_TwoContactStand<T>::checkTransition() {
   this->nextStateName = this->stateName;
-  iter++;
+  //iter++;
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {

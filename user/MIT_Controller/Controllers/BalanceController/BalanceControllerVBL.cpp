@@ -125,6 +125,7 @@ BalanceControllerVBL::BalanceControllerVBL() :  QProblemObj_qpOASES(vblNUM_VARIA
    f_ref_world.resize(3*vblNUM_CONTACT_POINTS,1);
    Q1_LQR.resize(12,12);
    Q2_LQR.resize(3*vblNUM_CONTACT_POINTS,3*vblNUM_CONTACT_POINTS);
+   Q3_LQR.resize(3*vblNUM_CONTACT_POINTS,3*vblNUM_CONTACT_POINTS);
    s_LQR.resize(12,1);
    H_LQR.resize(2*vblNUM_VARIABLES_QP,2*vblNUM_VARIABLES_QP);
 
@@ -134,13 +135,15 @@ BalanceControllerVBL::BalanceControllerVBL() :  QProblemObj_qpOASES(vblNUM_VARIA
    for(int i = 0; i < vblNUM_VARIABLES_QP; i++)
    {
       xOpt_qpOASES[i] = 0.0;
+      xOptPrev[i] = 0.0;
       xOpt_initialGuess[i] = 0.0;
    }
 
-   xOpt_initialGuess[2] = 90;
-   xOpt_initialGuess[5] = 90;
-   xOpt_initialGuess[8] = 90;
-   xOpt_initialGuess[11] = 90;
+   for (int i = 0; i < 4; i++) {
+    xOpt_initialGuess[3*i+2] = 20;
+    xOptPrev[3*i+2] = 20;
+   }
+
 
    for(int i = 0; i < vblNUM_VARIABLES_QP+vblNUM_CONSTRAINTS_QP; i++)
    {
@@ -268,6 +271,7 @@ void BalanceControllerVBL::solveQP_nonThreaded(double* xOpt)
 
   // Combine reference control (f_des) and linear control (xOpt_eigen) inputs
   xOpt_combined = f_ref_world+xOpt_eigen;
+  xOptPrev = xOpt_eigen;
 
   // Centroid dynamics in world frame using solution to opitmization
   b_control_Opt = A_control*(xOpt_combined);
@@ -452,7 +456,8 @@ void BalanceControllerVBL::update_P_LQR()
 void BalanceControllerVBL::calc_H_qpOASES()
 {
   // Use LQR matrices to compute the QP cost matrix H
-  H_eigen = 2*Q2_LQR;
+  //H_eigen = 2*(Q2_LQR);
+  H_eigen = 2*(Q2_LQR+Q3_LQR);
 
   // Copy to real_t array (qpOASES data type)
    copy_Eigen_to_real_t(H_qpOASES, H_eigen, vblNUM_VARIABLES_QP, vblNUM_VARIABLES_QP);
@@ -483,7 +488,8 @@ void BalanceControllerVBL::calc_A_qpOASES()
 void BalanceControllerVBL::calc_g_qpOASES()
 {  
    // Use LQR matrices to compute the QP cost vector g
-   g_eigen = 2*B_LQR.transpose()*P_LQR.transpose()*s_LQR;
+   //g_eigen = 2*(B_LQR.transpose()*P_LQR.transpose()*s_LQR);
+   g_eigen = 2*(B_LQR.transpose()*P_LQR.transpose()*s_LQR - Q3_LQR*xOptPrev);
 
    // Copy to real_t array (qpOASES data type)
    copy_Eigen_to_real_t(g_qpOASES, g_eigen, vblNUM_VARIABLES_QP, 1);
@@ -564,10 +570,11 @@ void BalanceControllerVBL::set_reference_GRF(double* f_ref_in)
   copy_Array_to_Eigen(f_ref_world,f_ref_in,12,0);
 }
 
-void BalanceControllerVBL::set_LQR_weights(double* x_weights_in, double* xdot_weights_in, double* R_weights_in, double* omega_weights_in, double control_weight)
+void BalanceControllerVBL::set_LQR_weights(double* x_weights_in, double* xdot_weights_in, double* R_weights_in, double* omega_weights_in, double alpha_control_in, double beta_control_in)
 {
   Q1_LQR.setIdentity();
   Q2_LQR.setIdentity();
+  Q3_LQR.setIdentity();
 
   for(int i = 0; i < 3; i++){
     Q1_LQR(i,i) = x_weights_in[i];
@@ -576,8 +583,11 @@ void BalanceControllerVBL::set_LQR_weights(double* x_weights_in, double* xdot_we
     Q1_LQR(i+9,i+9) = omega_weights_in[i];
   }
 
-  for(int i = 0; i < 3*vblNUM_CONTACT_POINTS; i++)
-    Q2_LQR(i,i) = control_weight;
+  for(int i = 0; i < 3*vblNUM_CONTACT_POINTS; i++) {
+    Q2_LQR(i,i) = alpha_control_in;
+    Q3_LQR(i,i) = beta_control_in;
+  }
+
 }
 
 void BalanceControllerVBL::set_worldData()

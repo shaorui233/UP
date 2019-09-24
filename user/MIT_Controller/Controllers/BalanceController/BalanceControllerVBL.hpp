@@ -67,7 +67,7 @@ class BalanceControllerVBL
       // configure gains, QP weights, force limits, world parameters
       void set_RobotLimits();
       void set_worldData();
-      void set_LQR_weights(double* x_weights_in, double* xdot_weights_in, double* R_weights_in, double* omega_weights_in, double control_weight); // new
+      void set_LQR_weights(double* x_weights_in, double* xdot_weights_in, double* R_weights_in, double* omega_weights_in, double alpha_control_in, double beta_control_in); // new
       void set_friction(double mu_in); 
       void set_mass(double mass_in);
       void set_inertia(double Ixx, double Iyy, double Izz);
@@ -76,6 +76,7 @@ class BalanceControllerVBL
       void verifyModel(double* vbd_command);
       void set_base_support_flag(double sflag);
       void publish_data_lcm();
+      Eigen::VectorXd xOpt_combined;
       
 
    private:
@@ -130,7 +131,6 @@ class BalanceControllerVBL
       Eigen::MatrixXd C_control;      
       Eigen::VectorXd b_control;
       Eigen::VectorXd C_times_f_opt;
-      Eigen::VectorXd xOpt_combined;
       Eigen::VectorXd b_control_Opt;
 
 
@@ -142,6 +142,7 @@ class BalanceControllerVBL
       Eigen::VectorXd f_ref_world;
       Eigen::MatrixXd Q1_LQR;
       Eigen::MatrixXd Q2_LQR;
+      Eigen::MatrixXd Q3_LQR;
       Eigen::VectorXd s_LQR;
       Eigen::MatrixXd H_LQR;
       Eigen::VectorXd f_unc;
