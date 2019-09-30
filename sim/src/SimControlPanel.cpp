@@ -3,6 +3,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <ParamHandler.hpp>
+#include <leg_control_command_lcmt.hpp>
 #include "ui_SimControlPanel.h"
 #include "JoystickTest.h"
 
@@ -77,7 +78,8 @@ SimControlPanel::SimControlPanel(QWidget* parent)
       _heightmapLCM(getLcmUrl(255)),
       _pointsLCM(getLcmUrl(255)),
       _indexmapLCM(getLcmUrl(255)),
-      _ctrlVisionLCM(getLcmUrl(255))
+      _ctrlVisionLCM(getLcmUrl(255)),
+      _miniCheetahDebugLCM(getLcmUrl(255))
 {
 
   ui->setupUi(this); // QT setup
@@ -128,6 +130,13 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _ctrlVisionLCM.subscribe("velocity_cmd", &SimControlPanel::handleVelocityCMDLCM, this);
   _ctrlVisionLCM.subscribe("obstacle_visual", &SimControlPanel::handleObstacleLCM, this);
   _ctrlVisionLCMThread = std::thread(&SimControlPanel::ctrlVisionLCMThread, this);
+
+  // subscribe mc debug
+  _miniCheetahDebugLCM.subscribe("leg_control_data", &SimControlPanel::handleSpiDebug, this);
+  _miniCheetahDebugLCMThread = std::thread([&](){
+   for(;;)
+     _miniCheetahDebugLCM.handle();
+  });
 
 }
 
@@ -221,6 +230,44 @@ void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
 
     _graphicsWindow->_heightmap_data_update = true;
   }
+}
+
+void SimControlPanel::handleSpiDebug(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+                                     const leg_control_data_lcmt *msg) {
+  (void)rbuf;
+  (void)chan;
+  MiniCheetahDebugData ddata;
+
+  u32 idx = 0;
+  for(u32 leg = 0; leg < 4; leg++) {
+    for(u32 joint = 0; joint < 3; joint++) {
+      ddata.p[leg][joint] = msg->q[idx];
+      ddata.v[leg][joint] = msg->qd[idx];
+      idx++;
+    }
+  }
+
+  if(_mcDebugWindow.setDebugData(ddata)) {
+    MiniCheetahDebugCommand cmd;
+    _mcDebugWindow.getDebugCommand(cmd);
+
+    leg_control_command_lcmt lcm_cmd;
+    memset(&lcm_cmd, 0, sizeof(leg_control_command_lcmt));
+    idx = 0;
+    for(u32 leg = 0; leg < 4; leg++) {
+      for(u32 joint = 0; joint < 3; joint++) {
+        if(cmd.enable[leg][joint]) {
+          lcm_cmd.q_des[idx] = cmd.qd[leg][joint];
+          lcm_cmd.kp_joint[idx] = cmd.kp[leg][joint];
+          lcm_cmd.kd_joint[idx] = cmd.kd[leg][joint];
+        }
+        idx++;
+      }
+    }
+
+    _miniCheetahDebugLCM.publish("spi_debug_cmd", &lcm_cmd);
+  }
+
 }
 
 
@@ -459,7 +506,9 @@ void SimControlPanel::on_joystickButton_clicked() {
   }
 }
 
-void SimControlPanel::on_driverButton_clicked() {}
+void SimControlPanel::on_driverButton_clicked() {
+  _mcDebugWindow.show();
+}
 
 /*!
  * Respond to a change in the simulator table.

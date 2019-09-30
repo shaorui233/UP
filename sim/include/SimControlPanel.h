@@ -17,6 +17,8 @@
 #define DEFAULT_USER_FILE "/default-user-parameters-file.yaml"
 
 #include <lcm-cpp.hpp>
+#include <src/MiniCheetahDebug.h>
+#include <leg_control_data_lcmt.hpp>
 #include "rs_pointcloud_t.hpp"
 #include "heightmap_t.hpp"
 #include "traversability_map_t.hpp"
@@ -138,15 +140,22 @@ public slots:
       const velocity_visual_t* msg);
   void ctrlVisionLCMThread(){ while(true){ _ctrlVisionLCM.handle();  } }
 
+  void handleSpiDebug(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const leg_control_data_lcmt* msg);
+
   lcm::LCM _heightmapLCM;
   lcm::LCM _pointsLCM;
   lcm::LCM _indexmapLCM;
   lcm::LCM _ctrlVisionLCM;
+  lcm::LCM _miniCheetahDebugLCM;
 
   std::thread _pointsLCMThread;
   std::thread _heightmapLCMThread;
   std::thread _indexmapLCMThread;
   std::thread _ctrlVisionLCMThread;
+  std::thread _miniCheetahDebugLCMThread;
+
+  MiniCheetahDebug _mcDebugWindow;
+
 };
 
 #endif  // SIMCONTROLPANEL_H
