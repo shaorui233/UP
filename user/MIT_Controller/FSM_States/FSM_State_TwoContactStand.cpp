@@ -54,13 +54,13 @@ void FSM_State_TwoContactStand<T>::run() {
     // Manually setting weights (to avoid altering other controllers)
     x_weights[i] = 20.;
     xdot_weights[i] = 5.;
-    R_weights[i] = 800.;
-    omega_weights[i] = 40.;
+    R_weights[i] = 650.;
+    omega_weights[i] = 15.;
   }
-  x_weights[2] = 1500.;
-  xdot_weights[2] = 200.;
-  R_weights[0] = 400;
-  omega_weights[0] = 3.;
+  x_weights[2] = 900.;
+  xdot_weights[2] = 80.;
+  R_weights[0] = 150;
+  omega_weights[0] = 4.;
   alpha_control = 2.0;
   beta_control = 0.5;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,alpha_control,beta_control);
