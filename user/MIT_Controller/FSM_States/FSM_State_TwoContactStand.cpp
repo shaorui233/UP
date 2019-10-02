@@ -51,18 +51,13 @@ void FSM_State_TwoContactStand<T>::run() {
 
   // Set LQR Weights
   for (int i = 0; i < 3; i++) {
-    // Manually setting weights (to avoid altering other controllers)
-    x_weights[i] = 20.;
-    xdot_weights[i] = 5.;
-    R_weights[i] = 650.;
-    omega_weights[i] = 15.;
+    x_weights[i] = this->_data->userParameters->Q_pos[i];
+    xdot_weights[i] = this->_data->userParameters->Q_vel[i];
+    R_weights[i] = this->_data->userParameters->Q_ori[i];
+    omega_weights[i] = this->_data->userParameters->Q_ang[i];
   }
-  x_weights[2] = 900.;
-  xdot_weights[2] = 80.;
-  R_weights[0] = 150;
-  omega_weights[0] = 4.;
-  alpha_control = 2.0;
-  beta_control = 0.5;
+  alpha_control = this->_data->userParameters->R_control;
+  beta_control = this->_data->userParameters->R_prev;
   balanceControllerVBL.set_LQR_weights(x_weights,xdot_weights,R_weights,omega_weights,alpha_control,beta_control);
   refGRF.set_alpha_control(0.01);
 
@@ -164,7 +159,7 @@ void FSM_State_TwoContactStand<T>::run() {
     }
 
     else {
-      this->jointPDControl(leg, q_lift_leg, qd_lift_leg);
+      this->liftLeg(leg, q_lift_leg, qd_lift_leg);
       conPhase[leg] = 0.0;
     }
   
@@ -196,6 +191,19 @@ void FSM_State_TwoContactStand<T>::run() {
   for (int i = 0; i < 3; i++)
     tauEst[i] = this->_data->_legController->datas[1].tauEstimate[i];
 
+}
+
+template <typename T>
+void FSM_State_TwoContactStand<T>::liftLeg(int leg, Vec3<T> qDes, Vec3<T> qdDes) {
+
+  kpMat << 15, 0, 0, 0, 15, 0, 0, 0, 15;
+  kdMat << 2, 0, 0, 0, 2, 0, 0, 0, 2;
+
+  this->_data->_legController->commands[leg].kpJoint = kpMat;
+  this->_data->_legController->commands[leg].kdJoint = kdMat;
+
+  this->_data->_legController->commands[leg].qDes = qDes;
+  this->_data->_legController->commands[leg].qdDes = qdDes;
 }
 
 /**
@@ -248,8 +256,7 @@ void FSM_State_TwoContactStand<T>::get_model_dynamics() {
  */
 template <typename T>
 void FSM_State_TwoContactStand<T>::get_desired_state() {
-  // Prep state
-  pweight = 0.5;
+  // Nominal state
   if (this->_data->_quadruped->_robotType == RobotType::CHEETAH_3)
     p_des[2] = 0.4;
   else if (this->_data->_quadruped->_robotType == RobotType::MINI_CHEETAH)
@@ -259,38 +266,49 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     omegaDes[i] = 0.0;
     v_des[i] = 0.0;
   }
-  for (int i = 0; i < 4; i++)
-    contactStateScheduled[i] = 1;
 
-  // Lift legs after settling into prep state
-  lift_iteration = 8500;
-  ramp_iteration = 9000;
-  Vec3<float> q_lift_leg_0;
-  q_lift_leg_0 << 0., -0.9, 2.25;
-  if (iter > lift_iteration) {
-    //contactStateScheduled[0] = 0;
-    //contactStateScheduled[3] = 0;
+  // RC or gamepad to command desired state
+  rpy[1] = 1.5 * this->_data->_desiredStateCommand->data.stateDes[4];
+  rpy[2] = 0.15 * this->_data->_desiredStateCommand->data.stateDes[11];
 
-    // Set joint position for lifted legs
-    float s(0.);
-    s = (float)(iter - lift_iteration) /
-        (ramp_iteration - lift_iteration);
+  // Lift legs
+  if (this->_data->userParameters->stance_legs == 2) { // two legs
+    pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
+    p_des[0] = pweight * pFeet_world[3*1] + (1 - pweight) * pFeet_world[3*2];
+    p_des[1] = pweight * pFeet_world[3*1+1] + (1 - pweight) * pFeet_world[3*2+1];
 
-    if (s > 1) {
-      s = 1;
+    contactStateScheduled[0] = 0;
+    contactStateScheduled[3] = 0;
+    q_lift_leg << 0., -1.45, 2.9;
+  
+  } else if (this->_data->userParameters->stance_legs == 3) { // three legs
+    pweight = 0.425;
+    p_des[0] = pweight * pFeet_world[3*0] + (1 - pweight) * pFeet_world[3*3];
+    p_des[1] = pweight * pFeet_world[3*0+1] + (1 - pweight) * pFeet_world[3*3+1];
+
+    double error;
+    error = fabs(p_des[0]-p_act[0]);
+    if (error < 0.01 && contactStateScheduled[0] == 1){
+      contactStateScheduled[0] = 0;
+      q_lift_leg << 0., -1.45, 2.9;
+    }
+  } else { // four leg
+    pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
+    p_des[0] = pweight * pFeet_world[3*1] + (1 - pweight) * pFeet_world[3*2];
+    pweight = 0.5 + 0.05 * this->_data->_desiredStateCommand->data.stateDes[7];
+    p_des[1] = pweight * pFeet_world[3*1+1] + (1 - pweight) * pFeet_world[3*2+1];
+
+    for (int i = 0; i < 4; i++){
+      if(contactStateScheduled[i] == 0){
+        q_lift_leg << 0., -0.8, 2.15;
+        double error;
+        error = fabs(q_lift_leg[1]-this->_data->_legController->datas[i].q(1));
+        if (error < 0.05)
+          contactStateScheduled[i] = 1;
+      }
     }
 
-    q_lift_leg << 0., -1.55, 2.75;
-    q_lift_leg = (1 - s) * q_lift_leg_0 + s * q_lift_leg;
-
-    // To do - increase ability to change state via gamepad
-    rpy[1] = 0.8 * this->_data->_desiredStateCommand->data.stateDes[4];
-    rpy[2] = 0.15 * this->_data->_desiredStateCommand->data.stateDes[11];
-    pweight = 0.5 + 0.075 * this->_data->_desiredStateCommand->data.stateDes[6];
   }
-
-  p_des[0] = pweight * pFeet_world[3*1] + (1 - pweight) * pFeet_world[3*2];
-  p_des[1] = pweight * pFeet_world[3*1+1] + (1 - pweight) * pFeet_world[3*2+1];
 
 }
 
@@ -405,7 +423,7 @@ void FSM_State_TwoContactStand<T>::quatToEuler(double* quat_in, double* rpy_in) 
 template <typename T>
 FSM_StateName FSM_State_TwoContactStand<T>::checkTransition() {
   this->nextStateName = this->stateName;
-  //iter++;
+  iter++;
 
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {

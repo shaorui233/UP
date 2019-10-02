@@ -217,6 +217,17 @@ void sbus_packet_complete() {
       main_control_settings.p_des[1] = ((float)ch4 - 1000)*.00007f;;
       main_control_settings.p_des[2] = 0.25 + ((float)ch8 - 1000)*.0001f;
     }
+
+    // For two contact standing mode
+    else if (main_control_settings.mode == RC_mode::BACKFLIP) {
+      main_control_settings.rpy_des[0] = ((float)ch4-1000)*.0015f;
+      main_control_settings.rpy_des[1] = ((float)ch3 - 1000)*.0005f;
+      main_control_settings.rpy_des[2] = -((float)ch2 - 1000)*.0015f;
+
+      main_control_settings.p_des[0] = v_scale * ((float)ch1-1000)*.001f;
+      main_control_settings.p_des[1] = -v_scale *((float)ch4-1000)*.001f;
+      main_control_settings.p_des[2] = 0.0;
+    }
   }
   // Use the joysticks for orientation and height control in standing mode
 

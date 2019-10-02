@@ -22,6 +22,13 @@ public:
         INIT_PARAMETER(Kd_joint),
         //INIT_PARAMETER(Kp_joint_swing),
         //INIT_PARAMETER(Kd_joint_swing),
+        INIT_PARAMETER(Q_pos),
+        INIT_PARAMETER(Q_vel),
+        INIT_PARAMETER(Q_ori),
+        INIT_PARAMETER(Q_ang),
+        INIT_PARAMETER(R_control),
+        INIT_PARAMETER(R_prev),
+        INIT_PARAMETER(stance_legs),
         INIT_PARAMETER(use_jcqp),
         INIT_PARAMETER(jcqp_max_iter),
         INIT_PARAMETER(jcqp_rho),
@@ -48,6 +55,14 @@ public:
 
   DECLARE_PARAMETER(Vec3<double>, Kp_joint);
   DECLARE_PARAMETER(Vec3<double>, Kd_joint);
+
+  DECLARE_PARAMETER(Vec3<double>, Q_pos);
+  DECLARE_PARAMETER(Vec3<double>, Q_vel);
+  DECLARE_PARAMETER(Vec3<double>, Q_ori);
+  DECLARE_PARAMETER(Vec3<double>, Q_ang);
+  DECLARE_PARAMETER(double, R_control);
+  DECLARE_PARAMETER(double, R_prev);
+  DECLARE_PARAMETER(double, stance_legs);
 
   //DECLARE_PARAMETER(Vec3<double>, Kp_joint_swing);
   //DECLARE_PARAMETER(Vec3<double>, Kd_joint_swing);

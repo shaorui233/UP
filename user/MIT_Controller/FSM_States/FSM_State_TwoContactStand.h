@@ -35,6 +35,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   void get_desired_state();
   void get_model_dynamics();
   void get_foot_locations();
+  void liftLeg(int leg, Vec3<T> q, Vec3<T> qd);
   void rpyToR(Mat3<float> &R, double* rpy_in);
   void eulerToQuat(double* rpy_in, double* quat_in);
   void quatToEuler(double* quat_in, double* rpy_in);
@@ -70,7 +71,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
 
   // Joint positions for legs not in contact
   Vec3<T> q_lift_leg, qd_lift_leg;
-  int lift_iteration, ramp_iteration;
+  Mat3<T> kpMat, kdMat;
 
   // Contact Data
   double minForce, maxForce, mu_ctrl = 0.45;

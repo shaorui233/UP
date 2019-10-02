@@ -41,13 +41,17 @@ void DesiredStateCommand<T>::convertToStateCommands() {
       joystickLeft[0] = -rcCommand->p_des[1]; // Y
       joystickLeft[1] = 0.;
       joystickRight[0] = -rcCommand->rpy_des[2]; // Yaw
-      joystickRight[1] = rcCommand->rpy_des[1]; // Pitch
     }else if(rcCommand->mode == RC_mode::LOCOMOTION ||
         rcCommand->mode == RC_mode::VISION){ // Walking
       joystickLeft[0] = -rcCommand->v_des[1]; // Y
       joystickLeft[1] = rcCommand->v_des[0]; // X
       joystickRight[0] = -rcCommand->omega_des[2]; // Yaw
       joystickRight[1] = rcCommand->omega_des[1]; // Pitch
+    }else if(rcCommand->mode == RC_mode::BACKFLIP){ // Two Contact Stand
+      joystickLeft[0] = -rcCommand->p_des[1]; // Y
+      joystickLeft[1] = rcCommand->p_des[0]; // X
+      joystickRight[0] = -rcCommand->rpy_des[2]; // Yaw
+      joystickRight[1] = rcCommand->rpy_des[1]; // Pitch
     }else{
       joystickLeft.setZero();
       joystickRight.setZero();
@@ -56,6 +60,8 @@ void DesiredStateCommand<T>::convertToStateCommands() {
     joystickLeft = gamepadCommand->leftStickAnalog;
     joystickRight = gamepadCommand->rightStickAnalog;
   }
+
+  
 
   joystickLeft[0] *= -1.f;
   joystickRight[0] *= -1.f;
