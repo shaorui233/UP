@@ -36,7 +36,7 @@ class VectorNavOrientationEstimator : public GenericEstimator<T> {
   
  protected:
   bool _b_first_visit = true;
-  T _yaw_ini = 0.;
+  Quat<T> _ori_ini_inv;
 };
 
 

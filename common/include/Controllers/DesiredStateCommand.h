@@ -79,8 +79,8 @@ class DesiredStateCommand {
   T minVelX = -3.0;
   //T maxVelX = 5.0;
   //T minVelX = -5.0;
-  T maxVelY = 2.0;
-  T minVelY = -2.0;
+  T maxVelY = 1.0;
+  T minVelY = -1.0;
   //T maxVelY = 0.5;
   //T minVelY = -0.5;
   T maxTurnRate = 2.5;
@@ -111,7 +111,8 @@ class DesiredStateCommand {
 
   // Value cutoff for the analog stick deadband
   T deadbandRegion = 0.075;
-  const T filter = 0.01;
+  //const T filter = 0.01;
+  const T filter = 0.1;
 
   // Choose how often to print info, every N iterations
   int printNum = 5;  // N*(0.001s) in simulation time

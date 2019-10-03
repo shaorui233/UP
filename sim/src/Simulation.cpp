@@ -82,7 +82,7 @@ Simulation::Simulation(RobotType robot, Graphics3D* window,
   _robotControllerState.qd = zero12;
   FBModelState<double> x0;
   x0.bodyOrientation = rotationMatrixToQuaternion(
-      ori::coordinateRotation(CoordinateAxis::Z, 0.));
+      ori::coordinateRotation(CoordinateAxis::Z, 1.));
   // Mini Cheetah
   x0.bodyPosition.setZero();
   x0.bodyVelocity.setZero();
