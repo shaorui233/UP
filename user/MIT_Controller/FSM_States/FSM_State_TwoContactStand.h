@@ -76,7 +76,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   // Contact Data
   double minForce, maxForce, mu_ctrl = 0.45;
   double minForces[4], maxForces[4];
-  double contactStateScheduled[4] = {1, 1, 1, 1};
+  double contactStateScheduled[4] = {1.0, 1.0, 1.0, 1.0};
   Vec4<T> conPhase;
 
   // Control Input

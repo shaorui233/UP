@@ -43,11 +43,11 @@ use_wbc           : 1
 
 
 Q_pos             : [50, 50, 2000]
-Q_vel             : [5, 5, 80]
-Q_ori             : [400, 1000, 1000]
-Q_ang             : [3, 40, 40]
+Q_vel             : [1.5, 1.5, 80]
+Q_ori             : [200, 200, 200]
+Q_ang             : [1, 20, 20]
 
-R_control         : 0.05
+R_control         : 0.09
 R_prev            : 0.01
 
 stance_legs       : 4
