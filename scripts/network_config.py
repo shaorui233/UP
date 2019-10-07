@@ -38,7 +38,8 @@ def get_likely_iface():
 
 
     for i in ifs:
-        if len(if_to_addrs[i]) > 0 and if_to_addrs[i][0][:3] == "10.":
+        match_string = "10.0.0."
+        if len(if_to_addrs[i]) > 0 and if_to_addrs[i][0][:len(match_string)] == match_string:
             found_10_ip = found_10_ip + 1
             selected_if = i
 
