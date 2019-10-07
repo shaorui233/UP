@@ -9,6 +9,7 @@ mkdir robot-software/build
 cp $1 robot-software/build
 find . -name \*.so* -exec cp {} ./robot-software/build \;
 cp ../scripts/run_mc.sh ./robot-software/build
+cp ../scripts/setup_network_mc.py ./robot-software/build
 cp ../scripts/run_mc_debug.sh ./robot-software/build
 cp ../scripts/config_network_lcm.sh ./robot-software
 cp -r ../robot robot-software
