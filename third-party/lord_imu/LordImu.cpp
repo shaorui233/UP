@@ -35,7 +35,7 @@ void LordImu::init(u32 port, u32 baud_rate) {
   printf("[Lord IMU] Get info...\n");
   get_device_info();
   printf("[Lord IMU] Self test...\n");
-  self_test();
+  //self_test();
   printf("[Lord IMU] Basic report...\n");
   basic_report();
 //  printf("[Lord IMU] Zero Gyro...\n");
@@ -338,6 +338,11 @@ void LordImu::enable() {
 
   while(mip_filter_set_init_attitude(&device_interface, angles) != MIP_INTERFACE_OK){
     printf("init fail\n");
+  }
+
+  u8 option = 0; // no magnetometer
+  while(mip_filter_heading_source(&device_interface, 1, &option) != MIP_INTERFACE_OK) {
+    printf("setup heading fail\n");
   }
 
   u8 enable_value = 1;
