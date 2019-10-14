@@ -14,7 +14,7 @@ extern "C" {
 /* #undef EMBEDDED */
 
 /* PRINTING */
-#define PRINTING
+//#define PRINTING
 
 /* PROFILING */
 #define PROFILING

@@ -104,6 +104,20 @@ void update_problem_data(double* p, double* v, double* q, double* w, double* r, 
   has_solved = 1;
 }
 
+void update_solver_settings(int max_iter, double rho, double sigma, double solver_alpha, double terminate, double use_jcqp) {
+  update.max_iterations = max_iter;
+  update.rho = rho;
+  update.sigma = sigma;
+  update.solver_alpha = solver_alpha;
+  update.terminate = terminate;
+  if(use_jcqp > 1.5)
+    update.use_jcqp = 2;
+  else if(use_jcqp > 0.5)
+    update.use_jcqp = 1;
+  else
+    update.use_jcqp = 0;
+}
+
 void update_problem_data_floats(float* p, float* v, float* q, float* w,
                                 float* r, float yaw, float* weights,
                                 float* state_trajectory, float alpha, int* gait)
@@ -121,6 +135,10 @@ void update_problem_data_floats(float* p, float* v, float* q, float* w,
   solve_mpc(&update, &problem_configuration);
   has_solved = 1;
 
+}
+
+void update_x_drag(float x_drag) {
+  update.x_drag = x_drag;
 }
 
 double get_solution(int index)

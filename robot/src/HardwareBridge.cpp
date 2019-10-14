@@ -1,12 +1,24 @@
-#include "HardwareBridge.h"
+/*!
+ * @file HardwareBridge.cpp
+ * @brief Interface between robot code and robot hardware
+ *
+ * This class initializes the hardware of both robots and allows the robot
+ * controller to access it
+ */
+#ifdef linux 
+
 #include <sys/mman.h>
 #include <unistd.h>
 #include <cstring>
 #include <thread>
+
+#include "HardwareBridge.h"
 #include "rt/rt_interface_lcm.h"
 #include "rt/rt_sbus.h"
 #include "rt/rt_spi.h"
 #include "rt/rt_vectornav.h"
+
+//#define USE_MICROSTRAIN
 
 /*!
  * If an error occurs during initialization, before motors are enabled, print
@@ -25,7 +37,7 @@ void HardwareBridge::initError(const char* reason, bool printErrno) {
 }
 
 /*!
- * All initialization code that is common between Cheetah 3 and Mini Cheetah
+ * All hardware initialization steps that are common between Cheetah 3 and Mini Cheetah
  */
 void HardwareBridge::initCommon() {
   printf("[HardwareBridge] Init stack\n");
@@ -45,6 +57,9 @@ void HardwareBridge::initCommon() {
   _interfaceLcmThread = std::thread(&HardwareBridge::handleInterfaceLCM, this);
 }
 
+/*!
+ * Run interface LCM
+ */
 void HardwareBridge::handleInterfaceLCM() {
   while (!_interfaceLcmQuit) _interfaceLCM.handle();
 }
@@ -70,7 +85,7 @@ void HardwareBridge::prefaultStack() {
 }
 
 /*!
- * Configures the
+ * Configures the scheduler for real time priority
  */
 void HardwareBridge::setupScheduler() {
   printf("[Init] Setup RT Scheduler...\n");
@@ -81,6 +96,9 @@ void HardwareBridge::setupScheduler() {
   }
 }
 
+/*!
+ * LCM Handler for gamepad message
+ */
 void HardwareBridge::handleGamepadLCM(const lcm::ReceiveBuffer* rbuf,
                                       const std::string& chan,
                                       const gamepad_lcmt* msg) {
@@ -89,6 +107,9 @@ void HardwareBridge::handleGamepadLCM(const lcm::ReceiveBuffer* rbuf,
   _gamepadCommand.set(msg);
 }
 
+/*!
+ * LCM Handler for control parameters
+ */
 void HardwareBridge::handleControlParameter(
     const lcm::ReceiveBuffer* rbuf, const std::string& chan,
     const control_parameter_request_lcmt* msg) {
@@ -198,23 +219,16 @@ void HardwareBridge::handleControlParameter(
   _interfaceLCM.publish("interface_response", &_parameter_response_lcmt);
 }
 
-MiniCheetahHardwareBridge::MiniCheetahHardwareBridge(RobotController* robot_ctrl)
-    : HardwareBridge(robot_ctrl), _spiLcm(getLcmUrl(255)) {}
 
+MiniCheetahHardwareBridge::MiniCheetahHardwareBridge(RobotController* robot_ctrl)
+    : HardwareBridge(robot_ctrl), _spiLcm(getLcmUrl(255)), _microstrainLcm(getLcmUrl(255)) {}
+
+/*!
+ * Main method for Mini Cheetah hardware
+ */
 void MiniCheetahHardwareBridge::run() {
   initCommon();
   initHardware();
-
-  //_robotRunner = new RobotRunner(&taskManager, 0.001f, "robot-control");
-
-  _robotRunner->driverCommand = &_gamepadCommand;
-  _robotRunner->spiData = &_spiData;
-  _robotRunner->spiCommand = &_spiCommand;
-  _robotRunner->robotType = RobotType::MINI_CHEETAH;
-  _robotRunner->vectorNavData = &_vectorNavData;
-  _robotRunner->controlParameters = &_robotParams;
-  _robotRunner->visualizationData = &_visualizationData;
-  _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
 
   while (!_robotParams.isFullyInitialized()) {
     printf("[Hardware Bridge] Waiting for robot parameters...\n");
@@ -230,6 +244,18 @@ void MiniCheetahHardwareBridge::run() {
 
   printf("[Hardware Bridge] Got all parameters, starting up!\n");
 
+  _robotRunner =
+      new RobotRunner(_controller, &taskManager, _robotParams.controller_dt, "robot-control");
+
+  _robotRunner->driverCommand = &_gamepadCommand;
+  _robotRunner->spiData = &_spiData;
+  _robotRunner->spiCommand = &_spiCommand;
+  _robotRunner->robotType = RobotType::MINI_CHEETAH;
+  _robotRunner->vectorNavData = &_vectorNavData;
+  _robotRunner->controlParameters = &_robotParams;
+  _robotRunner->visualizationData = &_visualizationData;
+  _robotRunner->cheetahMainVisualization = &_mainCheetahVisualization;
+
   _robotRunner->init();
   _firstRun = false;
 
@@ -241,6 +267,10 @@ void MiniCheetahHardwareBridge::run() {
   PeriodicMemberFunction<MiniCheetahHardwareBridge> spiTask(
       &taskManager, .002, "spi", &MiniCheetahHardwareBridge::runSpi, this);
   spiTask.start();
+
+  // microstrain
+  if(_microstrainInit)
+    _microstrainThread = std::thread(&MiniCheetahHardwareBridge::runMicrostrain, this);
 
   // robot controller start
   _robotRunner->start();
@@ -257,12 +287,20 @@ void MiniCheetahHardwareBridge::run() {
       &taskManager, .005, "rc_controller", &HardwareBridge::run_sbus, this);
   sbusTask.start();
 
+  // temporary hack: microstrain logger
+  PeriodicMemberFunction<MiniCheetahHardwareBridge> microstrainLogger(
+      &taskManager, .001, "microstrain-logger", &MiniCheetahHardwareBridge::logMicrostrain, this);
+  microstrainLogger.start();
+
   for (;;) {
     usleep(1000000);
     // printf("joy %f\n", _robotRunner->driverCommand->leftStickAnalog[0]);
   }
 }
 
+/*!
+ * Receive RC with SBUS
+ */
 void HardwareBridge::run_sbus() {
   if (_port > 0) {
     int x = receive_sbus(_port);
@@ -272,24 +310,47 @@ void HardwareBridge::run_sbus() {
   }
 }
 
+void MiniCheetahHardwareBridge::runMicrostrain() {
+  while(true) {
+    _microstrainImu.run();
+
+#ifdef USE_MICROSTRAIN
+    _vectorNavData.accelerometer = _microstrainImu.acc;
+    _vectorNavData.quat[0] = _microstrainImu.quat[1];
+    _vectorNavData.quat[1] = _microstrainImu.quat[2];
+    _vectorNavData.quat[2] = _microstrainImu.quat[3];
+    _vectorNavData.quat[3] = _microstrainImu.quat[0];
+    _vectorNavData.gyro = _microstrainImu.gyro;
+#endif
+  }
+
+
+}
+
+void MiniCheetahHardwareBridge::logMicrostrain() {
+  _microstrainImu.updateLCM(&_microstrainData);
+  _microstrainLcm.publish("microstrain", &_microstrainData);
+}
+
+/*!
+ * Initialize Mini Cheetah specific hardware
+ */
 void MiniCheetahHardwareBridge::initHardware() {
-  printf("[MiniCheetahHardware] Init vectornav\n");
   _vectorNavData.quat << 1, 0, 0, 0;
+#ifndef USE_MICROSTRAIN
+  printf("[MiniCheetahHardware] Init vectornav\n");
   if (!init_vectornav(&_vectorNavData)) {
     initError("failed to initialize vectornav!\n", false);
   }
+#endif
 
   init_spi();
-
-  // init spi
-  // init sbus
-  // init lidarlite
-
-  // init LCM hardware logging thread
-
-  //
+  _microstrainInit = _microstrainImu.tryInit(0, 921600);
 }
 
+/*!
+ * Run Mini Cheetah SPI
+ */
 void MiniCheetahHardwareBridge::runSpi() {
   spi_command_t* cmd = get_spi_command();
   spi_data_t* data = get_spi_data();
@@ -302,6 +363,9 @@ void MiniCheetahHardwareBridge::runSpi() {
   _spiLcm.publish("spi_command", cmd);
 }
 
+/*!
+ * Send LCM visualization data
+ */
 void HardwareBridge::publishVisualizationLCM() {
   cheetah_visualization_lcmt visualization_data;
   for (int i = 0; i < 3; i++) {
@@ -319,3 +383,5 @@ void HardwareBridge::publishVisualizationLCM() {
 
   _visualizationLCM.publish("main_cheetah_visualization", &visualization_data);
 }
+
+#endif

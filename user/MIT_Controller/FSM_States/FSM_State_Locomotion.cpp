@@ -7,6 +7,7 @@
 
 #include "FSM_State_Locomotion.h"
 #include <Utilities/Timer.h>
+#include <Controllers/WBC_Ctrl/LocomotionCtrl/LocomotionCtrl.hpp>
 
 /**
  * Constructor for the FSM State that passes in state specific info to
@@ -17,13 +18,22 @@
 template <typename T>
 FSM_State_Locomotion<T>::FSM_State_Locomotion(
     ControlFSMData<T>* _controlFSMData)
-    : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION") {
+    : FSM_State<T>(_controlFSMData, FSM_StateName::LOCOMOTION, "LOCOMOTION"),
+        cMPCOld(_controlFSMData->controlParameters->controller_dt,
+                //30 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                //22 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                27 / (1000. * _controlFSMData->controlParameters->controller_dt),
+                _controlFSMData->userParameters){
   // Set the safety checks
   this->turnOnAllSafetyChecks();
+  // Turn off Foot pos command since it is set in WBC as operational task
+  this->checkPDesFoot = false;
 
   // Initialize GRF and footstep locations to 0s
   this->footFeedForwardForces = Mat34<T>::Zero();
   this->footstepLocations = Mat34<T>::Zero();
+  _wbc_ctrl = new LocomotionCtrl<T>(_controlFSMData->_quadruped->buildModel());
+  _wbc_data = new LocomotionCtrlData<T>();
 }
 
 template <typename T>
@@ -33,6 +43,8 @@ void FSM_State_Locomotion<T>::onEnter() {
 
   // Reset the transition data
   this->transitionData.zero();
+  cMPCOld.initialize();
+  printf("[FSM LOCOMOTION] On Enter\n");
 }
 
 /**
@@ -58,42 +70,6 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
   // Switch FSM control mode
   switch ((int)this->_data->controlParameters->control_mode) {
     case K_LOCOMOTION:
-      // Normal operation for state based transitions
-
-      // Need a working state estimator for automatic state based transition
-      /*if (velocity < v_min) {
-        this->nextStateName = FSM_StateName::BALANCE_STAND;
-
-        // Transition over the duration of one period
-        this->transitionDuration =
-      this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-
-        // Notify the gait scheduler that the robot is transitioning to stand
-        this->_data->_gaitScheduler->gaitData._nextGait =
-      GaitType::TRANSITION_TO_STAND;
-
-      }*/
-
-      // in place to show automatic non user requested transitions
-      /*if (iter >= 1387) {  // 2058) {
-        // Set the next state to be BALANCE_STAND
-        this->nextStateName = FSM_StateName::BALANCE_STAND;
-
-        // Transition time is 1 gait period
-        this->transitionDuration =
-            this->_data->_gaitScheduler->gaitData.periodTimeNominal;
-
-        // Signal the gait scheduler that we are transitioning to standing
-        this->_data->_gaitScheduler->gaitData._nextGait =
-            GaitType::TRANSITION_TO_STAND;
-
-        // Notify the control parameters of the mode switch
-        this->_data->controlParameters->control_mode = K_BALANCE_STAND;
-
-        // Reset iteration counter
-        iter = 0;
-      }
-       */
       break;
 
     case K_BALANCE_STAND:
@@ -112,6 +88,21 @@ FSM_StateName FSM_State_Locomotion<T>::checkTransition() {
       // Transition time is immediate
       this->transitionDuration = 0.0;
 
+      break;
+
+    case K_STAND_UP:
+      this->nextStateName = FSM_StateName::STAND_UP;
+      this->transitionDuration = 0.;
+      break;
+
+    case K_RECOVERY_STAND:
+      this->nextStateName = FSM_StateName::RECOVERY_STAND;
+      this->transitionDuration = 0.;
+      break;
+
+    case K_VISION:
+      this->nextStateName = FSM_StateName::VISION;
+      this->transitionDuration = 0.;
       break;
 
     default:
@@ -153,6 +144,19 @@ TransitionData<T> FSM_State_Locomotion<T>::transition() {
 
       break;
 
+    case FSM_StateName::STAND_UP:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::RECOVERY_STAND:
+      this->transitionData.done = true;
+      break;
+
+    case FSM_StateName::VISION:
+      this->transitionData.done = true;
+      break;
+
+
     default:
       std::cout << "[CONTROL FSM] Something went wrong in transition"
                 << std::endl;
@@ -183,55 +187,27 @@ void FSM_State_Locomotion<T>::LocomotionControlStep() {
   // Contact state logic
   // estimateContact();
 
-  // Run the balancing controllers to get GRF and next step locations
-  //Timer t;
   cMPCOld.run<T>(*this->_data);
-  //printf("entire run time %.3f\n", t.getMs());
-//  this->runControls();
-//
-//  // Calculate appropriate control actions for each leg to be sent out
-//  for (int leg = 0; leg < 4; leg++) {
-//    // The actual contact logic should come from the contact estimator later
-//    // rather than schedule
-//    if (this->_data->_gaitScheduler->gaitData.contactStateScheduled(leg)) {
-//      // Leg is in contact
-//
-//      // Impedance control for the stance leg
-//      StanceLegImpedanceControl(leg);
-//
-//      // Stance leg Ground Reaction Force command
-//      this->_data->_legController->commands[leg].forceFeedForward =
-//          this->footFeedForwardForces.col(leg);
-//
-//    } else if (!this->_data->_gaitScheduler->gaitData.contactStateScheduled(
-//                   leg)) {
-//      // Leg is not in contact
-//
-//      // Swing leg trajectory
-//      // TODO
-//      this->footstepLocations.col(leg)
-//          << 0., 0.,
-//          -this->_data->_quadruped->_maxLegLength / 2. +
-//            sin(2.*M_PI * this->_data->_gaitScheduler->gaitData.phaseSwing(leg) );
-//
-//      // Swing leg impedance control
-//      this->cartesianImpedanceControl(
-//          leg, this->footstepLocations.col(leg), Vec3<T>::Zero(),
-//          this->_data->controlParameters->stand_kp_cartesian,
-//          this->_data->controlParameters->stand_kd_cartesian);
-//
-//      // Feedforward torques for swing leg tracking
-//      // TODO
-//
-//    } else {
-//      std::cout << "[CONTROL ERROR] Undefined scheduled contact state\n"
-//                << std::endl;
-//    }
-//
-//    // Singularity barrier calculation (maybe an overall safety checks
-//    // function?)
-//    // TODO
-//  }
+
+  if(this->_data->userParameters->use_wbc > 0.9){
+    _wbc_data->pBody_des = cMPCOld.pBody_des;
+    _wbc_data->vBody_des = cMPCOld.vBody_des;
+    _wbc_data->aBody_des = cMPCOld.aBody_des;
+
+    _wbc_data->pBody_RPY_des = cMPCOld.pBody_RPY_des;
+    _wbc_data->vBody_Ori_des = cMPCOld.vBody_Ori_des;
+    
+    for(size_t i(0); i<4; ++i){
+      _wbc_data->pFoot_des[i] = cMPCOld.pFoot_des[i];
+      _wbc_data->vFoot_des[i] = cMPCOld.vFoot_des[i];
+      _wbc_data->aFoot_des[i] = cMPCOld.aFoot_des[i];
+      _wbc_data->Fr_des[i] = cMPCOld.Fr_des[i]; 
+    }
+    _wbc_data->contact_state = cMPCOld.contact_state;
+
+    _wbc_ctrl->run(_wbc_data, *this->_data);
+
+  }
 }
 
 /**

@@ -1,3 +1,8 @@
+/*!
+ * @file utilities.h
+ * @brief Common utility functions
+ */
+
 #ifndef PROJECT_UTILITIES_H
 #define PROJECT_UTILITIES_H
 
@@ -10,6 +15,9 @@
 
 /*!
  * Are two floating point values almost equal?
+ * @param a : first value
+ * @param b : second value
+ * @param tol : equality tolerance
  */
 template <typename T>
 bool fpEqual(T a, T b, T tol) {
@@ -18,6 +26,7 @@ bool fpEqual(T a, T b, T tol) {
 
 /*!
  * Are two std::vectors equal?
+ * Compares with "!=" operator
  */
 template <typename T>
 bool vectorEqual(const std::vector<T>& a, const std::vector<T>& b) {
@@ -42,12 +51,21 @@ T coerce(T in, T min, T max) {
   return in;
 }
 
+/*!
+ * Apply deadband
+ * @param x : input
+ * @param range : deadband (+/- range around 0)
+ * @return result
+ */
 template <typename T>
 T deadband(T x, T range) {
   if (x < range && x > -range) x = T(0);
   return x;
 }
 
+/*!
+ * Apply deadband to eigen type
+ */
 template <typename T>
 void eigenDeadband(Eigen::MatrixBase<T>& v, typename T::Scalar band) {
   for (size_t i = 0; i < T::RowsAtCompileTime; i++) {
@@ -136,7 +154,7 @@ std::string numberToString(T number) {
 }
 
 /*!
- * map value x in (inputMin, inputMax) to (outputMin, outputMax)
+ * map value x in (inputMin, inputMax) to (outputMin, outputMax) linearly
  */
 template <typename T>
 T mapToRange(T x, T inputMin, T inputMax, T outputMin, T outputMax) {
@@ -144,6 +162,9 @@ T mapToRange(T x, T inputMin, T inputMax, T outputMin, T outputMax) {
          (x - inputMin) * (outputMax - outputMin) / (inputMax - inputMin);
 }
 
+/*!
+ * Convert eigen type to std::string.
+ */
 template <typename T>
 std::string eigenToString(Eigen::MatrixBase<T>& value) {
   std::stringstream ss;
@@ -151,6 +172,9 @@ std::string eigenToString(Eigen::MatrixBase<T>& value) {
   return ss.str();
 }
 
+/*!
+ * Convert boolean to string (true, false)
+ */
 static inline std::string boolToString(bool b) {
   return std::string(b ? "true" : "false");
 }
@@ -178,6 +202,9 @@ void EulerZYX_2_SO3(const Vec3<T>& euler_zyx, Mat3<T>& SO3) {
 }
 
 // Smooth Changing
+/*!
+ * Interpolate with cosine (sometimes called coserp)
+ */
 template <typename T>
 T smooth_change(T ini, T end, T moving_duration, T curr_time) {
   if (curr_time > moving_duration) {
@@ -187,6 +214,9 @@ T smooth_change(T ini, T end, T moving_duration, T curr_time) {
           (end - ini) * 0.5 * (1 - cos(curr_time / moving_duration * M_PI)));
 }
 
+/*!
+ * Derivative of smooth_change
+ */
 template <typename T>
 T smooth_change_vel(T ini, T end, T moving_duration, T curr_time) {
   if (curr_time > moving_duration) {
@@ -196,6 +226,9 @@ T smooth_change_vel(T ini, T end, T moving_duration, T curr_time) {
           sin(curr_time / moving_duration * M_PI));
 }
 
+/*!
+ * Derivative of smooth_change_vel
+ */
 template <typename T>
 T smooth_change_acc(T ini, T end, T moving_duration, T curr_time) {
   if (curr_time > moving_duration) {
@@ -205,6 +238,9 @@ T smooth_change_acc(T ini, T end, T moving_duration, T curr_time) {
           (M_PI / moving_duration) * cos(curr_time / moving_duration * M_PI));
 }
 
+/*!
+ * Convert from string to float or double.
+ */
 template <typename T>
 T stringToNumber(const std::string& str) {
   static_assert(std::is_same<T, double>::value || std::is_same<T, float>::value,
@@ -217,11 +253,17 @@ T stringToNumber(const std::string& str) {
   }
 }
 
+/*!
+ * Convert from string to float or double
+ */
 template <typename T>
 T stringToNumber(const char* str) {
   return stringToNumber<T>(std::string(str));
 }
 
+/*!
+ * Convert from string to Vec3.
+ */
 template <typename T>
 Vec3<T> stringToVec3(const std::string& str) {
   Vec3<T> v;

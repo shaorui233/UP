@@ -59,6 +59,8 @@ struct RobotToSimulatorMessage {
   VisualizationData visualizationData;
   CheetahVisualization mainCheetahVisualization;
   ControlParameterResponse controlParameterResponse;
+
+  char errorMessage[2056];
 };
 
 /*!
@@ -85,26 +87,48 @@ struct SimulatorMessage {
  *  ...
  */
 struct SimulatorSyncronizedMessage : public SimulatorMessage {
+
   /*!
    * The init() method should only be called *after* shared memory is connected!
+   * This initializes the shared memory semaphores used to keep things in sync
    */
   void init() {
     robotToSimSemaphore.init(0);
     simToRobotSemaphore.init(0);
   }
 
+  /*!
+   * Wait for the simulator to respond
+   */
   void waitForSimulator() { simToRobotSemaphore.decrement(); }
 
+  /*!
+   * Simulator signals that it is done
+   */
   void simulatorIsDone() { simToRobotSemaphore.increment(); }
 
+  /*!
+   * Wait for the robot to finish
+   */
   void waitForRobot() { robotToSimSemaphore.decrement(); }
 
+  /*!
+   * Check if the robot is done
+   * @return if the robot is done
+   */
   bool tryWaitForRobot() { return robotToSimSemaphore.tryDecrement(); }
 
+  /*!
+   * Wait for the robot to finish with a timeout
+   * @return if we finished before timing out
+   */
   bool waitForRobotWithTimeout() {
     return robotToSimSemaphore.decrementTimeout(1, 0);
   }
 
+  /*!
+   * Signal that the robot is done
+   */
   void robotIsDone() { robotToSimSemaphore.increment(); }
 
  private:

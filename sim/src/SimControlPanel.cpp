@@ -2,7 +2,10 @@
 #include <ControlParameters/ControlParameters.h>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <ParamHandler.hpp>
+#include <leg_control_command_lcmt.hpp>
 #include "ui_SimControlPanel.h"
+#include "JoystickTest.h"
 
 
 /*!
@@ -39,6 +42,31 @@ static void updateQtableWithParameters(ControlParameters& params,
   }
 }
 
+std::string SimControlPanel::getDefaultUserParameterFileName() {
+  std::string path = getConfigDirectoryPath() + DEFAULT_USER_FILE;
+  ParamHandler paramHandler(path);
+
+  if(!paramHandler.fileOpenedSuccessfully()) {
+    throw std::runtime_error("Could not open yaml file for default user parameter file: " + path);
+  }
+
+  std::string collectionName;
+  if(!paramHandler.getString("__collection-name__", collectionName)) {
+    throw std::runtime_error("Could not find __collection-name__ parameter in default user parameter file");
+  }
+
+  if(collectionName != "user-parameter-file") {
+    throw std::runtime_error("default user parameter file has the wrong collection name, should be user-parameter-file");
+  }
+
+  std::string fileName;
+
+  if(!paramHandler.getString("file_name", fileName)) {
+    throw std::runtime_error("default user parameter file does not have a parameter named file_name");
+  }
+
+  return fileName;
+}
 /*!
  * Init sim window
  */
@@ -46,7 +74,13 @@ SimControlPanel::SimControlPanel(QWidget* parent)
     : QMainWindow(parent),
       ui(new Ui::SimControlPanel),
       _userParameters("user-parameters"),
-      _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE) {
+      _terrainFileName(getConfigDirectoryPath() + DEFAULT_TERRAIN_FILE),
+      _heightmapLCM(getLcmUrl(255)),
+      _pointsLCM(getLcmUrl(255)),
+      _indexmapLCM(getLcmUrl(255)),
+      _ctrlVisionLCM(getLcmUrl(255)),
+      _miniCheetahDebugLCM(getLcmUrl(255))
+{
 
   ui->setupUi(this); // QT setup
   updateUiEnable();  // enable/disable buttons as needed.
@@ -56,13 +90,14 @@ SimControlPanel::SimControlPanel(QWidget* parent)
   _loadedUserSettings = true;
 
   try {
-    _userParameters.defineAndInitializeFromYamlFile(getConfigDirectoryPath() + DEFAULT_USER_FILE);
+    _userParameters.defineAndInitializeFromYamlFile(getConfigDirectoryPath() + getDefaultUserParameterFileName());
   } catch (std::runtime_error& ex) {
     _loadedUserSettings = false;
   }
 
   if(!_loadedUserSettings) {
     printf("[SimControlPanel] Failed to load default user settings!\n");
+    throw std::runtime_error("Failed to load default user settings!");
   } else {
     // display user settings in qtable if we loaded successfully
     loadUserParameters(_userParameters);
@@ -82,7 +117,159 @@ SimControlPanel::SimControlPanel(QWidget* parent)
     printf("\tsim parameters are all good\n");
   }
   loadSimulationParameters(_parameters);
+
+  _pointsLCM.subscribe("cf_pointcloud", &SimControlPanel::handlePointsLCM, this);
+  _pointsLCMThread = std::thread(&SimControlPanel::pointsLCMThread, this); 
+
+  _heightmapLCM.subscribe("local_heightmap", &SimControlPanel::handleHeightmapLCM, this);
+  _heightmapLCMThread = std::thread(&SimControlPanel::heightmapLCMThread, this);
+
+  _indexmapLCM.subscribe("traversability", &SimControlPanel::handleIndexmapLCM, this);
+  _indexmapLCMThread = std::thread(&SimControlPanel::indexmapLCMThread, this);
+
+  _ctrlVisionLCM.subscribe("velocity_cmd", &SimControlPanel::handleVelocityCMDLCM, this);
+  _ctrlVisionLCM.subscribe("obstacle_visual", &SimControlPanel::handleObstacleLCM, this);
+  _ctrlVisionLCMThread = std::thread(&SimControlPanel::ctrlVisionLCMThread, this);
+
+  // subscribe mc debug
+  _miniCheetahDebugLCM.subscribe("leg_control_data", &SimControlPanel::handleSpiDebug, this);
+  _miniCheetahDebugLCMThread = std::thread([&](){
+   for(;;)
+     _miniCheetahDebugLCM.handle();
+  });
+
 }
+
+void SimControlPanel::handleVelocityCMDLCM(const lcm::ReceiveBuffer* rbuf, 
+    const std::string & chan,
+    const velocity_visual_t* msg){
+  (void)rbuf;
+  (void)chan;
+ 
+  if(_graphicsWindow){
+    for(size_t i(0); i<3; ++i){
+      _graphicsWindow->_vel_cmd_dir[i] = msg->vel_cmd[i];
+      _graphicsWindow->_vel_cmd_pos[i] = msg->base_position[i];
+    }
+    _graphicsWindow->_vel_cmd_update = true;
+  }
+}
+
+void SimControlPanel::handleObstacleLCM(const lcm::ReceiveBuffer* rbuf, 
+    const std::string & chan,
+    const obstacle_visual_t* msg){
+  (void)rbuf;
+  (void)chan;
+ 
+  if(_graphicsWindow){
+    _graphicsWindow->_obs_list.clear();
+    Vec3<double> obs_loc;
+    for(int i(0); i<msg->num_obs; ++i){
+      obs_loc[0] = msg->location[i][0];
+      obs_loc[1] = msg->location[i][1];
+      obs_loc[2] = msg->location[i][2];
+
+      _graphicsWindow->_obs_list.push_back(obs_loc);
+    }
+    _graphicsWindow->_obs_sigma = msg->sigma;
+    _graphicsWindow->_obs_height = msg->height;
+
+    _graphicsWindow->_obstacle_update = true;
+    //printf("%f, %f\n", _graphicsWindow->_obs_list[0][0], _graphicsWindow->_obs_list[0][1]);
+  }
+
+}
+void SimControlPanel::handlePointsLCM(const lcm::ReceiveBuffer *rbuf,
+    const std::string &chan,
+                                      const rs_pointcloud_t*msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->_num_points; ++i){
+      for(size_t j(0); j<3; ++j){
+        _graphicsWindow->_points[i][j] = msg->pointlist[i][j];
+      }
+    }
+    _graphicsWindow->_pointcloud_data_update = true;
+  }
+}
+
+void SimControlPanel::handleIndexmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const traversability_map_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->x_size; ++i){
+      for(size_t j(0); j<_graphicsWindow->y_size; ++j){
+        _graphicsWindow->_idx_map(i,j) = msg->map[i][j];
+      }
+    }
+    _graphicsWindow->_indexmap_data_update = true;
+  }
+}
+
+
+void SimControlPanel::handleHeightmapLCM(const lcm::ReceiveBuffer *rbuf,
+                                      const std::string &chan,
+                                      const heightmap_t *msg) {
+  (void)rbuf;
+  (void)chan;
+
+  if(_graphicsWindow){
+    for(size_t i(0); i<_graphicsWindow->x_size; ++i){
+      for(size_t j(0); j<_graphicsWindow->y_size; ++j){
+        _graphicsWindow->_map(i,j) = msg->map[i][j];
+      }
+    }
+    _graphicsWindow->_pos[0] = msg->robot_loc[0];
+    _graphicsWindow->_pos[1] = msg->robot_loc[1];
+    _graphicsWindow->_pos[2] = msg->robot_loc[2];
+
+    _graphicsWindow->_heightmap_data_update = true;
+  }
+}
+
+void SimControlPanel::handleSpiDebug(const lcm::ReceiveBuffer *rbuf, const std::string &chan,
+                                     const leg_control_data_lcmt *msg) {
+  (void)rbuf;
+  (void)chan;
+  MiniCheetahDebugData ddata;
+
+  u32 idx = 0;
+  for(u32 leg = 0; leg < 4; leg++) {
+    for(u32 joint = 0; joint < 3; joint++) {
+      ddata.p[leg][joint] = msg->q[idx];
+      ddata.v[leg][joint] = msg->qd[idx];
+      idx++;
+    }
+  }
+
+  if(_mcDebugWindow.setDebugData(ddata)) {
+    MiniCheetahDebugCommand cmd;
+    _mcDebugWindow.getDebugCommand(cmd);
+
+    leg_control_command_lcmt lcm_cmd;
+    memset(&lcm_cmd, 0, sizeof(leg_control_command_lcmt));
+    idx = 0;
+    for(u32 leg = 0; leg < 4; leg++) {
+      for(u32 joint = 0; joint < 3; joint++) {
+        if(cmd.enable[leg][joint]) {
+          lcm_cmd.q_des[idx] = cmd.qd[leg][joint];
+          lcm_cmd.kp_joint[idx] = cmd.kp[leg][joint];
+          lcm_cmd.kd_joint[idx] = cmd.kd[leg][joint];
+        }
+        idx++;
+      }
+    }
+
+    _miniCheetahDebugLCM.publish("spi_debug_cmd", &lcm_cmd);
+  }
+
+}
+
 
 SimControlPanel::~SimControlPanel() {
   delete _simulation;
@@ -93,14 +280,47 @@ SimControlPanel::~SimControlPanel() {
 }
 
 /*!
+ * External notification of UI update needed
+ */
+void SimControlPanel::update_ui() {
+  updateUiEnable();
+}
+
+/*!
  * Enable/disable buttons as needed based on what is running
  */
 void SimControlPanel::updateUiEnable() {
-  ui->startButton->setEnabled(!_started);
-  ui->stopButton->setEnabled(_started);
-  ui->joystickButton->setEnabled(_started);
-  ui->robotTable->setEnabled(_started);
-  ui->goHomeButton->setEnabled(_started);
+  ui->startButton->setEnabled(!(isRunning() || isError()));
+  ui->stopButton->setEnabled(isRunning() || isError());
+  ui->joystickButton->setEnabled(isRunning() || isError());
+  ui->robotTable->setEnabled(isRunning() || isError());
+  ui->goHomeButton->setEnabled(isRunning() || isError());
+
+  switch(_state) {
+    case SimulationWindowState::STOPPED:
+      ui->simulatorStateLabel->setText("Simulator State: Stopped");
+      ui->stopButton->setText("Stop");
+      break;
+    case SimulationWindowState::RUNNING:
+      ui->simulatorStateLabel->setText("Simulator State: Running");
+      ui->stopButton->setText("Stop");
+      break;
+    case SimulationWindowState::ERROR:
+      ui->simulatorStateLabel->setText("Simulator State: Error");
+      ui->stopButton->setText("Reset Error");
+      break;
+  }
+
+  if((isRunning() || isError()) && _simulation) {
+    if(_simulation->isRobotConnected()) {
+      ui->simulatorConnectedLabel->setText("Sim Connection: Yes");
+    } else {
+      ui->simulatorConnectedLabel->setText("Sim Connection: No");
+    }
+  } else {
+    ui->simulatorConnectedLabel->setText("Sim Connection: N/A");
+  }
+
 }
 
 /*!
@@ -108,6 +328,15 @@ void SimControlPanel::updateUiEnable() {
  */
 void SimControlPanel::updateTerrainLabel() {
   ui->terrainFileLabel->setText(QString(_terrainFileName.c_str()));
+}
+
+/*!
+ * Simulation error
+ */
+void SimControlPanel::errorCallback(std::string errorMessage) {
+  _state = SimulationWindowState::ERROR; // go to error state
+  updateUiEnable(); // update UI
+  createErrorMessage("Simulation Error\n" + errorMessage); // display error dialog
 }
 
 /*!
@@ -143,17 +372,51 @@ void SimControlPanel::on_startButton_clicked() {
 
   if (_simulationMode) {
     // run a simulation
-    printf("[SimControlPanel] Initialize simulator...\n");
-    _simulation = new Simulation(robotType, _graphicsWindow, _parameters, _userParameters);
-    loadSimulationParameters(_simulation->getSimParams());
-    loadRobotParameters(_simulation->getRobotParams());
 
-    // terrain
-    printf("[SimControlParameter] Load terrain...\n");
-    _simulation->loadTerrainFile(_terrainFileName);
+    try {
+      printf("[SimControlPanel] Initialize simulator...\n");
+      _simulation = new Simulation(robotType, _graphicsWindow, _parameters, _userParameters,
+        // this will allow the simulation thread to poke us when there's a state change
+        [this](){
+        QMetaObject::invokeMethod(this,"update_ui");
+      });
+      loadSimulationParameters(_simulation->getSimParams());
+      loadRobotParameters(_simulation->getRobotParams());
+
+      // terrain
+      printf("[SimControlParameter] Load terrain...\n");
+      _simulation->loadTerrainFile(_terrainFileName);
+    } catch (std::exception& e) {
+      createErrorMessage("FATAL: Exception thrown during simulator setup\n" + std::string(e.what()));
+      throw e;
+    }
+
+
+
 
     // start sim
-    _simThread = std::thread([this]() { _simulation->runAtSpeed(); });
+    _simThread = std::thread(
+
+      // simulation function
+      [this]() {
+
+        // error callback function
+        std::function<void(std::string)> error_function = [this](std::string str) {
+          // Qt will take care of doing the call in the UI event loop
+          QMetaObject::invokeMethod(this, [=]() {
+            this->errorCallback(str);
+          });
+        };
+
+        try {
+          // pass error callback to simulator
+          _simulation->runAtSpeed(error_function);
+        } catch (std::exception &e) {
+          // also catch exceptions
+          error_function("Exception thrown in simulation thread: " + std::string(e.what()));
+        }
+
+      });
 
     // graphics start
     _graphicsWindow->setAnimating(true);
@@ -167,7 +430,7 @@ void SimControlPanel::on_startButton_clicked() {
     _graphicsWindow->setAnimating(true);
   }
 
-  _started = true;
+  _state = SimulationWindowState::RUNNING;
   updateUiEnable();
 }
 
@@ -197,7 +460,7 @@ void SimControlPanel::on_stopButton_clicked() {
   _robotInterface = nullptr;
   _interfaceTaskManager = nullptr;
 
-  _started = false;
+  _state = SimulationWindowState::STOPPED;
   updateUiEnable();
 }
 
@@ -235,10 +498,17 @@ void SimControlPanel::loadUserParameters(ControlParameters& params) {
  * Attempt to reset the joystick if a new one is connected
  */
 void SimControlPanel::on_joystickButton_clicked() {
-  _graphicsWindow->resetGameController();
+  if(isRunning()) {
+    _graphicsWindow->resetGameController();
+    JoystickTestWindow* window = new JoystickTestWindow(_graphicsWindow->getGameController());
+    window->exec();
+    delete window;
+  }
 }
 
-void SimControlPanel::on_driverButton_clicked() {}
+void SimControlPanel::on_driverButton_clicked() {
+  _mcDebugWindow.show();
+}
 
 /*!
  * Respond to a change in the simulator table.
@@ -511,7 +781,7 @@ void SimControlPanel::on_userControlTable_cellChanged(int row, int column) {
                     .c_str()));
     _ignoreTableCallbacks = false;
   } else {
-    if(_started) {
+    if(isRunning() || isError()) {
       if (_simulationMode) {
         if (_simulation && _simulation->isRobotConnected()) {
           _simulation->sendControlParameter(
@@ -546,7 +816,7 @@ void SimControlPanel::on_loadUserButton_clicked() {
   _userParameters.unlockMutex();
   _loadedUserSettings = true;
 
-  if(_started) {
+  if(isRunning() || isError()) {
     if (_simulationMode) {
       if (_simulation && _simulation->isRobotConnected()) {
         for (auto& kv : _userParameters.collection._map) {

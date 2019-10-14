@@ -38,7 +38,7 @@ RobotInterface::RobotInterface(RobotType robotType, Graphics3D *gfx,
   printf("draw list has %lu items\n", _gfx->_drawList._kinematicXform.size());
   _gfx->_drawList._visualizationData = &_visualizationData;
   Checkerboard checker(10, 10, 10, 10);
-  uint64_t floorID = _gfx->_drawList.addCheckerboard(checker);
+  uint64_t floorID = _gfx->_drawList.addCheckerboard(checker, true);
   _gfx->_drawList.updateCheckerboard(0, floorID);
   _gfx->_drawList.buildDrawList();
 

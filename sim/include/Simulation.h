@@ -37,10 +37,12 @@
  * method
  */
 class Simulation {
- public:
+  friend class SimControlPanel;
+  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   explicit Simulation(RobotType robot, Graphics3D* window,
-                      SimulatorControlParameters& params, ControlParameters& userParams);
+                      SimulatorControlParameters& params, ControlParameters& userParams,
+                      std::function<void(void)> ui_update);
 
   /*!
    * Explicitly set the state of the robot
@@ -72,7 +74,7 @@ class Simulation {
    */
   void updateGraphics();
 
-  void runAtSpeed(bool graphics = true);
+  void runAtSpeed(std::function<void(std::string)> error_callback, bool graphics = true);
   void sendControlParameter(const std::string& name,
                             ControlParameterValue value,
                             ControlParameterValueKind kind,
@@ -116,6 +118,9 @@ class Simulation {
                        bool addGraphics = true);
 
  private:
+  void handleControlError();
+  Graphics3D* _window = nullptr;
+
   std::mutex _robotMutex;
   SharedMemoryObject<SimulatorSyncronizedMessage> _sharedMemory;
   ImuSimulator<double>* _imuSimulator = nullptr;
@@ -124,7 +129,6 @@ class Simulation {
   RobotControlParameters _robotParams;
 
   size_t _simRobotID, _controllerRobotID;
-  Graphics3D* _window = nullptr;
   Quadruped<double> _quadruped;
   FBModelState<double> _robotControllerState;
   FloatingBaseModel<double> _model;
@@ -139,6 +143,9 @@ class Simulation {
   TI_BoardControl _tiBoards[4];
   RobotType _robot;
   lcm::LCM* _lcm = nullptr;
+
+  std::function<void(void)> _uiUpdate;
+  std::function<void(std::string)> _errorCallback;
   bool _running = false;
   bool _connected = false;
   bool _wantStop = false;

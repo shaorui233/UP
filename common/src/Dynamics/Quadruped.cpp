@@ -88,14 +88,18 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T>& model) {
                     _kneeRotorInertia.flipAlongAxis(CoordinateAxis::Y),
                     _kneeGearRatio, bodyID - 1, JointType::Revolute,
                     CoordinateAxis::Y, xtreeKnee, xtreeKneeRotor);
+
+      model.addGroundContactPoint(bodyID, Vec3<T>(0, _kneeLinkY_offset, -_kneeLinkLength), true);
     } else {
       model.addBody(_kneeInertia, _kneeRotorInertia, _kneeGearRatio, bodyID - 1,
                     JointType::Revolute, CoordinateAxis::Y, xtreeKnee,
                     xtreeKneeRotor);
+
+      model.addGroundContactPoint(bodyID, Vec3<T>(0, -_kneeLinkY_offset, -_kneeLinkLength), true);
     }
 
     // add foot
-    model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_kneeLinkLength), true);
+    //model.addGroundContactPoint(bodyID, Vec3<T>(0, 0, -_kneeLinkLength), true);
 
     sideSign *= -1;
   }
@@ -112,7 +116,8 @@ bool Quadruped<T>::buildModel(FloatingBaseModel<T>& model) {
 template <typename T>
 FloatingBaseModel<T> Quadruped<T>::buildModel() {
   FloatingBaseModel<T> model;
-
+  buildModel(model);
+/*
   // we assume the cheetah's body (not including rotors) can be modeled as a
   // uniformly distributed box.
   Vec3<T> bodyDims(_bodyLength, _bodyWidth, _bodyHeight);
@@ -196,7 +201,7 @@ FloatingBaseModel<T> Quadruped<T>::buildModel() {
 
   Vec3<T> g(0, 0, -9.81);
   model.setGravity(g);
-
+*/
   return model;
 }
 
@@ -221,6 +226,9 @@ Vec3<T> withLegSigns(const Eigen::MatrixBase<T2>& v, int legID) {
   }
 }
 
+/*!
+ * Build actuator models for a leg
+ */
 template <typename T>
 std::vector<ActuatorModel<T>> Quadruped<T>::buildActuatorModels() {
   std::vector<ActuatorModel<T>> models;

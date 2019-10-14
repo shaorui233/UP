@@ -40,6 +40,11 @@ class BoxInfo {
                        */
 };
 
+struct ScrollInfo {
+  size_t id;
+  float xs, ys;
+};
+
 struct SolidColor {
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   Vec4<float> rgba;
@@ -58,7 +63,8 @@ class DrawList {
   size_t addMiniCheetah(Vec4<float> color, bool useOld);
   void buildDrawList();
   void loadFiles();
-  size_t addCheckerboard(Checkerboard &checkerBoard);
+  void doScrolling(Vec3<float> cameraPos);
+  size_t addCheckerboard(Checkerboard &checkerBoard, bool setScrolling);
   size_t addDebugSphere(float radius);
   void addBox(double depth, double width, double height,
               const Vec3<double> &pos, const Mat3<double> &ori,
@@ -295,6 +301,7 @@ class DrawList {
   std::vector<float> _glVertexData;
   std::vector<float> _glNormalData;
   std::vector<float> _glColorData;
+  std::vector<ScrollInfo> _scrollIDs;
 
   std::vector<QMatrix4x4> _modelOffsets;
 

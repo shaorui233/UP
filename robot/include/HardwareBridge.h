@@ -9,25 +9,34 @@
 #ifndef PROJECT_HARDWAREBRIDGE_H
 #define PROJECT_HARDWAREBRIDGE_H
 
+#ifdef linux 
+
 #define MAX_STACK_SIZE 16384  // 16KB  of stack
 #define TASK_PRIORITY 49      // linux priority, this is not the nice value
 
-#include <lcm-cpp.hpp>
 #include <string>
+#include <lcm-cpp.hpp>
+#include <lord_imu/LordImu.h>
+
 #include "RobotRunner.h"
 #include "Utilities/PeriodicTask.h"
 #include "control_parameter_request_lcmt.hpp"
 #include "control_parameter_respones_lcmt.hpp"
 #include "gamepad_lcmt.hpp"
+#include "microstrain_lcmt.hpp"
 
+
+
+/*!
+ * Interface between robot and hardware
+ */
 class HardwareBridge {
  public:
   HardwareBridge(RobotController* robot_ctrl)
       : statusTask(&taskManager, 0.5f),
         _interfaceLCM(getLcmUrl(255)),
         _visualizationLCM(getLcmUrl(255)) {
-          _robotRunner = 
-            new RobotRunner(robot_ctrl, &taskManager, 0.001f, "robot-control");
+    _controller = robot_ctrl;
     _userControlParameters = robot_ctrl->getUserControlParameters();
         }
   void prefaultStack();
@@ -64,23 +73,34 @@ class HardwareBridge {
   u64 _iterations = 0;
   std::thread _interfaceLcmThread;
   volatile bool _interfaceLcmQuit = false;
+  RobotController* _controller = nullptr;
   ControlParameters* _userControlParameters = nullptr;
 
   int _port;
 };
 
+/*!
+ * Interface between robot and hardware specialized for Mini Cheetah
+ */
 class MiniCheetahHardwareBridge : public HardwareBridge {
  public:
   MiniCheetahHardwareBridge(RobotController* );
   void runSpi();
   void initHardware();
   void run();
+  void runMicrostrain();
+  void logMicrostrain();
   void abort(const std::string& reason);
   void abort(const char* reason);
 
  private:
   VectorNavData _vectorNavData;
   lcm::LCM _spiLcm;
+  lcm::LCM _microstrainLcm;
+  std::thread _microstrainThread;
+  LordImu _microstrainImu;
+  microstrain_lcmt _microstrainData;
+  bool _microstrainInit = false;
 };
-
+#endif // END of #ifdef linux
 #endif  // PROJECT_HARDWAREBRIDGE_H

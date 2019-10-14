@@ -25,6 +25,20 @@
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
+        <widget class="QLabel" name="simulatorStateLabel">
+         <property name="text">
+          <string>Simulator State: X</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="simulatorConnectedLabel">
+         <property name="text">
+          <string>Sim Connected?: X</string>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QFrame" name="frame">
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
@@ -40,17 +54,17 @@
             </property>
            </widget>
           </item>
-          <item row="0" column="1">
-           <widget class="QPushButton" name="joystickButton">
-            <property name="text">
-             <string>Joystick</string>
-            </property>
-           </widget>
-          </item>
           <item row="1" column="1">
            <widget class="QPushButton" name="driverButton">
             <property name="text">
              <string>Driver</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QPushButton" name="joystickButton">
+            <property name="text">
+             <string>Joystick</string>
             </property>
            </widget>
           </item>
@@ -448,7 +462,7 @@
      <x>0</x>
      <y>0</y>
      <width>1312</width>
-     <height>34</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>

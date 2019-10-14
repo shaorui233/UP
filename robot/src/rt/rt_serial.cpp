@@ -1,7 +1,10 @@
-/**
- * @file rt_imu.c
- * @brief Hardware interface for serial IMU
+/*!
+ * @file rt_serial.cpp
+ * @brief Serial port
  */
+
+#ifdef linux
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -16,18 +19,13 @@
 #undef termios
 
 #include <termios.h>
-
-#include <errno.h>
 #include <math.h>
 #include <pthread.h>
-
 #include <stropts.h>
-
 #include <endian.h>
-
 #include <stdint.h>
 
-#include <rt/rt_serial.h>
+#include "rt/rt_serial.h"
 
 /**
  * @brief Configure serial port
@@ -73,3 +71,5 @@ int set_interface_attribs_custom_baud(int fd, int speed, int parity, int port) {
   ioctl(fd, TCSETS2, &tty);
   return 0;
 }
+
+#endif

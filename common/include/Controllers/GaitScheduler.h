@@ -1,8 +1,14 @@
+/*!
+ * @file GaitScheduler.h
+ * @brief Logic for fixed-gait timing
+ */
+
 #ifndef GAIT_SCHEDULER_H
 #define GAIT_SCHEDULER_H
 
-#include <cppTypes.h>
 #include <iostream>
+
+#include "cppTypes.h"
 #include "Dynamics/Quadruped.h"
 
 /**
@@ -27,7 +33,7 @@ enum class GaitType {
 };
 
 /**
- *
+ * Timing data for a gait
  */
 template <typename T>
 struct GaitData {
@@ -81,13 +87,13 @@ struct GaitData {
 };
 
 /**
- *
+ * Utility to process GaitData and schedule foot steps and swings.
  */
 template <typename T>
 class GaitScheduler {
  public:
   // Constructors for the GaitScheduler
-  GaitScheduler();
+  GaitScheduler(float _dt);
   ~GaitScheduler(){};
 
   // Initialize the Gait Scheduler
@@ -110,7 +116,7 @@ class GaitScheduler {
   // Quadruped<T>& _quadruped;
 
   // Control loop timestep change
-  T dt = 0.001;
+  T dt;
 
   // Phase change at each step
   T dphase;

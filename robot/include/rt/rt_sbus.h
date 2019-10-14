@@ -1,3 +1,8 @@
+/*!
+ * @file rt_sbus.h
+ * @brief Communication with RC controller receiver
+ */
+
 #ifndef _rt_sbus
 #define _rt_sbus
 
@@ -12,5 +17,6 @@ int read_sbus_channel(int channel);
 int receive_sbus(int port);
 
 int init_sbus(int is_simulator);
+
 
 #endif

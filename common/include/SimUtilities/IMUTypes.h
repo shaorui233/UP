@@ -17,6 +17,9 @@ struct VectorNavData {
   // todo is there status for the vectornav?
 };
 
+/*!
+ * "Cheater" state sent to the robot from simulator
+ */
 template <typename T>
 struct CheaterState {
   Quat<T> orientation;

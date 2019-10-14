@@ -1,3 +1,10 @@
+/*!
+ * @file DesiredStateCommand.h
+ * @brief Logic to convert a joystick command into a desired trajectory for the robot
+ *
+ * This will generate a state trajectory which can easily be used for model predictive controllers
+ */
+
 /*========================= Gamepad Control ==========================*/
 /**
  *
@@ -5,10 +12,13 @@
 #ifndef DESIRED_STATE_COMMAND_H
 #define DESIRED_STATE_COMMAND_H
 
-#include <Controllers/StateEstimatorContainer.h>
-#include <cppTypes.h>
 #include <iostream>
+
+#include "Controllers/StateEstimatorContainer.h"
+#include "cppTypes.h"
+
 #include "SimUtilities/GamepadCommand.h"
+#include "gui_main_control_settings_t.hpp"
 
 /**
  *
@@ -24,6 +34,8 @@ struct DesiredStateData {
   // Instantaneous desired state command
   Vec12<T> stateDes;
 
+  Vec12<T> pre_stateDes;
+
   // Desired future state trajectory (for up to 10 timestep MPC)
   Eigen::Matrix<T, 12, 10> stateTrajDes;
 };
@@ -36,9 +48,20 @@ class DesiredStateCommand {
  public:
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   // Initialize with the GamepadCommand struct
-  DesiredStateCommand(GamepadCommand* command, StateEstimate<T>* sEstimate) {
+  DesiredStateCommand(GamepadCommand* command, gui_main_control_settings_t* rc_command,
+                      RobotControlParameters* _parameters,
+      StateEstimate<T>* sEstimate, float _dt) {
     gamepadCommand = command;
+    rcCommand = rc_command;
     stateEstimate = sEstimate;
+    parameters = _parameters;
+
+    data.stateDes.setZero();
+    data.pre_stateDes.setZero();
+    leftAnalogStick.setZero();
+    rightAnalogStick.setZero();
+
+    dt = _dt;
   }
 
   void convertToStateCommands();
@@ -52,28 +75,43 @@ class DesiredStateCommand {
   T minRoll = -0.4;
   T maxPitch = 0.4;
   T minPitch = -0.4;
-  T maxVelX = 1.0;
-  T minVelX = -1.0;
-  T maxVelY = 0.5;
-  T minVelY = -0.5;
-  T maxTurnRate = 2.0;
-  T minTurnRate = -2.0;
+  T maxVelX = 3.0;
+  T minVelX = -3.0;
+  //T maxVelX = 5.0;
+  //T minVelX = -5.0;
+  T maxVelY = 2.0;
+  T minVelY = -2.0;
+  //T maxVelY = 0.5;
+  //T minVelY = -0.5;
+  T maxTurnRate = 2.5;
+  T minTurnRate = -2.5;
+  //T maxTurnRate = 0.5;
+  //T minTurnRate = -0.5;
+
+
+  Vec2<float> leftAnalogStick;
+  Vec2<float> rightAnalogStick;
 
   // Holds the instantaneous desired state and future desired state trajectory
   DesiredStateData<T> data;
 
+  const gui_main_control_settings_t* rcCommand;
+  const GamepadCommand* gamepadCommand;
+
  private:
-  GamepadCommand* gamepadCommand;
   StateEstimate<T>* stateEstimate;
+  RobotControlParameters* parameters;
+
 
   // Dynamics matrix for discrete time approximation
   Mat12<T> A;
 
   // Control loop timestep change
-  T dt = 0.001;
+  T dt;
 
   // Value cutoff for the analog stick deadband
   T deadbandRegion = 0.075;
+  const T filter = 0.01;
 
   // Choose how often to print info, every N iterations
   int printNum = 5;  // N*(0.001s) in simulation time

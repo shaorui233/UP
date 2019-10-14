@@ -1,3 +1,9 @@
+/*!
+ * @file rt_spi.h
+ * @brief SPI communication to spine board
+ */
+#ifdef linux
+
 #include <byteswap.h>
 #include <math.h>
 #include <pthread.h>
@@ -5,11 +11,8 @@
 #include <string.h>
 
 #include <linux/spi/spidev.h>
-#include <rt/rt_spi.h>
-#include <rt/rt_spi_lcm.h>
+#include "rt/rt_spi.h"
 #include <lcm/lcm-cpp.hpp>
-
-lcm::LCM *lcm_spi;
 
 unsigned char spi_mode = SPI_MODE_0;
 unsigned char spi_bits_per_word = 8;
@@ -45,20 +48,21 @@ const float hip_offset[4] = {M_PI / 2.f, -M_PI / 2.f, -M_PI / 2.f, M_PI / 2.f};
 const float knee_offset[4] = {K_KNEE_OFFSET_POS, -K_KNEE_OFFSET_POS,
                               -K_KNEE_OFFSET_POS, K_KNEE_OFFSET_POS};
 
+/*!
+ * Compute SPI message checksum
+ * @param data : input
+ * @param len : length (in 32-bit words)
+ * @return
+ */
 uint32_t xor_checksum(uint32_t *data, size_t len) {
   uint32_t t = 0;
   for (size_t i = 0; i < len; i++) t = t ^ data[i];
-  // t = t ^ ((data[i]>>8) + ((data[i] & 0xff) << 8));
-  // t = t ^ __bswap_16(data[i]);
   return t;
 }
 
-// static void *read_lcm_spi(void *arg) {
-// printf("[RT SPI] Simulator SPI LCM read thread started!\n");
-// while (1)
-// lcm_handle(lcm_spi);
-//}
-
+/*!
+ * Emulate the spi board to estimate the torque.
+ */
 void fake_spine_control(spi_command_t *cmd, spi_data_t *data,
                         spi_torque_t *torque_out, int board_num) {
   torque_out->tau_abad[board_num] =
@@ -107,6 +111,9 @@ void fake_spine_control(spi_command_t *cmd, spi_data_t *data,
     torque_out->tau_knee[board_num] = -torque_limits[2];
 }
 
+/*!
+ * Initialize SPI
+ */
 void init_spi() {
   // check sizes:
   size_t command_size = sizeof(spi_command_t);
@@ -134,6 +141,9 @@ void init_spi() {
   spi_open();
 }
 
+/*!
+ * Open SPI device
+ */
 int spi_open() {
   int rv = 0;
   spi_1_fd = open("/dev/spidev2.0", O_RDWR);
@@ -185,7 +195,9 @@ int spi_open() {
 
 int spi_driver_iterations = 0;
 
-// convert spi command to spine_cmd_t
+/*!
+ * convert spi command to spine_cmd_t
+ */
 void spi_to_spine(spi_command_t *cmd, spine_cmd_t *spine_cmd, int leg_0) {
   for (int i = 0; i < 2; i++) {
     // spine_cmd->q_des_abad[i] = (cmd->q_des_abad[i+leg_0] +
@@ -231,7 +243,9 @@ void spi_to_spine(spi_command_t *cmd, spine_cmd_t *spine_cmd, int leg_0) {
   spine_cmd->checksum = xor_checksum((uint32_t *)spine_cmd, 32);
 }
 
-// convert spine_data_t to spi data
+/*!
+ * convert spine_data_t to spi data
+ */
 void spine_to_spi(spi_data_t *data, spine_data_t *spine_data, int leg_0) {
   for (int i = 0; i < 2; i++) {
     data->q_abad[i + leg_0] = (spine_data->q_abad[i] - abad_offset[i + leg_0]) *
@@ -256,7 +270,9 @@ void spine_to_spi(spi_data_t *data, spine_data_t *spine_data, int leg_0) {
            spine_data->checksum);
 }
 
-// send receive from spine
+/*!
+ * send receive data and command from spine
+ */
 void spi_send_receive(spi_command_t *command, spi_data_t *data) {
   // update driver status flag
   spi_driver_iterations++;
@@ -316,12 +332,14 @@ void spi_send_receive(spi_command_t *command, spi_data_t *data) {
   }
 }
 
+/*!
+ * Run SPI
+ */
 void spi_driver_run() {
   // do spi board calculations
   for (int i = 0; i < 4; i++) {
     fake_spine_control(&spi_command_drv, &spi_data_drv, &spi_torque, i);
   }
-  publish_spi_torque(&spi_torque);
 
   // in here, the driver is good
   pthread_mutex_lock(&spi_mutex);
@@ -329,9 +347,16 @@ void spi_driver_run() {
   pthread_mutex_unlock(&spi_mutex);
 }
 
+/*!
+ * Get the spi command
+ */
 spi_command_t *get_spi_command() {
-  // printf("Get spi command\n");
   return &spi_command_drv;
 }
 
+/*!
+ * Get the spi data
+ */
 spi_data_t *get_spi_data() { return &spi_data_drv; }
+
+#endif

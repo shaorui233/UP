@@ -1,5 +1,6 @@
-/*! @file ContactConstraint.cpp
- *  @brief ContactConstraint virtual class
+/*!
+ * @file ContactSpringDamper.cpp
+ * @brief Spring Damper based Contact dynamics
  */
 
 #include "Collision/ContactSpringDamper.h"

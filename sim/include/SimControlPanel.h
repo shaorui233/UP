@@ -14,19 +14,39 @@
 #include "Simulation.h"
 
 #define DEFAULT_TERRAIN_FILE "/default-terrain.yaml"
-#define DEFAULT_USER_FILE "/default-user.yaml"
+#define DEFAULT_USER_FILE "/default-user-parameters-file.yaml"
+
+#include <lcm-cpp.hpp>
+#include <src/MiniCheetahDebug.h>
+#include <leg_control_data_lcmt.hpp>
+#include "rs_pointcloud_t.hpp"
+#include "heightmap_t.hpp"
+#include "traversability_map_t.hpp"
+#include "obstacle_visual_t.hpp"
+#include "velocity_visual_t.hpp"
 
 namespace Ui {
 class SimControlPanel;
 }
+
+enum class SimulationWindowState {
+  STOPPED,
+  RUNNING,
+  ERROR
+};
 
 class SimControlPanel : public QMainWindow {
   Q_OBJECT
 
  public:
   explicit SimControlPanel(QWidget* parent = nullptr);
-
   ~SimControlPanel();
+
+
+
+public slots:
+  void update_ui();
+  void errorCallback(std::string errorMessage);
 
  private slots:
 
@@ -69,9 +89,25 @@ class SimControlPanel : public QMainWindow {
   void loadUserParameters(ControlParameters& params);
 
  private:
+
+  std::string getDefaultUserParameterFileName();
   void updateUiEnable();
+  bool isStopped() {
+    return _state == SimulationWindowState::STOPPED;
+  }
+
+  bool isError() {
+    return _state == SimulationWindowState::ERROR;
+  }
+
+  bool isRunning() {
+    return _state == SimulationWindowState::RUNNING;
+  }
+
+
   std::thread _simThread;
-  bool _started = false;
+  //bool _started = false;
+  SimulationWindowState _state = SimulationWindowState::STOPPED;
   Ui::SimControlPanel* ui;
   Simulation* _simulation = nullptr;
   PeriodicTaskManager* _interfaceTaskManager = nullptr;
@@ -84,6 +120,42 @@ class SimControlPanel : public QMainWindow {
   bool _ignoreTableCallbacks = false;
   bool _loadedUserSettings = false;
   std::string _terrainFileName;
+
+  // Vision data Drawing
+  void handleHeightmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const heightmap_t* msg);
+  void heightmapLCMThread() { while (true) { _heightmapLCM.handle(); } }
+
+  void handlePointsLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const rs_pointcloud_t* msg);
+  void pointsLCMThread() { while (true) { _pointsLCM.handle(); } }
+
+  void handleIndexmapLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const traversability_map_t* msg);
+  void indexmapLCMThread() { while (true) { _indexmapLCM.handle(); } }
+
+  void handleObstacleLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const obstacle_visual_t* msg);
+  void handleVelocityCMDLCM(const lcm::ReceiveBuffer* rbuf, const std::string& chan, 
+      const velocity_visual_t* msg);
+  void ctrlVisionLCMThread(){ while(true){ _ctrlVisionLCM.handle();  } }
+
+  void handleSpiDebug(const lcm::ReceiveBuffer* rbuf, const std::string& chan, const leg_control_data_lcmt* msg);
+
+  lcm::LCM _heightmapLCM;
+  lcm::LCM _pointsLCM;
+  lcm::LCM _indexmapLCM;
+  lcm::LCM _ctrlVisionLCM;
+  lcm::LCM _miniCheetahDebugLCM;
+
+  std::thread _pointsLCMThread;
+  std::thread _heightmapLCMThread;
+  std::thread _indexmapLCMThread;
+  std::thread _ctrlVisionLCMThread;
+  std::thread _miniCheetahDebugLCMThread;
+
+  MiniCheetahDebug _mcDebugWindow;
+
 };
 
 #endif  // SIMCONTROLPANEL_H

@@ -32,6 +32,7 @@
 
 class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   Q_OBJECT
+ friend class SimControlPanel;
  public:
   explicit Graphics3D(QWidget *parent = 0);
   virtual ~Graphics3D();
@@ -50,11 +51,13 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   char infoString[200] = "";
 
   GamepadCommand &getDriverCommand() { return _driverCommand; }
+  GameController &getGameController() { return _gameController; }
 
   void resetGameController() { _gameController.findNewController(); }
 
   bool IsPaused() { return _pause; }
   bool wantTurbo() { return _turbo; }
+  bool wantSloMo() { return _sloMo; }
 
  protected:
   void initializeGL() override;
@@ -81,6 +84,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   GamepadCommand _driverCommand;
 
   std::mutex _gfxMutex;
+  void scrollGround();
   void updateCameraMatrix();
   void renderDrawlist();
   void configOpenGLPass(int pass);
@@ -90,10 +94,13 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
   void _Additional_Drawing(int pass);
   void _DrawContactForce();
   void _DrawContactPoint();
+
   void _drawArrow(ArrowVisualization &arrow);
   void _drawBlock(BlockVisualization &box);
   void _drawSphere(SphereVisualization &sphere);
   void _drawCone(ConeVisualization &cone);
+  void _drawMesh(MeshVisualization &mesh);
+  
   void _rotateZtoDirection(const Vec3<float> &direction);
   void _setColor(const Vec4<float> &color) {
     glColor4f(color(0), color(1), color(2), color(3));
@@ -141,6 +148,7 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
 
   bool _rotOrig = true;
   bool _turbo = false;
+  bool _sloMo = false;
 
   QMatrix4x4 _cameraMatrix;
   Vec3<float> _v0;
@@ -164,6 +172,32 @@ class Graphics3D : public QOpenGLWidget, protected QOpenGLFunctions {
                      float &r, float &g, float &b);
 
   bool _pause = false;
+
+  // Vision data visualization
+  Vec3<float> _points[5001];
+  size_t _num_points = 5001;
+  bool _pointcloud_data_update = false;
+
+  size_t x_size = 100;
+  size_t y_size = 100;
+  DMat<float> _map;
+  DMat<int> _idx_map;
+  Vec3<float> _pos;
+
+  bool _heightmap_data_update = false;
+  bool _indexmap_data_update = false;
+  
+  Vec3<float> _vel_cmd_dir, _vel_cmd_pos;
+  bool _vel_cmd_update = false;
+
+  vectorAligned< Vec3<double> > _obs_list;
+  float _obs_sigma = 0.15;
+  float _obs_height;
+  bool _obstacle_update = false;
+
+  void _drawHeightMap();
+  void _drawVelArrow();
+  void _drawObstacleField();
 };
 
 #endif  // PROJECT_GRAPHICS3D_H

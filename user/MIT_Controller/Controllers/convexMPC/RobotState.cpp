@@ -36,6 +36,7 @@ void RobotState::set(flt* p_, flt* v_, flt* q_, flt* w_, flt* r_,flt yaw_)
 
     Matrix<fpt,3,1> Id;
     Id << .07f, 0.26f, 0.242f;
+    //Id << .07f, 0.71f, 0.712f;
     I_body.diagonal() = Id;
 
     //TODO: Consider normalizing quaternion??

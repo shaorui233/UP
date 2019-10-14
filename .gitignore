@@ -13,7 +13,13 @@ lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
 lcm-types/python/*
+<<<<<<< HEAD
 lcm-types/file_list.txt
+=======
+lcm_data/lcm_log
+lcm_data/matlab_log
+lcm_data/matlab_log_archive
+>>>>>>> dd9c903f3b96dc08148285bb0f2ae10039cb3475
 optimization_data
 sim_data
 test_data
@@ -23,5 +29,14 @@ algorithms/machine_learning/python_bridge/pycheetah.cpp
 algorithms/machine_learning/python_bridge/pycheetah.py
 *.pyc
 algorithms/machine_learning/bridge_lcm_types/cpp/*
+<<<<<<< HEAD
 documentation/doxygen/latex
 documentation/doxygen/html
+=======
+documentation/doxygen/html
+documentation/doxygen/latex
+user/MIT_Controller/Controllers/WBC_Ctrl/BoundingCtrl/Jumping_Matlab/Jump2D/*.m
+user/MIT_Controller/Controllers/WBC_Ctrl/BoundingCtrl/Jumping_Matlab/Jump2D/codegen
+.DS_Store
+tags
+>>>>>>> dd9c903f3b96dc08148285bb0f2ae10039cb3475

@@ -19,6 +19,7 @@ TEST(Orientation, rad2deg) {
   EXPECT_EQ(45, rad2deg(M_PI / 4.));
 }
 
+
 /*!
  * Check the "almostEqual" function for comparing two eigen quantities
  */
@@ -45,6 +46,15 @@ TEST(Orientation, almostEqual) {
   testDynamicMat2 << 1, 2, 3, 4, 5, 6, 7, 8, 9.1;
   EXPECT_EQ(true, almostEqual(testDynamicMat, testDynamicMat2, .3));
   EXPECT_EQ(false, almostEqual(testDynamicMat, testDynamicMat2, .01));
+}
+
+TEST(Orientation, crossMatrix) {
+  Vec3<double> a(15,2,6);
+  Vec3<double> b(2,-1,3);
+  Vec3<double> axb1 = a.cross(b);
+  Mat3<double> ax = crossMatrix(a);
+  Vec3<double> axb2 = ax * b;
+  EXPECT_TRUE(almostEqual(axb1, axb2, .0001));
 }
 
 /*!

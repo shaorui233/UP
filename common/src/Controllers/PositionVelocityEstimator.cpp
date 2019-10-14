@@ -1,14 +1,20 @@
+/*! @file PositionVelocityEstimator.cpp
+ *  @brief All State Estimation Algorithms
+ *
+ *  This file will contain all state estimation algorithms.
+ *  PositionVelocityEstimators should compute:
+ *  - body position/velocity in world/body frames
+ *  - foot positions/velocities in body/world frame
+ */
+
 #include "Controllers/PositionVelocityEstimator.h"
 
+/*!
+ * Initialize the state estimator
+ */
 template <typename T>
 void LinearKFPositionVelocityEstimator<T>::setup() {
-  printf("beans 0x%lx\n", (uint64_t)this);
-  printf("beans2 0x%lx\n", (uint64_t) & (this->_stateEstimatorData));
-  printf("beans3 0x%lx\n", (uint64_t)(this->_stateEstimatorData.parameters));
-  printf("beans4 0x%lx\n",
-         (uint64_t) & (this->_stateEstimatorData.parameters->controller_dt));
   T dt = this->_stateEstimatorData.parameters->controller_dt;
-  printf("Initialize LinearKF State Estimator with dt = %.3f\n", dt);
   _xhat.setZero();
   _ps.setZero();
   _vs.setZero();
@@ -50,6 +56,9 @@ void LinearKFPositionVelocityEstimator<T>::setup() {
 template <typename T>
 LinearKFPositionVelocityEstimator<T>::LinearKFPositionVelocityEstimator() {}
 
+/*!
+ * Run state estimator
+ */
 template <typename T>
 void LinearKFPositionVelocityEstimator<T>::run() {
   T process_noise_pimu =
@@ -113,6 +122,7 @@ void LinearKFPositionVelocityEstimator<T>::run() {
 
     T trust = T(1);
     T phase = fmin(this->_stateEstimatorData.result->contactEstimate(i), T(1));
+    //T trust_window = T(0.25);
     T trust_window = T(0.2);
 
     if (phase < trust_window) {
@@ -120,15 +130,17 @@ void LinearKFPositionVelocityEstimator<T>::run() {
     } else if (phase > (T(1) - trust_window)) {
       trust = (T(1) - phase) / trust_window;
     }
+    //T high_suspect_number(1000);
+    T high_suspect_number(100);
 
     // printf("Trust %d: %.3f\n", i, trust);
     Q.block(qindex, qindex, 3, 3) =
-        (T(1) + (T(1) - trust) * T(100)) * Q.block(qindex, qindex, 3, 3);
+        (T(1) + (T(1) - trust) * high_suspect_number) * Q.block(qindex, qindex, 3, 3);
     R.block(rindex1, rindex1, 3, 3) = 1 * R.block(rindex1, rindex1, 3, 3);
     R.block(rindex2, rindex2, 3, 3) =
-        (T(1) + (T(1) - trust) * 100.0f) * R.block(rindex2, rindex2, 3, 3);
+        (T(1) + (T(1) - trust) * high_suspect_number) * R.block(rindex2, rindex2, 3, 3);
     R(rindex3, rindex3) =
-        (T(1) + (T(1) - trust) * T(100)) * R(rindex3, rindex3);
+        (T(1) + (T(1) - trust) * high_suspect_number) * R(rindex3, rindex3);
 
     trusts(i) = trust;
 
@@ -175,7 +187,9 @@ template class LinearKFPositionVelocityEstimator<float>;
 template class LinearKFPositionVelocityEstimator<double>;
 
 
-
+/*!
+ * Run cheater estimator to copy cheater state into state estimate
+ */
 template <typename T>
 void CheaterPositionVelocityEstimator<T>::run() {
   this->_stateEstimatorData.result->position = this->_stateEstimatorData.cheaterState->position.template cast<T>();

@@ -16,6 +16,14 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 option(MINI_CHEETAH_BUILD "use compiler flags for mini cheetah computer" OFF)
 set(BUILD_TYPE_RELEASE TRUE)
 
+option(IPOPT_OPTION "ipopt option" OFF)
+if(IPOPT_OPTION)
+  message("**** Ipopt option is on ****")
+  add_definitions(-DIPOPT_OPTION)
+else(IPOPT_OPTION)
+  message("**** Ipopt option is off ****")
+endif(IPOPT_OPTION)
+
 if(MINI_CHEETAH_BUILD)
   SET (THIS_COM "../" )
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
@@ -32,18 +40,30 @@ else(MINI_CHEETAH_BUILD)
   CONFIGURE_FILE(${CMAKE_CURRENT_SOURCE_DIR}/config.h.cmake
           ${CMAKE_BINARY_DIR}/Configuration.h)
 
+if(CMAKE_SYSTEM_NAME MATCHES Linux)
   set(CMAKE_CXX_FLAGS "-O3 -no-pie -march=native -ggdb -Wall \
 -Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
 -Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
  -Wshadow -Wsign-promo -Werror")
+elseif(APPLE)
+    set(CMAKE_CXX_FLAGS "-O3 -march=native -ggdb -Wall \
+-Wextra -Wcast-align -Wdisabled-optimization -Wformat=2 \
+-Winit-self -Wmissing-include-dirs -Woverloaded-virtual \
+-Wshadow -Wsign-promo")
+include_directories("/usr/local/include/")   # lcm includes
+endif()
+
   set(CMAKE_C_FLAGS "-O3  -ggdb  -march=native -std=gnu99 -I.")
   message(WARNING "not set to mini cheetah build.  this won't work on the robot!")
 endif(MINI_CHEETAH_BUILD)
 
 set(CMAKE_CXX_STANDARD 14)
 
+find_package(lcm)
+
 add_subdirectory(robot)
 add_subdirectory(third-party)
 add_subdirectory(common)
 add_subdirectory(sim)
 add_subdirectory(user)
+add_subdirectory(footplan-viewer)

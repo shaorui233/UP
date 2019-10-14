@@ -31,18 +31,17 @@ FSM_State<T>::FSM_State(ControlFSMData<T>* _controlFSMData,
  * @param dqDes desired joint velocity
  */
 template <typename T>
-void FSM_State<T>::jointPDControl(int leg, Vec3<T> qDes, Vec3<T> qdDes) {
-  _data->_legController->commands[leg].qDes = qDes;
-  // Create the cartesian P gain matrix
-  // controlParameters->stand_kp_cartesian[0]
-  kpMat << 50, 0, 0, 0, 50, 0, 0, 0, 50;
-  _data->_legController->commands[leg].kpJoint = kpMat;
+void FSM_State<T>::jointPDControl(
+    int leg, Vec3<T> qDes, Vec3<T> qdDes) {
 
-  _data->_legController->commands[leg].qdDes = qdDes;
-  // Create the cartesian D gain matrix
-  // controlParameters->stand_kd_cartesian[0]
+  kpMat << 80, 0, 0, 0, 80, 0, 0, 0, 80;
   kdMat << 1, 0, 0, 0, 1, 0, 0, 0, 1;
+
+  _data->_legController->commands[leg].kpJoint = kpMat;
   _data->_legController->commands[leg].kdJoint = kdMat;
+
+  _data->_legController->commands[leg].qDes = qDes;
+  _data->_legController->commands[leg].qdDes = qdDes;
 }
 
 /**
@@ -62,8 +61,8 @@ void FSM_State<T>::cartesianImpedanceControl(int leg, Vec3<T> pDes,
   _data->_legController->commands[leg].pDes = pDes;
   // Create the cartesian P gain matrix
   kpMat << kp_cartesian[0], 0, 0, 0,
-      _data->controlParameters->stand_kp_cartesian[1], 0, 0, 0,
-      _data->controlParameters->stand_kp_cartesian[2];
+      kp_cartesian[1], 0, 0, 0,
+      kp_cartesian[2];
   _data->_legController->commands[leg].kpCartesian = kpMat;
 
   _data->_legController->commands[leg].vDes = vDes;

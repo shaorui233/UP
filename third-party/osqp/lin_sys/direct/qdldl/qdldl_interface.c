@@ -328,7 +328,7 @@ c_int solve_linsys_qdldl(qdldl_solver * s, c_float * b, const OSQPSettings *sett
 // Update private structure with new P and A
 c_int update_linsys_solver_matrices_qdldl(qdldl_solver * s,
 		const csc *P, const csc *A, const OSQPSettings *settings){
-    c_int kk;
+    //c_int kk;
 
     // Update KKT matrix with new P
     update_KKT_P(s->KKT, P, s->PtoKKT, settings->sigma, s->Pdiag_idx, s->Pdiag_n);

@@ -13,6 +13,7 @@ WBIC<T>::WBIC(size_t num_qdot, const std::vector<ContactSpec<T>*>* contact_list,
   _eye = DMat<T>::Identity(WB::num_qdot_, WB::num_qdot_);
   _eye_floating = DMat<T>::Identity(_dim_floating, _dim_floating);
 }
+
 template <typename T>
 void WBIC<T>::MakeTorque(DVec<T>& cmd, void* extra_input) {
   if (!WB::b_updatesetting_) {

@@ -3,6 +3,7 @@
 
 #include <Controllers/FootSwingTrajectory.h>
 #include <FSM_States/ControlFSMData.h>
+#include <SparseCMPC/SparseCMPC.h>
 #include "cppTypes.h"
 
 using Eigen::Array4f;
@@ -46,15 +47,40 @@ private:
 
 class ConvexMPCLocomotion {
 public:
-  ConvexMPCLocomotion();
+  ConvexMPCLocomotion(float _dt, int _iterations_between_mpc, MIT_UserParameters* parameters);
   void initialize();
 
   template<typename T>
   void run(ControlFSMData<T>& data);
+
+  Vec3<float> pBody_des;
+  Vec3<float> vBody_des;
+  Vec3<float> aBody_des;
+
+  Vec3<float> pBody_RPY_des;
+  Vec3<float> vBody_Ori_des;
+
+  Vec3<float> pFoot_des[4];
+  Vec3<float> vFoot_des[4];
+  Vec3<float> aFoot_des[4];
+
+  Vec3<float> Fr_des[4];
+
+  Vec4<float> contact_state;
+
 private:
+  // High speed running
+  //float _body_height = 0.34;
+  
+  float _body_height = 0.29;
+
   void updateMPCIfNeeded(int* mpcTable, ControlFSMData<float>& data, bool omniMode);
-  int iterationsBetweenMPC = 30;
+  void solveDenseMPC(int *mpcTable, ControlFSMData<float> &data);
+  void solveSparseMPC(int *mpcTable, ControlFSMData<float> &data);
+  void initSparseMPC();
+  int iterationsBetweenMPC;
   int horizonLength;
+  float dt;
   float dtMPC;
   int iterationCounter = 0;
   Vec3<float> f_ff[4];
@@ -72,9 +98,16 @@ private:
   Vec3<float> world_position_desired;
   Vec3<float> rpy_int;
   Vec3<float> rpy_comp;
+  float x_comp_integral = 0;
   Vec3<float> pFoot[4];
   CMPC_Result<float> result;
   float trajAll[12*36];
+
+  MIT_UserParameters* _parameters = nullptr;
+
+  vectorAligned<Vec12<double>> _sparseTrajectory;
+
+  SparseCMPC _sparseCMPC;
 
 };
 

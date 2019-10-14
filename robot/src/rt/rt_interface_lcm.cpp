@@ -59,6 +59,7 @@ void Handler::rc_channels_handler(const lcm::ReceiveBuffer *rbuf,
   rc_channels = *msg;
   pthread_mutex_unlock(&lcm_get_set_mutex);
 }
+
 void get_main_control_settings(void *settings) {
   pthread_mutex_lock(&lcm_get_set_mutex);
   v_memcpy(settings, &main_control_settings, sizeof(main_control_settings));
@@ -82,36 +83,64 @@ void sbus_packet_complete() {
   int ch2 = read_sbus_channel(1);
   int ch3 = read_sbus_channel(2);
   int ch4 = read_sbus_channel(3);
+
+  // TODO: figure out what happens in channel 1
+  int ch5 = read_sbus_channel(4);
+  ch1 = ch5;
+
   int ch7 = read_sbus_channel(6);
+  int ch8 = read_sbus_channel(7);
   int ch9 = read_sbus_channel(8);
   int ch10 = read_sbus_channel(9);
   int ch11 = read_sbus_channel(10);
+  int ch12 = read_sbus_channel(11);
   int ch13 = read_sbus_channel(12);
+  int ch15 = read_sbus_channel(14); // SE
 
-  // velocity scales between 1.0 and 3.0
-  float v_scale = 2.0f * (((float)(ch7 - 172)) / 1811.0f) + 1.0f;
+  //printf("got sbus ch11: %d ch10 %d\n", ch11, ch10);
+
+  //velocity scales between 1.0 and 3.0 (when 2.0f is used)
+  // velocity scales between 1.0 and 1.5 (middle), 2.0 (right ends)
+  float v_scale = 1.0f * (((float)(ch7 - 172)) / 1811.0f) + 1.0f;
   // Ignore commands if switched
   if (ch11 != 1811) {
-    // oh shit switch
-    if (ch10 == 172) {
-      main_control_settings.mode = 0;
-    } else if (ch10 == 992) {
-      main_control_settings.mode = 12;
-    } else if (ch10 == 1811) {
-      main_control_settings.mode = 11;
+    if (ch10 == 172) { // oh shit switch (OFF)
+      main_control_settings.mode = RC_mode::OFF;
+
+    } else if (ch10 == 992) { // Stand up recovery
+      main_control_settings.mode = RC_mode::RECOVERY_STAND;
+
+    } else if (ch10 == 1811) {  // ESTOP bar is down (Controller ON)
+      main_control_settings.mode = RC_mode::LOCOMOTION; //Locomotion mode
+
+      if(ch15==992){
+        main_control_settings.mode = RC_mode::BACKFLIP_PRE; }
+      else if(ch15==1811){
+        main_control_settings.mode = RC_mode::BACKFLIP; }
+      else if(ch12 == 1811){ 
+        main_control_settings.mode = RC_mode::QP_STAND; }
+      else if(ch12 == 992){
+        main_control_settings.mode = RC_mode::VISION; }
     }
 
     // Use the joysticks for velocity and yaw control in locomotion gaits
-    if (main_control_settings.mode == 11) {
+    if (main_control_settings.mode == RC_mode::LOCOMOTION ||
+        main_control_settings.mode == RC_mode::VISION) {
       // Analog channels return a value between ~200 and 1800, with sticks
       // centered at 1000
 
       if (ch9 == 1811) {
         main_control_settings.variable[0] = 4;
       }  // Stand
-      else if (ch9 == 992) {
+      else if (ch9 == 992 && (ch13==1811)) {
         main_control_settings.variable[0] = 0;
       }  // Trot
+      else if (ch9 == 992 && (ch13==992)) {
+        main_control_settings.variable[0] = 3;
+      }  // Gallop
+      else if (ch9 == 992 && (ch13==172)) {
+        main_control_settings.variable[0] = 8;
+      }  // Pacing 
       else if ((ch9 == 172) && (ch13 == 1811)) {
         main_control_settings.variable[0] = 5;
       }  // Trot run
@@ -120,42 +149,84 @@ void sbus_packet_complete() {
       }  // Pronk
       else if ((ch9 == 172) && (ch13 == 172)) {
         main_control_settings.variable[0] = 1;
-      }  // Bound
+      }  // Bounding
+      //main_control_settings.rpy_des[0] = ((float)ch4 - 1000) * .001f;
+      //main_control_settings.rpy_des[1] = v_scale * ((float)ch1 - 1000) * .001f;
+      //main_control_settings.rpy_des[2] = ((float)ch2 - 1000) * .001f;
+      //main_control_settings.p_des[2] =   ((float)ch3 - 1000) * .001f;
+
+      //printf("ch1, 2, 3, 4, 5: %d, %d, %d, %d , %d\n", ch1, ch2, ch3, ch4, ch5);
+      main_control_settings.v_des[0] = v_scale * ((float)ch1-1000)*.001f;
+      main_control_settings.v_des[1] = -v_scale *((float)ch4-1000)*.001f;
+      main_control_settings.v_des[2] = 0;
+      main_control_settings.p_des[2] = 0.25 + ((float)ch8 - 1000)*.0001f;;
+      //printf("v scale : %f \n", v_scale);
+      //printf("v des: %f, %f \n", main_control_settings.v_des[0], main_control_settings.v_des[1]);
+      //printf("v scaled des: %f, %f \n", main_control_settings.v_des[0], main_control_settings.v_des[1]);
+
+      main_control_settings.omega_des[0] = 0;
+      main_control_settings.omega_des[1] = 0;
+      main_control_settings.omega_des[2] = -v_scale * ((float)ch2 - 1000)*.002f;
+
+      //      printf("%.3f %.3f %.3f %.3f\n",
+      //             main_control_settings.rpy_des[0],
+      //             main_control_settings.rpy_des[1],
+      //             main_control_settings.rpy_des[2],
+      //             main_control_settings.p_des[2]);
+
 
       // If using the stand gait, control orientations
-      if (main_control_settings.variable[0] == 4) {
-        main_control_settings.rpy_des[0] = ((float)ch4 - 1000) * .0003f;
-        main_control_settings.rpy_des[1] = ((float)ch3 - 1000) * .0005f;
-        main_control_settings.rpy_des[2] = ((float)ch2 - 1000) * .001f;
-
-        main_control_settings.p_des[0] = 0;
-        main_control_settings.p_des[1] = 0;
-        main_control_settings.p_des[2] = 0.21 + ((float)ch1 - 1000) * .0001f;
-      }
-      // For all other gaits, control the velocities
-      else {
-        main_control_settings.v_des[0] = v_scale * ((float)ch1 - 1000) * .002f;
-        main_control_settings.v_des[1] =
-            -v_scale * ((float)ch4 - 1000) * .0005f;
-        main_control_settings.v_des[2] = 0;
-        main_control_settings.p_des[2] = 0.21;
-
-        main_control_settings.omega_des[0] = 0;
-        main_control_settings.omega_des[1] = 0;
-        main_control_settings.omega_des[2] =
-            -v_scale * ((float)ch2 - 1000) * .003f;
-      }
+//      if (main_control_settings.variable[0] == 4) {
+//        main_control_settings.rpy_des[0] = ((float)ch4 - 1000) * .001f;
+//        main_control_settings.rpy_des[1] = ((float)ch3 - 1000) * .001f;
+//        main_control_settings.rpy_des[2] = ((float)ch2 - 1000) * .001f;
+//
+//        main_control_settings.p_des[0] = 0;
+//        main_control_settings.p_des[1] = 0;
+//        main_control_settings.p_des[2] = 0.21 + ((float)ch1 - 1000) * .0001f;
+//      }
+//      // For all other gaits, control the velocities
+//      else {
+//        main_control_settings.v_des[0] = v_scale * ((float)ch1 - 1000) * .002f;
+//        main_control_settings.v_des[1] =
+//            -v_scale * ((float)ch4 - 1000) * .0005f;
+//        main_control_settings.v_des[2] = 0;
+//        main_control_settings.p_des[2] = 0.21;
+//
+//        main_control_settings.omega_des[0] = 0;
+//        main_control_settings.omega_des[1] = 0;
+//        main_control_settings.omega_des[2] =
+//            -v_scale * ((float)ch2 - 1000) * .003f;
+//      }
     }
     // For standing modes (mpc or balance qp) control orientations
-    else if (main_control_settings.mode == 10 ||
-             main_control_settings.mode == 3) {
-      main_control_settings.rpy_des[0] = ((float)ch4 - 1000) * .0003f;
-      main_control_settings.rpy_des[1] = ((float)ch3 - 1000) * .0005f;
-      main_control_settings.rpy_des[2] = ((float)ch2 - 1000) * .001f;
+    else if (main_control_settings.mode == RC_mode::QP_STAND) {
+      //main_control_settings.rpy_des[0] = ((float)ch4 - 1000) * .001f;
+      //main_control_settings.rpy_des[1] = ((float)ch3 - 1000) * .001f;
+      //main_control_settings.rpy_des[2] = -((float)ch2 - 1000)*.0015f;
+
+      //main_control_settings.p_des[0] = 0;
+      //main_control_settings.p_des[1] = 0;
+      //main_control_settings.p_des[2] = 0.21 + ((float)ch1 - 1000) * .0001f;
+
+      main_control_settings.rpy_des[0] = ((float)ch4-1000)*.0015f;
+      main_control_settings.rpy_des[1] = ((float)ch3 - 1000)*.0005f;
+      main_control_settings.rpy_des[2] = -((float)ch2 - 1000)*.0015f;
 
       main_control_settings.p_des[0] = 0;
-      main_control_settings.p_des[1] = 0;
-      main_control_settings.p_des[2] = 0.21 + ((float)ch1 - 1000) * .0001f;
+      main_control_settings.p_des[1] = ((float)ch4 - 1000)*.00007f;;
+      main_control_settings.p_des[2] = 0.25 + ((float)ch8 - 1000)*.0001f;
+    }
+
+    // For two contact standing mode
+    else if (main_control_settings.mode == RC_mode::BACKFLIP) {
+      main_control_settings.rpy_des[0] = ((float)ch4-1000)*.0015f;
+      main_control_settings.rpy_des[1] = ((float)ch3 - 1000)*.0005f;
+      main_control_settings.rpy_des[2] = -((float)ch2 - 1000)*.0015f;
+
+      main_control_settings.p_des[0] = v_scale * ((float)ch1-1000)*.001f;
+      main_control_settings.p_des[1] = -v_scale *((float)ch4-1000)*.001f;
+      main_control_settings.p_des[2] = 0.0;
     }
   }
   // Use the joysticks for orientation and height control in standing mode

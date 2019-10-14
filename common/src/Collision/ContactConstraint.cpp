@@ -1,9 +1,14 @@
-/*! @file ContactConstraint.cpp
- *  @brief ContactConstraint virtual class
+/*!
+ * @file ContactConstraint.cpp
+ * @brief ContactConstraint virtual class
  */
 
 #include "Collision/ContactConstraint.h"
 
+/*!
+ * Check all points for contact.  If contact occurs, add to list of in-contact points
+ * @return Number of points in contact
+ */
 template <typename T>
 size_t ContactConstraint<T>::_CheckContact() {
   _cp_pos_list.clear();

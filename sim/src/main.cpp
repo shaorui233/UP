@@ -26,7 +26,7 @@
  * Setup QT and run a simulation
  */
 int main(int argc, char *argv[]) {
-  install_segfault_handler();
+  install_segfault_handler(nullptr);
   // set up Qt
   QApplication a(argc, argv);
 

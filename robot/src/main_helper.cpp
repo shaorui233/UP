@@ -6,15 +6,13 @@
  * driver.
  */
 
-#include <HardwareBridge.h>
-#include "SimulationBridge.h"
-
-#include <main_helper.h>
 #include <cassert>
 #include <iostream>
 
-#include <RobotController.h>
-#include "Utilities/SegfaultHandler.h"
+#include "HardwareBridge.h"
+#include "SimulationBridge.h"
+#include "main_helper.h"
+#include "RobotController.h"
 
 MasterConfig gMasterConfig;
 
@@ -28,8 +26,10 @@ void printUsage() {
       "robot\n");
 }
 
+/*!
+ * Setup and run the given robot controller
+ */
 int main_helper(int argc, char** argv, RobotController* ctrl) {
-  install_segfault_handler();
   if (argc != 3) {
     printUsage();
     return EXIT_FAILURE;
@@ -75,6 +75,7 @@ int main_helper(int argc, char** argv, RobotController* ctrl) {
       assert(false);
     }
   } else {
+#ifdef linux
     if (gMasterConfig._robot == RobotType::MINI_CHEETAH) {
       MiniCheetahHardwareBridge hw(ctrl);
       hw.run();
@@ -86,6 +87,7 @@ int main_helper(int argc, char** argv, RobotController* ctrl) {
       printf("[ERROR] unknown robot\n");
       assert(false);
     }
+#endif
   }
 
   return 0;

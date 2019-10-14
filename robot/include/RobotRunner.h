@@ -8,11 +8,11 @@
 #ifndef PROJECT_ROBOTRUNNER_H
 #define PROJECT_ROBOTRUNNER_H
 
-#include <ControlParameters/ControlParameterInterface.h>
-#include <ControlParameters/RobotParameters.h>
-#include <Controllers/StateEstimatorContainer.h>
-#include <SimUtilities/IMUTypes.h>
-#include <gui_main_control_settings_t.hpp>
+#include "ControlParameters/ControlParameterInterface.h"
+#include "ControlParameters/RobotParameters.h"
+#include "Controllers/StateEstimatorContainer.h"
+#include "SimUtilities/IMUTypes.h"
+#include "gui_main_control_settings_t.hpp"
 #include "Controllers/ContactEstimator.h"
 #include "Controllers/DesiredStateCommand.h"
 #include "Controllers/LegController.h"
@@ -24,7 +24,7 @@
 #include "Utilities/PeriodicTask.h"
 #include "cheetah_visualization_lcmt.hpp"
 #include "state_estimator_lcmt.hpp"
-#include <RobotController.h>
+#include "RobotController.h"
 #include <lcm-cpp.hpp>
 
 class RobotRunner : public PeriodicTask {
@@ -70,6 +70,7 @@ class RobotRunner : public PeriodicTask {
   StateEstimatorContainer<float>* _stateEstimator;
   bool _cheaterModeEnabled = false;
   DesiredStateCommand<float>* _desiredStateCommand;
+  gui_main_control_settings_t main_control_settings;
   lcm::LCM _lcm;
   leg_control_command_lcmt leg_control_command_lcm;
   state_estimator_lcmt state_estimator_lcm;

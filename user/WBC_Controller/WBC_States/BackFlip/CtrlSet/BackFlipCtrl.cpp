@@ -14,7 +14,8 @@
 
 template <typename T>
 BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T>* robot,
-                              DataReader* data_reader)
+                              DataReader* data_reader,
+                              float _dt)
     : Controller<T>(robot),
       _data_reader(data_reader),
       _Kp(cheetah::num_act_joint),
@@ -22,7 +23,8 @@ BackFlipCtrl<T>::BackFlipCtrl(const FloatingBaseModel<T>* robot,
       _des_jpos(cheetah::num_act_joint),
       _des_jvel(cheetah::num_act_joint),
       _jtorque(cheetah::num_act_joint),
-      _end_time(3.5),
+      dt(_dt),
+      _end_time(5.5),
       _dim_contact(0),
       _ctrl_start_time(0.) {
   _sp = StateProvider<T>::getStateProvider();
@@ -66,10 +68,12 @@ template <typename T>
 void BackFlipCtrl<T>::_update_joint_command() {
   static int current_iteration(0);
   static int pre_mode_count(0);
+
   int pre_mode_duration(2000);
   int tuck_iteration(600);
   int ramp_end_iteration(650);
-  float tau_mult;
+
+   float tau_mult;
 
   _des_jpos.setZero();
   _des_jvel.setZero();
@@ -82,7 +86,10 @@ void BackFlipCtrl<T>::_update_joint_command() {
       printf("plan_timesteps: %d \n", _data_reader->plan_timesteps);
     }
     // printf("pre_mode_count: %d \n", pre_mode_count);
-    pre_mode_count++;
+    
+ // Update 1kHz 
+    //pre_mode_count++;
+    pre_mode_count += 2;
     current_iteration = 0;
     tau_mult = 0;
   } else {
@@ -111,6 +118,8 @@ void BackFlipCtrl<T>::_update_joint_command() {
   tau_front << 0.0, tau_mult * tau[0] / 2.0, tau_mult * tau[1] / 2.0;
   tau_rear << 0.0, tau_mult * tau[2] / 2.0, tau_mult * tau[3] / 2.0;
 
+  //pretty_print(tau_front, std::cout, "tau front");
+  //pretty_print(tau_rear, std::cout, "tau rear");
   float s(0.);
 
   if (current_iteration >= tuck_iteration) {  // ramp to landing configuration
@@ -191,7 +200,10 @@ void BackFlipCtrl<T>::_update_joint_command() {
     _jtorque[i] = tau_rear[2];
   }
 
-  current_iteration++;
+  //current_iteration++;
+
+  // Update rate 0.5kHz
+  current_iteration += 2;
 }
 
 template <typename T>
@@ -204,7 +216,7 @@ void BackFlipCtrl<T>::LastVisit() {}
 
 template <typename T>
 bool BackFlipCtrl<T>::EndOfPhase() {
-  if (Ctrl::_state_machine_time > (_end_time - 2. * Test<T>::dt)) {
+  if (Ctrl::_state_machine_time > (_end_time - 2. * dt)) {
     return true;
   }
 

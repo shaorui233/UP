@@ -1,11 +1,19 @@
+/*!
+ * @file rt_vectornav.cpp
+ * @brief VectorNav IMU communication
+ */
+
+#ifdef linux
+
 #include <inttypes.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string>
-
-#include <SimUtilities/IMUTypes.h>
-#include <lcm/lcm-cpp.hpp>
 #include <stdexcept>
+
+#include <lcm/lcm-cpp.hpp>
+
+#include "SimUtilities/IMUTypes.h"
 #include "Utilities/utilities.h"
 #include "rt/rt_vectornav.h"
 #include "vectornav_lcmt.hpp"
@@ -17,7 +25,9 @@
 int processErrorReceived(const std::string& errorMessage, VnError errorCode);
 void vectornav_handler(void* userData, VnUartPacket* packet,
                        size_t running_index);
-
+/*!
+ * VectorNav Driver data
+ */
 typedef struct {
   VnSensor vs;
   BinaryOutputRegister bor;
@@ -27,8 +37,11 @@ vn_sensor vn;
 
 static lcm::LCM* vectornav_lcm;
 vectornav_lcmt vectornav_lcm_data;
-
 static VectorNavData* g_vn_data = nullptr;
+
+/*!
+ * Initialize Vectornav communication and set up sensor
+ */
 bool init_vectornav(VectorNavData* vn_data) {
   g_vn_data = vn_data;
   printf("[Simulation] Setup LCM...\n");
@@ -155,6 +168,10 @@ bool init_vectornav(VectorNavData* vn_data) {
 }
 
 int got_first_vectornav_message = 0;
+
+/*!
+ * Got new packet handler for vectornav
+ */
 void vectornav_handler(void* userData, VnUartPacket* packet,
                        size_t running_index) {
   (void)userData;
@@ -209,9 +226,13 @@ void vectornav_handler(void* userData, VnUartPacket* packet,
 #endif
 }
 
+/*!
+ * Error callback for vectornav
+ */
 int processErrorReceived(const std::string& errorMessage, VnError errorCode) {
   char errorCodeStr[100];
   strFromVnError(errorCodeStr, errorCode);
   printf("%s\nVECTORNAV ERROR: %s\n", errorMessage.c_str(), errorCodeStr);
   return -1;
 }
+#endif

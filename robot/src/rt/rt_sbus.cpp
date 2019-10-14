@@ -1,3 +1,8 @@
+/*!
+ * @file rt_sbus.cpp
+ * @brief Communication with RC controller receiver
+ */
+
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
@@ -8,17 +13,19 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifdef linux
 #define termios asmtermios
 
 #include <asm/termios.h>
 
 #undef termios
+#endif
 
 #include <termios.h>
 
-#include <rt/rt_interface_lcm.h>
-#include <rt/rt_sbus.h>
-#include <rt/rt_serial.h>
+#include "rt/rt_interface_lcm.h"
+#include "rt/rt_sbus.h"
+#include "rt/rt_serial.h"
 
 pthread_mutex_t sbus_data_m;
 
@@ -30,6 +37,9 @@ uint16_t channel_data[18];
 /**@brief Name of SBUS serial port on the mini cheetah*/
 #define K_SBUS_PORT_MC "/dev/ttyS4"
 
+/*!
+ * Unpack sbus message into channels
+ */
 void unpack_sbus_data(uint8_t sbus_data[], uint16_t *channels_) {
   if ((sbus_data[0] == 0xF) && (sbus_data[24] == 0x0)) {
     channels_[0] = ((sbus_data[1]) | ((sbus_data[2] & 0x7) << 8));
@@ -62,10 +72,10 @@ void unpack_sbus_data(uint8_t sbus_data[], uint16_t *channels_) {
 
     pthread_mutex_lock(&sbus_data_m);
     for (int i = 0; i < 18; i++) {
-      // printf("%d ", channels_[i]);
+       //printf("%d ", channels_[i]);
       channel_data[i] = channels_[i];
     }
-    // printf("\n\n");
+    //printf("\n\n");
     pthread_mutex_unlock(&sbus_data_m);
 
   } else {
@@ -73,6 +83,9 @@ void unpack_sbus_data(uint8_t sbus_data[], uint16_t *channels_) {
   }
 }
 
+/*!
+ * Read data from serial port
+ */
 int read_sbus_data(int port, uint8_t *sbus_data) {
   uint8_t packet_full = 0;
   uint8_t read_byte[1] = {0};
@@ -98,6 +111,9 @@ int read_sbus_data(int port, uint8_t *sbus_data) {
   return packet_full;
 }
 
+/*!
+ * Get sbus channel
+ */
 int read_sbus_channel(int channel) {
   pthread_mutex_lock(&sbus_data_m);
   int value = channel_data[channel];
@@ -105,6 +121,9 @@ int read_sbus_channel(int channel) {
   return value;
 }
 
+/*!
+ * Receive serial and find packets
+ */
 int receive_sbus(int port) {
   uint16_t read_buff[25] = {0};
   int x = read_sbus_data(port, (uint8_t *)read_buff);
@@ -116,6 +135,9 @@ int receive_sbus(int port) {
   return x;
 }
 
+/*!
+ * Initialize SBUS serial port
+ */
 int init_sbus(int is_simulator) {
   // char *port1;
   std::string port1;
@@ -133,7 +155,9 @@ int init_sbus(int is_simulator) {
   if (fd1 < 0) {
     printf("Error opening %s: %s\n", port1.c_str(), strerror(errno));
   } else {
+#ifdef linux
     set_interface_attribs_custom_baud(fd1, 100000, 0, 0);
+#endif
   }
   return fd1;
 }

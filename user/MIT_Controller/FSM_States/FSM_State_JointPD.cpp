@@ -50,7 +50,7 @@ void FSM_State_JointPD<T>::run() {
   qdDes << 0, 0, 0;
 
   static double progress(0.);
-  progress += 0.001;
+  progress += this->_data->controlParameters->controller_dt;
   double movement_duration(3.0);
   double ratio = progress/movement_duration;
   if(ratio > 1.) ratio = 1.;

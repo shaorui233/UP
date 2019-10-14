@@ -8,8 +8,6 @@
  * frame").
  */
 
-#include <eigen3/Eigen/Dense>
-
 #include "Controllers/LegController.h"
 
 /*!
@@ -29,6 +27,9 @@ void LegControllerCommand<T>::zero() {
   kdJoint = Mat3<T>::Zero();
 }
 
+/*!
+ * Zero the leg data
+ */
 template <typename T>
 void LegControllerData<T>::zero() {
   q = Vec3<T>::Zero();
@@ -198,6 +199,9 @@ void LegController<T>::updateCommand(TiBoardCommand* tiBoardCommand) {
   }
 }
 
+/*!
+ * Set LCM debug data from leg commands and data
+ */
 template<typename T>
 void LegController<T>::setLcm(leg_control_data_lcmt *lcmData, leg_control_command_lcmt *lcmCommand) {
     for(int leg = 0; leg < 4; leg++) {
@@ -242,6 +246,7 @@ void computeLegJacobianAndPosition(Quadruped<T>& quad, Vec3<T>& q, Mat3<T>* J,
   T l1 = quad._abadLinkLength;
   T l2 = quad._hipLinkLength;
   T l3 = quad._kneeLinkLength;
+  T l4 = quad._kneeLinkY_offset;
   T sideSign = quad.getSideSign(leg);
 
   T s1 = std::sin(q(0));
@@ -259,18 +264,18 @@ void computeLegJacobianAndPosition(Quadruped<T>& quad, Vec3<T>& q, Mat3<T>* J,
     J->operator()(0, 0) = 0;
     J->operator()(0, 1) = l3 * c23 + l2 * c2;
     J->operator()(0, 2) = l3 * c23;
-    J->operator()(1, 0) = l3 * c1 * c23 + l2 * c1 * c2 - l1 * sideSign * s1;
+    J->operator()(1, 0) = l3 * c1 * c23 + l2 * c1 * c2 - (l1+l4) * sideSign * s1;
     J->operator()(1, 1) = -l3 * s1 * s23 - l2 * s1 * s2;
     J->operator()(1, 2) = -l3 * s1 * s23;
-    J->operator()(2, 0) = l3 * s1 * c23 + l2 * c2 * s1 + l1 * sideSign * c1;
+    J->operator()(2, 0) = l3 * s1 * c23 + l2 * c2 * s1 + (l1+l4) * sideSign * c1;
     J->operator()(2, 1) = l3 * c1 * s23 + l2 * c1 * s2;
     J->operator()(2, 2) = l3 * c1 * s23;
   }
 
   if (p) {
     p->operator()(0) = l3 * s23 + l2 * s2;
-    p->operator()(1) = l1 * sideSign * c1 + l3 * (s1 * c23) + l2 * c2 * s1;
-    p->operator()(2) = l1 * sideSign * s1 - l3 * (c1 * c23) - l2 * c1 * c2;
+    p->operator()(1) = (l1+l4) * sideSign * c1 + l3 * (s1 * c23) + l2 * c2 * s1;
+    p->operator()(2) = (l1+l4) * sideSign * s1 - l3 * (c1 * c23) - l2 * c1 * c2;
   }
 }
 

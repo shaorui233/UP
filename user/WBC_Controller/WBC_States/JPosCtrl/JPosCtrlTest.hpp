@@ -13,7 +13,7 @@ enum JPosCtrlPhase {
 template <typename T>
 class JPosCtrlTest : public Test<T> {
  public:
-  JPosCtrlTest(FloatingBaseModel<T>*, const RobotType&);
+  JPosCtrlTest(FloatingBaseModel<T>*, const RobotType&, float _dt);
   virtual ~JPosCtrlTest();
 
  protected:

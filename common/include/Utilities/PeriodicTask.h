@@ -30,12 +30,24 @@ class PeriodicTask {
   virtual void cleanup() = 0;
   virtual ~PeriodicTask() { stop(); }
 
+  /*!
+   * Get the desired period for the task
+   */
   float getPeriod() { return _period; }
 
+  /*!
+   * Get how long the most recent run took
+   */
   float getRuntime() { return _lastRuntime; }
 
+  /*!
+   * Get the maximum time in between runs
+   */
   float getMaxPeriod() { return _maxPeriod; }
 
+  /*!
+   * Get the maximum time it took for a run
+   */
   float getMaxRuntime() { return _maxRuntime; }
 
  private:
@@ -92,7 +104,10 @@ class PrintTaskStatus : public PeriodicTask {
  public:
   PrintTaskStatus(PeriodicTaskManager* tm, float period)
       : PeriodicTask(tm, period, "print-tasks"), _tm(tm) {}
-  void run() override { _tm->printStatus(); }
+  void run() override { 
+    // DH: Disable printing
+    //_tm->printStatus(); 
+  }
 
   void init() override {}
 

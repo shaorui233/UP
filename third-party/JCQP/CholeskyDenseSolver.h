@@ -21,6 +21,9 @@ public:
   }
   void setup(const DenseMatrix<T>& kktMat);
   void solve(Vector<T>& in);
+  void set_print(bool print) {
+    _print = print;
+  }
 
   DenseMatrix<T>& getInternal() { return L; }
   DenseMatrix<T> getReconstructedPermuted();

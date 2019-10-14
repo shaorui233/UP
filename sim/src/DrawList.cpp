@@ -212,7 +212,7 @@ size_t DrawList::addMiniCheetah(Vec4<float> color, bool useOld) {
  * Uses an identity transformation. You must call
  * updateCheckerboardFromCollisionPlane to set the actual transform.
  */
-size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
+size_t DrawList::addCheckerboard(Checkerboard& checkerBoard, bool scroll) {
   size_t j0 = _nTotal;
   size_t i0 = _nUnique;
 
@@ -238,7 +238,19 @@ size_t DrawList::addCheckerboard(Checkerboard& checkerBoard) {
   _nTotal++;
   // add the instance
   _objectMap.push_back(i0);
+  if(scroll) {
+    _scrollIDs.push_back({j0, checkerBoard.getSize()[0], checkerBoard.getSize()[1]});
+  }
   return j0;
+}
+
+void DrawList::doScrolling(Vec3<float> cameraPos) {
+  for(auto& obj : _scrollIDs) {
+    float scrollDiv[2] = {obj.xs/4, obj.ys/4};
+    auto& groundXform = getModelKinematicTransform(obj.id);
+    groundXform.setToIdentity();
+    groundXform.translate( -scrollDiv[0] * (int)(cameraPos[0] / scrollDiv[0]),  -scrollDiv[1] * (int)(cameraPos[1] / scrollDiv[1]));
+  }
 }
 
 /*!

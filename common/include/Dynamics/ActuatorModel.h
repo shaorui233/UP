@@ -12,9 +12,23 @@
 
 #include "Utilities/utilities.h"
 
+/*!
+ * A model of an actuator containing friction and electrical effects
+ */
 template <typename T>
 class ActuatorModel {
  public:
+
+  /*!
+   * Construct a new actuator model with the given parameters
+   * @param gearRatio : Gear reduction
+   * @param motorKT : Value of KT (torque constant) for the motor
+   * @param motorR : Motor resistance
+   * @param batteryV : Battery voltage
+   * @param damping : Actuator damping (at the joint, Nm/(rad/sec))
+   * @param dryFriction : Actuator dry friction (at the joint, Nm)
+   * @param tauMax : Maximum torque output of the actuator
+   */
   ActuatorModel(T gearRatio, T motorKT, T motorR, T batteryV, T damping,
                 T dryFriction, T tauMax)
       : _gr(gearRatio),
@@ -27,9 +41,16 @@ class ActuatorModel {
 
   ActuatorModel() {}
 
-  // compute actual actuator torque, given desired torque and speed.
-  // takes into account friction (dry and damping), voltage limits, and torque
-  // limits
+  // compute
+
+  /*!
+   * Compute actual actuator torque, given desired torque and speed.
+   * takes into account friction (dry and damping), voltage limits, and torque
+   * limits
+   * @param tauDes : desired torque
+   * @param qd : current actuator velocity (at the joint)
+   * @return actual produced torque
+   */
   T getTorque(T tauDes, T qd) {
     // compute motor torque
     T tauDesMotor = tauDes / _gr;        // motor torque
@@ -49,6 +70,10 @@ class ActuatorModel {
     return tauAct;
   }
 
+  /*!
+   * Control friction effects
+   * @param enabled : enable/disable both dry and damping friction terms
+   */
   void setFriction(bool enabled) { _frictionEnabled = enabled; }
 
  private:

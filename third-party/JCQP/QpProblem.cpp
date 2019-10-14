@@ -212,7 +212,11 @@ void QpProblem<T>::runFromDense(s64 nIterations, bool sparse, bool b_print)
   if(sparse)
     _cholSparseSolver.setup(b_print); // set up this one first.
   else
+  {
+    _cholDenseSolver.set_print(b_print);
     _cholDenseSolver.setup(_kkt);
+  }
+
 
   double setupTimeMs = setupTimer.getMs();
   if(b_print) printf("Setup in %.3f ms\n", setupTimeMs);
@@ -220,7 +224,7 @@ void QpProblem<T>::runFromDense(s64 nIterations, bool sparse, bool b_print)
   std::vector<Vector<T>> solutionLog;
   double totalResidTime = 0;
 
-  for(s64 iteration = 0; iteration < settings.maxIterations; iteration++) {
+  for(s64 iteration = 0; iteration < nIterations; iteration++) {
 
     Timer iterationTimer;
     stepSetup();
@@ -275,7 +279,7 @@ void QpProblem<T>::computeConstraintInfos()
     if(l(i) < -settings.infty || u(i) > settings.infty){
       _constraintInfos[i].type = ConstraintType::INFINITE;
       _constraintInfos[i].rho = settings.rhoInfty;
-    } else if(u(i) - l(i) < settings.eqlTol) {
+    } else if(std::abs(u(i) - l(i)) < settings.eqlTol) {
       _constraintInfos[i].type = ConstraintType::EQUALITY;
       _constraintInfos[i].rho = settings.rho * settings.rhoEqualityScale;
     } else {

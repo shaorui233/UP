@@ -1,9 +1,19 @@
-#include "include/Utilities/utilities.h"
+/*!
+ * @file utilities.cpp
+ * @brief Common utility functions
+ */
+
 
 #include <ctime>
 #include <iomanip>
 #include <iostream>
 
+#include "Utilities/utilities.h"
+
+
+/*!
+ * Write std::string to file with given name
+ */
 void writeStringToFile(const std::string& fileName,
                        const std::string& fileData) {
   FILE* fp = fopen(fileName.c_str(), "w");
@@ -15,6 +25,9 @@ void writeStringToFile(const std::string& fileName,
   fclose(fp);
 }
 
+/*!
+ * Get the current time and date as a string
+ */
 std::string getCurrentTimeAndDate() {
   auto t = std::time(nullptr);
   auto tm = *std::localtime(&t);
@@ -29,6 +42,9 @@ std::string getCurrentTimeAndDate() {
  */
 std::string getConfigDirectoryPath() { return "../config/"; }
 
+/*!
+ * Get the LCM URL with desired TTL.
+ */
 std::string getLcmUrl(s64 ttl) {
   assert(ttl >= 0 && ttl <= 255);
   return "udpm://239.255.76.67:7667?ttl=" + std::to_string(ttl);

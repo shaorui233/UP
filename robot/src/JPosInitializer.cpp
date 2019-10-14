@@ -1,14 +1,19 @@
+/*!
+ * @file JPosInitializer.cpp
+ * @brief Controller to initialize the position of the legs on power-on
+ */
+
 #include "JPosInitializer.h"
-#include <Utilities/Utilities_print.h>
-#include <ParamHandler/ParamHandler.hpp>
+#include "Utilities/Utilities_print.h"
+#include "ParamHandler/ParamHandler.hpp"
 #include <Configuration.h>
 
 template <typename T>
-JPosInitializer<T>::JPosInitializer(T end_time)
+JPosInitializer<T>::JPosInitializer(T end_time, float dt)
     : _b_first_visit(true),
       _end_time(end_time),
       _curr_time(0.),
-      _dt(0.001),
+      _dt(dt),
       _ini_jpos(cheetah::num_act_joint) {
   _UpdateParam();
 }

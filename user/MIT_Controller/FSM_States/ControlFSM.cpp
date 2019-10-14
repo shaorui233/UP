@@ -6,6 +6,7 @@
  */
 
 #include "ControlFSM.h"
+#include <rt/rt_interface_lcm.h>
 
 /**
  * Constructor for the Control FSM. Passes in all of the necessary
@@ -27,7 +28,8 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
                           DesiredStateCommand<T>* _desiredStateCommand,
                           RobotControlParameters* controlParameters,
                           VisualizationData* visualizationData,
-                          MIT_UserParameters* userParameters) {
+                          MIT_UserParameters* userParameters)
+{
   // Add the pointers to the ControlFSMData struct
   data._quadruped = _quadruped;
   data._stateEstimator = _stateEstimator;
@@ -46,6 +48,12 @@ ControlFSM<T>::ControlFSM(Quadruped<T>* _quadruped,
   statesList.standUp = new FSM_State_StandUp<T>(&data);
   statesList.balanceStand = new FSM_State_BalanceStand<T>(&data);
   statesList.locomotion = new FSM_State_Locomotion<T>(&data);
+  statesList.bounding = new FSM_State_Bounding<T>(&data);
+  statesList.recoveryStand = new FSM_State_RecoveryStand<T>(&data);
+  statesList.vision = new FSM_State_Vision<T>(&data);
+  statesList.backflip = new FSM_State_BackFlip<T>(&data);
+  statesList.twocontactStand = new FSM_State_TwoContactStand<T>(&data);
+  statesList.frontJump = new FSM_State_FrontJump<T>(&data);
 
   safetyChecker = new SafetyChecker<T>(&data);
 
@@ -79,8 +87,40 @@ void ControlFSM<T>::initialize() {
  */
 template <typename T>
 void ControlFSM<T>::runFSM() {
+  // Publish state estimator data to other computer
+  //for(size_t i(0); i<3; ++i){
+    //_state_estimator.p[i] = data._stateEstimator->getResult().position[i];
+    //_state_estimator.quat[i] = data._stateEstimator->getResult().orientation[i];
+  //}
+    //_state_estimator.quat[3] = data._stateEstimator->getResult().orientation[3];
+  //state_estimator_lcm.publish("state_estimator_ctrl_pc", &_state_estimator);
+
   // Check the robot state for safe operation
   operatingMode = safetyPreCheck();
+
+  if(data.controlParameters->use_rc){
+    if(data._desiredStateCommand->rcCommand->mode == RC_mode::RECOVERY_STAND){
+      data.controlParameters->control_mode = K_RECOVERY_STAND;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::LOCOMOTION){
+      data.controlParameters->control_mode = K_LOCOMOTION;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::QP_STAND){
+      data.controlParameters->control_mode = K_BALANCE_STAND;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::VISION){
+      //data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
+      data.controlParameters->control_mode = K_VISION;
+    } else if(data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP ||
+      data._desiredStateCommand->rcCommand->mode == RC_mode::BACKFLIP_PRE){
+      data.controlParameters->control_mode = K_BACKFLIP;
+      //data.controlParameters->control_mode = K_TWO_CONTACT_STAND;
+      //data.controlParameters->control_mode = K_FRONTJUMP;
+    }
+    //std::cout<< "control mode: "<<data.controlParameters->control_mode<<std::endl;
+  }
+
+  if(data.controlParameters->control_mode == K_RECOVERY_STAND){
+      // Ignore Safety Check
+      operatingMode = FSM_OperatingMode::NORMAL;
+  }
 
   // Run the robot control code if operating mode is not unsafe
   if (operatingMode != FSM_OperatingMode::ESTOP) {
@@ -98,7 +138,7 @@ void ControlFSM<T>::runFSM() {
         nextState = getNextState(nextStateName);
 
         // Print transition initialized info
-        printInfo(1);
+        //printInfo(1);
 
       } else {
         // Run the iteration for the current state normally
@@ -119,7 +159,7 @@ void ControlFSM<T>::runFSM() {
         currentState->onExit();
 
         // Print finalizing transition info
-        printInfo(2);
+        //printInfo(2);
 
         // Complete the transition
         currentState = nextState;
@@ -135,14 +175,14 @@ void ControlFSM<T>::runFSM() {
       safetyPostCheck();
     }
 
-  } else {
+  } else { // if ESTOP
     currentState = statesList.passive;
     currentState->onEnter();
     nextStateName = currentState->stateName;
   }
 
   // Print the current state of the FSM
-  printInfo(0);
+  //printInfo(0);
 }
 
 /**
@@ -222,6 +262,24 @@ FSM_State<T>* ControlFSM<T>::getNextState(FSM_StateName stateName) {
 
     case FSM_StateName::LOCOMOTION:
       return statesList.locomotion;
+
+    case FSM_StateName::BOUNDING:
+      return statesList.bounding;
+
+    case FSM_StateName::RECOVERY_STAND:
+      return statesList.recoveryStand;
+
+    case FSM_StateName::VISION:
+      return statesList.vision;
+
+    case FSM_StateName::BACKFLIP:
+      return statesList.backflip;
+
+    case FSM_StateName::TWO_CONTACT_STAND:
+      return statesList.twocontactStand;
+
+    case FSM_StateName::FRONTJUMP:
+      return statesList.frontJump;
 
     default:
       return statesList.invalid;

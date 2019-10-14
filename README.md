@@ -7,8 +7,11 @@ The robot folder will contain the robot program
 The sim folder will contain the simulation program. It is the only program which depends on QT.
 The third-party will contain *small* third party libraries that we have modified. This should just be libsoem for Cheetah 3, which Pat modified at one point.
 
+<<<<<<< HEAD
 Doxygen document: https://mit-biomimetics.github.io
 
+=======
+>>>>>>> dd9c903f3b96dc08148285bb0f2ae10039cb3475
 ## Build
 To build all code:
 ```
@@ -71,6 +74,7 @@ s: simulation, r: robot
 - Eigen - http://eigen.tuxfamily.org
 - `mesa-common-dev`
 - `freeglut3-dev`
+<<<<<<< HEAD
 - `coinor-libipopt-dev`
 - `libblas-dev liblapack-dev`
 
@@ -82,3 +86,8 @@ To use casadi,
 ## Ubuntu RT
 A Ubuntu real time system is runing on Mini Cheetah's UP board.
 For more details, check: https://github.com/QiayuanLiao/Ubuntu-RT-UP-Board
+=======
+- `libblas-dev liblapack-dev`
+
+To use Ipopt, use CMake Ipopt option. Ex) cmake -DIPOPT_OPTION=ON ..
+>>>>>>> dd9c903f3b96dc08148285bb0f2ae10039cb3475

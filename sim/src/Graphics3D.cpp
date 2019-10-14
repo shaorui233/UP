@@ -8,7 +8,14 @@
 #include "Graphics3D.h"
 #include "Utilities/utilities.h"
 
+#ifdef linux
 #include <GL/glut.h>
+#endif
+
+#ifdef __APPLE__
+#include <GLUT/glut.h>
+#endif
+
 #include <unistd.h>
 #include <iostream>
 
@@ -80,7 +87,8 @@ Graphics3D::Graphics3D(QWidget *parent)
       _colorArrayProgram(0),
       _frame(0),
       _v0(0, 0, 0),
-      _freeCamFilter(1, 60, _v0) {
+      _freeCamFilter(1, 60, _v0)
+{
   std::cout << "[SIM GRAPHICS] New graphics window. \n";
 
   _r[0] = 0.2422;
@@ -107,6 +115,9 @@ Graphics3D::Graphics3D(QWidget *parent)
   _r[7] = 0.9769;
   _g[7] = 0.9839;
   _b[7] = 0.0805;
+
+  _map = DMat<float>::Zero(x_size, y_size);
+  _idx_map = DMat<int>::Zero(x_size, y_size);
 }
 
 Graphics3D::~Graphics3D() {}
@@ -127,6 +138,8 @@ size_t Graphics3D::setupMiniCheetah(Vec4<float> color, bool useOld) { return _dr
 
 void Graphics3D::updateCameraMatrix() {
   _cameraMatrix.setToIdentity();
+  Vec3<float> cameraPos;
+  cameraPos.setZero();
   _cameraMatrix.perspective(
       60.f, float(size().width()) / float(size().height()), .001f, 50.f);
 
@@ -154,6 +167,7 @@ void Graphics3D::updateCameraMatrix() {
     _cameraMatrix.rotate(_ry, 1, 0, 0);
     _cameraMatrix.rotate(_rx, 0, 0, 1);
     _cameraMatrix.translate(_freeCamPos[0], _freeCamPos[1], _freeCamPos[2]);
+    cameraPos = Vec3<float>(_freeCamPos[0], _freeCamPos[1], 0);
   } else {
     _cameraMatrix.translate(0.f, 0.f, -.45f * _zoom);
     _cameraMatrix.rotate(_ry, 1, 0, 0);
@@ -161,7 +175,11 @@ void Graphics3D::updateCameraMatrix() {
     _cameraTarget = _cameraTarget * 0.9 + _drawList.getCameraOrigin() * 0.1;
     _cameraMatrix.translate(-_cameraTarget[0],
                             -_cameraTarget[1], 0);
+    cameraPos = Vec3<float>(-_cameraTarget[0],
+                            -_cameraTarget[1], 0);
   }
+
+  _drawList.doScrolling(cameraPos);
 }
 
 void Graphics3D::initializeGL() {
@@ -277,6 +295,10 @@ void Graphics3D::keyPressEvent(QKeyEvent *e) {
     _turbo = true;
   }
 
+  if(e->key() == Qt::Key_P) {
+    _sloMo = true;
+  }
+
   if (e->key() == Qt::Key_Tab) {
     _freeCamPos[0] = 0.f;
     _freeCamPos[1] = 0.f;
@@ -322,6 +344,10 @@ void Graphics3D::keyReleaseEvent(QKeyEvent *e) {
 
   if(e->key() == Qt::Key_T) {
     _turbo = false;
+  }
+
+  if(e->key() == Qt::Key_P) {
+    _sloMo = false;
   }
 }
 
@@ -516,6 +542,172 @@ void Graphics3D::paintGL() {
   ++_frame;
 }
 
+void Graphics3D::_drawMesh(MeshVisualization &mesh) {
+
+  glPushMatrix();
+  glTranslatef(mesh.left_corner[0], mesh.left_corner[1], mesh.left_corner[2]);
+
+  double height_min = mesh.height_max;
+  double height_max = mesh.height_min;
+  double height_gap = height_max - height_min;
+  double scaled_height(0.);
+
+  float color_r(0.f);
+  float color_g(0.f);
+  float color_b(0.f);
+
+  double grid_size(mesh.grid_size);
+  double height;
+  for (int i(0); i < mesh.rows; ++i) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int j(0); j < mesh.cols; ++j) {
+      height = mesh.height_map(i, j);
+      scaled_height = (height - height_min) / height_gap;
+      getHeightColor(scaled_height, color_r, color_g, color_b);
+      glColor4f(color_r, color_g, color_b, 1.0f);
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  for (int j(0); j < mesh.cols; ++j) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int i(0); i < mesh.rows; ++i) {
+      height = mesh.height_map(i, j);
+      scaled_height = (height - height_min) / height_gap;
+      getHeightColor(scaled_height, color_r, color_g, color_b);
+      glColor4f(color_r, color_g, color_b, 1.0f);
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  glPopMatrix();
+  glPopAttrib();
+}
+
+void Graphics3D::_drawVelArrow(){
+  //glEnable(GL_BLEND);
+  //glDisable(GL_BLEND);
+  //glPushAttrib(GL_COLOR_BUFFER_BIT);
+  //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glColor4f(1.f, 0.f, 0.f, 1.0f);
+  _drawArrow(_vel_cmd_pos, _vel_cmd_dir, 0.01, 0.03, 0.055);
+  //glPopAttrib();
+}
+
+void Graphics3D::_drawObstacleField() {
+  MeshVisualization mesh;
+  double x_obs, y_obs, z_obs;
+  (void)z_obs;
+  double x, y, Prod;
+  vectorAligned<Vec3<double> > obs_list_copy;
+  size_t num_obs = _obs_list.size();
+  //printf("num obs: %lu\n", num_obs);
+  for(size_t i(0); i<num_obs; ++i){
+    obs_list_copy.push_back(_obs_list[i]);
+  }
+  double grid_size = 0.02;
+  int num_grid = 100; //floor(_obs_sigma*5/grid_size);
+
+  mesh.grid_size = grid_size;
+  mesh.height_max = 0.5;// _obs_height;
+  mesh.height_min = -0.01;
+  mesh.rows = num_grid;
+  mesh.cols = num_grid;
+  mesh.height_map.setZero();
+
+  mesh.left_corner[0] = _vel_cmd_pos[0] - 1.; //x_obs - _obs_sigma*2;
+  mesh.left_corner[1] = _vel_cmd_pos[1] - 1.; //y_obs - _obs_sigma*2;
+  mesh.left_corner[2] = 0.; //z_obs;
+
+
+  for(int row(0); row<num_grid; ++row){
+    for(int col(0); col<num_grid; ++col){
+      for(size_t i(0); i<num_obs; ++i){
+        x_obs = obs_list_copy[i][0];
+        y_obs = obs_list_copy[i][1];
+        z_obs = obs_list_copy[i][2];
+
+        x = row* mesh.grid_size + mesh.left_corner[0];
+        y = col* mesh.grid_size + mesh.left_corner[1];
+        Prod = (x-x_obs)*(x-x_obs) + (y-y_obs)*(y-y_obs); 
+        mesh.height_map(row, col) += exp(-Prod/(2*_obs_sigma*_obs_sigma))*z_obs;
+      }
+    }
+  }
+  _drawMesh(mesh);
+}
+
+void Graphics3D::_drawHeightMap() {
+
+  glPushAttrib(GL_LIGHTING_BIT);
+  glDisable(GL_LIGHTING);
+
+  glPushMatrix();
+  glTranslatef(-0.75 + _pos[0], -0.75 + _pos[1], 0);
+
+  double grid_size(0.015);
+  double height;
+  for (int i(0); i < _map.rows(); ++i) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int j(0); j < _map.cols(); ++j) {
+      height = _map(i, j);
+      //if(_idx_map(i, j) > 0){ printf("%d, %d point: %d\n", i, j, _idx_map(i,j)); }
+      if(_idx_map(i,j) == 0){
+        glColor4f(0.f, 1.f, 0.f, 1.0f);
+      }else if(_idx_map(i,j) == 1){
+        glColor4f(0.f, 0.f, 1.f, 1.0f);
+      }else if(_idx_map(i,j) == 2){
+        glColor4f(1.f, 0.f, 0.f, 1.0f);
+      }else{
+        glColor4f(1.f, 1.f, 1.f, 1.0f);
+      }
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  for (int j(0); j < _map.cols(); ++j) {
+    glBegin(GL_LINE_STRIP);
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    for (int i(0); i < _map.rows(); ++i) {
+      height = _map(i, j);
+      if(_idx_map(i,j) == 0){
+        glColor4f(0.f, 1.f, 0.f, 1.0f);
+      }else if(_idx_map(i,j) == 1){
+        glColor4f(0.f, 0.f, 1.f, 1.0f);
+      }else if(_idx_map(i,j) == 2){
+        glColor4f(1.f, 0.f, 0.f, 1.0f);
+      }else{
+        glColor4f(1.f, 1.f, 1.f, 1.0f);
+      }
+      glVertex3d(i * grid_size, j * grid_size, height);
+    }
+    glPopAttrib();
+    glDisable(GL_BLEND);
+    glEnd();
+  }
+  //glPopAttrib();
+  glPopMatrix();
+  glEnable(GL_LIGHTING);
+  glPopAttrib();
+}
+
 void Graphics3D::_MeshObstacleDrawing() {
   glLoadMatrixf(_cameraMatrix.data());
   glPushAttrib(GL_LIGHTING_BIT);
@@ -703,7 +895,29 @@ void Graphics3D::_Additional_Drawing(int pass) {
   for (size_t i = 0; i < _drawList._visualizationData->num_spheres; i++) {
     _drawSphere(_drawList._visualizationData->spheres[i]);
   }
+
+  if(_vel_cmd_update){ _drawVelArrow(); }
+
+  // Pointcloud Drawing
+  if(_pointcloud_data_update){
+    int num_skip = 5;
+    for(size_t i(0); i<_num_points/num_skip; ++i){
+      SphereVisualization sphere;
+      sphere.position = _points[i*num_skip];
+      sphere.color = {1.0, 0.2, 0.2, 1.0};
+      sphere.radius = 0.007;
+      _drawSphere(sphere);
+    }
+  }
+
+
   glDisable(GL_BLEND);
+  for (size_t i(0); i< _drawList._visualizationData->num_meshes; ++i){
+    _drawMesh(_drawList._visualizationData->meshes[i]);
+  }
+  // Heightmap Drawing
+  if(_obstacle_update){ _drawObstacleField(); }
+  if(_heightmap_data_update){ _drawHeightMap(); }
 
   for (size_t i = 0; i < _drawList._visualizationData->num_paths; i++) {
     PathVisualization path = _drawList._visualizationData->paths[i];

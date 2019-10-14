@@ -1,5 +1,6 @@
-/*! @file ContactSpringDamper.h
- *  @brief Spring Damper based Contact Computation logic
+/*!
+ * @file ContactSpringDamper.h
+ * @brief Spring Damper based Contact dynamics
  */
 
 #ifndef CONTACT_SPRING_DAMPER_H
@@ -8,9 +9,18 @@
 #include "ContactConstraint.h"
 #include "Dynamics/FloatingBaseModel.h"
 
+/*!
+ * Class representing contact dynamics for a FloatingBaseModel
+ * This computes external forces to apply bodies which are in contact with the ground
+ */
 template <typename T>
 class ContactSpringDamper : public ContactConstraint<T> {
  public:
+
+  /*!
+   * Construct a new contact dynamics model
+   * @param model : FloatingBaseModel for the contact dynamics
+   */
   ContactSpringDamper(FloatingBaseModel<T>* model)
       : ContactConstraint<T>(model) {
     _nGC = CC::_model->_nGroundContact;
@@ -24,10 +34,10 @@ class ContactSpringDamper : public ContactConstraint<T> {
 
   /*!
    * Run the ground contact model for a single collision plane on a list of
-   * ground contact points The ground is allowed to deform in the tangential
-   * direction, but not the normal direction. The ground also "remembers" its
-   * deformation between separate contact events. (however it does spring back
-   * pretty quickly)
+   * ground contact points. The ground is allowed to deform in the tangential
+   * direction, but not the normal direction. Instead, the foot penetrates the ground
+   * The ground also "remembers" its deformation between separate contact events.
+   * (however it does spring back pretty quickly)
    * @param K Ground stiffness
    * @param D Ground damping
    * @param dt Timestep (used for deflection)
@@ -40,10 +50,6 @@ class ContactSpringDamper : public ContactConstraint<T> {
  protected:
   size_t _nGC;
 
-  /*!
-   * @param K Ground stiffness
-   * @param D Ground damping
-   */
   void _groundContactWithOffset(T K, T D);
 
   vectorAligned<Vec2<T>> deflectionRate;

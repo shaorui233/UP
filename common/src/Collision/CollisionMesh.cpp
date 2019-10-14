@@ -1,5 +1,11 @@
+/*!
+ * @file CollisionMesh.cpp
+ * @brief Collision logic for a mesh/height map
+ */
+
 #include "Collision/CollisionMesh.h"
 #include "Utilities/Utilities_print.h"
+
 /*!
  * check whether the contact happens or not
  * cp_frame let you know which direction is normal (z) and which directions are

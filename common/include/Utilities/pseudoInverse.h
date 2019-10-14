@@ -3,6 +3,12 @@
 #include <eigen3/Eigen/SVD>
 using namespace std;
 
+/*!
+ * Compute the pseudo inverse of a matrix
+ * @param matrix : input matrix
+ * @param sigmaThreshold : threshold for singular values being zero
+ * @param invMatrix : output matrix
+ */
 template <typename T>
 void pseudoInverse(DMat<T> const& matrix, double sigmaThreshold,
                    DMat<T>& invMatrix) {

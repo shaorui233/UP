@@ -106,6 +106,7 @@ The joint PD control actually runs at 40 kHz on the motor controllers.
 
 If you would like to see more of how this works, look at the `robot` folder.  The `RobotRunner` class actually runs the control code, and connects it with either the `HardwareBridge` or `SimulationBridge`.  The code in the `rt` folder actually interacts with the hardware.
 
+<<<<<<< HEAD
 # User Parameters
 User Parameters are settings which are specific to the controller you are running.  The list of user parameters and their values are defined in a yaml file.  On startup, the file `config/default-user.yaml` is loaded into the simulator. Currently you must manually make sure that your currently loaded list of user parameters (on the right of the simulator window) matches the user parameters you define in your controller.  If these do not match, the controller will see the mismatch and print an error like 
 
@@ -148,6 +149,8 @@ Currently, the most reliable way to recover from errors is:
 If you ever get the simulator in a state where you can't click "Stop" to reset the simulation (or the simulator crashes), it is a bug and you should open a Github issue.
 
 
+=======
+>>>>>>> dd9c903f3b96dc08148285bb0f2ae10039cb3475
 
 # Unfinished
 - Verify that the controller update rate can be changed in simulation/robot hardware

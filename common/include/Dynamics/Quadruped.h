@@ -10,23 +10,29 @@
 #ifndef LIBBIOMIMETICS_QUADRUPED_H
 #define LIBBIOMIMETICS_QUADRUPED_H
 
+#include <vector>
 #include "Dynamics/ActuatorModel.h"
 #include "Dynamics/FloatingBaseModel.h"
 #include "Dynamics/SpatialInertia.h"
 
 #include <eigen3/Eigen/StdVector>
 
-#include <vector>
 
+
+/*!
+ * Basic parameters for a cheetah-shaped robot
+ */
 namespace cheetah {
 constexpr size_t num_act_joint = 12;
 constexpr size_t num_q = 19;
 constexpr size_t dim_config = 18;
 constexpr size_t num_leg = 4;
 constexpr size_t num_leg_joint = 3;
-constexpr float servo_rate = 0.001;
 }  // namespace cheetah
 
+/*!
+ * Link indices for cheetah-shaped robots
+ */
 namespace linkID {
 constexpr size_t FR = 9;   // Front Right Foot
 constexpr size_t FL = 11;  // Front Left Foot
@@ -59,7 +65,7 @@ class Quadruped {
   RobotType _robotType;
   T _bodyLength, _bodyWidth, _bodyHeight, _bodyMass;
   T _abadGearRatio, _hipGearRatio, _kneeGearRatio;
-  T _abadLinkLength, _hipLinkLength, _kneeLinkLength, _maxLegLength;
+  T _abadLinkLength, _hipLinkLength, _kneeLinkLength, _kneeLinkY_offset, _maxLegLength;
   T _motorKT, _motorR, _batteryV;
   T _motorTauMax;
   T _jointDamping, _jointDryFriction;
@@ -71,6 +77,11 @@ class Quadruped {
   bool buildModel(FloatingBaseModel<T>& model);
   std::vector<ActuatorModel<T>> buildActuatorModels();
 
+  /*!
+   * Get if the i-th leg is on the left (+) or right (-) of the robot.
+   * @param leg : the leg index
+   * @return The side sign (-1 for right legs, +1 for left legs)
+   */
   static T getSideSign(int leg) {
     const T sideSigns[4] = {-1, 1, -1, 1};
     assert(leg >= 0 && leg < 4);
@@ -79,6 +90,7 @@ class Quadruped {
 
   /*!
    * Get location of the hip for the given leg in robot frame
+   * @param leg : the leg index
    */
   Vec3<T> getHipLocation(int leg) {
     assert(leg >= 0 && leg < 4);

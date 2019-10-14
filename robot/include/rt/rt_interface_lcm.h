@@ -10,6 +10,16 @@
 class gui_main_control_settings_t;
 class rc_channels_t;
 
+namespace RC_mode{
+  constexpr int OFF = 0;
+  constexpr int QP_STAND = 3;
+  constexpr int BACKFLIP_PRE = 4;
+  constexpr int BACKFLIP = 5;
+  constexpr int VISION = 6;
+  constexpr int LOCOMOTION = 11;
+  constexpr int RECOVERY_STAND = 12;
+};
+
 class Handler {
  public:
   /**

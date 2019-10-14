@@ -30,8 +30,13 @@ Quadruped<T> buildMiniCheetah() {
   cheetah._kneeGearRatio = 9.33;
   cheetah._abadLinkLength = 0.062;
   cheetah._hipLinkLength = 0.209;
-  cheetah._kneeLinkLength = 0.175;
-  cheetah._maxLegLength = 0.384;
+  //cheetah._kneeLinkLength = 0.175;
+  //cheetah._maxLegLength = 0.384;
+  cheetah._kneeLinkY_offset = 0.004;
+  //cheetah._kneeLinkLength = 0.20;
+  cheetah._kneeLinkLength = 0.195;
+  cheetah._maxLegLength = 0.409;
+
 
   cheetah._motorTauMax = 3.f;
   cheetah._batteryV = 24;
@@ -39,6 +44,9 @@ Quadruped<T> buildMiniCheetah() {
   cheetah._motorR = 0.173;
   cheetah._jointDamping = .01;
   cheetah._jointDryFriction = .2;
+  //cheetah._jointDamping = .0;
+  //cheetah._jointDryFriction = .0;
+
 
   // rotor inertia if the rotor is oriented so it spins around the z-axis
   Mat3<T> rotorRotationalInertiaZ;
