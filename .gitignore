@@ -13,6 +13,7 @@ lcm-types/file_list.txt
 lcm-types/cpp/*
 lcm-types/lcmtypes/*
 lcm-types/python/*
+lcm-types/file_list.txt
 optimization_data
 sim_data
 test_data
