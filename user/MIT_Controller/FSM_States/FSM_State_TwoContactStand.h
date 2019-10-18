@@ -76,7 +76,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   // Contact Data
   double minForce, maxForce, mu_ctrl = 0.45;
   double minForces[4], maxForces[4];
-  double contactStateScheduled[4] = {1, 1, 1, 1};
+  double contactStateScheduled[4] = {1.0, 1.0, 1.0, 1.0};
   Vec4<T> conPhase;
 
   // Control Input
@@ -85,6 +85,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   // Leg Impedance Control
   Vec3<double> impedance_kp;
   Vec3<double> impedance_kd;
+  bool ESTOP;
 
   // Check to see if desired position has changed
   double p_des_prev[2] = {99.0,99.0};

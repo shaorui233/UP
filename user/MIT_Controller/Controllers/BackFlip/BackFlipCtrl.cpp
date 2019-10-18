@@ -32,6 +32,9 @@ void BackFlipCtrl<T>::_update_joint_command() {
   int tuck_iteration(600);
   int ramp_end_iteration(650);
 
+    this->_Kp_joint = {10.0, 10.0, 10.0};
+    this->_Kd_joint = {1.0, 1.0, 1.0};
+ 
    float tau_mult;
 
   DataCtrl::_des_jpos.setZero();
@@ -104,12 +107,20 @@ void BackFlipCtrl<T>::_update_joint_command() {
     current_step = DataCtrl::_data_reader->get_plan_at_time(0);
     // q_des_front_f << 0.0, current_step[3], current_step[4];
     // q_des_rear_f << 0.0, current_step[5], current_step[6];
-    q_des_front_f << 0.0, -0.8425, 1.65;
-    q_des_rear_f << 0.0, -0.8425, 1.65;
+    
+    //q_des_front_f << 0.0, -0.8425, 1.65;
+    //q_des_rear_f << 0.0, -0.8425, 1.65;
+
+    // DH
+    q_des_front_f << 0.0, -0.8425, 1.70;
+    q_des_rear_f << 0.0, -1.0525, 1.65;
+
 
     q_des_front = (1 - s) * q_des_front_0 + s * q_des_front_f;
     q_des_rear = (1 - s) * q_des_rear_0 + s * q_des_rear_f;
-
+    this->_Kp_joint = {25.0, 25.0, 25.0};
+    this->_Kd_joint = {1.5, 1.5, 1.5};
+ 
   }
 
   // Abduction

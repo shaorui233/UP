@@ -53,6 +53,9 @@ void FSM_State_BalanceStand<T>::onEnter() {
  */
 template <typename T>
 void FSM_State_BalanceStand<T>::run() {
+  Vec4<T> contactState;
+  contactState<< 0.5, 0.5, 0.5, 0.5;
+  this->_data->_stateEstimator->setContactPhase(contactState);
   BalanceStandStep();
 }
 

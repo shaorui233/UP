@@ -18,7 +18,7 @@
 #include "rt/rt_spi.h"
 #include "rt/rt_vectornav.h"
 
-//#define USE_MICROSTRAIN
+#define USE_MICROSTRAIN
 
 /*!
  * If an error occurs during initialization, before motors are enabled, print
