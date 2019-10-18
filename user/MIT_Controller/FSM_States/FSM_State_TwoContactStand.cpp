@@ -149,20 +149,31 @@ void FSM_State_TwoContactStand<T>::run() {
   impedance_kp << 0.0, 0.0, 0.0;
   impedance_kd << 0.0, 0.0, 0.0;
 
+  // Check for emergency stop if orientation error too large
+  for(int i = 0; i < 3; i++){
+    if(fabs(rpy[i]-rpy_act[i])>0.55)
+      ESTOP = true;
+  }
+
   // Feed forward forces for legs in contact with the ground & PD control for legs not in contact
   qd_lift_leg << 0.0, 0.0, 0.0;
+  if(ESTOP){
+    this->jointFeedForwardTorques = Mat34<float>::Zero();   // feed forward joint torques
+    this->footFeedForwardForces = Mat34<float>::Zero();     // feedforward forces at the feet
+  } else{
   for (int leg = 0; leg < 4; leg++) {
     if (contactStateScheduled[leg] > 0.0){
-      this->footFeedForwardForces.col(leg) << (T)fOpt[leg * 3], (T)fOpt[leg * 3 + 1], (T)fOpt[leg * 3 + 2];
-      this->jointFeedForwardTorques.col(leg) << (T)G_ff[6+3*leg], (T)G_ff[6+3*leg+1], G_ff[6+3*leg+2];
-      conPhase[leg] = 0.5;
-    }
+        this->footFeedForwardForces.col(leg) << (T)fOpt[leg * 3], (T)fOpt[leg * 3 + 1], (T)fOpt[leg * 3 + 2];
+        this->jointFeedForwardTorques.col(leg) << (T)G_ff[6+3*leg], (T)G_ff[6+3*leg+1], G_ff[6+3*leg+2];
+        conPhase[leg] = 0.5;
+      }
 
-    else {
-      this->liftLeg(leg, q_lift_leg, qd_lift_leg);
-      conPhase[leg] = 0.0;
-    }
+      else {
+        this->liftLeg(leg, q_lift_leg, qd_lift_leg);
+        conPhase[leg] = 0.0;
+      }
   
+    }
   }
 
   // Set the contact phase for the state estimator
@@ -278,24 +289,24 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
     p_des[1] = pweight * pFeet_world[3*1+1] + (1 - pweight) * pFeet_world[3*2+1];
 
     if (contactStateScheduled[0] >= 0.2)
-      contactStateScheduled[0] -= 0.0001;
+      contactStateScheduled[0] -= 0.00025;
     else
       contactStateScheduled[0] = 0.0;
 
     if (contactStateScheduled[3] >= 0.2)
-      contactStateScheduled[3] -= 0.0001;
+      contactStateScheduled[3] -= 0.00025;
     else
       contactStateScheduled[3] = 0.0;
 
     q_lift_leg << 0., -1.45, 2.9;
   
   } else if (this->_data->userParameters->stance_legs == 3) { // three legs
-    pweight = 0.46;
+    pweight = 0.425;
     p_des[0] = pweight * pFeet_world[3*0] + (1 - pweight) * pFeet_world[3*3];
     p_des[1] = pweight * pFeet_world[3*0+1] + (1 - pweight) * pFeet_world[3*3+1];
 
     if (contactStateScheduled[0] >= 0.2)
-      contactStateScheduled[0] -= 0.0001;
+      contactStateScheduled[0] -= 0.0005;
     else
       contactStateScheduled[0] = 0.0;
       
@@ -312,7 +323,7 @@ void FSM_State_TwoContactStand<T>::get_desired_state() {
         q_lift_leg << 0., -0.8, 2.15;
         double error;
         error = fabs(q_lift_leg[1]-this->_data->_legController->datas[i].q(1));
-        if (error < 0.04)
+        if (error < 0.06)
           contactStateScheduled[i] = 1;
       }
     }

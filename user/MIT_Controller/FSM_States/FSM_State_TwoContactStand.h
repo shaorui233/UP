@@ -85,6 +85,7 @@ class FSM_State_TwoContactStand : public FSM_State<T> {
   // Leg Impedance Control
   Vec3<double> impedance_kp;
   Vec3<double> impedance_kd;
+  bool ESTOP;
 
   // Check to see if desired position has changed
   double p_des_prev[2] = {99.0,99.0};
