@@ -61,3 +61,8 @@ if [ "$1" == "ben-vm" ]; then
     sudo ifconfig enxa0cec80424d3 multicast
     sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev enxa0cec80e3ced
 fi
+
+if [ "$1" == "dhmac" ]; then
+    sudo ifconfig enx70886b887f40 multicast
+    sudo route add -net 224.0.0.0 netmask 240.0.0.0 dev enx70886b887f40
+fi
